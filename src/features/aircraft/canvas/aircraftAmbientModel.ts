@@ -123,9 +123,9 @@ export const TIME_OF_DAY_HUE: Record<TimeOfDay, number> = {
 // wash rather than a solid colour cast — severe weather still tops out well
 // under 50% alpha.
 const OVERLAY_MOOD_CHROMA: Record<WeatherMood, number> = {
-  clear: 0.09,
-  overcast: 0.06,
-  severe: 0.035,
+  clear: 0.1,
+  overcast: 0.07,
+  severe: 0.04,
 };
 const OVERLAY_LIGHTNESS_DARK: Record<WeatherMood, number> = {
   clear: 0.36,
@@ -149,6 +149,39 @@ const OVERLAY_MOOD_ALPHA: Record<WeatherMood, number> = {
   severe: 0.52,
 };
 
+// Time-of-day DEPTH for the wash. The mood tables above set the colour family
+// and weather weight; these carry the sky's hour. In LIGHT theme the map must
+// stay legible (roads, coastline, terrain), so the atmosphere comes mostly
+// from the raised chroma above — brightness only eases down gently through the
+// day and drops meaningfully at NIGHT (where a darker map genuinely reads
+// better); a heavier dusk dim was tried and flattened the whole map to one
+// muddy tone. DARK theme is already dark, so it only deepens a little at night
+// and lifts a touch at midday.
+const WASH_TOD_LIGHTNESS_DELTA_LIGHT: Record<TimeOfDay, number> = {
+  day: 0.02,
+  dawn: -0.02,
+  dusk: -0.04,
+  night: -0.14,
+};
+const WASH_TOD_LIGHTNESS_DELTA_DARK: Record<TimeOfDay, number> = {
+  day: 0.05,
+  dawn: -0.01,
+  dusk: -0.04,
+  night: -0.1,
+};
+const WASH_TOD_ALPHA_SCALE: Record<TimeOfDay, number> = {
+  day: 0.72,
+  dawn: 0.85,
+  dusk: 0.9,
+  night: 1.1,
+};
+// Hard ceiling so even severe x night stays an atmospheric wash, never an
+// opaque colour cast.
+const WASH_ALPHA_MAX = 0.6;
+
+const clamp01 = (value: number, min = 0.04, max = 0.98) =>
+  Math.min(max, Math.max(min, value));
+
 export interface AmbientOverlayColor {
   /** Opaque oklch() colour string — pass as fillColor, not as a CSS background alone. */
   color: string;
@@ -163,11 +196,85 @@ export function resolveAmbientOverlayColor(
 ): AmbientOverlayColor {
   const hue = TIME_OF_DAY_HUE[timeOfDay];
   const chroma = OVERLAY_MOOD_CHROMA[mood];
-  const lightness = dark ? OVERLAY_LIGHTNESS_DARK[mood] : OVERLAY_LIGHTNESS_LIGHT[mood];
+  const baseLightness = dark ? OVERLAY_LIGHTNESS_DARK[mood] : OVERLAY_LIGHTNESS_LIGHT[mood];
+  const todDelta = dark
+    ? WASH_TOD_LIGHTNESS_DELTA_DARK[timeOfDay]
+    : WASH_TOD_LIGHTNESS_DELTA_LIGHT[timeOfDay];
+  const lightness = clamp01(baseLightness + todDelta);
+  const opacity = Math.min(
+    WASH_ALPHA_MAX,
+    OVERLAY_MOOD_ALPHA[mood] * WASH_TOD_ALPHA_SCALE[timeOfDay],
+  );
   return {
     color: `oklch(${lightness} ${chroma} ${hue})`,
-    opacity: OVERLAY_MOOD_ALPHA[mood],
+    opacity,
   };
+}
+
+// Screen-space DIRECTIONAL light gradient — a soft deepening on the side of
+// the map facing AWAY from the light source, fading to fully clear on the lit
+// side. This is the immersion lever a flat wash can't provide: it adds depth
+// and a sense of raking light across the viewport WITHOUT uniformly muddying
+// the map's own colours, because the lit side keeps full map fidelity. It's
+// driven by the same light bearing as the per-aircraft light masks, so the
+// whole scene reads as lit from one coherent direction. Rendered by
+// AmbientLightGradientLayer into the same low pane as the wash (above tiles,
+// below every annotation/aircraft), so it never tints labels or aircraft.
+const GRADIENT_SHADOW_CHROMA_LIGHT = 0.06;
+const GRADIENT_SHADOW_CHROMA_DARK = 0.05;
+const GRADIENT_SHADOW_LIGHTNESS_LIGHT = 0.34;
+const GRADIENT_SHADOW_LIGHTNESS_DARK = 0.12;
+// Alpha of the shadow edge by time of day (day is the faintest, night the
+// deepest). Split by theme: dark theme can carry a heavier deepening before it
+// reads as a smudge; light theme stays gentle so the map keeps its detail.
+const GRADIENT_SHADOW_ALPHA_LIGHT: Record<TimeOfDay, number> = {
+  day: 0.1,
+  dawn: 0.24,
+  dusk: 0.3,
+  night: 0.38,
+};
+const GRADIENT_SHADOW_ALPHA_DARK: Record<TimeOfDay, number> = {
+  day: 0.16,
+  dawn: 0.28,
+  dusk: 0.34,
+  night: 0.46,
+};
+const GRADIENT_MOOD_SCALE: Record<WeatherMood, number> = {
+  clear: 1,
+  overcast: 1.1,
+  severe: 1.25,
+};
+const GRADIENT_SHADOW_ALPHA_MAX = 0.55;
+
+// Returns a CSS `background-image` value: a single linear-gradient whose angle
+// matches the light bearing so the shadow sits on the anti-light edge. CSS
+// gradient angles and compass bearings share the same convention (0deg = up/
+// north, 90deg = right/east, clockwise), so the bearing maps straight through:
+// at `${bearing}deg` the 0% stop lands on the (bearing+180) edge — exactly the
+// side facing away from the light.
+export function resolveAmbientLightGradient(
+  mood: WeatherMood,
+  timeOfDay: TimeOfDay,
+  lightBearingDeg: number,
+  dark: boolean,
+): string {
+  const hue = TIME_OF_DAY_HUE[timeOfDay];
+  const chroma = dark ? GRADIENT_SHADOW_CHROMA_DARK : GRADIENT_SHADOW_CHROMA_LIGHT;
+  const lightness = dark
+    ? GRADIENT_SHADOW_LIGHTNESS_DARK
+    : GRADIENT_SHADOW_LIGHTNESS_LIGHT;
+  const baseAlpha = dark
+    ? GRADIENT_SHADOW_ALPHA_DARK[timeOfDay]
+    : GRADIENT_SHADOW_ALPHA_LIGHT[timeOfDay];
+  const alpha = Math.min(
+    GRADIENT_SHADOW_ALPHA_MAX,
+    baseAlpha * GRADIENT_MOOD_SCALE[mood],
+  );
+  const angle = normalizeDeg(lightBearingDeg);
+  const shadow = `oklch(${lightness} ${chroma} ${hue} / ${alpha})`;
+  // Shadow holds the anti-light third, fades out by 65% so the lit ~35% of the
+  // viewport stays fully clear and keeps full map fidelity.
+  return `linear-gradient(${angle}deg, ${shadow} 0%, oklch(${lightness} ${chroma} ${hue} / 0) 65%)`;
 }
 
 // Chrome edge accent: feeds the existing --app-floating-edge-shadow token

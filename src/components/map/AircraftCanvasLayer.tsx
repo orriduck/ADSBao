@@ -371,25 +371,32 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
 // Pushing past a hue's own ceiling isn't harmful (the browser gamut-maps
 // gracefully, not a visible break), but it's wasted precision, hence the
 // per-theme split instead of one shared number chasing the tightest hue.
+// The at-rest glyph carries the mood/time hue, but its lightness is tuned for
+// CONTRAST against the (now atmospheric) map, not to blend into it: on the
+// dark canvas aircraft sit brighter than before, on the light canvas they sit
+// darker and more saturated. An earlier pass put light-theme aircraft at ~0.78
+// lightness / 0.11 chroma — a pale lavender that washed out against a pale map
+// (measured on-canvas at rgb 184,168,248). These push both themes further from
+// the map's own lightness so aircraft read as lit subjects, not camouflage.
 const MOOD_CHROMA_DARK: Record<WeatherMood, number> = {
-  clear: 0.1,
-  overcast: 0.07,
-  severe: 0.04,
+  clear: 0.13,
+  overcast: 0.1,
+  severe: 0.06,
 };
 const MOOD_CHROMA_LIGHT: Record<WeatherMood, number> = {
-  clear: 0.11,
-  overcast: 0.08,
-  severe: 0.05,
+  clear: 0.15,
+  overcast: 0.12,
+  severe: 0.08,
 };
 const MOOD_LIGHTNESS_DARK: Record<WeatherMood, number> = {
-  clear: 0.4,
-  overcast: 0.34,
-  severe: 0.28,
+  clear: 0.52,
+  overcast: 0.46,
+  severe: 0.4,
 };
 const MOOD_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
-  clear: 0.78,
-  overcast: 0.72,
-  severe: 0.66,
+  clear: 0.58,
+  overcast: 0.52,
+  severe: 0.46,
 };
 // Ground traffic sits at one fixed mid lightness regardless of theme (it
 // always read as "duller than airborne" in both themes before this — this
@@ -453,7 +460,9 @@ function resolveAircraftCanvasPalette(
     focal: read("--atc-signal-accent", dark ? "#e8893f" : "#cf6a1e"),
     selected: read("--atc-signal-secondary", dark ? "#e4e2db" : "#4a4945"),
     // Contrast halo replaces the dropped plate disc — light-on-dark / dark-on-light.
-    halo: dark ? "rgba(244,242,236,0.55)" : "rgba(24,24,22,0.42)",
+    // A soft aura that separates each glyph from a busy map; bumped alongside the
+    // higher-contrast fills so aircraft carry a clear figure-ground edge.
+    halo: dark ? "rgba(244,242,236,0.62)" : "rgba(24,24,22,0.5)",
     labelGlow: read(
       "--map-label-glow",
       dark ? "rgba(0,0,0,0.72)" : "rgba(255,255,255,0.82)",

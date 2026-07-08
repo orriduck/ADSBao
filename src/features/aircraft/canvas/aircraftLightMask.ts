@@ -31,14 +31,20 @@ const MASK_SIZE_PX = 48;
 // real glyph size, reading as "flat" rather than "lit from a direction".
 // These values move the corners by 20-40 RGB units, a difference that's
 // clearly perceptible even on a small icon.
+// The SHADOW side does most of the "lit from a direction" work — it's cool/
+// dark, so it can be strong without any hue conflict. The HIGHLIGHT side is
+// kept restrained, especially for the WARM dawn/dusk highlights: pushed too
+// far they repaint whole (small) glyphs gold and collide with the single
+// reserved orange accent for tracked targets. Day (neutral white) and night
+// (cool blue) highlights carry no such risk, so they run a little stronger.
 const TIME_OF_DAY_MASK_COLORS: Record<
   TimeOfDay,
   { highlight: string; shadow: string }
 > = {
-  dawn: { highlight: "rgba(255,214,170,0.48)", shadow: "rgba(70,60,120,0.36)" },
-  day: { highlight: "rgba(255,255,255,0.42)", shadow: "rgba(0,0,0,0.34)" },
-  dusk: { highlight: "rgba(255,178,120,0.50)", shadow: "rgba(55,48,110,0.38)" },
-  night: { highlight: "rgba(190,210,255,0.36)", shadow: "rgba(5,5,25,0.46)" },
+  dawn: { highlight: "rgba(255,224,190,0.42)", shadow: "rgba(64,54,116,0.5)" },
+  day: { highlight: "rgba(255,255,255,0.52)", shadow: "rgba(0,0,0,0.46)" },
+  dusk: { highlight: "rgba(255,198,150,0.44)", shadow: "rgba(50,42,104,0.54)" },
+  night: { highlight: "rgba(196,214,255,0.5)", shadow: "rgba(4,4,22,0.6)" },
 };
 
 const masks = new Map<string, HTMLCanvasElement>();
@@ -66,8 +72,15 @@ function buildLightMask(
     center - dx * radius,
     center - dy * radius,
   );
+  // Give the lit and shadowed sides a little more body than a pure linear ramp
+  // while keeping a real neutral hand-off in the middle, so the glyph reads as
+  // a solid form lit from one side without the highlight swallowing the whole
+  // shape (which, for the warm dawn/dusk highlight, would read as an orange
+  // repaint rather than a lit edge).
   gradient.addColorStop(0, highlightColor);
+  gradient.addColorStop(0.32, highlightColor);
   gradient.addColorStop(0.5, "rgba(255,255,255,0)");
+  gradient.addColorStop(0.68, shadowColor);
   gradient.addColorStop(1, shadowColor);
 
   ctx.fillStyle = gradient;

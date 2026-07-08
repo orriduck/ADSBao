@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.6",
+    version: "v3.2.7",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -121,6 +121,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Decluttered the airport map: nearby fields carrying only an FAA local code (no ICAO and no IATA) — the \"6B6 / 8MA4 / NH14\"-style labels — are no longer drawn. Only airports with a real ICAO or IATA identifier get a badge now.",
         zh: "地图机场标注瘦身:附近那些只有 FAA 本地码、既没有 ICAO 也没有 IATA 的小场(如「6B6 / 8MA4 / NH14」这类)不再标注,只有拥有真实 ICAO 或 IATA 代码的机场才显示徽标。",
+      },
+      {
+        en: "Reworked the ambient light so the atmosphere no longer comes at the aircraft's expense: a new screen-space directional wash deepens the side of the map facing away from the light (raking dawn/dusk/night light across the viewport) while the lit side keeps full map detail, and the flat wash now actually darkens toward night instead of only changing hue. Aircraft were pushed the other way — more saturated and higher-contrast against the map, with a stronger, cleaner light-and-shadow across each glyph — so they read as lit subjects that stand out rather than blending in. The warm dawn/dusk highlight is deliberately held back so it never repaints a glyph into the reserved tracked-target orange.",
+        zh: "重做了氛围光影,让「氛围感」不再以牺牲飞机可见度为代价:新增一层屏幕空间的定向光晕,把背光一侧的地图压暗(黎明/黄昏/夜晚的斜射光扫过视野),而受光侧保留完整地图细节;平铺色调层现在也会真正随入夜变暗,而不只是换个色相。飞机则反向加强——更饱和、与地图对比更高,每个图标上的明暗光影更强更利落——读起来像「被光照亮、跳出来的主体」而不是融进背景。黎明/黄昏的暖色高光被刻意压住,绝不会把飞机染成保留给追踪目标的橙色。",
       },
     ],
   },
