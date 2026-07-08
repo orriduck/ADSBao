@@ -37,12 +37,24 @@ const MASK_SIZE_PX = 48;
 // far they repaint whole (small) glyphs gold and collide with the single
 // reserved orange accent for tracked targets. Day (neutral white) and night
 // (cool blue) highlights carry no such risk, so they run a little stronger.
+//
+// The highlight/shadow SPREAD follows sun elevation, not a flat per-hour value:
+// dawn/dusk are low-sun raking light (the most dramatic single-side shading),
+// night is a harsh-but-dim moonlit look, and DAY is overhead noon — the
+// FLATTEST, most evenly-lit case. An earlier pass had day carrying the single
+// strongest shadow of all four (pure black at 0.46), which was backwards: on
+// the dark canvas it punched a near-black wedge into the glyph (verified: the
+// day shadow corner dropped plane-vs-map contrast to ~1.05, reading as a
+// missing-pixel bite rather than shading), and on the light canvas it over-
+// darkened one side of an otherwise flat-lit midday plane. Day now uses the
+// gentlest spread of the four — a slightly cool near-neutral shadow at a lower
+// alpha — so noon reads flat and the raking drama lives at dawn/dusk.
 const TIME_OF_DAY_MASK_COLORS: Record<
   TimeOfDay,
   { highlight: string; shadow: string }
 > = {
   dawn: { highlight: "rgba(255,224,190,0.42)", shadow: "rgba(64,54,116,0.5)" },
-  day: { highlight: "rgba(255,255,255,0.52)", shadow: "rgba(0,0,0,0.46)" },
+  day: { highlight: "rgba(255,255,255,0.4)", shadow: "rgba(14,16,24,0.3)" },
   dusk: { highlight: "rgba(255,198,150,0.44)", shadow: "rgba(50,42,104,0.54)" },
   night: { highlight: "rgba(196,214,255,0.5)", shadow: "rgba(4,4,22,0.6)" },
 };
