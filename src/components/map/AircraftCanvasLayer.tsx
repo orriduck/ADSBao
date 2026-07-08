@@ -80,6 +80,7 @@ interface AircraftCanvasSetData {
   reducedMotion: boolean;
   lightBearingDeg?: number | null;
   timeOfDay?: TimeOfDay;
+  dark?: boolean;
 }
 
 const AircraftCanvasRenderer = (L as any).Renderer.extend({
@@ -98,6 +99,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._lightBucket = new Map();
     this._lightBearingDeg = null;
     this._timeOfDay = "day";
+    this._dark = true;
     this._hitPoints = [];
     this._lastDraw = 0;
     this._anyAnimating = false;
@@ -268,6 +270,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
         dpr,
         lightBucket,
         this._timeOfDay,
+        this._dark,
       );
       if (d.showLabel) drawAircraftLabel(ctx, d, lp.x, lp.y, palette);
       drawn += 1;
@@ -296,6 +299,7 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._reducedMotion = data.reducedMotion;
     this._lightBearingDeg = data.lightBearingDeg ?? null;
     this._timeOfDay = data.timeOfDay ?? "day";
+    this._dark = data.dark ?? true;
     this._drawList = buildDrawList(data.aircraft, {
       selectedId: data.selectedId,
       focalId: data.focalId,
@@ -613,6 +617,7 @@ export default function AircraftCanvasLayer({
       reducedMotion,
       lightBearingDeg,
       timeOfDay,
+      dark: theme !== "light",
     });
   }, [
     map,

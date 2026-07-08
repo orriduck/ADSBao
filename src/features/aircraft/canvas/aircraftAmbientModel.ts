@@ -224,20 +224,25 @@ const GRADIENT_SHADOW_CHROMA_LIGHT = 0.06;
 const GRADIENT_SHADOW_CHROMA_DARK = 0.05;
 const GRADIENT_SHADOW_LIGHTNESS_LIGHT = 0.34;
 const GRADIENT_SHADOW_LIGHTNESS_DARK = 0.12;
-// Alpha of the shadow edge by time of day (day is the faintest, night the
-// deepest). Split by theme: dark theme can carry a heavier deepening before it
-// reads as a smudge; light theme stays gentle so the map keeps its detail.
+// Alpha of the shadow edge by time of day. This tracks SUN ELEVATION, not a
+// "darker toward night" ramp: a low sun (dawn/dusk) casts the strongest raking
+// side-light, an overhead noon sun is nearly flat, and at NIGHT there is no sun
+// at all — so a directional deepening there is both physically wrong (the
+// bearing is only a clamp artifact once the sun is down) and invisible on the
+// already-dark map. Night therefore fades the directional gradient almost to
+// nothing and hands the job of "light" to each plane's own headlight instead.
+// Split by theme: dark theme can carry a touch more before it reads as a smudge.
 const GRADIENT_SHADOW_ALPHA_LIGHT: Record<TimeOfDay, number> = {
   day: 0.1,
   dawn: 0.24,
   dusk: 0.3,
-  night: 0.38,
+  night: 0.08,
 };
 const GRADIENT_SHADOW_ALPHA_DARK: Record<TimeOfDay, number> = {
-  day: 0.16,
+  day: 0.14,
   dawn: 0.28,
   dusk: 0.34,
-  night: 0.46,
+  night: 0.1,
 };
 const GRADIENT_MOOD_SCALE: Record<WeatherMood, number> = {
   clear: 1,
