@@ -14,7 +14,7 @@
 import type { AircraftDrawDescriptor } from "./aircraftCanvasModel";
 import type { TimeOfDay } from "./aircraftAmbientModel";
 import { getAircraftSprite } from "./aircraftSpriteCache";
-import { getLightMask } from "./aircraftLightMask";
+import { getLightMask, getHeadlightMask } from "./aircraftLightMask";
 
 const AIRCRAFT_GLYPH_BASE_PX = 20;
 const DOT_RADIUS_PX = 3.5;
@@ -74,13 +74,19 @@ function applyLightMask(
   lightBucket: number | null | undefined,
   sizePx: number,
   timeOfDay: TimeOfDay,
+  dark: boolean,
 ) {
   if (lightBucket == null) return;
-  const mask = getLightMask(lightBucket, timeOfDay);
-  if (!mask) return;
   ctx.save();
   ctx.globalCompositeOperation = "source-atop";
-  ctx.drawImage(mask, -sizePx / 2, -sizePx / 2, sizePx, sizePx);
+  const mask = getLightMask(lightBucket, timeOfDay, dark);
+  if (mask) ctx.drawImage(mask, -sizePx / 2, -sizePx / 2, sizePx, sizePx);
+  // At night the plane is lit by its own nose light, not the (absent) sun —
+  // layer a faint headlight glow at the nose on top of the directional mask.
+  if (timeOfDay === "night") {
+    const headlight = getHeadlightMask();
+    if (headlight) ctx.drawImage(headlight, -sizePx / 2, -sizePx / 2, sizePx, sizePx);
+  }
   ctx.restore();
 }
 
@@ -95,6 +101,7 @@ export function drawAircraftGlyph(
   dpr: number,
   lightBucket: number | null = null,
   timeOfDay: TimeOfDay = "day",
+  dark = true,
 ) {
   const color = colorFor(d, palette);
   ctx.save();
@@ -130,7 +137,7 @@ export function drawAircraftGlyph(
     // Sprite already carries the baked drop-shadow — plain drawImage, no shadow.
     const s = sprite.sizeCss * scale;
     ctx.drawImage(sprite.canvas, -s / 2, -s / 2, s, s);
-    applyLightMask(ctx, lightBucket, s, timeOfDay);
+    applyLightMask(ctx, lightBucket, s, timeOfDay, dark);
   } else {
     // Arrow fallback (no silhouette, or sprite still loading). Gets the same
     // ambient mask so there's no flat-colour -> gradient pop the moment the
@@ -144,7 +151,7 @@ export function drawAircraftGlyph(
     // state applies to any subsequent draw, and would otherwise blur-shadow
     // the mask rectangle itself).
     ctx.shadowBlur = 0;
-    applyLightMask(ctx, lightBucket, AIRCRAFT_GLYPH_BASE_PX * scale, timeOfDay);
+    applyLightMask(ctx, lightBucket, AIRCRAFT_GLYPH_BASE_PX * scale, timeOfDay, dark);
   }
   ctx.restore();
 }

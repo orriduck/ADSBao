@@ -13,6 +13,7 @@ import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftCanvasLayer from "./AircraftCanvasLayer";
 import AmbientWashLayer from "./AmbientWashLayer";
+import AmbientLightGradientLayer from "./AmbientLightGradientLayer";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
@@ -644,6 +645,14 @@ export default function AirportMap({
               theme={currentTheme}
               weatherMood={weatherMood}
               timeOfDay={timeOfDay}
+            />
+          )}
+          {ambientEnabled && lightBearingDeg != null && (
+            <AmbientLightGradientLayer
+              theme={currentTheme}
+              weatherMood={weatherMood}
+              timeOfDay={timeOfDay}
+              lightBearingDeg={lightBearingDeg}
             />
           )}
           <AirspaceLayer
