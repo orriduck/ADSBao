@@ -404,17 +404,49 @@ const MOOD_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
 const GROUND_LIGHTNESS = 0.5;
 const GROUND_CHROMA_SCALE = 0.6;
 
+// Time-of-day lightness shift for the glyph body — the mood tables above set
+// the per-theme lightness band; this carries the sky's hour, mirroring the map
+// wash's own WASH_TOD_LIGHTNESS_DELTA so aircraft track the same darkening
+// curve as the ground they fly over instead of staying a fixed lightness while
+// the map moves under them. The two themes move in OPPOSITE directions on
+// purpose: on the LIGHT map, aircraft must go DARKER toward night to stay the
+// heavier subject as the map dims — a fixed-lightness night plane washed out
+// badly, worst over water where a night-blue glyph sits on light-blue sea
+// (measured: body-vs-water contrast was ~1.95 at rest, lifted to ~3.2 by a
+// -0.12 night shift). On the DARK map it's inverted: aircraft lift SLIGHTLY
+// toward night so the bright subject keeps its edge as the map deepens
+// (dark-night body contrast ~2.7 -> ~3.4 at +0.05). Day is the zero reference.
+const REST_TOD_LIGHTNESS_DELTA_LIGHT: Record<TimeOfDay, number> = {
+  day: 0,
+  dawn: -0.04,
+  dusk: -0.06,
+  night: -0.12,
+};
+const REST_TOD_LIGHTNESS_DELTA_DARK: Record<TimeOfDay, number> = {
+  day: 0,
+  dawn: 0.01,
+  dusk: 0.02,
+  night: 0.05,
+};
+const clampLightness = (value: number) => Math.min(0.98, Math.max(0.04, value));
+
 function resolveAmbientRestColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
   const hue = TIME_OF_DAY_HUE[timeOfDay];
   const chroma = dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood];
-  const lightness = dark ? MOOD_LIGHTNESS_DARK[mood] : MOOD_LIGHTNESS_LIGHT[mood];
-  return `oklch(${lightness} ${chroma} ${hue})`;
+  const baseLightness = dark ? MOOD_LIGHTNESS_DARK[mood] : MOOD_LIGHTNESS_LIGHT[mood];
+  const todDelta = dark
+    ? REST_TOD_LIGHTNESS_DELTA_DARK[timeOfDay]
+    : REST_TOD_LIGHTNESS_DELTA_LIGHT[timeOfDay];
+  return `oklch(${clampLightness(baseLightness + todDelta)} ${chroma} ${hue})`;
 }
 
 function resolveAmbientGroundColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
   const hue = TIME_OF_DAY_HUE[timeOfDay];
   const chroma = (dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood]) * GROUND_CHROMA_SCALE;
-  return `oklch(${GROUND_LIGHTNESS} ${chroma} ${hue})`;
+  const todDelta = dark
+    ? REST_TOD_LIGHTNESS_DELTA_DARK[timeOfDay]
+    : REST_TOD_LIGHTNESS_DELTA_LIGHT[timeOfDay];
+  return `oklch(${clampLightness(GROUND_LIGHTNESS + todDelta)} ${chroma} ${hue})`;
 }
 
 function resolveAircraftCanvasPalette(
