@@ -48,6 +48,15 @@ import {
     false,
     "a late account response must not overwrite a setting selected after the request started",
   );
+  assert.equal(
+    shouldCommitMapSettingsHydration({
+      requestVersion: 5,
+      currentVersion: 5,
+      hasUserMutation: true,
+    }),
+    false,
+    "an account request that starts after a user choice must not overwrite that choice either",
+  );
 }
 
 {

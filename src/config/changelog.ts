@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 67;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.2.8",
+    version: "v3.2.9",
     kind: "feat",
     title: {
       en: "Aircraft blend into the weather and light",
@@ -62,6 +62,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       zh: "地图上的飞机现在带上了一点环境氛围。它们的静息态颜色会随当前机场的飞行规则天气变化——晴朗、多云或低能见度各自呈现一个略有差异的低饱和度色调(追踪目标的橙色和点选目标的蓝色不受影响,全局单一强调色的规则不变)。每架飞机还会有一层柔和的高光/阴影渐变,来自一个简化的光源方向——沿东西轴随一天时间摆动(不是真实太阳位置计算,是刻意的简化,不追求天文精度)。两个效果都只是查表加几张缓存好的渐变蒙版,同屏渲染几百架飞机的开销和之前完全一样。",
     },
     highlights: [
+      {
+        en: "Fixed the remaining mobile timing case: if sign-in finished after a map setting was chosen, the late account hydration could still restore its older value. A setting changed in the current page now always wins and is persisted.",
+        zh: "修复剩余的移动端时序问题:若刚选完地图设置才完成登录,晚到的账户恢复仍可能写回旧值。现在当前页面中亲自改过的设置始终优先并会保存。",
+      },
       {
         en: "Fixed: a late account-settings response could overwrite a map preference just chosen on mobile — including Theme colour snapping back to Weather & time. Your latest choice now wins and persists.",
         zh: "修复:移动端刚选择地图偏好后,晚到的账户设置响应可能会把它覆盖——包括「主题色」跳回「天气与时间」。现在以你最新的选择为准并正确保存。",

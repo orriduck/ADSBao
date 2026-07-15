@@ -486,6 +486,7 @@ export function ExplorerUiProvider({ children }) {
   const pendingAccountMapSettingsHydrationRef = useRef(false);
   const persistedMapSettingsSignatureRef = useRef("");
   const mapSettingsMutationVersionRef = useRef(0);
+  const hasUserMutatedMapSettingsRef = useRef(false);
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
   const [accountMapSettingsHydrated, setAccountMapSettingsHydrated] =
     useState(false);
@@ -666,7 +667,10 @@ export function ExplorerUiProvider({ children }) {
       if (!shouldCommitMapSettingsHydration({
         requestVersion,
         currentVersion: mapSettingsMutationVersionRef.current,
+        hasUserMutation: hasUserMutatedMapSettingsRef.current,
       })) {
+        hasHydratedMapSettingsRef.current = true;
+        setMapSettingsHydrated(true);
         setAccountMapSettingsHydrated(true);
         return;
       }
@@ -824,6 +828,7 @@ export function ExplorerUiProvider({ children }) {
     buildClerkAuthHeaders,
     mapSettings,
     mapSettingsDevice,
+    mapSettingsHydrated,
   ]);
 
   const toggleSidebar = useCallback(() => {
@@ -848,6 +853,7 @@ export function ExplorerUiProvider({ children }) {
 
   const recordMapSettingsMutation = useCallback(() => {
     mapSettingsMutationVersionRef.current += 1;
+    hasUserMutatedMapSettingsRef.current = true;
   }, []);
 
   const toggleMapLabels = useCallback(() => {

@@ -314,8 +314,9 @@ export function resolveMapSettingsHydrationCommit({
 export function shouldCommitMapSettingsHydration({
   requestVersion = 0,
   currentVersion = 0,
+  hasUserMutation = false,
 }: MapSettingsOptions = {}) {
-  return requestVersion === currentVersion;
+  return hasUserMutation !== true && requestVersion === currentVersion;
 }
 
 function hasOwnSetting(settings: MapSettingsRecord, key: string) {
