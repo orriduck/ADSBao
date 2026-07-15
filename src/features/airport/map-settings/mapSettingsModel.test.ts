@@ -20,6 +20,7 @@ import {
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
   serializeMapSettingsPersistenceSignature,
+  shouldCommitMapSettingsHydration,
 } from "./mapSettingsModel";
 
 {
@@ -28,6 +29,25 @@ import {
   assert.equal(normalizeMapSettingsDevice("tablet"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("mobile"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("desktop"), "mobile");
+}
+
+{
+  assert.equal(
+    shouldCommitMapSettingsHydration({
+      requestVersion: 4,
+      currentVersion: 4,
+    }),
+    true,
+    "an unchanged settings request may hydrate its response",
+  );
+  assert.equal(
+    shouldCommitMapSettingsHydration({
+      requestVersion: 4,
+      currentVersion: 5,
+    }),
+    false,
+    "a late account response must not overwrite a setting selected after the request started",
+  );
 }
 
 {

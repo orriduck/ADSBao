@@ -41,6 +41,7 @@ import {
   resolveMapSettingsHydration,
   resolveMapSettingsPersistenceTargets,
   serializeMapSettingsPersistenceSignature,
+  shouldCommitMapSettingsHydration,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -484,6 +485,7 @@ export function ExplorerUiProvider({ children }) {
   const pendingMapSettingsHydrationRef = useRef(null);
   const pendingAccountMapSettingsHydrationRef = useRef(false);
   const persistedMapSettingsSignatureRef = useRef("");
+  const mapSettingsMutationVersionRef = useRef(0);
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
   const [accountMapSettingsHydrated, setAccountMapSettingsHydrated] =
     useState(false);
@@ -636,6 +638,7 @@ export function ExplorerUiProvider({ children }) {
     let cancelled = false;
 
     const hydrateUserMapSettings = async () => {
+      const requestVersion = mapSettingsMutationVersionRef.current;
       hasHydratedMapSettingsRef.current = false;
       setAccountMapSettingsHydrated(false);
       setMapSettingsSaveStatus("idle");
@@ -660,6 +663,13 @@ export function ExplorerUiProvider({ children }) {
       }
 
       if (cancelled) return;
+      if (!shouldCommitMapSettingsHydration({
+        requestVersion,
+        currentVersion: mapSettingsMutationVersionRef.current,
+      })) {
+        setAccountMapSettingsHydrated(true);
+        return;
+      }
       const hydratedSettings = resolveMapSettingsHydration({
         signedIn: true,
         userSettings,
@@ -836,50 +846,64 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setMapZoom", mapZoom });
   }, []);
 
-  const toggleMapLabels = useCallback(() => {
-    dispatch({ type: "toggleMapLabels" });
+  const recordMapSettingsMutation = useCallback(() => {
+    mapSettingsMutationVersionRef.current += 1;
   }, []);
+
+  const toggleMapLabels = useCallback(() => {
+    recordMapSettingsMutation();
+    dispatch({ type: "toggleMapLabels" });
+  }, [recordMapSettingsMutation]);
 
   const toggleRunwayBeams = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleRunwayBeams" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const toggleNavaidMarkers = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleNavaidMarkers" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const toggleReportingPoints = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleReportingPoints" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const toggleAirspaces = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleAirspaces" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const toggleCandidateWatchingSpots = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleCandidateWatchingSpots" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const toggleShowCallsigns = useCallback(() => {
+    recordMapSettingsMutation();
     dispatch({ type: "toggleShowCallsigns" });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const setMapBaseLayer = useCallback((baseLayer) => {
+    recordMapSettingsMutation();
     dispatch({ type: "setMapBaseLayer", baseLayer });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const setAmbientMode = useCallback((ambientMode) => {
+    recordMapSettingsMutation();
     dispatch({ type: "setAmbientMode", ambientMode });
-  }, []);
+  }, [recordMapSettingsMutation]);
 
   const setUserLocationPreferences = useCallback(
     ({ userLocationEnabled }) => {
+      recordMapSettingsMutation();
       dispatch({
         type: "setUserLocationPreferences",
         userLocationEnabled,
       });
     },
-    [],
+    [recordMapSettingsMutation],
   );
 
   const setTrafficFilter = useCallback((trafficFilter) => {

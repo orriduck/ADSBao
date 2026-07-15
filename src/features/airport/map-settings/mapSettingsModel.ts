@@ -308,6 +308,16 @@ export function resolveMapSettingsHydrationCommit({
   };
 }
 
+// Account-backed settings hydrate asynchronously. If the user changes a
+// setting while that request is in flight, its older response must not replace
+// the newer in-memory choice.
+export function shouldCommitMapSettingsHydration({
+  requestVersion = 0,
+  currentVersion = 0,
+}: MapSettingsOptions = {}) {
+  return requestVersion === currentVersion;
+}
+
 function hasOwnSetting(settings: MapSettingsRecord, key: string) {
   return Object.prototype.hasOwnProperty.call(settings || {}, key);
 }
