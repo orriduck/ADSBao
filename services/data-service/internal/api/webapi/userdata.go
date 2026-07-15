@@ -16,6 +16,7 @@ import (
 const (
 	defaultMapMode        = "controller"
 	defaultBaseLayer      = "standard"
+	defaultAmbientMode    = "ambient"
 	feedbackTTL           = 12 * time.Hour
 	feedbackSource        = "community-feedback"
 	feedbackSuffix        = "*"
@@ -29,7 +30,8 @@ var (
 		"mapLabels": true, "approachBeams": true, "navaidMarkers": true, "reportingPoints": true, "airspaces": true,
 		"candidateWatchingSpots": true, "showCallsigns": true, "userLocation": true, "userLocationAudio": true,
 	}
-	baseLayers = map[string]bool{"standard": true, "terrain": true}
+	baseLayers   = map[string]bool{"standard": true, "terrain": true}
+	ambientModes = map[string]bool{"theme": true, "ambient": true}
 )
 
 type UserDataStore struct {
@@ -282,11 +284,16 @@ func normalizeMapSettings(settings map[string]any) map[string]any {
 	if !baseLayers[baseLayer] {
 		baseLayer = defaultBaseLayer
 	}
+	ambientMode := lowerString(firstMapValue(settings, "ambientMode", "ambient_mode"))
+	if !ambientModes[ambientMode] {
+		ambientMode = defaultAmbientMode
+	}
 	return map[string]any{
 		"selectedMode":    selectedMode,
 		"baseMode":        baseMode,
 		"layerOverrides":  normalizeLayerOverrides(settings["layerOverrides"]),
 		"baseLayer":       baseLayer,
+		"ambientMode":     ambientMode,
 		"audioEnabled":    boolValue(settings["audioEnabled"]),
 		"hasSelectedMode": boolValue(firstMapValue(settings, "hasSelectedMode", "has_selected_mode")),
 		"updatedAt":       strings.TrimSpace(fmt.Sprint(firstMapValue(settings, "updatedAt", "updated_at"))),
@@ -317,6 +324,7 @@ func mergeMapSettings(settings, updates map[string]any) map[string]any {
 		"baseMode":        current["baseMode"],
 		"layerOverrides":  nextLayers,
 		"baseLayer":       current["baseLayer"],
+		"ambientMode":     current["ambientMode"],
 		"audioEnabled":    current["audioEnabled"],
 		"hasSelectedMode": current["hasSelectedMode"],
 		"updatedAt":       current["updatedAt"],
@@ -329,6 +337,9 @@ func mergeMapSettings(settings, updates map[string]any) map[string]any {
 	}
 	if hasKey(updates, "baseLayer") || hasKey(updates, "base_layer") {
 		next["baseLayer"] = firstMapValue(updates, "baseLayer", "base_layer")
+	}
+	if hasKey(updates, "ambientMode") || hasKey(updates, "ambient_mode") {
+		next["ambientMode"] = firstMapValue(updates, "ambientMode", "ambient_mode")
 	}
 	if hasKey(updates, "audioEnabled") {
 		next["audioEnabled"] = boolValue(updates["audioEnabled"])

@@ -33,6 +33,16 @@ func TestMergeMapSettingsPreservesExistingLayerOverrides(t *testing.T) {
 	}
 }
 
+func TestMergeMapSettingsPreservesAmbientMode(t *testing.T) {
+	next := mergeMapSettings(nil, map[string]any{
+		"ambientMode": "theme",
+	})
+
+	if next["ambientMode"] != "theme" {
+		t.Fatalf("expected theme ambient mode, got %#v", next["ambientMode"])
+	}
+}
+
 func TestNormalizeRouteFeedbackInputRejectsSameAirport(t *testing.T) {
 	_, message := normalizeRouteFeedbackInput(map[string]any{
 		"callsign":        "DAL58",
