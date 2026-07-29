@@ -20,7 +20,9 @@ export function useWakeLock(): [WakeLockState, () => void] {
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
-  const wantedRef = useRef(false);
+  // Tracking is an eyes-on activity. Start wanted in every map mode; the user
+  // can still turn it off from the existing toolbar control at any time.
+  const wantedRef = useRef(true);
 
   // Detect actual Wake Lock support on the client after hydration.
   // Using useEffect keeps the first render (both SSR and client)
@@ -47,7 +49,7 @@ export function useWakeLock(): [WakeLockState, () => void] {
   }, []);
 
   const acquireLock = useCallback(async () => {
-    if (!supported) return;
+    if (!supported || sentinelRef.current) return;
     try {
       const sentinel = await navigator.wakeLock.request("screen");
       sentinelRef.current = sentinel;
@@ -73,6 +75,15 @@ export function useWakeLock(): [WakeLockState, () => void] {
       releaseLock().then(() => setActive(false));
     }
   }, [acquireLock, releaseLock]);
+
+  // Acquire as soon as browser support is known. The previous implementation
+  // only acquired after a manual toggle, leaving every map mode sleep-prone by
+  // default even though the control represented a persistent user intent.
+  useEffect(() => {
+    if (supported && wantedRef.current && !sentinelRef.current) {
+      void acquireLock();
+    }
+  }, [supported, acquireLock]);
 
   // Re-acquire when the page becomes visible again (if user wanted it on).
   useEffect(() => {

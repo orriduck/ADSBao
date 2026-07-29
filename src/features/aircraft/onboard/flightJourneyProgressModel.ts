@@ -72,25 +72,99 @@ function readStatus(metadata: JourneyRecord, position: JourneyRecord) {
   ).trim();
 }
 
-// This deliberately accepts only FlightAware-derived data. It does not infer a
-// progress bar from an ADS-B position: a scheduled journey is a distinct piece
-// of private-provider context and must disappear with that grant.
+function isUserConfirmedRoute(route: unknown) {
+  const record = asRecord(route);
+  return Boolean(
+    record?.temporary === true &&
+      String(record?.confidence || "").trim().toLowerCase() === "user-supplied",
+  );
+}
+
+function coordinate(point: JourneyRecord | null, key: "lat" | "lon") {
+  const value = Number(point?.[key]);
+  return Number.isFinite(value) ? value : null;
+}
+
+function routeProgressFromConfirmedRoute({
+  route,
+  aircraft,
+}: {
+  route?: unknown;
+  aircraft?: unknown;
+} = {}): FlightJourneyProgress | null {
+  if (!isUserConfirmedRoute(route)) return null;
+  const routeRecord = asRecord(route);
+  const aircraftRecord = asRecord(aircraft);
+  const origin = asRecord(routeRecord?.origin);
+  const destination = asRecord(routeRecord?.destination);
+  const originLat = coordinate(origin, "lat");
+  const originLon = coordinate(origin, "lon");
+  const destinationLat = coordinate(destination, "lat");
+  const destinationLon = coordinate(destination, "lon");
+  const aircraftLat = coordinate(aircraftRecord, "lat");
+  const aircraftLon = coordinate(aircraftRecord, "lon");
+  if (
+    originLat == null || originLon == null || destinationLat == null ||
+    destinationLon == null || aircraftLat == null || aircraftLon == null
+  ) {
+    return null;
+  }
+  if (aircraftRecord?.onGround === true) {
+    return { phase: "ground", progress: 0.12, departureTime: null, arrivalTime: null };
+  }
+  const total = greatCircleAngle(originLat, originLon, destinationLat, destinationLon);
+  const travelled = greatCircleAngle(originLat, originLon, aircraftLat, aircraftLon);
+  if (!(total > 0)) return null;
+  const progress = Math.round(
+    Math.min(0.98, Math.max(0.08, travelled / total)) * 10_000,
+  ) / 10_000;
+  return {
+    phase: "airborne",
+    progress,
+    departureTime: null,
+    arrivalTime: null,
+  };
+}
+
+function greatCircleAngle(latA: number, lonA: number, latB: number, lonB: number) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const aLat = toRadians(latA);
+  const bLat = toRadians(latB);
+  const deltaLat = bLat - aLat;
+  const deltaLon = toRadians(lonB - lonA);
+  const sinLat = Math.sin(deltaLat / 2);
+  const sinLon = Math.sin(deltaLon / 2);
+  const haversine = sinLat * sinLat + Math.cos(aLat) * Math.cos(bLat) * sinLon * sinLon;
+  return 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+// Progress needs deliberate journey context: private schedule data, or a route
+// the user explicitly confirmed. An automatically resolved route by itself is
+// never enough to turn an ADS-B position into a passenger journey indicator.
 export function resolveFlightJourneyProgress({
   flightAwareFallback,
+  confirmedRoute,
+  aircraft,
   now = Date.now(),
 }: {
   flightAwareFallback?: unknown;
+  confirmedRoute?: unknown;
+  aircraft?: unknown;
   now?: number;
 } = {}): FlightJourneyProgress | null {
   const fallback = asRecord(flightAwareFallback);
-  if (!fallback || fallback.ok !== true) return null;
+  if (!fallback || fallback.ok !== true) {
+    return routeProgressFromConfirmedRoute({ route: confirmedRoute, aircraft });
+  }
   const metadata = asRecord(fallback.metadata) || {};
   const position = asRecord(fallback.position) || {};
   const status = readStatus(metadata, position);
   const departureTime = readEpoch(metadata, DEPARTURE_TIME_KEYS);
   const arrivalTime = readEpoch(metadata, ARRIVAL_TIME_KEYS);
   const hasJourneyEvidence = Boolean(status || departureTime || arrivalTime);
-  if (!hasJourneyEvidence) return null;
+  if (!hasJourneyEvidence) {
+    return routeProgressFromConfirmedRoute({ route: confirmedRoute, aircraft });
+  }
 
   if (metadata.terminal === true || position.terminal === true || TERMINAL_STATUS.test(status)) {
     return { phase: "arrived", progress: 1, departureTime, arrivalTime };

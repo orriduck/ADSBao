@@ -47,6 +47,7 @@ export type FlightRoute = {
   };
   source?: string;
   confidence?: string;
+  temporary?: boolean;
 };
 
 export type RouteCacheEntry = {
@@ -94,10 +95,21 @@ function routeProviderSource(routeContext: RouteContext = {}) {
   return provider === "flightaware" || provider === "adsbdb" ? provider : "";
 }
 
+function isUserConfirmedRoute(route: FlightRoute | null | undefined) {
+  return (
+    route?.temporary === true &&
+    routeSourceCode(route?.confidence) === "user-supplied"
+  );
+}
+
 function routeMatchesProviderSource(
   route: FlightRoute | null | undefined,
   routeContext: RouteContext = {},
 ) {
+  // A route the current user explicitly submitted is neither an adsbdb nor a
+  // FlightAware result. Keep it usable across provider contexts without
+  // treating any provider cache entry as interchangeable.
+  if (isUserConfirmedRoute(route)) return true;
   const requiredSource = routeProviderSource(routeContext);
   if (!requiredSource) return true;
   const source = routeSourceCode(route?.source);

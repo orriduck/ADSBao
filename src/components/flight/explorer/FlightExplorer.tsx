@@ -904,10 +904,14 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
     : "";
   const journeyProgress = useMemo(
     () =>
-      onboardMode && flightAwareEnabled
-        ? resolveFlightJourneyProgress({ flightAwareFallback })
+      onboardMode
+        ? resolveFlightJourneyProgress({
+            flightAwareFallback: flightAwareEnabled ? flightAwareFallback : null,
+            confirmedRoute: enrichedTrackedAircraft?.flightRoute,
+            aircraft: enrichedTrackedAircraft,
+          })
         : null,
-    [flightAwareEnabled, flightAwareFallback, onboardMode],
+    [enrichedTrackedAircraft, flightAwareEnabled, flightAwareFallback, onboardMode],
   );
   const toolbarContextProps = {
     traceViewItems,

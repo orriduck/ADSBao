@@ -18,7 +18,7 @@ import {
 import { selectAirportProximityHit } from "@/features/notifications/proximityNotificationModel";
 import { buildOnboardFlightHref } from "@/features/aircraft/onboard/onboardModeModel";
 
-const ONBOARD_AIRPORT_RADIUS_NM = 3;
+const ONBOARD_AIRPORT_RADIUS_NM = 1;
 
 // `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {

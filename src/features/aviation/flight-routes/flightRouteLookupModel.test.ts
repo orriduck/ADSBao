@@ -505,6 +505,35 @@ const route = {
 }
 
 {
+  const confirmedRoute = {
+    callsign: "DAL123",
+    origin: { icao: "KATL", lat: 33.64, lon: -84.43 },
+    destination: { icao: "KBOS", lat: 42.36, lon: -71.01 },
+    source: "community-feedback",
+    confidence: "user-supplied",
+    temporary: true,
+  };
+  const cache = new Map();
+  writeRouteCacheEntry(
+    cache,
+    "DAL123",
+    confirmedRoute,
+    now,
+    { routeProvider: "flightaware" },
+  );
+  assert.deepEqual(
+    buildRoutesByCallsign({
+      aircraft: [{ callsign: "DAL123" }],
+      cache,
+      routeContext: { routeProvider: "flightaware" },
+      now,
+    }),
+    { DAL123: confirmedRoute },
+    "an explicit user route remains available without mixing provider results",
+  );
+}
+
+{
   const aircraft = [
     {
       callsign: "AAL100",

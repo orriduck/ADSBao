@@ -51,5 +51,34 @@ assert.equal(
   })?.phase,
   "arrived",
 );
+assert.deepEqual(
+  resolveFlightJourneyProgress({
+    confirmedRoute: {
+      temporary: true,
+      confidence: "user-supplied",
+      origin: { lat: 0, lon: 0 },
+      destination: { lat: 0, lon: 10 },
+    },
+    aircraft: { lat: 0, lon: 5, onGround: false },
+  }),
+  {
+    phase: "airborne",
+    progress: 0.5,
+    departureTime: null,
+    arrivalTime: null,
+  },
+);
+assert.equal(
+  resolveFlightJourneyProgress({
+    confirmedRoute: {
+      temporary: false,
+      confidence: "high",
+      origin: { lat: 0, lon: 0 },
+      destination: { lat: 0, lon: 10 },
+    },
+    aircraft: { lat: 0, lon: 5 },
+  }),
+  null,
+);
 
 console.log("flightJourneyProgressModel.test.ts ok");
