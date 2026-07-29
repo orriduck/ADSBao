@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.5",
+    version: "v3.3.6",
     kind: "feat",
     title: {
-      en: "Airport loading now resolves through a symmetric signal wave",
-      zh: "机场加载改为对称信号波",
+      en: "Airport loading and Plane Hunter framing refinement",
+      zh: "机场加载与拍机取景优化",
     },
     summary: {
-      en: "Airport maps now load through a centred, symmetric signal wave that keeps the transition clear and quiet before the map fades in.",
-      zh: "机场地图现在通过居中的对称信号波加载,以更清晰安静的过渡显影地图。",
+      en: "Airport maps resolve through a centred signal wave, while Plane Hunter keeps its framing consistent between portrait and landscape capture.",
+      zh: "机场地图通过居中的信号波显影;拍机模式现在在竖屏与横屏取景间保持一致的模板尺度。",
     },
     highlights: [
       {
@@ -69,6 +69,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The indicator respects reduced-motion preference and fades with the existing map loading layer once the view is ready.",
         zh: "指示器尊重减少动态效果偏好,并在地图就绪后随原有加载图层淡出。",
+      },
+      {
+        en: "Plane Hunter templates now scale from the photo short edge; native landscape uses a smaller compass ribbon, while template repositioning remains available for portrait-locked shooting.",
+        zh: "拍机模板现在按照片短边缩放;真横屏会使用更紧凑的指南针,模板位置调整则保留给锁定竖屏时的横拍场景。",
       },
     ],
   },

@@ -397,13 +397,12 @@ function formatCameraZoom(value: number) {
 
 // Single source of truth for overlay proportions. Both the on-screen
 // HTML overlay (via cqi container queries on the photo-box) and the
-// off-screen canvas (via `width * RATIO`) use these so the framing the
+// off-screen canvas (via `shortEdge * RATIO`) use these so the framing the
 // photographer sees IS the framing they save.
 //
-// All values are fractions of the photo-box / canvas inline (width)
-// dimension. The photo-box's aspect-ratio matches the camera stream,
-// so positions in width-units land in the same visual place at any
-// scale.
+// All values are fractions of the photo-box's short edge. This keeps templates
+// at a stable physical scale when the camera UI switches between portrait and
+// true landscape layouts.
 const PH_RATIOS = {
   pad: 0.022,        // outer inset → cqi: 2.2cqi
   cornerR: 0.018,    // rounded corner radius
@@ -509,7 +508,8 @@ function drawTemplate(
   mapAttributionLabel: string,
 ) {
   const r = PH_RATIOS;
-  const pad = width * r.pad;
+  const unit = Math.min(width, height);
+  const pad = unit * r.pad;
 
   context.save();
   context.textBaseline = "alphabetic";
@@ -518,10 +518,10 @@ function drawTemplate(
     // Compact card. Hierarchy: callsign (hero) → flight data (one line) →
     // route (only with FlightAware). The orange type block bleeds flush into
     // the card's bottom-left corner.
-    const cardW = Math.min(width - pad * 2, width * 0.34);
+    const cardW = Math.min(width - pad * 2, unit * 0.34);
     const ip = cardW * 0.06;
     const innerW = cardW - ip * 2;
-    const radius = width * r.cornerR;
+    const radius = unit * r.cornerR;
 
     const creditSize = cardW * 0.046;
     const nameSize = cardW * 0.155;
@@ -550,7 +550,7 @@ function drawTemplate(
     roundedRect(context, panelX, panelY, cardW, panelH, radius);
     context.fill();
     context.strokeStyle = "rgba(20, 20, 18, 0.10)";
-    context.lineWidth = Math.max(1, width * 0.0008);
+    context.lineWidth = Math.max(1, unit * 0.0008);
     roundedRect(context, panelX, panelY, cardW, panelH, radius);
     context.stroke();
 
@@ -620,20 +620,20 @@ function drawTemplate(
     // Departure-board lower third: full-width bar flush to the bottom edge
     // (no gap), gold header, column readout, and a gold flight-phase block.
     const barW = width;
-    const barH = width * 0.07;
+    const barH = unit * 0.07;
     const barX = 0;
     const barY = mapPositionIsTop(mapPosition) ? 0 : height - barH;
-    const ip = width * 0.03;
+    const ip = unit * 0.03;
     const left = barX + ip;
     const codes = splitRoute(labels.route);
 
     context.fillStyle = "rgb(20, 20, 19)";
     context.fillRect(barX, barY, barW, barH);
     context.fillStyle = "rgba(255, 255, 255, 0.08)";
-    context.fillRect(barX, barY, barW, Math.max(1, width * 0.0012));
+    context.fillRect(barX, barY, barW, Math.max(1, unit * 0.0012));
 
     // Status block — orange, flush to the right edge, full bar height.
-    const statusW = barW * 0.2;
+    const statusW = Math.min(barW * 0.2, unit * 0.24);
     const statusX = barW - statusW;
     const phase = labels.phase || (codes ? "EN ROUTE" : "TRACKING");
     context.fillStyle = TPL_ORANGE;
@@ -829,6 +829,7 @@ function PlaneHunterControlDock({
           title={t("planeHunter.rotateTemplate")}
           className={cn(
             PLANE_HUNTER_CHIP,
+            "landscape:hidden",
             template === "none"
               ? "text-[rgba(242,243,238,0.5)]"
               : "text-[rgb(255,221,119)]",
@@ -1432,7 +1433,7 @@ function PlaneHunterLiveCameraView({
         </div>
       )}
       {/* Compass ribbon — where the aircraft is relative to the camera. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,rgba(0,0,0,0.5),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,rgba(0,0,0,0.5),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
         <PlaneHunterCompass direction={direction} />
       </div>
       <button
@@ -1559,7 +1560,7 @@ function PlaneHunterReviewView({
             aria-label={t("planeHunter.rotateTemplate")}
             title={t("planeHunter.rotateTemplate")}
             className={cn(
-              "inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100",
+              "inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
               template === "none"
                 ? "text-[rgba(242,243,238,0.6)]"
                 : "text-[rgb(255,221,119)]",
