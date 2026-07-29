@@ -17,6 +17,7 @@ import {
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
+import type { FlightJourneyProgress } from "@/features/aircraft/onboard/flightJourneyProgressModel";
 
 type FlightSidebarRecord = Record<string, any>;
 
@@ -49,6 +50,8 @@ export default function FlightSidebar({
   onExpand = null,
   mobileToolbar = null,
   fillAircraftList = true,
+  onboardMode = false,
+  journeyProgress = null,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -80,6 +83,9 @@ export default function FlightSidebar({
         routeAccuracyNotice={routeAccuracyNotice}
         positionSourceBadge={positionSourceBadge}
       />
+      {onboardMode && journeyProgress ? (
+        <FlightJourneyProgressCard progress={journeyProgress} />
+      ) : null}
       <FlightTelemetryGrid
         speed={speed}
         altitude={altitude}
@@ -123,6 +129,40 @@ export default function FlightSidebar({
         />
       ) : null}
     </SidebarShell>
+  );
+}
+
+function FlightJourneyProgressCard({
+  progress,
+}: {
+  progress: FlightJourneyProgress;
+}) {
+  const { t } = useI18n();
+  const percent = Math.round(progress.progress * 100);
+  return (
+    <section className="mx-[var(--airport-sidebar-inset)] mt-3 overflow-hidden rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] p-3 shadow-[var(--atc-control-inset-shadow-subtle)]">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-atc-dim">
+          {t("onboard.modeLabel")}
+        </span>
+        <span className="text-[11px] font-semibold text-atc-text">
+          {t(`onboard.phase.${progress.phase}`)}
+        </span>
+      </div>
+      <div
+        className="mt-2 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--atc-text)_12%,transparent)]"
+        aria-label={t("onboard.progressAria", { percent })}
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+      >
+        <div
+          className="h-full rounded-full bg-atc-text transition-[width] duration-200 ease-out motion-reduce:transition-none"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </section>
   );
 }
 

@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import { normalizeCallsign } from "@/utils/callsign";
 import { normalizeAircraftHex } from "@/lib/realtime/realtimeChannels";
+import { isOnboardMode } from "@/features/aircraft/onboard/onboardModeModel";
 
 const DitherPageShell = lazy(() => import("@/components/app-shell/DitherPageShell"));
 const AboutPanel = lazy(() => import("@/components/about/AboutPanel"));
@@ -23,8 +24,13 @@ function FlightRoute() {
   // ?icao= 提示:从地图/侧栏点进来时带上的 ICAO24,让详情页在 /callsign/
   // 上游索引缺这架时回落到稳定的 /hex/ 源。冷链接没有它则照旧。
   const icaoHint = normalizeAircraftHex(searchParams.get("icao"));
+  const onboardMode = isOnboardMode(searchParams.get("mode"));
   return (
-    <FlightScreen callsign={normalizeCallsign(callsign)} icaoHint={icaoHint} />
+    <FlightScreen
+      callsign={normalizeCallsign(callsign)}
+      icaoHint={icaoHint}
+      onboardMode={onboardMode}
+    />
   );
 }
 

@@ -134,6 +134,7 @@ function AirportExplorerContent({
   nearMeUserLocation = null,
   nearMeSidebarLocation = null,
   nearMeRefresh,
+  onNearbyAirportsChange = null,
 }) {
   const nearMe = mode === "nearMe";
   // Airport → airport navigation does a HARD reload to the new URL (same policy
@@ -234,6 +235,10 @@ function AirportExplorerContent({
     lat: nearbyAirportsFocus.lat,
     lon: nearbyAirportsFocus.lon,
   });
+  useEffect(() => {
+    if (!nearMe || typeof onNearbyAirportsChange !== "function") return;
+    onNearbyAirportsChange(nearbyAirports.airports);
+  }, [nearMe, nearbyAirports.airports, onNearbyAirportsChange]);
   const metarIcao = nearMe
     ? nearbyAirports.airports?.[0]?.icao || ""
     : airportProfile.icao;

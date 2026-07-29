@@ -24,6 +24,7 @@ export function useMapLoadingOverlayText({
   reason = "",
   variant = "airport",
   callsign = "",
+  onboardMode = false,
 }: Record<string, any> = {}): Record<string, any> {
   const { t } = useI18n();
   const isFlight = variant === "flight";
@@ -40,7 +41,9 @@ export function useMapLoadingOverlayText({
   }
 
   const loadingLabel = isFlight
-    ? t("map.loadingTrackedAircraftLabel", { callsign })
+    ? onboardMode
+      ? t("map.loadingOnboardFlightLabel", { callsign })
+      : t("map.loadingTrackedAircraftLabel", { callsign })
     : t("map.loadingAircraftLabel");
 
   if (mode === "map") {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
+import OnboardFlightPrompt from "@/components/flight/onboard/OnboardFlightPrompt";
 import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
@@ -14,6 +15,10 @@ import {
   shouldUpdateNearMeLocation,
   type NearMeLocation,
 } from "@/features/airport/nearby/nearMeLocationModel";
+import { selectAirportProximityHit } from "@/features/notifications/proximityNotificationModel";
+import { buildOnboardFlightHref } from "@/features/aircraft/onboard/onboardModeModel";
+
+const ONBOARD_AIRPORT_RADIUS_NM = 3;
 
 // `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {
@@ -34,6 +39,19 @@ export default function NearMeScreen() {
   const compassHeadingRef = useRef<number | null>(null);
   const compassPermissionRequestedRef = useRef(false);
   const compassCleanupRef = useRef<(() => void) | null>(null);
+  const promptedAirportKeysRef = useRef(new Set<string>());
+  const [onboardAirport, setOnboardAirport] = useState<any>(null);
+
+  const handleNearbyAirportsChange = useCallback((airports: Record<string, unknown>[]) => {
+    const hit = selectAirportProximityHit(airports, ONBOARD_AIRPORT_RADIUS_NM);
+    if (!hit || promptedAirportKeysRef.current.has(hit.key)) return;
+    promptedAirportKeysRef.current.add(hit.key);
+    setOnboardAirport(hit);
+  }, []);
+
+  const handleOnboardTrack = useCallback((callsign: string) => {
+    navigate(buildOnboardFlightHref(callsign));
+  }, [navigate]);
 
   const applyCompassHeading = useCallback((headingDeg: number) => {
     compassHeadingRef.current = headingDeg;
@@ -233,19 +251,30 @@ export default function NearMeScreen() {
       className="app-route-transition min-h-dvh"
       onPointerDown={handleNearMeInteraction}
     >
-      <AirportExplorer
-        icao=""
-        airport={airport}
-        mode="nearMe"
-        nearMeUserLocation={coords}
-        nearMeSidebarLocation={sidebarCoords || coords}
-        onBack={handleBack}
-        nearMeRefresh={
-          useOneShotLocation
-            ? { lastTime, refreshing, onRefresh: handleRefresh }
-            : undefined
-        }
-      />
+      <>
+        <AirportExplorer
+          icao=""
+          airport={airport}
+          mode="nearMe"
+          nearMeUserLocation={coords}
+          nearMeSidebarLocation={sidebarCoords || coords}
+          onBack={handleBack}
+          onNearbyAirportsChange={handleNearbyAirportsChange}
+          nearMeRefresh={
+            useOneShotLocation
+              ? { lastTime, refreshing, onRefresh: handleRefresh }
+              : undefined
+          }
+        />
+        <OnboardFlightPrompt
+          airport={onboardAirport}
+          open={Boolean(onboardAirport)}
+          onOpenChange={(open) => {
+            if (!open) setOnboardAirport(null);
+          }}
+          onTrack={handleOnboardTrack}
+        />
+      </>
     </div>
   );
 }

@@ -67,6 +67,7 @@ import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCa
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
+import { resolveFlightJourneyProgress } from "@/features/aircraft/onboard/flightJourneyProgressModel";
 
 const FlightAwareRouteArc = lazy(() => import("@/components/map/FlightAwareRouteArc"));
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
@@ -80,15 +81,15 @@ const TRACE_VIEW_ALL = "all";
 // leg with no ADS-B and no FlightAware).
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
-export default function FlightExplorer({ callsign = "", icaoHint = "" }) {
+export default function FlightExplorer({ callsign = "", icaoHint = "", onboardMode = false }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent callsign={callsign} icaoHint={icaoHint} />
+      <FlightExplorerContent callsign={callsign} icaoHint={icaoHint} onboardMode={onboardMode} />
     </ExplorerUiProvider>
   );
 }
 
-function FlightExplorerContent({ callsign, icaoHint = "" }) {
+function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   // Flight → flight navigation does a HARD reload to the new URL rather than an
@@ -98,12 +99,13 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
   // map/tracking lifecycle across navigations. The layout effect runs before
   // paint so the stale (previous-flight) frame never shows. Covers links AND
   // browser back/forward.
-  const mountCallsignRef = useRef(callsign);
+  const mountFlightKeyRef = useRef(`${callsign}:${onboardMode ? "onboard" : "tracking"}`);
   useLayoutEffect(() => {
-    if (mountCallsignRef.current !== callsign) {
+    const flightKey = `${callsign}:${onboardMode ? "onboard" : "tracking"}`;
+    if (mountFlightKeyRef.current !== flightKey) {
       window.location.reload();
     }
-  }, [callsign]);
+  }, [callsign, onboardMode]);
   const {
     enabled: flightAwareEnabled,
     resolved: flightAwareResolved,
@@ -178,6 +180,7 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     trackingState,
+    flightAwareFallback,
     realtimeStatus,
   } = useTrackedAircraft(callsign, {
     flightAwareEnabled,
@@ -838,7 +841,12 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
   }, [callsign, hasFocalPosition]);
   const flightLifecycle = resolveFlightFocalLifecycle({
     hasActiveFlight: Boolean(callsign),
-    resolved: trackedAircraftSettled || loadingGraceExpired,
+    // An upcoming, known passenger flight intentionally keeps waiting until
+    // FlightAware explicitly marks it terminal. Normal tracking stays bounded.
+    resolved:
+      onboardMode && flightTrackingStatus !== "flightaware_terminal"
+        ? false
+        : trackedAircraftSettled || loadingGraceExpired,
     hasFocalPosition,
   });
   const flightTrackingLoadingActive = flightLifecycle === "loading";
@@ -889,10 +897,18 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     reason: sourceLoadingState.reason,
     variant: "flight",
     callsign,
+    onboardMode,
   });
   const sourceLoadingStatus = sourceLoadingState.active
     ? sourceLoadingCopy.status
     : "";
+  const journeyProgress = useMemo(
+    () =>
+      onboardMode && flightAwareEnabled
+        ? resolveFlightJourneyProgress({ flightAwareFallback })
+        : null,
+    [flightAwareEnabled, flightAwareFallback, onboardMode],
+  );
   const toolbarContextProps = {
     traceViewItems,
     wakeLockState,
@@ -932,6 +948,8 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
     feedSource,
     lastUpdated,
     loadingStatus: sourceLoadingStatus,
+    onboardMode,
+    journeyProgress,
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
@@ -1063,6 +1081,7 @@ function FlightExplorerContent({ callsign, icaoHint = "" }) {
               loadingOverlayActive={flightTrackingLoadingActive}
               loadingOverlayVariant="flight"
               loadingOverlayCallsign={callsign}
+              loadingOverlayOnboardMode={onboardMode}
               loadingOverlaySources={loadingOverlaySources}
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
