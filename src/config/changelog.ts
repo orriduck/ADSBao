@@ -58,19 +58,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       zh: "机上模式",
     },
     summary: {
-      en: "Near-me view can now hand a known flight into a dedicated journey tracker that stays ready until the signal appears.",
-      zh: "我的位置视图现在可将已知航班交给专属行程追踪器，并在信号出现前持续保持就绪。",
+      en: "Onboard mode keeps a known flight ready to track until its signal appears.",
+      zh: "机上模式可在航班信号出现前持续保持追踪就绪。",
     },
-    highlights: [
-      {
-        en: "At the airport, enter a callsign once to open a durable onboard tracking link.",
-        zh: "到达机场后，只需输入一次 callsign 即可打开可长期使用的机上追踪链接。",
-      },
-      {
-        en: "Onboard tracking keeps the display awake by default and can show progress for a route you have explicitly confirmed.",
-        zh: "机上追踪默认保持屏幕唤醒，并可为你明确确认过的航线显示进度。",
-      },
-    ],
+    highlights: [],
   },
 ];
 
