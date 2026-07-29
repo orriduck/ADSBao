@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 68;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.1",
+    version: "v3.3.2",
     kind: "feat",
     title: {
       en: "Cleaner map settings and camera template control",
       zh: "更干净的地图设置与相机模板控制",
     },
     summary: {
-      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and all slow traffic dots become 10% secondary context below 12x instead of disappearing.",
-      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;12x 以下所有慢速交通点不再消失,而是以 10% 透明度作为次要点位显示。",
+      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and airport navigation resolves from a coarse map mosaic into live detail.",
+      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;进入机场时地图会从粗颗粒马赛克解算到实时细节。",
     },
     highlights: [
       {
@@ -73,6 +73,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "Slow traffic dots are no longer hidden at lower zooms; below 12x their opacity drops to 10% so airport and nearby-airport clusters read as secondary context.",
         zh: "慢速交通点在低 zoom 下不再被隐藏;12x 以下透明度降为 10%,让机场和邻近机场的密集点位成为次要背景信息。",
+      },
+      {
+        en: "Airport map loading now resolves through an airport-centred aerograph scan, with a reduced-motion fallback.",
+        zh: "机场地图加载改为通过以机场为中心的航图扫描显影到实时细节,并为减少动态效果偏好提供普通淡入。",
       },
     ],
   },

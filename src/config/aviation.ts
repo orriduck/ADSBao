@@ -12,6 +12,7 @@ export const AIRPORT_EXPLORER_UI_CONFIG = {
   desktopSidebarWidth: "var(--app-sidebar-width)",
   mobileBreakpointPx: 768,
   adsbLoadingFadeMs: 180,
+  airportMapRevealMs: 1_200,
 };
 
 export const AIRCRAFT_TRAFFIC_CONFIG = {
