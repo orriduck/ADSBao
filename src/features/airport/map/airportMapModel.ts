@@ -1,7 +1,6 @@
-import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
 import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../../utils/aircraftMotion";
 import { cleanAirportCode } from "../../../utils/airport";
-import { airportGroundTrafficSecondaryRadiusNmForZoom } from "./airportMapZoomFeatures";
+import { shouldDeemphasizeAirportGroundTrafficForZoom } from "./airportMapZoomFeatures";
 
 type AirportMapCoordinate = {
   icao?: unknown;
@@ -22,19 +21,12 @@ type AirportMapInitialCenterOptions = {
   deferUntilFocal?: boolean;
 };
 
-type AirportGroundFilterOptions = {
-  airportLat?: unknown;
-  airportLon?: unknown;
-  airportElevationFt?: unknown;
-  nearbyAirports?: AirportMapCoordinate[];
-};
-
 type NearbyAirportLayerDisplayOptions = {
   nearbyAirports?: AirportMapCoordinate[];
   showMapLabels?: unknown;
 };
 
-type VisibleAircraftOptions = AirportGroundFilterOptions & {
+type VisibleAircraftOptions = {
   aircraft: AirportMapAircraft[];
   zoom?: unknown;
 };
@@ -120,57 +112,21 @@ export const resolveAirportMapInitialCenter = ({
   });
 };
 
-const airportGroundFilters = ({
-  airportLat,
-  airportLon,
-  nearbyAirports = [],
-}: AirportGroundFilterOptions) =>
-  [
-    { lat: airportLat, lon: airportLon },
-    ...nearbyAirports.map((airport) => ({ lat: airport?.lat, lon: airport?.lon })),
-  ].filter((airport) => airport.lat != null && airport.lon != null);
-
 const isSlowAirportTraffic = (aircraft: AirportMapAircraft) =>
   aircraft.onGround === true ||
   (toFiniteNumber(aircraft.velocity) ?? 0) < SLOW_AIRCRAFT_THRESHOLD_KT;
 
-const isInsideAirportGroundArea = (
-  aircraft: AirportMapAircraft,
-  airport: AirportMapCoordinate,
-  radiusNm: number,
-) => {
-  const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
-  return distNm != null && distNm <= radiusNm;
-};
-
 export const getVisibleAircraft = ({
   aircraft,
-  airportLat,
-  airportLon,
-  airportElevationFt,
-  nearbyAirports = [],
   zoom,
 }: VisibleAircraftOptions) => {
-  const airportGroundTrafficSecondaryRadiusNm =
-    airportGroundTrafficSecondaryRadiusNmForZoom(zoom);
-  if (airportGroundTrafficSecondaryRadiusNm == null) {
+  if (!shouldDeemphasizeAirportGroundTrafficForZoom(zoom)) {
     return aircraft.filter((ac) => ac.lat != null && ac.lon != null);
   }
 
-  const groundFilters = airportGroundFilters({
-    airportLat,
-    airportLon,
-    airportElevationFt,
-    nearbyAirports,
-  });
-
   return aircraft.flatMap((ac) => {
     if (ac.lat == null || ac.lon == null) return [];
-    const secondary =
-      isSlowAirportTraffic(ac) &&
-      groundFilters.some((airport) =>
-        isInsideAirportGroundArea(ac, airport, airportGroundTrafficSecondaryRadiusNm),
-      );
+    const secondary = isSlowAirportTraffic(ac);
     return secondary ? [{ ...ac, _airportGroundTrafficSecondary: true }] : [ac];
   });
 };

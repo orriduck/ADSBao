@@ -6,7 +6,7 @@ import {
   ZOOM_DETAIL,
 } from "../../../utils/airportMapDisplay";
 import {
-  airportGroundTrafficSecondaryRadiusNmForZoom,
+  shouldDeemphasizeAirportGroundTrafficForZoom,
   shouldShowAirportAreaCountForZoom,
   shouldShowNearbyAirportRunwaysForZoom,
   shouldShowRunwayEndLabelsForZoom,
@@ -14,9 +14,9 @@ import {
   shouldUseCandidateWatchingSpotBadgesForZoom,
 } from "./airportMapZoomFeatures";
 
-assert.equal(airportGroundTrafficSecondaryRadiusNmForZoom(ZOOM_APPROACH), 3);
-assert.equal(airportGroundTrafficSecondaryRadiusNmForZoom(ZOOM_AIRPORT), 3);
-assert.equal(airportGroundTrafficSecondaryRadiusNmForZoom(ZOOM_DETAIL), null);
+assert.equal(shouldDeemphasizeAirportGroundTrafficForZoom(ZOOM_APPROACH), true);
+assert.equal(shouldDeemphasizeAirportGroundTrafficForZoom(ZOOM_AIRPORT), true);
+assert.equal(shouldDeemphasizeAirportGroundTrafficForZoom(ZOOM_DETAIL), false);
 assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_APPROACH), true);
 assert.equal(shouldShowAirportAreaCountForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldShowNearbyAirportRunwaysForZoom(ZOOM_AIRPORT), true);
@@ -28,8 +28,8 @@ assert.equal(shouldUseCandidateWatchingSpotBadgesForZoom(ZOOM_APPROACH), false);
 assert.equal(shouldUseCandidateWatchingSpotBadgesForZoom(ZOOM_AIRPORT), true);
 assert.equal(shouldUseCandidateWatchingSpotBadgesForZoom(ZOOM_DETAIL), true);
 assert.equal(shouldUseCandidateWatchingSpotBadgesForZoom(9), false);
-assert.equal(airportGroundTrafficSecondaryRadiusNmForZoom(11.9), 3);
-assert.equal(airportGroundTrafficSecondaryRadiusNmForZoom(12), null);
+assert.equal(shouldDeemphasizeAirportGroundTrafficForZoom(11.9), true);
+assert.equal(shouldDeemphasizeAirportGroundTrafficForZoom(12), false);
 assert.equal(shouldShowAirportAreaCountForZoom(12), false);
 assert.equal(shouldShowNearbyAirportRunwaysForZoom(12), true);
 assert.equal(shouldShowCandidateWatchingSpotDetailsForZoom(12), true);

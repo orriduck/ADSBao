@@ -351,23 +351,10 @@ export default function AirportMap({
   const visibleAircraft = useMemo(() => {
     return getVisibleAircraft({
       aircraft,
-      // Only apply the airport-ground filter when there's actually an
-      // airport in focus. On the flight page (no icao) the map center is
-      // the focal aircraft's own position — applying the filter there
-      // would silently hide the focal because it's "at the airport".
-      airportLat: icao ? lat : null,
-      airportLon: icao ? lon : null,
-      airportElevationFt: icao ? airportElevationFt : null,
-      nearbyAirports,
       zoom,
     });
   }, [
     aircraft,
-    icao,
-    lat,
-    lon,
-    airportElevationFt,
-    nearbyAirports,
     zoom,
   ]);
   const aircraftCanvasMatchesFilters = useCallback(

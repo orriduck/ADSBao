@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 68;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.0",
+    version: "v3.3.1",
     kind: "feat",
     title: {
       en: "Cleaner map settings and camera template control",
       zh: "更干净的地图设置与相机模板控制",
     },
     summary: {
-      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and slow airport-ground traffic becomes a 10% secondary dot below 12x instead of disappearing.",
-      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;机场附近慢速地面交通在 12x 以下不再消失,而是以 10% 透明度作为次要点位显示。",
+      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and all slow traffic dots become 10% secondary context below 12x instead of disappearing.",
+      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;12x 以下所有慢速交通点不再消失,而是以 10% 透明度作为次要点位显示。",
     },
     highlights: [
       {
@@ -71,8 +71,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "Plane Hunter 新增模板位置控制,只移动 overlay 模板本身,让竖屏锁定但实际横拿手机时也能调整取景模板。",
       },
       {
-        en: "Airport-area slow-moving aircraft are no longer hidden at lower zooms; below 12x their dot opacity drops to 10% so dense ground clutter reads as secondary context.",
-        zh: "机场区域慢速飞机在低 zoom 下不再被隐藏;12x 以下点位透明度降为 10%,让密集地面目标成为次要背景信息。",
+        en: "Slow traffic dots are no longer hidden at lower zooms; below 12x their opacity drops to 10% so airport and nearby-airport clusters read as secondary context.",
+        zh: "慢速交通点在低 zoom 下不再被隐藏;12x 以下透明度降为 10%,让机场和邻近机场的密集点位成为次要背景信息。",
       },
     ],
   },

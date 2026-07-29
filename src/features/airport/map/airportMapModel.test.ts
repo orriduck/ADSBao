@@ -69,9 +69,6 @@ assert.deepEqual(
 assert.deepEqual(
   getVisibleAircraft({
     aircraft,
-    airportLat: 42.3656,
-    airportLon: -71.0096,
-    airportElevationFt: 19,
     zoom: ZOOM_AIRPORT,
   })
     .map((item) => item.icao24),
@@ -97,15 +94,19 @@ assert.deepEqual(
   })
     .filter((item) => item._airportGroundTrafficSecondary)
     .map((item) => item.icao24),
-  ["near", "unknown-altitude-near", "airport-ring"],
+  [
+    "near",
+    "unknown-altitude-near",
+    "airport-ring",
+    "near-secondary",
+    "lifted-slow-secondary",
+    "far",
+  ],
 );
 
 assert.deepEqual(
   getVisibleAircraft({
     aircraft,
-    airportLat: 42.3656,
-    airportLon: -71.0096,
-    airportElevationFt: 19,
     zoom: ZOOM_APPROACH,
   })
     .map((item) => item.icao24),
@@ -118,26 +119,6 @@ assert.deepEqual(
     "lifted-slow-secondary",
     "high-secondary",
     "far",
-  ],
-);
-
-assert.deepEqual(
-  getVisibleAircraft({
-    aircraft,
-    airportLat: 42.3656,
-    airportLon: -71.0096,
-    airportElevationFt: 19,
-    nearbyAirports: [{ icao: "KBVY", lat: 42.5842, lon: -70.9165, elevationFt: 107 }],
-    zoom: ZOOM_APPROACH,
-  })
-    .filter((item) => item._airportGroundTrafficSecondary)
-    .map((item) => item.icao24),
-  [
-    "near",
-    "unknown-altitude-near",
-    "airport-ring",
-    "near-secondary",
-    "lifted-slow-secondary",
   ],
 );
 
