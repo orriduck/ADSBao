@@ -24,6 +24,8 @@ import { cn } from "@/lib/utils";
 
 const TEMPLATES = ["none", "previewCard", "lowerThird"] as const;
 type PlaneHunterTemplate = (typeof TEMPLATES)[number];
+const TEMPLATE_ROTATIONS = [0, 90, 180, 270] as const;
+type TemplateRotation = (typeof TEMPLATE_ROTATIONS)[number];
 
 // Metadata fields the photographer can toggle on/off. Order in the
 // array drives display order in the templates and the card subtitle.
@@ -41,13 +43,7 @@ const DEFAULT_META_FIELDS = new Set<MetaField>(META_FIELDS);
 // overflow or squash the compact template type block.
 const PLANE_HUNTER_TYPE_MAX_LEN = 14;
 
-const MAP_POSITIONS = [
-  "bottomRight",
-  "bottomLeft",
-  "topRight",
-  "topLeft",
-] as const;
-type MapPosition = (typeof MAP_POSITIONS)[number];
+type MapPosition = "bottomRight" | "bottomLeft" | "topRight" | "topLeft";
 
 type CameraZoomRange = {
   min: number;
@@ -395,10 +391,9 @@ function formatCameraZoom(value: number) {
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)}x`;
 }
 
-// Single source of truth for overlay proportions. Both the on-screen
-// HTML overlay (via cqi container queries on the photo-box) and the
-// off-screen canvas (via `shortEdge * RATIO`) use these so the framing the
-// photographer sees IS the framing they save.
+// Single source of truth for overlay proportions. The live overlay and the
+// exported photo both call `drawTemplate`, so the framing the photographer
+// sees is the framing they save.
 //
 // All values are fractions of the photo-box's short edge. This keeps templates
 // at a stable physical scale when the camera UI switches between portrait and
@@ -457,11 +452,6 @@ function splitRoute(route: string): [string, string] | null {
   return [parts[0], parts[parts.length - 1]];
 }
 
-function nextMapPosition(position: MapPosition): MapPosition {
-  const index = MAP_POSITIONS.indexOf(position);
-  return MAP_POSITIONS[(index + 1) % MAP_POSITIONS.length];
-}
-
 function mapPositionIsTop(position: MapPosition) {
   return position === "topLeft" || position === "topRight";
 }
@@ -502,11 +492,28 @@ function drawTemplate(
   labels: AircraftLabels,
   width: number,
   height: number,
+  templateRotation: TemplateRotation,
   mapPosition: MapPosition,
   mapTile: MapTileSnapshot | null,
   mapMissingLabel: string,
   mapAttributionLabel: string,
 ) {
+  // Rotate the drawing coordinate system, not the canvas element. The virtual
+  // dimensions swap for quarter turns, preserving short-edge template sizing.
+  context.save();
+  if (templateRotation === 90) {
+    context.translate(width, 0);
+    context.rotate(Math.PI / 2);
+    [width, height] = [height, width];
+  } else if (templateRotation === 180) {
+    context.translate(width, height);
+    context.rotate(Math.PI);
+  } else if (templateRotation === 270) {
+    context.translate(0, height);
+    context.rotate(-Math.PI / 2);
+    [width, height] = [height, width];
+  }
+
   const r = PH_RATIOS;
   const unit = Math.min(width, height);
   const pad = unit * r.pad;
@@ -668,6 +675,7 @@ function drawTemplate(
   }
 
   context.restore();
+  context.restore();
 }
 
 // Shared tap-vs-hold gesture: a quick tap fires onTap; holding past `delay`
@@ -739,9 +747,9 @@ function PlaneHunterControlDock({
   selectedCameraDeviceId,
   cameraReady,
   template,
-  mapPosition,
+  templateRotation,
   onSelectTemplate,
-  onRotateTemplatePosition,
+  onRotateTemplate,
   onZoomChange,
   onZoomCycle,
   onCameraDeviceSelect,
@@ -757,9 +765,9 @@ function PlaneHunterControlDock({
   selectedCameraDeviceId: string;
   cameraReady: boolean;
   template: PlaneHunterTemplate;
-  mapPosition: MapPosition;
+  templateRotation: TemplateRotation;
   onSelectTemplate: (next: PlaneHunterTemplate) => void;
-  onRotateTemplatePosition: () => void;
+  onRotateTemplate: () => void;
   onZoomChange: (nextZoom: number) => void;
   onZoomCycle: () => void;
   onCameraDeviceSelect: (deviceId: string) => void;
@@ -824,7 +832,7 @@ function PlaneHunterControlDock({
         <button
           type="button"
           disabled={template === "none"}
-          onClick={onRotateTemplatePosition}
+          onClick={onRotateTemplate}
           aria-label={t("planeHunter.rotateTemplate")}
           title={t("planeHunter.rotateTemplate")}
           className={cn(
@@ -837,11 +845,8 @@ function PlaneHunterControlDock({
         >
           <RotateCcw
             aria-hidden="true"
-            className={cn(
-              "size-[18px] transition-transform",
-              mapPositionIsTop(mapPosition) && "rotate-180",
-              mapPositionIsRight(mapPosition) && "scale-x-[-1]",
-            )}
+            className="size-[18px] transition-transform"
+            style={{ transform: `rotate(${templateRotation}deg)` }}
           />
         </button>
         <button
@@ -1047,10 +1052,12 @@ async function ensureTemplateFonts() {
 function PlaneHunterLiveTemplate({
   template,
   labels,
+  templateRotation,
   mapPosition,
 }: {
   template: PlaneHunterTemplate;
   labels: AircraftLabels;
+  templateRotation: TemplateRotation;
   mapPosition: MapPosition;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1078,6 +1085,7 @@ function PlaneHunterLiveTemplate({
         labels,
         canvas.width,
         canvas.height,
+        templateRotation,
         mapPosition,
         null,
         "",
@@ -1095,7 +1103,7 @@ function PlaneHunterLiveTemplate({
       observer.disconnect();
       window.cancelAnimationFrame(raf);
     };
-  }, [template, labels, mapPosition]);
+  }, [template, labels, mapPosition, templateRotation]);
   return (
     <canvas
       ref={canvasRef}
@@ -1374,9 +1382,10 @@ function PlaneHunterLiveCameraView({
   selectedCameraDeviceId,
   status,
   template,
+  templateRotation,
   mapPosition,
   onSelectTemplate,
-  onRotateTemplatePosition,
+  onRotateTemplate,
   onZoomChange,
   onZoomCycle,
   onCameraDeviceSelect,
@@ -1399,9 +1408,10 @@ function PlaneHunterLiveCameraView({
   selectedCameraDeviceId: string;
   status: string;
   template: PlaneHunterTemplate;
+  templateRotation: TemplateRotation;
   mapPosition: MapPosition;
   onSelectTemplate: (next: PlaneHunterTemplate) => void;
-  onRotateTemplatePosition: () => void;
+  onRotateTemplate: () => void;
   onZoomChange: (nextZoom: number) => void;
   onZoomCycle: () => void;
   onCameraDeviceSelect: (deviceId: string) => void;
@@ -1458,14 +1468,15 @@ function PlaneHunterLiveCameraView({
           <PlaneHunterLiveTemplate
             template={template}
             labels={labels}
+            templateRotation={templateRotation}
             mapPosition={mapPosition}
           />
         </div>
         <PlaneHunterControlDock
           template={template}
-          mapPosition={mapPosition}
+          templateRotation={templateRotation}
           onSelectTemplate={onSelectTemplate}
-          onRotateTemplatePosition={onRotateTemplatePosition}
+          onRotateTemplate={onRotateTemplate}
           zoom={zoom}
           zoomRange={zoomRange}
           cameraDevices={cameraDevices}
@@ -1490,9 +1501,10 @@ function PlaneHunterLiveCameraView({
 function PlaneHunterReviewView({
   image,
   template,
+  templateRotation,
   mapPosition,
   onSelectTemplate,
-  onRotateTemplatePosition,
+  onRotateTemplate,
   onRetake,
   onShare,
   onClose,
@@ -1500,9 +1512,10 @@ function PlaneHunterReviewView({
 }: {
   image: string;
   template: PlaneHunterTemplate;
+  templateRotation: TemplateRotation;
   mapPosition: MapPosition;
   onSelectTemplate: (next: PlaneHunterTemplate) => void;
-  onRotateTemplatePosition: () => void;
+  onRotateTemplate: () => void;
   onRetake: () => void;
   onShare: () => void;
   onClose: () => void;
@@ -1556,7 +1569,7 @@ function PlaneHunterReviewView({
           <button
             type="button"
             disabled={template === "none"}
-            onClick={onRotateTemplatePosition}
+            onClick={onRotateTemplate}
             aria-label={t("planeHunter.rotateTemplate")}
             title={t("planeHunter.rotateTemplate")}
             className={cn(
@@ -1568,11 +1581,8 @@ function PlaneHunterReviewView({
           >
             <RotateCcw
               aria-hidden="true"
-              className={cn(
-                "size-4 transition-transform",
-                mapPositionIsTop(mapPosition) && "rotate-180",
-                mapPositionIsRight(mapPosition) && "scale-x-[-1]",
-              )}
+              className="size-4 transition-transform"
+              style={{ transform: `rotate(${templateRotation}deg)` }}
             />
           </button>
           <button
@@ -1626,7 +1636,8 @@ export default function PlaneHunterStudio({
   const [capturedFrame, setCapturedFrame] = useState("");
   const [capturedImage, setCapturedImage] = useState("");
   const [template, setTemplate] = useState<PlaneHunterTemplate>("previewCard");
-  const [mapPosition, setMapPosition] = useState<MapPosition>("bottomRight");
+  const [templateRotation, setTemplateRotation] = useState<TemplateRotation>(0);
+  const mapPosition: MapPosition = "bottomRight";
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lon: number;
@@ -1731,6 +1742,7 @@ export default function PlaneHunterStudio({
             labels,
             canvas.width,
             canvas.height,
+            templateRotation,
             mapPosition,
             null,
             "",
@@ -1745,7 +1757,7 @@ export default function PlaneHunterStudio({
     return () => {
       cancelled = true;
     };
-  }, [capturedFrame, template, labels, mapPosition]);
+  }, [capturedFrame, template, labels, mapPosition, templateRotation]);
 
   // Read a selected photo-library file into the captured-image state.
   // Live camera frames use captureCameraFrame instead.
@@ -2051,8 +2063,11 @@ export default function PlaneHunterStudio({
     setStatus("");
   }, []);
 
-  const rotateTemplatePosition = useCallback(() => {
-    setMapPosition((current) => nextMapPosition(current));
+  const rotateTemplate = useCallback(() => {
+    setTemplateRotation((current) => {
+      const nextIndex = (TEMPLATE_ROTATIONS.indexOf(current) + 1) % TEMPLATE_ROTATIONS.length;
+      return TEMPLATE_ROTATIONS[nextIndex] as TemplateRotation;
+    });
   }, []);
 
   if (!open) return null;
@@ -2072,9 +2087,10 @@ export default function PlaneHunterStudio({
             <PlaneHunterReviewView
               image={capturedImage || capturedFrame}
               template={template}
+              templateRotation={templateRotation}
               mapPosition={mapPosition}
               onSelectTemplate={setTemplate}
-              onRotateTemplatePosition={rotateTemplatePosition}
+              onRotateTemplate={rotateTemplate}
               onRetake={retake}
               onShare={shareCapturedImage}
               onClose={close}
@@ -2094,9 +2110,10 @@ export default function PlaneHunterStudio({
               selectedCameraDeviceId={selectedCameraDeviceId}
               status={status}
               template={template}
+              templateRotation={templateRotation}
               mapPosition={mapPosition}
               onSelectTemplate={setTemplate}
-              onRotateTemplatePosition={rotateTemplatePosition}
+              onRotateTemplate={rotateTemplate}
               onZoomChange={handleCameraZoomChange}
               onZoomCycle={handleZoomCycle}
               onCameraDeviceSelect={handleCameraDeviceSelect}

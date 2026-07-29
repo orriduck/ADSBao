@@ -430,7 +430,7 @@ const en = {
     composeStepLabel: "Compose",
     closeStudio: "Close",
     templateLabel: "Template",
-    rotateTemplate: "Move template",
+    rotateTemplate: "Rotate template",
     templates: {
       none: "No template",
       previewCard: "Preview card",

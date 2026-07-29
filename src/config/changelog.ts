@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.6",
+    version: "v3.3.7",
     kind: "feat",
     title: {
       en: "Airport loading and Plane Hunter framing refinement",
       zh: "机场加载与拍机取景优化",
     },
     summary: {
-      en: "Airport maps resolve through a centred signal wave, while Plane Hunter keeps its framing consistent between portrait and landscape capture.",
-      zh: "机场地图通过居中的信号波显影;拍机模式现在在竖屏与横屏取景间保持一致的模板尺度。",
+      en: "Airport maps resolve through a centred signal wave, while Plane Hunter keeps its framing consistent across portrait, landscape, and orientation-locked capture.",
+      zh: "机场地图通过居中的信号波显影;拍机模式现在在竖屏、横屏和锁定方向取景间保持一致。",
     },
     highlights: [
       {
@@ -71,8 +71,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
         zh: "指示器尊重减少动态效果偏好,并在地图就绪后随原有加载图层淡出。",
       },
       {
-        en: "Plane Hunter templates now scale from the photo short edge; native landscape uses a smaller compass ribbon, while template repositioning remains available for portrait-locked shooting.",
-        zh: "拍机模板现在按照片短边缩放;真横屏会使用更紧凑的指南针,模板位置调整则保留给锁定竖屏时的横拍场景。",
+        en: "Plane Hunter templates now scale from the photo short edge; native landscape uses a smaller compass ribbon, while portrait-locked horizontal shooting can rotate the template in quarter turns without moving it.",
+        zh: "拍机模板现在按照片短边缩放;真横屏会使用更紧凑的指南针,锁定竖屏时横拍可将模板按 90 度旋转,不会改变其位置。",
       },
     ],
   },
