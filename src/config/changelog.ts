@@ -51,24 +51,24 @@ export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.4",
+    version: "v3.3.5",
     kind: "feat",
     title: {
-      en: "Airport loading now resolves through an ASCII radar spiral",
-      zh: "机场加载改为 ASCII 雷达螺旋显影",
+      en: "Airport loading now resolves through a symmetric signal wave",
+      zh: "机场加载改为对称信号波",
     },
     summary: {
-      en: "Airport maps now load through a centred field of rotating aircraft-data characters and dots. A radial scan reveals the map, then a light recurring wave passes through the spiral before the whole layer fades away.",
-      zh: "机场地图现在通过以中心为原点的航空数据字符与点阵旋涡加载。径向扫描显影地图,随后轻量波纹穿过旋涡,最后整个图层淡出。",
+      en: "Airport maps now load through a centred, symmetric signal wave that keeps the transition clear and quiet before the map fades in.",
+      zh: "机场地图现在通过居中的对称信号波加载,以更清晰安静的过渡显影地图。",
     },
     highlights: [
       {
-        en: "Replaced the previous single SVG text path with a spaced, canvas-rendered ASCII ring field that stays centred on the usable map area.",
-        zh: "用留有呼吸空间的 canvas ASCII 环场替换旧的单条 SVG 文本路径,并始终以可用地图区域中心为原点。",
+        en: "Replaced the custom canvas spiral with a compact ten-cell wave, centred on the usable map area.",
+        zh: "用紧凑的十格对称波替换自定义 canvas 螺旋,并始终以可用地图区域中心为原点。",
       },
       {
-        en: "The reveal and recurring three-second scan convert local character bands into dots, then return them to the live map without keeping animation work alive after exit.",
-        zh: "首屏显影与每三秒扫描会将局部字符带转为点阵,随后回到实时地图;退出后不再保留动画计算。",
+        en: "The indicator respects reduced-motion preference and fades with the existing map loading layer once the view is ready.",
+        zh: "指示器尊重减少动态效果偏好,并在地图就绪后随原有加载图层淡出。",
       },
     ],
   },

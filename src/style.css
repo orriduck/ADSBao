@@ -2601,18 +2601,26 @@ body:has(.dither-page-shell) {
     opacity: 0;
 }
 
-.airport-vortex-transition {
+.airport-symmetric-wave {
+    align-items: center;
+    display: flex;
     inset: 0;
-    overflow: hidden;
+    justify-content: center;
     pointer-events: none;
     position: absolute;
     z-index: 0;
 }
 
-.airport-vortex-transition__canvas {
-    display: block;
-    height: 100%;
-    width: 100%;
+.airport-symmetric-wave__indicator {
+    --duration: 1.6s;
+    color: color-mix(in oklab, var(--atc-text) 72%, transparent);
+    font-size: clamp(1.5rem, 3.6vw, 3.25rem);
+    letter-spacing: 0.08em;
+}
+
+.airport-symmetric-wave__indicator--static [style*="loading-ui-symmetric-wave"] {
+    animation: none !important;
+    opacity: 0.6 !important;
 }
 
 .adsb-loading-grid::before,

@@ -8,7 +8,7 @@ import {
   shouldReplayLoadingOverlayOnPageVisible,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import AirportVortexTransition from "./AirportVortexTransition";
+import { SymmetricWave } from "@/components/loading-ui/symmetric-wave";
 
 // reason → i18n key stem for the terminal (no live position) card.
 const TERMINAL_COPY_KEY: Record<string, string> = {
@@ -215,10 +215,15 @@ export default function MapLoadingOverlay({
           >
             <span className="adsb-loading-grid__matrix" />
             {variant === "airport" ? (
-              <AirportVortexTransition
-                animated={!prefersReducedMotion}
-                frozen={exiting || !visible}
-              />
+              <div className="airport-symmetric-wave" aria-hidden="true">
+                <SymmetricWave
+                  className={
+                    prefersReducedMotion
+                      ? "airport-symmetric-wave__indicator airport-symmetric-wave__indicator--static"
+                      : "airport-symmetric-wave__indicator"
+                  }
+                />
+              </div>
             ) : null}
           </div>
           {loadingLabel && variant !== "airport" ? (
