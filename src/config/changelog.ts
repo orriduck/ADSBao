@@ -1,9 +1,8 @@
 // Product release history rendered by `/changelog`. Keep new releases in
 // `CHANGELOG_RECENT`; older entries live in `changelogHistory.ts` so the
 // PWA shell can cache the condensed recent release set. Each release has a `kind`
-// ("feat" | "patch" | "breaking"), a one-line `summary`, and a small set of
-// high-level `highlights` bullets. Keep entries terse — the long-form story
-// belongs in the PR.
+// ("feat" | "patch" | "breaking") and one concise user-facing summary. Keep
+// detailed implementation notes in the PR, not the product UI.
 //
 // ONE ENTRY PER MINOR. Don't add a new entry for every patch. Fold each patch
 // into the current minor's single rolling entry (update its `summary` and bump
