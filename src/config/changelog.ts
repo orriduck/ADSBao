@@ -51,15 +51,15 @@ export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.7",
+    version: "v3.3.8",
     kind: "feat",
     title: {
       en: "Airport loading and Plane Hunter framing refinement",
       zh: "机场加载与拍机取景优化",
     },
     summary: {
-      en: "Airport maps resolve through a centred signal wave, while Plane Hunter keeps its framing consistent across portrait, landscape, and orientation-locked capture.",
-      zh: "机场地图通过居中的信号波显影;拍机模式现在在竖屏、横屏和锁定方向取景间保持一致。",
+      en: "Airport maps resolve through a compact centred signal wave, while Plane Hunter keeps its framing consistent across portrait, landscape, and orientation-locked capture.",
+      zh: "机场地图通过紧凑的居中信号波显影;拍机模式现在在竖屏、横屏和锁定方向取景间保持一致。",
     },
     highlights: [
       {
@@ -69,6 +69,10 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       {
         en: "The indicator respects reduced-motion preference and fades with the existing map loading layer once the view is ready.",
         zh: "指示器尊重减少动态效果偏好,并在地图就绪后随原有加载图层淡出。",
+      },
+      {
+        en: "The airport signal wave is 40% smaller and now carries a compact loading status beneath it.",
+        zh: "机场信号波缩小 40%,并在下方显示紧凑的加载状态。",
       },
       {
         en: "Plane Hunter templates now scale from the photo short edge; native landscape uses a smaller compass ribbon, while portrait-locked horizontal shooting can rotate the template in quarter turns without moving it.",

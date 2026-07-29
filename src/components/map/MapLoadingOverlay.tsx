@@ -215,14 +215,22 @@ export default function MapLoadingOverlay({
           >
             <span className="adsb-loading-grid__matrix" />
             {variant === "airport" ? (
-              <div className="airport-symmetric-wave" aria-hidden="true">
-                <SymmetricWave
-                  className={
-                    prefersReducedMotion
-                      ? "airport-symmetric-wave__indicator airport-symmetric-wave__indicator--static"
-                      : "airport-symmetric-wave__indicator"
-                  }
-                />
+              <div className="airport-symmetric-wave">
+                <div className="airport-symmetric-wave__content">
+                  <SymmetricWave
+                    aria-hidden="true"
+                    className={
+                      prefersReducedMotion
+                        ? "airport-symmetric-wave__indicator airport-symmetric-wave__indicator--static"
+                        : "airport-symmetric-wave__indicator"
+                    }
+                  />
+                  {loadingLabel ? (
+                    <span className="airport-symmetric-wave__status">
+                      {loadingLabel}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>

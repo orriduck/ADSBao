@@ -2611,11 +2611,26 @@ body:has(.dither-page-shell) {
     z-index: 0;
 }
 
+.airport-symmetric-wave__content {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .airport-symmetric-wave__indicator {
     --duration: 1.6s;
     color: color-mix(in oklab, var(--atc-text) 72%, transparent);
-    font-size: clamp(1.5rem, 3.6vw, 3.25rem);
+    font-size: clamp(0.9rem, 2.16vw, 1.95rem);
     letter-spacing: 0.08em;
+}
+
+.airport-symmetric-wave__status {
+    color: color-mix(in oklab, var(--atc-text) 58%, transparent);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    line-height: 1;
 }
 
 .airport-symmetric-wave__indicator--static [style*="loading-ui-symmetric-wave"] {
