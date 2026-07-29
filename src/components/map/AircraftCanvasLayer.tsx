@@ -37,12 +37,6 @@ import {
   aircraftSpriteCacheSize,
 } from "../../features/aircraft/canvas/aircraftSpriteCache";
 import { recordAircraftCanvasFrame } from "../../features/aircraft/canvas/aircraftCanvasPerfMonitor";
-import {
-  resolveAircraftLightBucket,
-  TIME_OF_DAY_HUE,
-  type TimeOfDay,
-  type WeatherMood,
-} from "../../features/aircraft/canvas/aircraftAmbientModel";
 
 const HIT_RADIUS_PX = 17; // matches the old 34px invisible hit target
 const HEADING_EASE = 0.25; // per-draw catch-up toward target heading
@@ -78,9 +72,6 @@ interface AircraftCanvasSetData {
   matchesFilters: (aircraft: any) => boolean;
   palette: AircraftCanvasPalette;
   reducedMotion: boolean;
-  lightBearingDeg?: number | null;
-  timeOfDay?: TimeOfDay;
-  dark?: boolean;
 }
 
 const AircraftCanvasRenderer = (L as any).Renderer.extend({
@@ -96,10 +87,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._drawList = [] as AircraftDrawDescriptor[];
     this._motion = new Map();
     this._heading = new Map();
-    this._lightBucket = new Map();
-    this._lightBearingDeg = null;
-    this._timeOfDay = "day";
-    this._dark = true;
     this._hitPoints = [];
     this._lastDraw = 0;
     this._anyAnimating = false;
@@ -251,15 +238,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
         continue;
       }
       const heading = this._ease(d.id, d.headingDeg, reducedMotion);
-      const lightBucket =
-        this._lightBearingDeg == null
-          ? null
-          : resolveAircraftLightBucket(
-              this._lightBearingDeg,
-              heading,
-              this._lightBucket.get(d.id) ?? null,
-            );
-      if (lightBucket != null) this._lightBucket.set(d.id, lightBucket);
       drawAircraftGlyph(
         ctx,
         d,
@@ -268,9 +246,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
         heading,
         palette,
         dpr,
-        lightBucket,
-        this._timeOfDay,
-        this._dark,
       );
       if (d.showLabel) drawAircraftLabel(ctx, d, lp.x, lp.y, palette);
       drawn += 1;
@@ -297,9 +272,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     this._focalId = data.focalId;
     this._palette = data.palette;
     this._reducedMotion = data.reducedMotion;
-    this._lightBearingDeg = data.lightBearingDeg ?? null;
-    this._timeOfDay = data.timeOfDay ?? "day";
-    this._dark = data.dark ?? true;
     this._drawList = buildDrawList(data.aircraft, {
       selectedId: data.selectedId,
       focalId: data.focalId,
@@ -326,10 +298,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     for (const id of Array.from(this._heading.keys()) as string[]) {
       if (!liveIds.has(id)) this._heading.delete(id);
     }
-    for (const id of Array.from(this._lightBucket.keys()) as string[]) {
-      if (!liveIds.has(id)) this._lightBucket.delete(id);
-    }
-
     this._startLoop();
     this._requestRender();
   },
@@ -358,107 +326,9 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   },
 });
 
-// Ambient tint for the "at rest" glyph colours (departure/arrival/unknown/
-// ground) — weather mood sets chroma + lightness (how vivid / how dim),
-// time-of-day sets hue (colour temperature, shared with the map-level wash
-// via TIME_OF_DAY_HUE), and the two combine into one oklch() string per
-// aircraft. Composed at mood/time-of-day CHANGE time (a handful of times an
-// hour), never per-frame or per-aircraft, so this stays a cheap
-// lookup-and-format, not runtime colour blending.
-// Chroma is split by theme (not just mood) because oklch's in-gamut sRGB
-// ceiling depends heavily on lightness, and dark/light use very different
-// lightness bands. Verified per (theme, mood, every TIME_OF_DAY_HUE) combo by
-// rendering each oklch() string to a canvas and checking for a clipped 0/255
-// channel: dark theme's ~0.28-0.4 lightness band has a MUCH lower safe
-// ceiling (the cyan "day" hue clips past ~0.07-0.08) than light theme's
-// ~0.66-0.78 band (safe past 0.11-0.13) — so light theme got a bigger bump.
-// Pushing past a hue's own ceiling isn't harmful (the browser gamut-maps
-// gracefully, not a visible break), but it's wasted precision, hence the
-// per-theme split instead of one shared number chasing the tightest hue.
-// The at-rest glyph carries the mood/time hue, but its lightness is tuned for
-// CONTRAST against the (now atmospheric) map, not to blend into it: on the
-// dark canvas aircraft sit brighter than before, on the light canvas they sit
-// darker and more saturated. An earlier pass put light-theme aircraft at ~0.78
-// lightness / 0.11 chroma — a pale lavender that washed out against a pale map
-// (measured on-canvas at rgb 184,168,248). These push both themes further from
-// the map's own lightness so aircraft read as lit subjects, not camouflage.
-const MOOD_CHROMA_DARK: Record<WeatherMood, number> = {
-  clear: 0.13,
-  overcast: 0.1,
-  severe: 0.06,
-};
-const MOOD_CHROMA_LIGHT: Record<WeatherMood, number> = {
-  clear: 0.15,
-  overcast: 0.12,
-  severe: 0.08,
-};
-const MOOD_LIGHTNESS_DARK: Record<WeatherMood, number> = {
-  clear: 0.52,
-  overcast: 0.46,
-  severe: 0.4,
-};
-const MOOD_LIGHTNESS_LIGHT: Record<WeatherMood, number> = {
-  clear: 0.58,
-  overcast: 0.52,
-  severe: 0.46,
-};
-// Ground traffic sits at one fixed mid lightness regardless of theme (it
-// always read as "duller than airborne" in both themes before this — this
-// keeps that cue while still carrying the mood/time-of-day hue+chroma).
-const GROUND_LIGHTNESS = 0.5;
-const GROUND_CHROMA_SCALE = 0.6;
-
-// Time-of-day lightness shift for the glyph body — the mood tables above set
-// the per-theme lightness band; this carries the sky's hour, mirroring the map
-// wash's own WASH_TOD_LIGHTNESS_DELTA so aircraft track the same darkening
-// curve as the ground they fly over instead of staying a fixed lightness while
-// the map moves under them. The two themes move in OPPOSITE directions on
-// purpose: on the LIGHT map, aircraft must go DARKER toward night to stay the
-// heavier subject as the map dims — a fixed-lightness night plane washed out
-// badly, worst over water where a night-blue glyph sits on light-blue sea
-// (measured: body-vs-water contrast was ~1.95 at rest, lifted to ~3.2 by a
-// -0.12 night shift). On the DARK map it's inverted: aircraft lift SLIGHTLY
-// toward night so the bright subject keeps its edge as the map deepens
-// (dark-night body contrast ~2.7 -> ~3.4 at +0.05). Day is the zero reference.
-const REST_TOD_LIGHTNESS_DELTA_LIGHT: Record<TimeOfDay, number> = {
-  day: 0,
-  dawn: -0.04,
-  dusk: -0.06,
-  night: -0.12,
-};
-const REST_TOD_LIGHTNESS_DELTA_DARK: Record<TimeOfDay, number> = {
-  day: 0,
-  dawn: 0.01,
-  dusk: 0.02,
-  night: 0.05,
-};
-const clampLightness = (value: number) => Math.min(0.98, Math.max(0.04, value));
-
-function resolveAmbientRestColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
-  const hue = TIME_OF_DAY_HUE[timeOfDay];
-  const chroma = dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood];
-  const baseLightness = dark ? MOOD_LIGHTNESS_DARK[mood] : MOOD_LIGHTNESS_LIGHT[mood];
-  const todDelta = dark
-    ? REST_TOD_LIGHTNESS_DELTA_DARK[timeOfDay]
-    : REST_TOD_LIGHTNESS_DELTA_LIGHT[timeOfDay];
-  return `oklch(${clampLightness(baseLightness + todDelta)} ${chroma} ${hue})`;
-}
-
-function resolveAmbientGroundColor(mood: WeatherMood, timeOfDay: TimeOfDay, dark: boolean) {
-  const hue = TIME_OF_DAY_HUE[timeOfDay];
-  const chroma = (dark ? MOOD_CHROMA_DARK[mood] : MOOD_CHROMA_LIGHT[mood]) * GROUND_CHROMA_SCALE;
-  const todDelta = dark
-    ? REST_TOD_LIGHTNESS_DELTA_DARK[timeOfDay]
-    : REST_TOD_LIGHTNESS_DELTA_LIGHT[timeOfDay];
-  return `oklch(${clampLightness(GROUND_LIGHTNESS + todDelta)} ${chroma} ${hue})`;
-}
-
 function resolveAircraftCanvasPalette(
   map: any,
   theme: string,
-  mood: WeatherMood = "clear",
-  timeOfDay: TimeOfDay = "day",
-  ambientEnabled: boolean = true,
 ): AircraftCanvasPalette {
   const dark = theme !== "light";
   let read = (_name: string, fallback: string) => fallback;
@@ -469,26 +339,11 @@ function resolveAircraftCanvasPalette(
   } catch {
     /* keep fallbacks */
   }
-  // "Theme colour" ambient-mode setting: revert to the original flat neutral
-  // palette that predates the weather/time tint (still theme-aware via these
-  // same CSS vars, just no mood/time hue) instead of the ambient resolvers.
-  const departure = ambientEnabled
-    ? resolveAmbientRestColor(mood, timeOfDay, dark)
-    : read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0");
-  const arrival = ambientEnabled
-    ? departure
-    : read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0");
-  const unknown = ambientEnabled
-    ? departure
-    : read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0");
-  const ground = ambientEnabled
-    ? resolveAmbientGroundColor(mood, timeOfDay, dark)
-    : read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab");
   return {
-    departure,
-    arrival,
-    unknown,
-    ground,
+    departure: read("--aircraft-departure", dark ? "#2a2a26" : "#dcd9d0"),
+    arrival: read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
+    unknown: read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
+    ground: read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
     // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
     // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
     // canvas, near-black grey on the light canvas) — distinguished by luminance
@@ -520,16 +375,7 @@ export interface AircraftCanvasLayerProps {
   traceActive?: boolean;
   showCallsigns?: boolean;
   matchesFilters: (aircraft: any) => boolean;
-  onSelectAircraft?: (id: string) => void;
   hitTestRef?: { current: ((containerPoint: any) => string | null) | null };
-  /** Ambient weather mood for the "at rest" glyph colours; defaults to "clear". */
-  weatherMood?: WeatherMood;
-  /** Ambient time-of-day colour temperature; defaults to "day". */
-  timeOfDay?: TimeOfDay;
-  /** Simplified light-source bearing (deg); null disables the light-mask overlay entirely. */
-  lightBearingDeg?: number | null;
-  /** "Ambient colour" map setting: false reverts to the original flat neutral palette. */
-  ambientEnabled?: boolean;
 }
 
 export default function AircraftCanvasLayer({
@@ -541,12 +387,7 @@ export default function AircraftCanvasLayer({
   traceActive = false,
   showCallsigns = true,
   matchesFilters,
-  onSelectAircraft,
   hitTestRef,
-  weatherMood = "clear",
-  timeOfDay = "day",
-  lightBearingDeg = null,
-  ambientEnabled = true,
 }: AircraftCanvasLayerProps) {
   const map = useMapInstance();
   const rendererRef = useRef<any>(null);
@@ -607,17 +448,8 @@ export default function AircraftCanvasLayer({
       traceActive,
       showCallsigns,
       matchesFilters,
-      palette: resolveAircraftCanvasPalette(
-        map,
-        theme,
-        weatherMood,
-        timeOfDay,
-        ambientEnabled,
-      ),
+      palette: resolveAircraftCanvasPalette(map, theme),
       reducedMotion,
-      lightBearingDeg,
-      timeOfDay,
-      dark: theme !== "light",
     });
   }, [
     map,
@@ -629,10 +461,6 @@ export default function AircraftCanvasLayer({
     traceActive,
     showCallsigns,
     matchesFilters,
-    weatherMood,
-    timeOfDay,
-    lightBearingDeg,
-    ambientEnabled,
   ]);
 
   return null;

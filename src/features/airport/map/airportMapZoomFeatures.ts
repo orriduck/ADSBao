@@ -5,7 +5,6 @@ import {
 } from "../../../utils/airportMapDisplay";
 
 type AirportMapZoomFeatures = {
-  airportGroundTrafficHideRadiusNm: number | null;
   showAirportAreaCount: boolean;
   showNearbyAirportRunways: boolean;
   showRangeRingLabels: boolean;
@@ -17,7 +16,6 @@ type AirportMapZoomFeatures = {
 const DEFAULT_GROUND_AREA_RADIUS_NM = 3;
 
 const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze({
-  airportGroundTrafficHideRadiusNm: null,
   showAirportAreaCount: false,
   showNearbyAirportRunways: true,
   showRangeRingLabels: false,
@@ -28,7 +26,6 @@ const AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS: AirportMapZoomFeatures = Object.freeze(
 
 const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures> = Object.freeze({
   [ZOOM_APPROACH]: Object.freeze({
-    airportGroundTrafficHideRadiusNm: DEFAULT_GROUND_AREA_RADIUS_NM,
     showAirportAreaCount: true,
     showNearbyAirportRunways: true,
     showRangeRingLabels: false,
@@ -37,7 +34,6 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showCandidateWatchingSpotBadges: false,
   }),
   [ZOOM_AIRPORT]: Object.freeze({
-    airportGroundTrafficHideRadiusNm: 0.5,
     showAirportAreaCount: true,
     showNearbyAirportRunways: true,
     showRangeRingLabels: true,
@@ -46,7 +42,6 @@ const AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL: Record<number, AirportMapZoomFeatures>
     showCandidateWatchingSpotBadges: true,
   }),
   [ZOOM_DETAIL]: Object.freeze({
-    airportGroundTrafficHideRadiusNm: null,
     showAirportAreaCount: false,
     showNearbyAirportRunways: true,
     showRangeRingLabels: true,
@@ -60,8 +55,11 @@ const airportMapZoomFeaturesFor = (zoom: unknown): AirportMapZoomFeatures =>
   AIRPORT_MAP_ZOOM_FEATURES_BY_LEVEL[Number(zoom)] ??
   AIRPORT_MAP_ZOOM_FEATURE_DEFAULTS;
 
-export const airportGroundTrafficHideRadiusNmForZoom = (zoom: unknown) =>
-  airportMapZoomFeaturesFor(zoom).airportGroundTrafficHideRadiusNm;
+export const airportGroundTrafficSecondaryRadiusNmForZoom = (zoom: unknown) => {
+  const numericZoom = Number(zoom);
+  if (!Number.isFinite(numericZoom) || numericZoom >= 12) return null;
+  return DEFAULT_GROUND_AREA_RADIUS_NM;
+};
 
 export const shouldShowAirportAreaCountForZoom = (zoom: unknown) =>
   airportMapZoomFeaturesFor(zoom).showAirportAreaCount;

@@ -12,8 +12,6 @@ import ReportingPointLabelLayer from "./ReportingPointLabelLayer";
 import MapBadgeCollisionLayer from "./MapBadgeCollisionLayer";
 import CandidateWatchingSpotsLayer from "./CandidateWatchingSpotsLayer";
 import AircraftCanvasLayer from "./AircraftCanvasLayer";
-import AmbientWashLayer from "./AmbientWashLayer";
-import AmbientLightGradientLayer from "./AmbientLightGradientLayer";
 import UserLocationMarker from "./UserLocationMarker";
 import SelectedAircraftTrace from "./SelectedAircraftTrace";
 import RunwayAnnotationLayer from "./RunwayAnnotationLayer";
@@ -128,10 +126,6 @@ export default function AirportMap({
   loadingOverlaySources = {},
   flightTerminalReason = "",
   userLocation = null,
-  weatherMood = "clear",
-  timeOfDay = "day",
-  lightBearingDeg = null,
-  ambientEnabled = true,
   children = null,
 }: Record<string, any>) {
   const { locale } = useI18n();
@@ -640,21 +634,6 @@ export default function AirportMap({
             selectionActive={selectionActive}
             onReadinessChange={handleMapTileReadinessChange}
           />
-          {ambientEnabled && (
-            <AmbientWashLayer
-              theme={currentTheme}
-              weatherMood={weatherMood}
-              timeOfDay={timeOfDay}
-            />
-          )}
-          {ambientEnabled && lightBearingDeg != null && (
-            <AmbientLightGradientLayer
-              theme={currentTheme}
-              weatherMood={weatherMood}
-              timeOfDay={timeOfDay}
-              lightBearingDeg={lightBearingDeg}
-            />
-          )}
           <AirspaceLayer
             airspaces={renderedAirspaces}
             selectableAirspaceIds={selectableAirspaceIds}
@@ -768,12 +747,7 @@ export default function AirportMap({
             traceActive={renderSelectedAircraftTrace}
             showCallsigns={showCallsigns}
             matchesFilters={aircraftCanvasMatchesFilters}
-            onSelectAircraft={onSelectAircraft}
             hitTestRef={aircraftHitTestRef}
-            weatherMood={weatherMood}
-            timeOfDay={timeOfDay}
-            lightBearingDeg={lightBearingDeg}
-            ambientEnabled={ambientEnabled}
           />
         </MapContext.Provider>
       )}

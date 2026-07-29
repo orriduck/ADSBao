@@ -110,6 +110,27 @@ assert.equal(
   ).opacity,
   1,
 );
+assert.equal(
+  buildAircraftDrawDescriptor(
+    { icao24: "A", velocity: 5, _airportGroundTrafficSecondary: true },
+    baseCtx,
+  ).opacity,
+  0.1,
+);
+assert.equal(
+  buildAircraftDrawDescriptor(
+    { icao24: "A", velocity: 5, _airportGroundTrafficSecondary: true },
+    { ...baseCtx, selected: true },
+  ).opacity,
+  1,
+);
+assert.equal(
+  buildAircraftDrawDescriptor(
+    { icao24: "A", velocity: 200, _airportGroundTrafficSecondary: true },
+    baseCtx,
+  ).opacity,
+  1,
+);
 
 // ── label fallback ───────────────────────────────────────────────────────
 assert.equal(

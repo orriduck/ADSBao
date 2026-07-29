@@ -22,6 +22,8 @@ import { getAircraftPositionSourceBadge } from "../../aviation/sourceDisplayMode
 type AircraftDrawKind = "silhouette" | "arrow" | "dot";
 export type AircraftColorKey = "departure" | "arrival" | "ground" | "unknown";
 
+const AIRPORT_GROUND_TRAFFIC_SECONDARY_OPACITY = 0.1;
+
 export interface AircraftDrawDescriptor {
   id: string;
   kind: AircraftDrawKind;
@@ -92,6 +94,13 @@ export function buildAircraftDrawDescriptor(
       focal ||
       (ctx.showCallsigns && !traceActive && emphasis.showLabel),
   );
+  const opacity =
+    !selected &&
+    !focal &&
+    kind === "dot" &&
+    aircraft?._airportGroundTrafficSecondary === true
+      ? Math.min(emphasis.opacity, AIRPORT_GROUND_TRAFFIC_SECONDARY_OPACITY)
+      : emphasis.opacity;
   return {
     id: getAircraftIdentity(aircraft),
     kind,
@@ -100,7 +109,7 @@ export function buildAircraftDrawDescriptor(
     colorKey: resolveAircraftColorKey(aircraft, showArrow),
     sizeScale,
     headingDeg: Number(aircraft?.track) || 0,
-    opacity: emphasis.opacity,
+    opacity,
     selected,
     focal,
     showLabel,

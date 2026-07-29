@@ -1,6 +1,7 @@
 import { getDistanceNm } from "../../../utils/aircraftTrafficIntent";
+import { SLOW_AIRCRAFT_THRESHOLD_KT } from "../../../utils/aircraftMotion";
 import { cleanAirportCode } from "../../../utils/airport";
-import { airportGroundTrafficHideRadiusNmForZoom } from "./airportMapZoomFeatures";
+import { airportGroundTrafficSecondaryRadiusNmForZoom } from "./airportMapZoomFeatures";
 
 type AirportMapCoordinate = {
   icao?: unknown;
@@ -122,38 +123,16 @@ export const resolveAirportMapInitialCenter = ({
 const airportGroundFilters = ({
   airportLat,
   airportLon,
-  airportElevationFt,
   nearbyAirports = [],
 }: AirportGroundFilterOptions) =>
   [
-    { lat: airportLat, lon: airportLon, elevationFt: airportElevationFt },
-    ...nearbyAirports.map((airport) => ({
-      lat: airport?.lat,
-      lon: airport?.lon,
-      elevationFt: airport?.elevationFt,
-    })),
+    { lat: airportLat, lon: airportLon },
+    ...nearbyAirports.map((airport) => ({ lat: airport?.lat, lon: airport?.lon })),
   ].filter((airport) => airport.lat != null && airport.lon != null);
 
-export const airportGroundTrafficAltitudeThresholdFtForRadiusNm = (radiusNm: unknown) => {
-  const radius = toFiniteNumber(radiusNm);
-  if (radius == null || radius <= 0) return null;
-  return Math.max(300, Math.round(radius * 350));
-};
-
-const isNearAirportElevation = (
-  aircraft: AirportMapAircraft,
-  airport: AirportMapCoordinate,
-  radiusNm: number,
-) => {
-  if (aircraft.onGround === true) return true;
-  const aircraftAltitudeFt = toFiniteNumber(aircraft.altitude);
-  const airportElevationFt = toFiniteNumber(airport.elevationFt);
-  const thresholdFt = airportGroundTrafficAltitudeThresholdFtForRadiusNm(radiusNm);
-  if (aircraftAltitudeFt == null) return true;
-  if (thresholdFt == null) return false;
-  if (airportElevationFt == null) return aircraftAltitudeFt <= thresholdFt;
-  return Math.abs(aircraftAltitudeFt - airportElevationFt) <= thresholdFt;
-};
+const isSlowAirportTraffic = (aircraft: AirportMapAircraft) =>
+  aircraft.onGround === true ||
+  (toFiniteNumber(aircraft.velocity) ?? 0) < SLOW_AIRCRAFT_THRESHOLD_KT;
 
 const isInsideAirportGroundArea = (
   aircraft: AirportMapAircraft,
@@ -161,11 +140,7 @@ const isInsideAirportGroundArea = (
   radiusNm: number,
 ) => {
   const distNm = getDistanceNm(airport.lat, airport.lon, aircraft.lat, aircraft.lon);
-  return (
-    distNm != null &&
-    distNm <= radiusNm &&
-    isNearAirportElevation(aircraft, airport, radiusNm)
-  );
+  return distNm != null && distNm <= radiusNm;
 };
 
 export const getVisibleAircraft = ({
@@ -176,9 +151,9 @@ export const getVisibleAircraft = ({
   nearbyAirports = [],
   zoom,
 }: VisibleAircraftOptions) => {
-  const airportGroundTrafficHideRadiusNm =
-    airportGroundTrafficHideRadiusNmForZoom(zoom);
-  if (airportGroundTrafficHideRadiusNm == null) {
+  const airportGroundTrafficSecondaryRadiusNm =
+    airportGroundTrafficSecondaryRadiusNmForZoom(zoom);
+  if (airportGroundTrafficSecondaryRadiusNm == null) {
     return aircraft.filter((ac) => ac.lat != null && ac.lon != null);
   }
 
@@ -189,10 +164,13 @@ export const getVisibleAircraft = ({
     nearbyAirports,
   });
 
-  return aircraft.filter((ac) => {
-    if (ac.lat == null || ac.lon == null) return false;
-    return !groundFilters.some((airport) =>
-      isInsideAirportGroundArea(ac, airport, airportGroundTrafficHideRadiusNm),
-    );
+  return aircraft.flatMap((ac) => {
+    if (ac.lat == null || ac.lon == null) return [];
+    const secondary =
+      isSlowAirportTraffic(ac) &&
+      groundFilters.some((airport) =>
+        isInsideAirportGroundArea(ac, airport, airportGroundTrafficSecondaryRadiusNm),
+      );
+    return secondary ? [{ ...ac, _airportGroundTrafficSecondary: true }] : [ac];
   });
 };

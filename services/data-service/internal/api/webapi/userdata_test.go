@@ -33,13 +33,13 @@ func TestMergeMapSettingsPreservesExistingLayerOverrides(t *testing.T) {
 	}
 }
 
-func TestMergeMapSettingsPreservesAmbientMode(t *testing.T) {
+func TestMergeMapSettingsIgnoresLegacyAmbientMode(t *testing.T) {
 	next := mergeMapSettings(nil, map[string]any{
 		"ambientMode": "theme",
 	})
 
-	if next["ambientMode"] != "theme" {
-		t.Fatalf("expected theme ambient mode, got %#v", next["ambientMode"])
+	if _, ok := next["ambientMode"]; ok {
+		t.Fatalf("expected legacy ambient mode to be ignored, got %#v", next["ambientMode"])
 	}
 }
 

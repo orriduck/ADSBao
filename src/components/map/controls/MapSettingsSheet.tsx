@@ -1,9 +1,7 @@
 import { useUser } from "@/platform/auth/clerkClient";
 import {
-  DEFAULT_AMBIENT_MODE,
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
-  getAmbientModeOptions,
   getMapBaseLayerOptions,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
@@ -298,7 +296,6 @@ export default function MapSettingsSheet({
   userLocationPositionReady = false,
   userLocationCompassHeadingDeg = null,
   onSelectBaseLayer,
-  onSelectAmbientMode,
   onToggleMapLabels,
   onToggleBeams,
   onToggleNavaidMarkers,
@@ -347,9 +344,6 @@ export default function MapSettingsSheet({
   const settings = normalizeMapSettings(mapSettings);
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
-  const ambientModeOptions = getAmbientModeOptions();
-  const activeAmbientModeId =
-    settings.ambientMode || DEFAULT_AMBIENT_MODE;
   const state = {
     showMapLabels,
     showBeams,
@@ -440,33 +434,6 @@ export default function MapSettingsSheet({
                       title={t(option.labelKey)}
                       description={t(option.descriptionKey)}
                       onClick={() => onSelectBaseLayer?.(option.id)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-
-            <section
-              className="map-settings-section"
-              aria-labelledby={`${id}-chrome-ambient`}
-            >
-              <h3
-                id={`${id}-chrome-ambient`}
-                className={sectionTitleClassName}
-              >
-                {t("mapSettings.ambientSection")}
-              </h3>
-              <div className={settingsListGroupClassName}>
-                {ambientModeOptions.map((option) => {
-                  const active = activeAmbientModeId === option.id;
-                  return (
-                    <SettingsOptionRow
-                      key={option.id}
-                      active={active}
-                      iconKey={option.iconKey}
-                      title={t(option.labelKey)}
-                      description={t(option.descriptionKey)}
-                      onClick={() => onSelectAmbientMode?.(option.id)}
                     />
                   );
                 })}

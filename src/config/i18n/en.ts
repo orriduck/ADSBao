@@ -430,6 +430,7 @@ const en = {
     composeStepLabel: "Compose",
     closeStudio: "Close",
     templateLabel: "Template",
+    rotateTemplate: "Move template",
     templates: {
       none: "No template",
       previewCard: "Preview card",
@@ -689,7 +690,6 @@ const en = {
     title: "Map settings",
     description: "Fine-tune the layers shown on this airport map.",
     baseMapSection: "Base map",
-    ambientSection: "Ambient colour",
     layersSection: "Display",
     unitsSection: "Units",
     notificationsSection: "Notifications",
@@ -724,14 +724,6 @@ const en = {
     baseLayerDescriptions: {
       standard: "Clean street map with no terrain shading.",
       terrain: "Hillshade and topographic relief under the base map.",
-    },
-    ambient: {
-      ambient: "Weather & time",
-      theme: "Theme colour",
-    },
-    ambientDescriptions: {
-      ambient: "The map, aircraft, sidebar, and toolbar all pick up a hint of the airport's current weather and local time of day.",
-      theme: "The map, aircraft, sidebar, and toolbar stay a plain, static colour.",
     },
   },
   notifications: {

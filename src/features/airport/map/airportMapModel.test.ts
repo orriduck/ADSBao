@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 
 import { ZOOM_AIRPORT, ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
 import {
-  airportGroundTrafficAltitudeThresholdFtForRadiusNm,
   getMapOverlayTheme,
   getVisibleAircraft,
   isKnownMapTheme,
@@ -15,13 +14,14 @@ import {
 } from "./airportMapModel";
 
 const aircraft = [
-  { icao24: "near", lat: 42.3657, lon: -71.0097, altitude: 240 },
-  { icao24: "unknown-altitude-near", lat: 42.366, lon: -71.01 },
-  { icao24: "overflight", lat: 42.3657, lon: -71.0097, altitude: 35_000 },
-  { icao24: "airport-ring", lat: 42.3816, lon: -71.0096, altitude: 700 },
-  { icao24: "near-secondary", lat: 42.58, lon: -70.92, altitude: 180 },
-  { icao24: "high-secondary", lat: 42.58, lon: -70.92, altitude: 22_000 },
-  { icao24: "far", lat: 42.55, lon: -71.22, altitude: 100 },
+  { icao24: "near", lat: 42.3657, lon: -71.0097, altitude: 240, velocity: 5 },
+  { icao24: "unknown-altitude-near", lat: 42.366, lon: -71.01, velocity: 5 },
+  { icao24: "overflight", lat: 42.3657, lon: -71.0097, altitude: 35_000, velocity: 220 },
+  { icao24: "airport-ring", lat: 42.3816, lon: -71.0096, altitude: 700, velocity: 5 },
+  { icao24: "near-secondary", lat: 42.58, lon: -70.92, altitude: 180, velocity: 5 },
+  { icao24: "lifted-slow-secondary", lat: 42.58, lon: -70.92, altitude: 2_250, velocity: 5 },
+  { icao24: "high-secondary", lat: 42.58, lon: -70.92, altitude: 22_000, velocity: 220 },
+  { icao24: "far", lat: 42.55, lon: -71.22, altitude: 100, velocity: 5 },
   { icao24: "missing", lat: null, lon: -71.22 },
 ];
 
@@ -75,7 +75,29 @@ assert.deepEqual(
     zoom: ZOOM_AIRPORT,
   })
     .map((item) => item.icao24),
-  ["overflight", "airport-ring", "near-secondary", "high-secondary", "far"],
+  [
+    "near",
+    "unknown-altitude-near",
+    "overflight",
+    "airport-ring",
+    "near-secondary",
+    "lifted-slow-secondary",
+    "high-secondary",
+    "far",
+  ],
+);
+
+assert.deepEqual(
+  getVisibleAircraft({
+    aircraft,
+    airportLat: 42.3656,
+    airportLon: -71.0096,
+    airportElevationFt: 19,
+    zoom: ZOOM_AIRPORT,
+  })
+    .filter((item) => item._airportGroundTrafficSecondary)
+    .map((item) => item.icao24),
+  ["near", "unknown-altitude-near", "airport-ring"],
 );
 
 assert.deepEqual(
@@ -87,7 +109,16 @@ assert.deepEqual(
     zoom: ZOOM_APPROACH,
   })
     .map((item) => item.icao24),
-  ["overflight", "near-secondary", "high-secondary", "far"],
+  [
+    "near",
+    "unknown-altitude-near",
+    "overflight",
+    "airport-ring",
+    "near-secondary",
+    "lifted-slow-secondary",
+    "high-secondary",
+    "far",
+  ],
 );
 
 assert.deepEqual(
@@ -98,12 +129,17 @@ assert.deepEqual(
     airportElevationFt: 19,
     nearbyAirports: [{ icao: "KBVY", lat: 42.5842, lon: -70.9165, elevationFt: 107 }],
     zoom: ZOOM_APPROACH,
-  }).map((item) => item.icao24),
-  ["overflight", "high-secondary", "far"],
+  })
+    .filter((item) => item._airportGroundTrafficSecondary)
+    .map((item) => item.icao24),
+  [
+    "near",
+    "unknown-altitude-near",
+    "airport-ring",
+    "near-secondary",
+    "lifted-slow-secondary",
+  ],
 );
-
-assert.equal(airportGroundTrafficAltitudeThresholdFtForRadiusNm(3), 1050);
-assert.equal(airportGroundTrafficAltitudeThresholdFtForRadiusNm(0.5), 300);
 
 assert.equal(
   getMapOverlayTheme("light").labelShadowColor,
