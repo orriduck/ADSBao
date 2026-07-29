@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const RING_COUNT = 30;
+const RING_COUNT = 18;
 const RIPPLE_DURATION_MS = 1_800;
 const RIPPLE_INTERVAL_MS = 3_000;
 const RIPPLE_WIDTH = 0.85;
@@ -89,10 +89,10 @@ function createRings() {
 
   for (let ringIndex = 0; ringIndex < RING_COUNT; ringIndex += 1) {
     const progress = ringIndex / (RING_COUNT - 1);
-    const radius = 0.06 + 1.39 * progress;
-    const size = 14 + 16 * progress;
+    const radius = 0.17 + 1.22 * progress;
+    const size = 12 + 9 * progress;
     const speed = (ringIndex % 2 === 0 ? 1 : -1) * (0.006 + (1 - progress) * 0.029);
-    const count = Math.max(8, Math.floor((Math.PI * 2 * radius) / (0.6 * size * 0.00185185)));
+    const count = Math.max(7, Math.round(7 + radius * 42));
     const bandCenter = random() < 0.15 ? random() * Math.PI * 2 : 0.25 + (random() - 0.5) * Math.PI * 0.65;
     const bandHalfWidth = Math.min(
       0.98,
@@ -111,7 +111,7 @@ function createRings() {
         Math.max(0, bandHalfWidth - bandSoftness),
         angleDistance,
       );
-      const isPhraseSlot = glyphIndex % 4 !== 3;
+      const isPhraseSlot = glyphIndex % 5 !== 4;
       const isLetter = isPhraseSlot && (bandAmount > 0.7 || (bandAmount >= 0.3 && random() < bandAmount));
       const character = PHRASE[phraseIndex % PHRASE.length] || "A";
       if (isPhraseSlot) phraseIndex += 1;
@@ -120,7 +120,7 @@ function createRings() {
         character,
         isLetter,
         phase,
-        size: isLetter ? size * (0.85 + bandAmount * 0.15) : 5,
+        size: isLetter ? size * (0.88 + bandAmount * 0.12) : 4,
         threshold: random(),
       });
     }

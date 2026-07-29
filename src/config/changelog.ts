@@ -51,7 +51,7 @@ export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.3",
+    version: "v3.3.4",
     kind: "feat",
     title: {
       en: "Airport loading now resolves through an ASCII radar spiral",
@@ -63,8 +63,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     },
     highlights: [
       {
-        en: "Replaced the previous single SVG text path with a dense, canvas-rendered ASCII ring field that stays centred on the usable map area.",
-        zh: "用密集 canvas ASCII 环场替换旧的单条 SVG 文本路径,并始终以可用地图区域中心为原点。",
+        en: "Replaced the previous single SVG text path with a spaced, canvas-rendered ASCII ring field that stays centred on the usable map area.",
+        zh: "用留有呼吸空间的 canvas ASCII 环场替换旧的单条 SVG 文本路径,并始终以可用地图区域中心为原点。",
       },
       {
         en: "The reveal and recurring three-second scan convert local character bands into dots, then return them to the live map without keeping animation work alive after exit.",
