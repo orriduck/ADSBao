@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 70;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.4.0",
+    version: "v3.4.1",
     kind: "feat",
     title: {
       en: "Onboard mode",
       zh: "机上模式",
     },
     summary: {
-      en: "Onboard mode keeps a known flight ready to track until its signal appears.",
-      zh: "机上模式可在航班信号出现前持续保持追踪就绪。",
+      en: "Onboard mode waits for a known flight, while map loading stays centred in the visible viewport.",
+      zh: "机上模式可在航班信号出现前持续保持追踪就绪，地图加载始终位于可见视口中心。",
     },
     highlights: [],
   },

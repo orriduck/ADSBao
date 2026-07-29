@@ -2543,6 +2543,13 @@ body:has(.dither-page-shell) {
     padding-left: calc(var(--app-sidebar-width) + var(--map-kit-inset));
 }
 
+/* The airport survey lives in an absolutely positioned grid, so the overlay's
+   flex padding cannot shift its centre. Constrain that grid to the visible map
+   viewport while keeping the loading wash over the complete map surface. */
+.adsb-loading-overlay--sidebar-aware .adsb-loading-grid {
+    left: calc(var(--app-sidebar-width) + var(--map-kit-inset));
+}
+
 :root[data-theme="light"] .adsb-loading-overlay {
     background: linear-gradient(
         180deg,
