@@ -148,10 +148,6 @@ export default function AirportMap({
     visible: true,
     exiting: false,
   });
-  const [loadingOverlayFocusPoint, setLoadingOverlayFocusPoint] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
   const compactRunwayAnnotations = Number(zoom) <= AIRPORT_MAP_ZOOM.approach;
   const focalCenter = useMemo(
@@ -294,32 +290,6 @@ export default function AirportMap({
       window.removeEventListener("pageshow", handlePageShow);
     };
   }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
-
-  useEffect(() => {
-    if (!mapInstance || !focalCenter) {
-      setLoadingOverlayFocusPoint(null);
-      return undefined;
-    }
-
-    const updateFocusPoint = () => {
-      const point = mapInstance.latLngToContainerPoint?.([
-        focalCenter.lat,
-        focalCenter.lon,
-      ]);
-      if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) return;
-      setLoadingOverlayFocusPoint((current) =>
-        current && Math.abs(current.x - point.x) < 0.5 && Math.abs(current.y - point.y) < 0.5
-          ? current
-          : { x: point.x, y: point.y },
-      );
-    };
-
-    updateFocusPoint();
-    mapInstance.on?.("moveend zoomend resize", updateFocusPoint);
-    return () => {
-      mapInstance.off?.("moveend zoomend resize", updateFocusPoint);
-    };
-  }, [focalCenter, mapInstance]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // selection so the user can drop "trace mode" without targeting an
@@ -781,7 +751,6 @@ export default function AirportMap({
         sidebarAware={floatingSidebarAware}
         variant={loadingOverlayVariant}
         onVisibleChange={handleLoadingOverlayVisibleChange}
-        focusPoint={loadingOverlayFocusPoint}
         {...loadingOverlayCopy}
       />
     </div>

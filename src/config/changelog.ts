@@ -47,36 +47,28 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 68;
+export const CHANGELOG_TOTAL_COUNT = 69;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.3.2",
+    version: "v3.3.3",
     kind: "feat",
     title: {
-      en: "Cleaner map settings and camera template control",
-      zh: "更干净的地图设置与相机模板控制",
+      en: "Airport loading now resolves through an ASCII radar spiral",
+      zh: "机场加载改为 ASCII 雷达螺旋显影",
     },
     summary: {
-      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and airport navigation resolves from a coarse map mosaic into live detail.",
-      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;进入机场时地图会从粗颗粒马赛克解算到实时细节。",
+      en: "Airport maps now load through a centred field of rotating aircraft-data characters and dots. A radial scan reveals the map, then a light recurring wave passes through the spiral before the whole layer fades away.",
+      zh: "机场地图现在通过以中心为原点的航空数据字符与点阵旋涡加载。径向扫描显影地图,随后轻量波纹穿过旋涡,最后整个图层淡出。",
     },
     highlights: [
       {
-        en: "Removed Ambient colour from saved map settings, the settings sheet, map wash layers, aircraft ambient tinting, and the sidebar/toolbar ambient surface treatment.",
-        zh: "移除「氛围配色」的保存设置、设置面板入口、地图遮罩层、飞机氛围染色,以及侧栏/工具栏的氛围表面处理。",
+        en: "Replaced the previous single SVG text path with a dense, canvas-rendered ASCII ring field that stays centred on the usable map area.",
+        zh: "用密集 canvas ASCII 环场替换旧的单条 SVG 文本路径,并始终以可用地图区域中心为原点。",
       },
       {
-        en: "Added a Plane Hunter template-position control that only moves the overlay template, so camera capture can adapt when a portrait-locked phone is physically rotated.",
-        zh: "Plane Hunter 新增模板位置控制,只移动 overlay 模板本身,让竖屏锁定但实际横拿手机时也能调整取景模板。",
-      },
-      {
-        en: "Slow traffic dots are no longer hidden at lower zooms; below 12x their opacity drops to 10% so airport and nearby-airport clusters read as secondary context.",
-        zh: "慢速交通点在低 zoom 下不再被隐藏;12x 以下透明度降为 10%,让机场和邻近机场的密集点位成为次要背景信息。",
-      },
-      {
-        en: "Airport map loading now resolves through an airport-centred aerograph scan, with a reduced-motion fallback.",
-        zh: "机场地图加载改为通过以机场为中心的航图扫描显影到实时细节,并为减少动态效果偏好提供普通淡入。",
+        en: "The reveal and recurring three-second scan convert local character bands into dots, then return them to the live map without keeping animation work alive after exit.",
+        zh: "首屏显影与每三秒扫描会将局部字符带转为点阵,随后回到实时地图;退出后不再保留动画计算。",
       },
     ],
   },

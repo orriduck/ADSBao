@@ -170,6 +170,36 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.3.2",
+    kind: "feat",
+    title: {
+      en: "Cleaner map settings and camera template control",
+      zh: "更干净的地图设置与相机模板控制",
+    },
+    summary: {
+      en: "Ambient colour has been removed from the map settings and rendering path. Plane Hunter now has a template-position button for portrait-locked phones held sideways, and airport navigation resolves from a coarse map mosaic into live detail.",
+      zh: "地图设置和渲染链路移除了氛围配色。Plane Hunter 现在加入模板位置按钮,方便竖屏锁定但横拿手机时调整模板;进入机场时地图会从粗颗粒马赛克解算到实时细节。",
+    },
+    highlights: [
+      {
+        en: "Removed Ambient colour from saved map settings, the settings sheet, map wash layers, aircraft ambient tinting, and the sidebar/toolbar ambient surface treatment.",
+        zh: "移除「氛围配色」的保存设置、设置面板入口、地图遮罩层、飞机氛围染色,以及侧栏/工具栏的氛围表面处理。",
+      },
+      {
+        en: "Added a Plane Hunter template-position control that only moves the overlay template, so camera capture can adapt when a portrait-locked phone is physically rotated.",
+        zh: "Plane Hunter 新增模板位置控制,只移动 overlay 模板本身,让竖屏锁定但实际横拿手机时也能调整取景模板。",
+      },
+      {
+        en: "Slow traffic dots are no longer hidden at lower zooms; below 12x their opacity drops to 10% so airport and nearby-airport clusters read as secondary context.",
+        zh: "慢速交通点在低 zoom 下不再被隐藏;12x 以下透明度降为 10%,让机场和邻近机场的密集点位成为次要背景信息。",
+      },
+      {
+        en: "Airport map loading now resolves through an airport-centred aerograph scan, with a reduced-motion fallback.",
+        zh: "机场地图加载改为通过以机场为中心的航图扫描显影到实时细节,并为减少动态效果偏好提供普通淡入。",
+      },
+    ],
+  },
+  {
     version: "v3.2.10",
     kind: "feat",
     title: {

@@ -8,6 +8,7 @@ import {
   shouldReplayLoadingOverlayOnPageVisible,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AirportVortexTransition from "./AirportVortexTransition";
 
 // reason → i18n key stem for the terminal (no live position) card.
 const TERMINAL_COPY_KEY: Record<string, string> = {
@@ -80,7 +81,6 @@ export default function MapLoadingOverlay({
   subtext = "",
   loadingLabel = "",
   terminalReason = "",
-  focusPoint = null,
 }: Record<string, any>) {
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
@@ -215,10 +215,9 @@ export default function MapLoadingOverlay({
           >
             <span className="adsb-loading-grid__matrix" />
             {variant === "airport" ? (
-              <AirportAsciiVortex
+              <AirportVortexTransition
                 animated={!prefersReducedMotion}
-                focusPoint={focusPoint}
-                revealing={exiting && !prefersReducedMotion}
+                frozen={exiting || !visible}
               />
             ) : null}
           </div>
@@ -233,78 +232,6 @@ export default function MapLoadingOverlay({
           ) : null}
         </>
       )}
-    </div>
-  );
-}
-
-const ASCII_VORTEX_PATH = Array.from({ length: 180 }, (_, index) => {
-  const progress = index / 179;
-  const angle = -Math.PI / 2 + progress * Math.PI * 6.1;
-  const radius = 12 + progress * 214;
-  const x = 260 + Math.cos(angle) * radius;
-  const y = 260 + Math.sin(angle) * radius;
-  return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-}).join(" ");
-const ASCII_VORTEX_COPY = "AIR TRAFFIC DATA / ".repeat(28);
-
-function AirportAsciiVortex({
-  animated = true,
-  focusPoint = null,
-  revealing = false,
-}: {
-  animated?: boolean;
-  focusPoint?: { x: number; y: number } | null;
-  revealing?: boolean;
-}) {
-  const focusX = Number.isFinite(focusPoint?.x) ? `${focusPoint?.x}px` : "50%";
-  const focusY = Number.isFinite(focusPoint?.y) ? `${focusPoint?.y}px` : "50%";
-
-  return (
-    <div
-      className={`airport-ascii-vortex ${
-        animated ? "airport-ascii-vortex--animated" : ""
-      } ${revealing ? "airport-ascii-vortex--revealing" : ""}`}
-      style={
-        {
-          "--airport-ascii-focus-x": focusX,
-          "--airport-ascii-focus-y": focusY,
-        } as any
-      }
-    >
-      <svg
-        aria-hidden="true"
-        className="airport-ascii-vortex__svg"
-        viewBox="0 0 520 520"
-      >
-        <defs>
-          <path d={ASCII_VORTEX_PATH} id="airport-ascii-vortex-path" />
-        </defs>
-        <text className="airport-ascii-vortex__text">
-          <textPath href="#airport-ascii-vortex-path">
-            {ASCII_VORTEX_COPY}
-            <animate
-              attributeName="startOffset"
-              dur="3.4s"
-              from="0%"
-              repeatCount="indefinite"
-              to="16%"
-            />
-          </textPath>
-        </text>
-        <text className="airport-ascii-vortex__text airport-ascii-vortex__text--echo">
-          <textPath href="#airport-ascii-vortex-path" startOffset="46%">
-            {ASCII_VORTEX_COPY}
-            <animate
-              attributeName="startOffset"
-              dur="3.4s"
-              from="46%"
-              repeatCount="indefinite"
-              to="62%"
-            />
-          </textPath>
-        </text>
-      </svg>
-      <span className="airport-ascii-vortex__core">+</span>
     </div>
   );
 }

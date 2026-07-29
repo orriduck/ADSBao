@@ -2560,13 +2560,6 @@ body:has(.dither-page-shell) {
     backdrop-filter: brightness(1) saturate(1);
 }
 
-.adsb-loading-overlay--airport.is-exiting {
-    animation: none;
-    background: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
 .adsb-loading-overlay__label {
     transition:
         opacity 160ms ease,
@@ -2608,87 +2601,18 @@ body:has(.dither-page-shell) {
     opacity: 0;
 }
 
-.airport-ascii-vortex {
-    height: 0;
-    left: var(--airport-ascii-focus-x);
+.airport-vortex-transition {
+    inset: 0;
+    overflow: hidden;
     pointer-events: none;
     position: absolute;
-    top: var(--airport-ascii-focus-y);
-    transform: translate3d(-50%, -50%, 0);
-    transform-origin: center;
-    width: 0;
     z-index: 0;
 }
 
-.airport-ascii-vortex__svg {
-    height: 520px;
-    left: 0;
-    overflow: visible;
-    position: absolute;
-    top: 0;
-    transform: translate3d(-50%, -50%, 0);
-    width: 520px;
-}
-
-.airport-ascii-vortex__text {
-    fill: color-mix(in oklab, var(--atc-text) 70%, transparent);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-}
-
-.airport-ascii-vortex__text--echo {
-    fill: color-mix(in oklab, var(--atc-faint) 64%, transparent);
-}
-
-.airport-ascii-vortex__core {
-    color: var(--atc-signal-accent);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 16px;
-    font-weight: 700;
-    left: 0;
-    line-height: 1;
-    position: absolute;
-    text-shadow: 0 0 12px color-mix(in oklab, var(--atc-signal-accent) 40%, transparent);
-    top: 0;
-    transform: translate3d(-50%, -50%, 0);
-}
-
-.airport-ascii-vortex--animated {
-    animation: airport-ascii-vortex-spin 4.8s linear infinite;
-    will-change: transform;
-}
-
-.airport-ascii-vortex--revealing {
-    animation: airport-ascii-vortex-release 520ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-.airport-ascii-vortex--revealing .airport-ascii-vortex__svg,
-.airport-ascii-vortex--revealing .airport-ascii-vortex__core {
-    animation: airport-ascii-vortex-fade 220ms linear both;
-}
-
-@keyframes airport-ascii-vortex-spin {
-    from {
-        transform: translate3d(-50%, -50%, 0) rotate(0deg);
-    }
-    to {
-        transform: translate3d(-50%, -50%, 0) rotate(360deg);
-    }
-}
-
-@keyframes airport-ascii-vortex-release {
-    to {
-        opacity: 0;
-        transform: translate3d(-50%, -50%, 0) scale(1.38) rotate(105deg);
-    }
-}
-
-@keyframes airport-ascii-vortex-fade {
-    to {
-        opacity: 0;
-    }
+.airport-vortex-transition__canvas {
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
 .adsb-loading-grid::before,
