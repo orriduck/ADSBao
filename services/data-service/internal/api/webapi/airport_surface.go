@@ -26,11 +26,11 @@ const (
 	// the flat-bbox pavement query, so they get more headroom.
 	airportSurfaceStructuresRequestTimeout = 12 * time.Second
 	airportSurfaceOSMMapRequestTimeout     = 12 * time.Second
-	airportSurfaceBBoxPaddingMeters    = 400
-	airportSurfaceCenterRadiusMeters   = 1200
-	airportSurfaceFallbackRadiusMeters = 4500
-	maxAirportSurfaceFeatures          = 1400
-	maxAirportSurfaceBuildings         = 600
+	airportSurfaceBBoxPaddingMeters        = 400
+	airportSurfaceCenterRadiusMeters       = 1200
+	airportSurfaceFallbackRadiusMeters     = 4500
+	maxAirportSurfaceFeatures              = 1400
+	maxAirportSurfaceBuildings             = 600
 )
 
 const (
@@ -121,10 +121,14 @@ func (c *airportSurfaceCache) set(key string, payload map[string]any) {
 	}
 }
 
+func airportSurfaceContextDone(ctx context.Context) bool {
+	return ctx != nil && ctx.Err() != nil
+}
+
 func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon float64, runwayMap map[string]any, scope string) map[string]any {
 	airport := normalizeAirportIdent(ident)
 	normalizedScope := normalizeAirportSurfaceScope(scope)
-	if airport == "" || h == nil || h.overpassBaseURL == "" || !finite(lat) || !finite(lon) {
+	if airport == "" || h == nil || h.overpassBaseURL == "" || !finite(lat) || !finite(lon) || airportSurfaceContextDone(ctx) {
 		return nil
 	}
 	cacheKey := airportSurfaceCacheKey(airport, normalizedScope)
@@ -143,10 +147,16 @@ func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon 
 		buildAirportSurfaceOverpassQuery(bbox, normalizedScope),
 		normalizedScope,
 	)
+	if surfaceMap == nil && airportSurfaceContextDone(ctx) {
+		return nil
+	}
 	if surfaceMap == nil {
 		if centerBBox, ok := expandedBBoxAroundPoint(lat, lon, airportSurfaceCenterRadiusMeters); ok {
 			surfaceMap = h.airportSurfaceMapFromOSMMap(ctx, airport, centerBBox, normalizedScope)
 		}
+	}
+	if surfaceMap == nil && airportSurfaceContextDone(ctx) {
+		return nil
 	}
 	if surfaceMap == nil {
 		surfaceMap = h.airportSurfaceMapFromOSMMap(ctx, airport, bbox, normalizedScope)
@@ -199,6 +209,9 @@ func (h *Handler) fetchAirportSurfacePayload(
 	}
 	var payload map[string]any
 	status, err := h.fetchAirportSurfaceJSON(ctx, requestURL.String(), query, timeout, &payload)
+	if airportSurfaceContextDone(ctx) {
+		return nil, false
+	}
 	if err != nil || status < 200 || status >= 300 {
 		log.Printf("airport surface fetch failed airport=%s mode=%s status=%d error=%v", airport, mode, status, err)
 		return nil, false
@@ -249,6 +262,9 @@ func (h *Handler) airportSurfaceMapFromOSMMap(ctx context.Context, airport strin
 }
 
 func (h *Handler) fetchAirportSurfaceOSMMap(ctx context.Context, airport string, bbox airportSurfaceBBox, scope string) (*airportSurfaceOSMMap, bool) {
+	if airportSurfaceContextDone(ctx) {
+		return nil, false
+	}
 	requestURL, err := url.Parse(defaultAirportSurfaceOSMMapBaseURL)
 	if err != nil {
 		log.Printf("airport surface osm url parse failed airport=%s scope=%s error=%v", airport, scope, err)
@@ -271,11 +287,17 @@ func (h *Handler) fetchAirportSurfaceOSMMap(ctx context.Context, airport string,
 	req.Header.Set("User-Agent", "ADSBao data-service/1.0 (+https://adsbao.dev)")
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
+		if airportSurfaceContextDone(ctx) {
+			return nil, false
+		}
 		log.Printf("airport surface osm fetch failed airport=%s scope=%s status=0 error=%v", airport, scope, err)
 		return nil, false
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, aircraftJSONMaxBytes))
+	if airportSurfaceContextDone(ctx) {
+		return nil, false
+	}
 	if err != nil || resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		log.Printf("airport surface osm fetch failed airport=%s scope=%s status=%d error=%v", airport, scope, resp.StatusCode, err)
 		return nil, false
