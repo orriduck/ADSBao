@@ -2573,6 +2573,25 @@ body:has(.dither-page-shell) {
         transform 160ms ease;
 }
 
+.adsb-loading-overlay__onboard-status {
+    background: color-mix(in oklab, var(--atc-control-surface) 90%, transparent);
+    border: 1px solid var(--app-frost-border);
+    box-shadow: var(--atc-control-inset-shadow);
+    display: flex;
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
+}
+
+.adsb-loading-overlay--onboard .adsb-loading-overlay__label {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    .adsb-loading-overlay--onboard .adsb-loading-overlay__onboard-status {
+        margin-bottom: var(--map-toolbar-mobile-clearance);
+    }
+}
+
 .adsb-loading-overlay--airport.is-exiting .adsb-loading-overlay__label {
     opacity: 0;
     transform: translateY(-4px);
