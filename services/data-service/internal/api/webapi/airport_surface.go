@@ -122,7 +122,7 @@ func (c *airportSurfaceCache) set(key string, payload map[string]any) {
 }
 
 func airportSurfaceContextDone(ctx context.Context) bool {
-	return ctx != nil && ctx.Err() != nil
+	return ctx != nil && ctx.Err() == context.Canceled
 }
 
 func (h *Handler) airportSurfaceMap(ctx context.Context, ident string, lat, lon float64, runwayMap map[string]any, scope string) map[string]any {
