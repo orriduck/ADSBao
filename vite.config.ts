@@ -44,6 +44,18 @@ function appVersionManifestPlugin(version: string): Plugin {
   };
 }
 
+function runtimeEnvCacheBustPlugin(version: string): Plugin {
+  return {
+    name: "adsbao-runtime-env-cache-bust",
+    transformIndexHtml(html) {
+      return html.replace(
+        'src="/runtime-env.js"',
+        `src="/runtime-env.js?v=${encodeURIComponent(version)}"`,
+      );
+    },
+  };
+}
+
 function adsbaoPwaServiceWorkerPlugin(version: string): Plugin {
   return {
     name: "adsbao-pwa-service-worker",
@@ -260,6 +272,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       appVersionManifestPlugin(ADSBAO_APP_VERSION),
+      runtimeEnvCacheBustPlugin(ADSBAO_APP_VERSION),
       adsbaoPwaServiceWorkerPlugin(ADSBAO_APP_VERSION),
     ],
     server: {
