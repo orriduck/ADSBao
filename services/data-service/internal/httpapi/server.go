@@ -15,6 +15,7 @@ import (
 
 type ServerOptions struct {
 	DebugChannels func() []realtime.DebugChannel
+	DebugTracking func() any
 	Uptime        func() time.Duration
 	WSHandler     http.Handler
 	RealtimeAuth  http.Handler
@@ -26,6 +27,7 @@ type ServerOptions struct {
 
 type Server struct {
 	debugChannels func() []realtime.DebugChannel
+	debugTracking func() any
 	uptime        func() time.Duration
 	wsHandler     http.Handler
 	realtimeAuth  http.Handler
@@ -45,8 +47,13 @@ func New(options ServerOptions) *Server {
 	if debugChannels == nil {
 		debugChannels = func() []realtime.DebugChannel { return nil }
 	}
+	debugTracking := options.DebugTracking
+	if debugTracking == nil {
+		debugTracking = func() any { return nil }
+	}
 	return &Server{
 		debugChannels: debugChannels,
+		debugTracking: debugTracking,
 		uptime:        uptime,
 		wsHandler:     options.WSHandler,
 		realtimeAuth:  options.RealtimeAuth,
@@ -80,6 +87,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodGet && r.URL.Path == "/debug/channels" {
 		s.json(w, http.StatusOK, map[string]any{"channels": s.debugChannels()})
+		return
+	}
+	if r.Method == http.MethodGet && r.URL.Path == "/debug/tracking" {
+		s.json(w, http.StatusOK, map[string]any{"runs": s.debugTracking()})
 		return
 	}
 	if r.URL.Path == "/api/realtime/auth" && s.realtimeAuth != nil {

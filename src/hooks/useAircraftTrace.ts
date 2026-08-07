@@ -10,10 +10,6 @@ import {
   resolveAircraftTraceRefreshSources,
 } from "../features/aircraft/trace/aircraftTraceRefreshModel";
 import {
-  readTrackedTrace,
-  writeTrackedTrace,
-} from "../features/aircraft/tracking/trackedTraceStorage";
-import {
   readErrorStatus,
   readResponseStatus,
 } from "../features/aviation/httpClient";
@@ -23,12 +19,6 @@ import {
   shouldAnimateAircraftVisualPosition,
 } from "../utils/aircraftMotion";
 
-// Fixed cadence for persisting the merged trace to localStorage. A
-// trailing debounce starves here: the visual-head tick (1s) and the
-// realtime position stream (~1s) interleave, so the merged trace often
-// changes faster than any debounce window and the write never fires.
-// An interval with a dirty-check is deterministic instead.
-const PERSIST_INTERVAL_MS = 2_000;
 const TRACE_VISUAL_TICK_MS = 1_000;
 const LIVE_TRACE_MAX_POINTS = 120;
 const TRACE_LIVE_BUCKET_MS = 15_000;
@@ -163,10 +153,10 @@ function localTraceHistoryToTracePoints(aircraft: AircraftTraceHookRecord | null
 // Resolves the displayed trace from independent sources through
 // `composeAircraftTrace`: selected airport traces directly stitch
 // recent+live; focus-flight traces directly stitch leg-clipped full,
-// recent, live, and persisted points.
+// recent, live, and durable tracking-run points.
 //
 // Priority order inside a valid stitch is: real live fixes >
-// trace_recent > trace_full > localStorage-persisted points (`persistKey`).
+// trace_recent > trace_full > durable tracking-run points.
 //   - trace_full is fetched only when `fullTrace` is set (aircraft
 //     detail page). It provides the historical baseline.
 //   - trace_recent is always fetched. It is a rolling tail of the same
@@ -179,28 +169,19 @@ function localTraceHistoryToTracePoints(aircraft: AircraftTraceHookRecord | null
 //   - The dead-reckoned marker position rides along as a single
 //     display-only "visual head" point (inferred, never persisted) so
 //     the trace tip follows inferred movement between fixes.
-//   - The persisted source seeds the trail instantly on reload so a
-//     refresh of /aircraft/[callsign] doesn't blank the trace while the
-//     fresh fetches resolve. It sits at the lowest priority because the
-//     in-flight sources are by definition more authoritative.
+//   - Durable observations seed the trail instantly on reload and sit at
+//     the lowest priority because live provider data is more authoritative.
 export function useAircraftTrace(
   selectedAircraft: AircraftTraceHookRecord | null = null,
   options: AircraftTraceHookRecord = {},
 ) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
-  // Clip historical sources (full/persisted/recent) to the current
+  // Clip historical sources (full/durable/recent) to the current
   // flight leg, keeping earlier legs and yesterday's same-callsign
   // trail out of the trace. The flight detail page enables this for
   // both of its trace views.
   const clipToLeg = Boolean(options?.clipToLeg);
-  // When set (typically the focal callsign on /aircraft/[callsign]) the
-  // hook reads/writes the merged trace to localStorage so refreshes
-  // keep the accumulated trail.
-  const persistKey =
-    typeof options?.persistKey === "string" && options.persistKey.trim()
-      ? options.persistKey.trim()
-      : null;
   const traceRefreshKey =
     typeof options?.traceRefreshKey === "string"
       ? options.traceRefreshKey
@@ -212,7 +193,6 @@ export function useAircraftTrace(
   const [livePoints, setLivePoints] = useState([]);
   const [visualHeadPoint, setVisualHeadPoint] =
     useState<AircraftTraceHookRecord | null>(null);
-  const [persistedPoints, setPersistedPoints] = useState([]);
   const [activeHex, setActiveHex] = useState("");
   const [recentLoading, setRecentLoading] = useState(false);
   const [fullLoading, setFullLoading] = useState(false);
@@ -435,17 +415,6 @@ export function useAircraftTrace(
     return () => window.clearInterval(timer);
   }, [hex, selectedAircraft]);
 
-  // Seed the persisted buffer when the persistKey changes so refreshes
-  // pick up the prior trail immediately. The fresh full/recent fetches
-  // overlay this as soon as they resolve.
-  useEffect(() => {
-    if (!persistKey) {
-      setPersistedPoints([]);
-      return;
-    }
-    setPersistedPoints(readTrackedTrace(persistKey));
-  }, [persistKey]);
-
   const composedTrace = useMemo(() => {
     if (activeHex !== hex) {
       return { points: [], loading: false };
@@ -458,7 +427,7 @@ export function useAircraftTrace(
         recent: recentPoints,
         local: localTracePoints,
         full: fullPoints,
-        persisted: persistedPoints,
+        persisted: [],
       },
       recentLoading,
       fullLoading,
@@ -473,47 +442,16 @@ export function useAircraftTrace(
     recentPoints,
     localTracePoints,
     fullPoints,
-    persistedPoints,
     recentLoading,
     fullLoading,
     clipToLeg,
   ]);
   const tracePoints = composedTrace.points;
-  const persistedTracePoints = useMemo(
-    () => tracePoints.filter((point) => !point?.inferred),
-    [tracePoints],
-  );
   const traceUnavailable = isAircraftTraceUnavailable({
     recentTraceUnavailable,
     loading: composedTrace.loading,
     tracePointCount: tracePoints.length,
   });
-
-  // Persist the clipped trace back to localStorage on a fixed cadence
-  // (skipping unchanged snapshots). Inferred visual-head points stay
-  // display-only; the persisted trace remains actual provider/local
-  // samples. pagehide and unmount flush immediately — detail-page
-  // navigation is a hard reload, and a pending write would otherwise
-  // drop the newest fixes.
-  const persistSnapshotRef = useRef<AircraftTraceHookRecord[]>([]);
-  persistSnapshotRef.current = persistedTracePoints;
-  useEffect(() => {
-    if (!persistKey || typeof window === "undefined") return undefined;
-    let lastWritten: AircraftTraceHookRecord[] | null = null;
-    const flush = () => {
-      const points = persistSnapshotRef.current;
-      if (points.length === 0 || points === lastWritten) return;
-      lastWritten = points;
-      writeTrackedTrace(persistKey, points);
-    };
-    const timer = window.setInterval(flush, PERSIST_INTERVAL_MS);
-    window.addEventListener("pagehide", flush);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener("pagehide", flush);
-      flush();
-    };
-  }, [persistKey]);
 
   // Memoize the returned object so its identity is stable when the fields
   // are unchanged — the SelectedAircraftTrace context keys a memo on this

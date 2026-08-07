@@ -22,7 +22,7 @@ export default function AircraftPreviewMetadataCard({
   const alreadyTracking =
     Boolean(trackCallsign) && pathname === `/aircraft/${trackCallsign}`;
   const trackHref = trackCallsign
-    ? buildAircraftDetailHref(trackCallsign, aircraft?.icao24 || aircraft?.hex)
+    ? buildAircraftDetailHref(trackCallsign)
     : null;
 
   return (

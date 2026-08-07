@@ -53,6 +53,7 @@ import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
+import { useTrackingRun } from "@/hooks/useTrackingRun";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { normalizeCallsign } from "@/utils/callsign";
@@ -81,15 +82,15 @@ const TRACE_VIEW_ALL = "all";
 // leg with no ADS-B and no FlightAware).
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
-export default function FlightExplorer({ callsign = "", icaoHint = "", onboardMode = false }) {
+export default function FlightExplorer({ callsign = "", trackingRequested = false, onboardMode = false }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent callsign={callsign} icaoHint={icaoHint} onboardMode={onboardMode} />
+      <FlightExplorerContent callsign={callsign} trackingRequested={trackingRequested} onboardMode={onboardMode} />
     </ExplorerUiProvider>
   );
 }
 
-function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false }) {
+function FlightExplorerContent({ callsign, trackingRequested = false, onboardMode = false }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   // Flight → flight navigation does a HARD reload to the new URL rather than an
@@ -172,6 +173,12 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
   }, []);
 
   const {
+    run: trackingRun,
+    traceHistory: trackingTraceHistory,
+    stop: stopTracking,
+  } = useTrackingRun(callsign, { requested: trackingRequested });
+
+  const {
     aircraft: trackedAircraft,
     feedSource,
     lastUpdated,
@@ -182,11 +189,7 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
     trackingState,
     flightAwareFallback,
     realtimeStatus,
-  } = useTrackedAircraft(callsign, {
-    flightAwareEnabled,
-    flightAwareResolved,
-    icaoHint,
-  });
+  } = useTrackedAircraft(callsign, { runStatus: trackingRun?.status });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
@@ -198,14 +201,15 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
   useEffect(() => {
     setCachedTrackedMetadata(readTrackedFlightMetadata(callsign));
   }, [callsign]);
-  const trackedAircraftForDisplay = useMemo(
-    () =>
-      mergeTrackedFlightMetadata({
+  const trackedAircraftForDisplay = useMemo(() => {
+    const merged = mergeTrackedFlightMetadata({
         aircraft: trackedAircraft,
         metadata: cachedTrackedMetadata,
-      }),
-    [cachedTrackedMetadata, trackedAircraft],
-  );
+      });
+    return merged && trackingTraceHistory.length > 0
+      ? { ...merged, traceHistory: trackingTraceHistory }
+      : merged;
+  }, [cachedTrackedMetadata, trackedAircraft, trackingTraceHistory]);
 
   // Both trace views are scoped to the CURRENT leg (see traceLegModel)
   // and share the persisted trail: "Full trace" is the flight-path view
@@ -954,6 +958,8 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
     loadingStatus: sourceLoadingStatus,
     onboardMode,
     journeyProgress,
+    trackingRunStatus: trackingRun?.status || "",
+    onStopTracking: stopTracking,
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
@@ -971,7 +977,6 @@ function FlightExplorerContent({ callsign, icaoHint = "", onboardMode = false })
       fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       showSelectedTrace={showNearbyMapContext}
       focalClipToLeg
-      focalPersistKey={callsign || null}
       focalTraceRefreshKey={focalTraceRefreshKey}
     >
       <AircraftPreviewCard

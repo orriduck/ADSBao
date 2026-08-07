@@ -28,6 +28,7 @@ import (
 	"github.com/adsbao/adsbao/services/data-service/internal/proxycache"
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
 	"github.com/adsbao/adsbao/services/data-service/internal/scheduler"
+	"github.com/adsbao/adsbao/services/data-service/internal/tracking"
 	"github.com/adsbao/adsbao/services/data-service/internal/ws"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -107,11 +108,24 @@ func main() {
 		},
 		MinInterval:       cfg.MinPollInterval,
 		MaxInterval:       cfg.MaxPollInterval,
-		IdleGracePeriod:   cfg.ChannelIdleGracePeriod,
 		MaxActiveChannels: cfg.MaxActiveChannels,
 		JitterRatio:       cfg.PollJitterRatio,
 		Metrics:           registry,
 	})
+	trackingManager := tracking.NewManager(tracking.Options{
+		Store:                  tracking.NewSQLStore(db),
+		Watcher:                polling,
+		TerminalChecker:        remoteFlightAware,
+		MaxDuration:            cfg.TrackingRunMaxDuration,
+		MissingSignalThreshold: cfg.TrackingMissingSignalThreshold,
+		TerminalCheckInterval:  cfg.TrackingTerminalCheckInterval,
+	})
+	if trackingManager != nil {
+		if err := trackingManager.Start(context.Background()); err != nil {
+			log.Printf("tracking restore failed: %v", err)
+		}
+		defer trackingManager.Close()
+	}
 	socketHandler := ws.NewHandler(
 		polling,
 		registry,
@@ -144,18 +158,25 @@ func main() {
 			cfg.ClerkAPIBaseURL,
 		),
 		UserDataStore: webapi.NewUserDataStore(db, cfg.FeatureFlagsEnvironment, registry),
+		Tracking:      trackingManager,
 		TraceCache:    traceCache,
 		FeatureFlags:  defaultFeatureFlags,
 	})
 	handler := instrumentHTTPHandler(registry, httpapi.New(httpapi.ServerOptions{
 		DebugChannels: polling.DebugChannels,
-		Uptime:        func() time.Duration { return time.Since(started) },
-		WSHandler:     http.HandlerFunc(socketHandler.Handle),
-		RealtimeAuth:  realtimeAuthHandler,
-		WebAPI:        webAPIHandler,
-		FeatureFlags:  defaultFeatureFlags,
-		StaticDir:     cfg.StaticDir,
-		EnablePprof:   cfg.EnablePprof,
+		DebugTracking: func() any {
+			if trackingManager == nil {
+				return nil
+			}
+			return trackingManager.DebugRuns()
+		},
+		Uptime:       func() time.Duration { return time.Since(started) },
+		WSHandler:    http.HandlerFunc(socketHandler.Handle),
+		RealtimeAuth: realtimeAuthHandler,
+		WebAPI:       webAPIHandler,
+		FeatureFlags: defaultFeatureFlags,
+		StaticDir:    cfg.StaticDir,
+		EnablePprof:  cfg.EnablePprof,
 	}))
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),

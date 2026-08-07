@@ -141,19 +141,12 @@ export function useRealtimeAircraftChannel({
 
 export function useAircraftTrackingRealtime(
   callsign: unknown,
-  {
-    enabled = true,
-    flightAware = false,
-  }: { enabled?: boolean; flightAware?: boolean } = {},
+  { enabled = true }: { enabled?: boolean } = {},
 ) {
   const channel = useMemo(() => buildCallsignChannel(callsign), [callsign]);
-  const params = useMemo(
-    () => (flightAware ? { flightAware: true } : EMPTY_REALTIME_PARAMS),
-    [flightAware],
-  );
   return useRealtimeAircraftChannel({
     channel,
-    params,
+    params: EMPTY_REALTIME_PARAMS,
     enabled,
   });
 }

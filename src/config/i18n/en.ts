@@ -276,6 +276,7 @@ const en = {
     airports: "Airports",
     airport: "Airport",
     tracking: "Tracking",
+    stopTracking: "Stop tracking",
     nearby: "Nearby",
     callsignOrRoute: "Callsign / Route",
     distance: "Distance",

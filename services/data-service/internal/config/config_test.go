@@ -10,7 +10,6 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 		"PORT":                             "9090",
 		"MIN_POLL_INTERVAL_MS":             "1500",
 		"MAX_POLL_INTERVAL_MS":             "120000",
-		"CHANNEL_IDLE_GRACE_PERIOD_MS":     "7000",
 		"MAX_ACTIVE_CHANNELS":              "12",
 		"POLL_JITTER_RATIO":                "0.25",
 		"MAX_SOCKET_SUBSCRIPTIONS":         "7",
@@ -38,9 +37,6 @@ func TestFromEnvParsesCompatibleDataServiceVariables(t *testing.T) {
 	}
 	if cfg.MinPollInterval != 1500*time.Millisecond || cfg.MaxPollInterval != 120*time.Second {
 		t.Fatalf("poll intervals = %s/%s", cfg.MinPollInterval, cfg.MaxPollInterval)
-	}
-	if cfg.ChannelIdleGracePeriod != 7*time.Second {
-		t.Fatalf("channel idle grace = %s", cfg.ChannelIdleGracePeriod)
 	}
 	if cfg.MaxActiveChannels != 12 || cfg.MaxSocketSubscriptions != 7 {
 		t.Fatalf("limits = %d/%d", cfg.MaxActiveChannels, cfg.MaxSocketSubscriptions)
@@ -79,7 +75,6 @@ func TestFromEnvDefaultsMatchProductionService(t *testing.T) {
 	if cfg.Port != 8080 ||
 		cfg.MinPollInterval != time.Second ||
 		cfg.MaxPollInterval != 30*time.Minute ||
-		cfg.ChannelIdleGracePeriod != 5*time.Second ||
 		cfg.MaxActiveChannels != 250 ||
 		cfg.MaxSocketSubscriptions != 96 ||
 		cfg.PollJitterRatio != 0.1 ||

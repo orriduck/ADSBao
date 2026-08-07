@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 70;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.4.2",
+    version: "v3.4.3",
     kind: "feat",
     title: {
       en: "Onboard mode",
       zh: "机上模式",
     },
     summary: {
-      en: "Onboard tracking now keeps its mobile waiting state clear and ready until the signal appears.",
-      zh: "机上追踪在移动端会明确显示等待状态，并在信号出现前保持就绪。",
+      en: "Flight tracking now persists after the page closes, with a clear stop control.",
+      zh: "航班追踪在关闭页面后仍会持续，并提供明确的停止控制。",
     },
     highlights: [],
   },

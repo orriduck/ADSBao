@@ -4,6 +4,6 @@ import FlightExplorer from "@/components/flight/explorer/FlightExplorer";
 // detail layout (left sidebar + full-height map) but the sidebar shows
 // the focal aircraft's metadata and the map centers on / tracks that
 // aircraft as it moves.
-export default function FlightScreen({ callsign = "", icaoHint = "", onboardMode = false }) {
-  return <FlightExplorer callsign={callsign} icaoHint={icaoHint} onboardMode={onboardMode} />;
+export default function FlightScreen({ callsign = "", trackingRequested = false, onboardMode = false }) {
+  return <FlightExplorer callsign={callsign} trackingRequested={trackingRequested} onboardMode={onboardMode} />;
 }

@@ -506,9 +506,11 @@ async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
     checkEndpoint("frontend /health proxy", `${viteOrigin}/health`),
     checkEndpoint("frontend /api/feature-flags proxy", `${viteOrigin}/api/feature-flags`),
     checkEndpoint("frontend /debug/channels proxy", `${viteOrigin}/debug/channels`),
+    checkEndpoint("frontend /debug/tracking proxy", `${viteOrigin}/debug/tracking`),
     checkEndpoint("data-service /health", `${localApiOrigin}/health`),
     checkEndpoint("data-service /api/feature-flags", `${localApiOrigin}/api/feature-flags`),
     checkEndpoint("data-service /debug/channels", `${localApiOrigin}/debug/channels`),
+    checkEndpoint("data-service /debug/tracking", `${localApiOrigin}/debug/tracking`),
   ]);
 
   const git = gitSnapshot();

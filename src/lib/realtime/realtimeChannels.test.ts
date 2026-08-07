@@ -1,33 +1,15 @@
 import assert from "node:assert/strict";
 import {
-  buildAircraftChannel,
   buildAircraftDetailHref,
   buildAircraftTrafficChannel,
   buildCenterTrafficChannel,
   buildRouteChannel,
-  normalizeAircraftHex,
   normalizeRealtimeChannel,
 } from "./realtimeChannels";
 
-// normalizeAircraftHex / buildAircraftChannel:hex 兜底通道的键。
+// buildAircraftDetailHref:显式追踪操作创建后端 run。
 {
-  assert.equal(normalizeAircraftHex("a1b2c3"), "A1B2C3");
-  assert.equal(normalizeAircraftHex(" A1B2C3 "), "A1B2C3");
-  assert.equal(normalizeAircraftHex("xyz"), "");
-  assert.equal(normalizeAircraftHex("A1B2C"), ""); // 太短
-  assert.equal(normalizeAircraftHex(null), "");
-  assert.equal(buildAircraftChannel("a1b2c3"), "aircraft:A1B2C3");
-  assert.equal(buildAircraftChannel("nope"), "");
-}
-
-// buildAircraftDetailHref:合法 hex 带 ?icao= 提示,缺失/非法退回纯路径。
-{
-  assert.equal(
-    buildAircraftDetailHref("qtr57h", "a1b2c3"),
-    "/aircraft/QTR57H?icao=A1B2C3",
-  );
-  assert.equal(buildAircraftDetailHref("qtr57h"), "/aircraft/QTR57H");
-  assert.equal(buildAircraftDetailHref("qtr57h", "bad-hex"), "/aircraft/QTR57H");
+  assert.equal(buildAircraftDetailHref("qtr57h"), "/aircraft/QTR57H?track=1");
   assert.equal(buildAircraftDetailHref(""), "");
 }
 

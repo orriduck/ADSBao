@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/adsbao/adsbao/services/data-service/internal/realtime"
+	"github.com/adsbao/adsbao/services/data-service/internal/tracking"
 )
 
 const (
@@ -42,6 +43,7 @@ type Options struct {
 	FlightAwareServiceBaseURL string
 	FlightAwareServiceToken   string
 	FeatureFlags              map[string]bool
+	Tracking                  *tracking.Manager
 }
 
 // TraceCache is a best-effort persistent cache for the rolling recent aircraft
@@ -69,6 +71,7 @@ type Handler struct {
 	flightAwareServiceBaseURL string
 	flightAwareServiceToken   string
 	featureFlags              map[string]bool
+	tracking                  *tracking.Manager
 	runwayMapReader           runwayMapReader
 	airportNameReader         airportNameReader
 	spotterLocationReader     spotterLocationReader
@@ -111,6 +114,7 @@ func New(options Options) *Handler {
 		flightAwareServiceBaseURL: strings.TrimRight(strings.TrimSpace(options.FlightAwareServiceBaseURL), "/"),
 		flightAwareServiceToken:   strings.TrimSpace(options.FlightAwareServiceToken),
 		featureFlags:              cloneFeatureFlags(options.FeatureFlags),
+		tracking:                  options.Tracking,
 		runwayMapReader:           options.UserDataStore,
 		airportNameReader:         options.UserDataStore,
 		spotterLocationReader:     options.UserDataStore,
@@ -158,6 +162,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleFeatureFlags(w, r)
 	case r.URL.Path == "/api/route-feedback" && r.Method == http.MethodPost:
 		h.handleRouteFeedback(w, r)
+	case r.URL.Path == "/api/tracking-runs" || strings.HasPrefix(r.URL.Path, "/api/tracking-runs/"):
+		h.handleTrackingRuns(w, r)
 	case r.Method == http.MethodGet && contextTileResource(r.URL.Path) != "":
 		h.handleContextTile(w, r)
 	default:

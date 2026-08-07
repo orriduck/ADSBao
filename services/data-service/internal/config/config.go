@@ -7,75 +7,77 @@ import (
 )
 
 type Config struct {
-	Port                          int
-	MinPollInterval               time.Duration
-	MaxPollInterval               time.Duration
-	ChannelIdleGracePeriod        time.Duration
-	MaxActiveChannels             int
-	PollJitterRatio               float64
-	MaxSocketSubscriptions        int
-	AllowedWSOrigins              []string
-	FlightAwareFallbackEnabled    bool
-	FlightAwareAccessEnabled      bool
-	FlightAwareServiceBaseURL     string
-	FlightAwareServiceToken       string
-	RealtimeAuthSecret            string
-	OpenAIPAPIKey                 string
-	OpenAIPBaseURL                string
-	StaticDir                     string
-	EnablePprof                   bool
-	BetterStackMetricsSourceToken string
-	BetterStackMetricsEndpoint    string
-	BetterStackLogSourceToken     string
-	BetterStackLogsEndpoint       string
-	BetterStackServiceName        string
-	MetricsReportInterval         time.Duration
-	LogsReportInterval            time.Duration
-	DatabaseURL                   string
-	ClerkSecretKey                string
-	ClerkJWKSURL                  string
-	ClerkAPIBaseURL               string
-	FeatureFlagsEnvironment       string
+	Port                           int
+	MinPollInterval                time.Duration
+	MaxPollInterval                time.Duration
+	MaxActiveChannels              int
+	PollJitterRatio                float64
+	MaxSocketSubscriptions         int
+	AllowedWSOrigins               []string
+	FlightAwareFallbackEnabled     bool
+	FlightAwareAccessEnabled       bool
+	FlightAwareServiceBaseURL      string
+	FlightAwareServiceToken        string
+	RealtimeAuthSecret             string
+	OpenAIPAPIKey                  string
+	OpenAIPBaseURL                 string
+	StaticDir                      string
+	EnablePprof                    bool
+	BetterStackMetricsSourceToken  string
+	BetterStackMetricsEndpoint     string
+	BetterStackLogSourceToken      string
+	BetterStackLogsEndpoint        string
+	BetterStackServiceName         string
+	MetricsReportInterval          time.Duration
+	LogsReportInterval             time.Duration
+	DatabaseURL                    string
+	ClerkSecretKey                 string
+	ClerkJWKSURL                   string
+	ClerkAPIBaseURL                string
+	FeatureFlagsEnvironment        string
+	TrackingRunMaxDuration         time.Duration
+	TrackingMissingSignalThreshold int
+	TrackingTerminalCheckInterval  time.Duration
 }
 
 type LookupFunc func(string) string
 
 func FromEnv(lookup LookupFunc) Config {
 	return Config{
-		Port:                          intValue(lookup("PORT"), 8080),
-		MinPollInterval:               durationMS(lookup("MIN_POLL_INTERVAL_MS"), time.Second),
-		MaxPollInterval:               durationMS(lookup("MAX_POLL_INTERVAL_MS"), 30*time.Minute),
-		// 频道最后一个订阅者离开后,轮询循环再保留多久才停止(订阅抖动的后端兜底:
-		// 窗口内若有新订阅者到达,循环不中断、无重建/重取)。
-		ChannelIdleGracePeriod:        durationMS(lookup("CHANNEL_IDLE_GRACE_PERIOD_MS"), 5*time.Second),
-		MaxActiveChannels:             intValue(lookup("MAX_ACTIVE_CHANNELS"), 250),
-		PollJitterRatio:               floatValue(lookup("POLL_JITTER_RATIO"), 0.1),
-		MaxSocketSubscriptions:        intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
-		AllowedWSOrigins:              csv(lookup("ALLOWED_WS_ORIGINS")),
-		FlightAwareFallbackEnabled:    !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
+		Port:                       intValue(lookup("PORT"), 8080),
+		MinPollInterval:            durationMS(lookup("MIN_POLL_INTERVAL_MS"), time.Second),
+		MaxPollInterval:            durationMS(lookup("MAX_POLL_INTERVAL_MS"), 30*time.Minute),
+		MaxActiveChannels:          intValue(lookup("MAX_ACTIVE_CHANNELS"), 250),
+		PollJitterRatio:            floatValue(lookup("POLL_JITTER_RATIO"), 0.1),
+		MaxSocketSubscriptions:     intValue(lookup("MAX_SOCKET_SUBSCRIPTIONS"), 96),
+		AllowedWSOrigins:           csv(lookup("ALLOWED_WS_ORIGINS")),
+		FlightAwareFallbackEnabled: !falseString(lookup("FLIGHTAWARE_FALLBACK_ENABLED")),
 		// INTERNAL_ACCESS_ENABLED gates the private/secret service path. Falls
 		// back to the legacy FLIGHTAWARE_ACCESS_ENABLED name so existing deploys
 		// keep working until the env var is renamed in every environment.
-		FlightAwareAccessEnabled:      trueString(firstNonEmpty(lookup("INTERNAL_ACCESS_ENABLED"), lookup("FLIGHTAWARE_ACCESS_ENABLED"))),
-		FlightAwareServiceBaseURL:     strings.TrimRight(strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_BASE_URL")), "/"),
-		FlightAwareServiceToken:       strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_TOKEN")),
-		RealtimeAuthSecret:            strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
-		OpenAIPAPIKey:                 strings.TrimSpace(lookup("OPENAIP_API_KEY")),
-		OpenAIPBaseURL:                stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
-		StaticDir:                     strings.TrimSpace(lookup("STATIC_DIR")),
-		EnablePprof:                   trueString(lookup("ENABLE_PPROF")),
-		BetterStackMetricsSourceToken: strings.TrimSpace(lookup("BETTERSTACK_METRICS_SOURCE_TOKEN")),
-		BetterStackMetricsEndpoint:    strings.TrimSpace(lookup("BETTERSTACK_METRICS_ENDPOINT")),
-		BetterStackLogSourceToken:     strings.TrimSpace(lookup("BETTERSTACK_LOG_SOURCE_TOKEN")),
-		BetterStackLogsEndpoint:       strings.TrimSpace(lookup("BETTERSTACK_LOGS_ENDPOINT")),
-		BetterStackServiceName:        stringValue(lookup("BETTERSTACK_SERVICE_NAME"), "adsbao-data-service"),
-		MetricsReportInterval:         durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
-		LogsReportInterval:            durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
-		DatabaseURL:                   strings.TrimSpace(firstNonEmpty(lookup("DATABASE_URL"), lookup("ADSBAO_DATABASE_URL"))),
-		ClerkSecretKey:                strings.TrimSpace(lookup("CLERK_SECRET_KEY")),
-		ClerkJWKSURL:                  strings.TrimSpace(lookup("CLERK_JWKS_URL")),
-		ClerkAPIBaseURL:               stringValue(lookup("CLERK_API_BASE_URL"), "https://api.clerk.com"),
-		FeatureFlagsEnvironment:       featureFlagsEnvironment(lookup("FEATURE_FLAGS_ENV"), lookup("RAILWAY_ENVIRONMENT_NAME")),
+		FlightAwareAccessEnabled:       trueString(firstNonEmpty(lookup("INTERNAL_ACCESS_ENABLED"), lookup("FLIGHTAWARE_ACCESS_ENABLED"))),
+		FlightAwareServiceBaseURL:      strings.TrimRight(strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_BASE_URL")), "/"),
+		FlightAwareServiceToken:        strings.TrimSpace(lookup("FLIGHTAWARE_SERVICE_TOKEN")),
+		RealtimeAuthSecret:             strings.TrimSpace(lookup("ADSBAO_REALTIME_AUTH_SECRET")),
+		OpenAIPAPIKey:                  strings.TrimSpace(lookup("OPENAIP_API_KEY")),
+		OpenAIPBaseURL:                 stringValue(lookup("OPENAIP_BASE_URL"), "https://api.core.openaip.net/api"),
+		StaticDir:                      strings.TrimSpace(lookup("STATIC_DIR")),
+		EnablePprof:                    trueString(lookup("ENABLE_PPROF")),
+		BetterStackMetricsSourceToken:  strings.TrimSpace(lookup("BETTERSTACK_METRICS_SOURCE_TOKEN")),
+		BetterStackMetricsEndpoint:     strings.TrimSpace(lookup("BETTERSTACK_METRICS_ENDPOINT")),
+		BetterStackLogSourceToken:      strings.TrimSpace(lookup("BETTERSTACK_LOG_SOURCE_TOKEN")),
+		BetterStackLogsEndpoint:        strings.TrimSpace(lookup("BETTERSTACK_LOGS_ENDPOINT")),
+		BetterStackServiceName:         stringValue(lookup("BETTERSTACK_SERVICE_NAME"), "adsbao-data-service"),
+		MetricsReportInterval:          durationMS(lookup("METRICS_REPORT_INTERVAL_MS"), 30*time.Second),
+		LogsReportInterval:             durationMS(lookup("LOGS_REPORT_INTERVAL_MS"), 5*time.Second),
+		DatabaseURL:                    strings.TrimSpace(firstNonEmpty(lookup("DATABASE_URL"), lookup("ADSBAO_DATABASE_URL"))),
+		ClerkSecretKey:                 strings.TrimSpace(lookup("CLERK_SECRET_KEY")),
+		ClerkJWKSURL:                   strings.TrimSpace(lookup("CLERK_JWKS_URL")),
+		ClerkAPIBaseURL:                stringValue(lookup("CLERK_API_BASE_URL"), "https://api.clerk.com"),
+		FeatureFlagsEnvironment:        featureFlagsEnvironment(lookup("FEATURE_FLAGS_ENV"), lookup("RAILWAY_ENVIRONMENT_NAME")),
+		TrackingRunMaxDuration:         durationMS(lookup("TRACKING_RUN_MAX_DURATION_MS"), 8*time.Hour),
+		TrackingMissingSignalThreshold: intValue(lookup("TRACKING_MISSING_SIGNAL_THRESHOLD"), 20),
+		TrackingTerminalCheckInterval:  durationMS(lookup("TRACKING_TERMINAL_CHECK_INTERVAL_MS"), 5*time.Minute),
 	}
 }
 

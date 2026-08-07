@@ -26,7 +26,7 @@ var defaultAllowedOrigins = map[string]bool{
 }
 
 type Scheduler interface {
-	Subscribe(channel string, params realtime.SubscribeParams, send func(realtime.Event)) (func(), error)
+	Watch(channel string, params realtime.SubscribeParams, send func(realtime.Event)) (func(), error)
 }
 
 type realtimeConn interface {
@@ -261,7 +261,7 @@ func (c *clientConn) subscribe(ctx context.Context, msg clientMessage) {
 		c.sendRaw(ctx, map[string]any{"type": "subscribe:error", "channel": normalized.Channel, "error": "Socket subscription limit reached"})
 		return
 	}
-	unsubscribe, err := c.scheduler.Subscribe(normalized.Channel, params, func(event realtime.Event) {
+	unsubscribe, err := c.scheduler.Watch(normalized.Channel, params, func(event realtime.Event) {
 		c.send(context.Background(), event)
 	})
 	if err != nil {

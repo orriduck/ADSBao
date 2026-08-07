@@ -116,6 +116,22 @@ func (c *RemoteClient) Route(ctx context.Context, callsign string, metrics realt
 	return asMap(payload["route"]), nil
 }
 
+// CheckTerminal is intentionally a narrow server-side use of the private
+// FlightAware service. It never returns a position or changes the ADS-B polling
+// provider; durable tracking only uses it to decide whether a lost signal is a
+// confirmed flight end.
+func (c *RemoteClient) CheckTerminal(ctx context.Context, callsign string) (bool, time.Time, string) {
+	result, err := c.ByCallsign(ctx, callsign, nil)
+	if err != nil || !result.OK {
+		return false, time.Time{}, ""
+	}
+	if terminal(result.Position) || terminal(result.Metadata) {
+		when, _ := time.Parse(time.RFC3339Nano, result.FetchedAt)
+		return true, when, "flightaware"
+	}
+	return false, time.Time{}, ""
+}
+
 func (c *RemoteClient) getJSON(ctx context.Context, timeout time.Duration, endpoint, path string, out any, metrics realtime.MetricsSink) error {
 	requestURL := c.baseURL + path
 	started := time.Now()
@@ -213,6 +229,18 @@ func asMap(value any) map[string]any {
 		return out
 	}
 	return nil
+}
+
+func terminal(record map[string]any) bool {
+	if record == nil {
+		return false
+	}
+	if terminal, _ := record["terminal"].(bool); terminal {
+		return true
+	}
+	quality, _ := record["quality"].(map[string]any)
+	terminal, _ := quality["terminal"].(bool)
+	return terminal
 }
 
 func record(metrics realtime.MetricsSink, endpoint, result string, status any, requestURL, errorText string, started time.Time) {

@@ -55,7 +55,6 @@ export function SelectedAircraftTraceProvider({
   fullTraceForFocal = false,
   showSelectedTrace = true,
   focalClipToLeg = false,
-  focalPersistKey = null,
   focalTraceRefreshKey = "",
   children,
 }) {
@@ -66,13 +65,11 @@ export function SelectedAircraftTraceProvider({
   // the rolling tail. `focalClipToLeg` clips the historical sources to
   // the current flight leg so earlier legs (or yesterday's
   // same-callsign trail) stay out of the focal views. The persist key
-  // (callsign) keeps the merged trace in localStorage so refreshes
-  // don't blank the trail. Secondary (clicked) traces stick with
-  // recent + no clipping + no persistence.
+  // The durable tracking run supplies its own trace history. Secondary
+  // (clicked) traces stick with recent + no clipping.
   const focalHook = useAircraftTrace(focalAircraft, {
     fullTrace: fullTraceForFocal,
     clipToLeg: focalClipToLeg,
-    persistKey: focalPersistKey,
     traceRefreshKey: focalTraceRefreshKey,
   });
 

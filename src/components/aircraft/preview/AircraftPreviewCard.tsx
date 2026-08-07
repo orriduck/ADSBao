@@ -136,7 +136,7 @@ export default function AircraftPreviewCard({
       ? `/airport/${airport.icao.toUpperCase()}`
       : null
     : aircraft?.callsign
-      ? buildAircraftDetailHref(aircraft.callsign, aircraft.icao24 || aircraft.hex)
+      ? buildAircraftDetailHref(aircraft.callsign)
       : null;
   const cardTrackHref = trackHref;
   // 比对只看路径,忽略 ?icao= 提示,否则「已在追踪」抑制会被 query 破坏。
@@ -285,7 +285,7 @@ export default function AircraftPreviewCard({
               >
                 <AircraftPreviewMediaCard
                   photo={photo}
-                  onError={() => setFailedPhotoSrc(photoSrc)}
+                  onError={() => setFailedPhotoSrc(String(photoSrc || ""))}
                 />
               </div>
             )

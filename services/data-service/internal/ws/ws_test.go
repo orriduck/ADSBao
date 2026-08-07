@@ -30,7 +30,7 @@ type fakeSchedulerCall struct {
 	params  realtime.SubscribeParams
 }
 
-func (f *fakeScheduler) Subscribe(channel string, params realtime.SubscribeParams, send func(realtime.Event)) (func(), error) {
+func (f *fakeScheduler) Watch(channel string, params realtime.SubscribeParams, send func(realtime.Event)) (func(), error) {
 	f.mu.Lock()
 	f.calls = append(f.calls, fakeSchedulerCall{channel: channel, params: params})
 	f.mu.Unlock()

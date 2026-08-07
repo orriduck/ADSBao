@@ -52,6 +52,8 @@ export default function FlightSidebar({
   fillAircraftList = true,
   onboardMode = false,
   journeyProgress = null,
+  trackingRunStatus = "",
+  onStopTracking = null,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -85,6 +87,12 @@ export default function FlightSidebar({
       />
       {onboardMode && journeyProgress ? (
         <FlightJourneyProgressCard progress={journeyProgress} />
+      ) : null}
+      {trackingRunStatus === "active" || trackingRunStatus === "lost_signal" ? (
+        <div className="mx-[var(--airport-sidebar-inset)] mt-3 flex items-center justify-between gap-3 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 shadow-[var(--atc-control-inset-shadow-subtle)]">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-atc-dim">{t("preview.tracking")}</span>
+          <button className="rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-2.5 py-1 text-[10px] font-semibold text-atc-text" onClick={onStopTracking} type="button">{t("sidebar.stopTracking")}</button>
+        </div>
       ) : null}
       <FlightTelemetryGrid
         speed={speed}
