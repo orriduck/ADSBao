@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import OnboardFlightPrompt from "@/components/flight/onboard/OnboardFlightPrompt";
-import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
+import { AIRPORT_MAP_FALLBACK_CENTER } from "@/config/airportMap";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -217,38 +217,26 @@ export default function NearMeScreen() {
     };
   }, [requestCompassHeading, requestLocation]);
 
-  const airport = useMemo(
-    () =>
-      coords
-        ? {
-            icao: "",
-            name: t("sidebar.nearMeTitle"),
-            lat: coords.lat,
-            lon: coords.lon,
-          }
-        : null,
-    [coords, t],
-  );
+  // Keep the explorer mounted while permission is pending or denied. A valid
+  // map context avoids replacing the app with a decorative empty state, then
+  // the real device fix takes over as soon as the browser provides one.
+  const airport = useMemo(() => {
+    const center = coords || AIRPORT_MAP_FALLBACK_CENTER;
+    return {
+      icao: "",
+      name: t("sidebar.nearMeTitle"),
+      lat: center.lat,
+      lon: center.lon,
+    };
+  }, [coords, t]);
 
   const handleBack = useCallback(() => {
     navigate(setLocaleSearchParam("/", "", locale));
   }, [navigate, locale]);
 
-  if (status !== "granted" || !airport) {
-    return (
-      <NearMePermissionPrompt
-        status={status}
-        errorMessage={errorMessage}
-        onRequest={handleRequestLocation}
-        onBack={handleBack}
-        t={t}
-      />
-    );
-  }
-
   return (
     <div
-      className="app-route-transition min-h-dvh"
+      className="app-route-transition relative min-h-dvh"
       onPointerDown={handleNearMeInteraction}
     >
       <>
@@ -259,13 +247,22 @@ export default function NearMeScreen() {
           nearMeUserLocation={coords}
           nearMeSidebarLocation={sidebarCoords || coords}
           onBack={handleBack}
-          onNearbyAirportsChange={handleNearbyAirportsChange}
+          onNearbyAirportsChange={coords ? handleNearbyAirportsChange : undefined}
           nearMeRefresh={
-            useOneShotLocation
+            useOneShotLocation && coords
               ? { lastTime, refreshing, onRefresh: handleRefresh }
               : undefined
           }
         />
+        {status !== "granted" ? (
+          <NearMePermissionPrompt
+            status={status}
+            errorMessage={errorMessage}
+            onRequest={handleRequestLocation}
+            onBack={handleBack}
+            t={t}
+          />
+        ) : null}
         <OnboardFlightPrompt
           airport={onboardAirport}
           open={Boolean(onboardAirport)}
@@ -309,24 +306,27 @@ function NearMePermissionPrompt({
         : t("nearMe.hint");
 
   return (
-    <div className="near-me-permission-shell min-h-dvh bg-atc-bg text-atc-text">
-      <section className="near-me-permission-panel" aria-live="polite">
-        <div className="near-me-permission-status">
-          <span className="near-me-permission-code">HERE</span>
-          <div className="near-me-permission-copy">
-            <span aria-hidden="true" className="near-me-permission-icon">
-              <LocateFixed className="size-3.5" aria-hidden="true" />
-            </span>
-            <h1>{title}</h1>
-            <p>{hint}</p>
+    <aside className="pointer-events-none fixed inset-0 z-[var(--z-index-modal)] flex items-center justify-center p-5 text-atc-text">
+      <section
+        aria-live="polite"
+        className="pointer-events-auto w-full max-w-[20rem] rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] p-4 shadow-[var(--app-floating-shadow)] [backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]"
+      >
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 flex-none text-atc-faint">
+            <LocateFixed className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-atc-dim">HERE</span>
+            <h1 className="mt-1 text-[18px] font-semibold leading-tight text-atc-text">{title}</h1>
+            <p className="mt-1.5 text-[12px] leading-snug text-atc-dim">{hint}</p>
           </div>
         </div>
-        <div className="near-me-permission-actions">
+        <div className="mt-4 flex justify-end gap-2">
           <button
             type="button"
             onClick={onRequest}
             disabled={busy}
-            className="near-me-permission-action near-me-permission-action--primary"
+            className="rounded-[var(--atc-radius-pill)] bg-[var(--atc-click-bg)] px-3 py-2 text-[12px] font-semibold text-[var(--atc-click-fg)] shadow-[var(--atc-action-primary-shadow)] transition-transform duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
           >
             {busy
               ? t("nearMe.requestingCta")
@@ -337,15 +337,12 @@ function NearMePermissionPrompt({
           <button
             type="button"
             onClick={onBack}
-            className="near-me-permission-action near-me-permission-action--secondary"
+            className="rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-3 py-2 text-[12px] font-semibold text-atc-text transition-transform duration-150 active:scale-[0.98]"
           >
             {t("nearMe.back")}
           </button>
         </div>
       </section>
-      <div className="near-me-permission-background" aria-hidden="true">
-        <BrandingVideoBackground />
-      </div>
-    </div>
+    </aside>
   );
 }
