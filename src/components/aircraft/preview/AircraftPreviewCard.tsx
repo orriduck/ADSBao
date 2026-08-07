@@ -427,6 +427,7 @@ export default function AircraftPreviewCard({
           onApplyTemporaryRoute={onApplyTemporaryRoute}
           open={feedbackModalOpen}
           onOpenChange={setFeedbackModalOpen}
+          mobile={isMobile || preferMobilePreview}
         />
       )}
       {showPlaneHunterTrigger && (

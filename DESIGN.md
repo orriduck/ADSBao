@@ -163,6 +163,21 @@ UI.
 opacity/transform only; respect `prefers-reduced-motion`. Do not animate
 layout properties.
 
+## Transient interaction layers
+
+Temporary surfaces are classified by behavior before appearance. A contextual
+preview remains non-blocking and lets the map receive gestures. Menus and
+popovers are short anchored choices. Sheets and dialogs are blocking surfaces:
+they own the overlay, focus restoration, Escape dismissal, scroll lock, safe
+area padding, and the current top layer. Full-screen workflows sit above them.
+
+On mobile, a form or multi-action choice uses a bottom/full-height sheet;
+desktop may use a dialog or anchored popover when the trigger is stable. Global
+toasts are passive status only. A decision about the current flight belongs in
+that flight's surface, never in the global toast queue. `MenuSurface` supplies
+only shared glass chrome and must be paired with a behavior primitive that owns
+interaction semantics.
+
 ## Rules for modifying this system
 
 1. **Change tokens, not call sites.** If a card looks wrong, fix

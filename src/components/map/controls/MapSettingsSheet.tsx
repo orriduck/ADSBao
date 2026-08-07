@@ -371,34 +371,46 @@ export default function MapSettingsSheet({
     mapSettingsDevice === "mobile"
       ? "mapSettings.devices.mobile"
       : "mapSettings.devices.desktop";
-  const sheetPositionStyle = {
-    top: "8px",
-    right: "calc(8px + env(safe-area-inset-right))",
-    bottom: "calc(8px + env(safe-area-inset-bottom))",
-    height: "calc(100dvh - 16px - env(safe-area-inset-bottom))",
-    width:
-      "min(340px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
-  };
+  const mobileSheet = mapSettingsDevice === "mobile";
+  const sheetPositionStyle = mobileSheet
+    ? {
+        left: "env(safe-area-inset-left)",
+        right: "env(safe-area-inset-right)",
+        bottom: "0px",
+        height: "min(100dvh, 760px)",
+      }
+    : {
+        top: "8px",
+        right: "calc(8px + env(safe-area-inset-right))",
+        bottom: "calc(8px + env(safe-area-inset-bottom))",
+        height: "calc(100dvh - 16px - env(safe-area-inset-bottom))",
+        width:
+          "min(340px, calc(100vw - 16px - env(safe-area-inset-left) - env(safe-area-inset-right)))",
+      };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         id={id}
-        side="right"
+        side={mobileSheet ? "bottom" : "right"}
         overlayClassName="map-settings-sheet-overlay z-[var(--z-index-modal)]"
         style={sheetPositionStyle}
         className={cn(
           "map-settings-sheet",
+          mobileSheet && "map-settings-sheet--mobile",
           "z-[var(--z-index-modal-content)]",
-          "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
+          mobileSheet
+            ? "rounded-t-[var(--atc-radius-panel)] border-x border-t border-[var(--app-frost-border)]"
+            : "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
           "overflow-hidden p-0 text-atc-text",
           "[background:linear-gradient(180deg,color-mix(in_oklab,var(--app-frost-tint)_86%,transparent),color-mix(in_oklab,var(--app-frost-tint)_90%,transparent))]",
           // Frosted material — strong backdrop blur diffuses the map
           // behind the slide-in settings panel into soft gray.
           "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
           "shadow-[var(--app-panel-shadow)]",
-          "data-[state=open]:translate-x-0 data-[state=open]:opacity-100",
-          "data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",
+          mobileSheet
+            ? "data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:translate-y-full data-[state=closed]:opacity-0"
+            : "data-[state=open]:translate-x-0 data-[state=open]:opacity-100 data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",
           "motion-reduce:transition-none motion-reduce:animate-none",
         )}
       >

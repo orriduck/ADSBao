@@ -6,7 +6,7 @@ import {
 } from "@/features/app-shell/i18n/i18nModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
-  MenuPanel,
+  MenuSurface,
   MenuItem,
   MenuItemLabel,
 } from "@/components/ui/MenuPanel";
@@ -55,7 +55,7 @@ export default function LanguageSwitch({
   return (
     <div ref={containerRef} className="relative isolate z-dropdown">
       {open && (
-        <MenuPanel
+        <MenuSurface
           role="menu"
           aria-label={t("language.menuLabel")}
           className={`absolute z-dropdown min-w-[140px] ${placementClass} ${alignClass}`}
@@ -76,7 +76,7 @@ export default function LanguageSwitch({
               </MenuItem>
             );
           })}
-        </MenuPanel>
+        </MenuSurface>
       )}
 
       <button

@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 70;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.4.3",
+    version: "v3.5.0",
     kind: "feat",
     title: {
-      en: "Onboard mode",
-      zh: "机上模式",
+      en: "Clearer temporary controls",
+      zh: "临时交互更清晰",
     },
     summary: {
-      en: "Flight tracking now persists after the page closes, with a clear stop control.",
-      zh: "航班追踪在关闭页面后仍会持续，并提供明确的停止控制。",
+      en: "Settings and route feedback now adapt their surfaces to desktop and mobile.",
+      zh: "地图设置与航路反馈现在会按桌面和移动端采用合适的交互层。",
     },
     highlights: [],
   },

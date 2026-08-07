@@ -8,7 +8,7 @@ import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import {
   MenuItem,
   MenuItemLabel,
-  MenuPanel,
+  MenuSurface,
 } from "@/components/ui/MenuPanel";
 import {
   Toolbar,
@@ -207,7 +207,7 @@ function ZoomSliderButton({
   return (
     <div ref={containerRef} className="relative isolate z-dropdown inline-flex">
       {open ? (
-        <MenuPanel
+        <MenuSurface
           role="group"
           aria-label={t("map.viewMenu")}
           className={`absolute left-1/2 z-dropdown min-w-[176px] -translate-x-1/2 px-3 py-2.5 ${placementClass}`}
@@ -261,7 +261,7 @@ function ZoomSliderButton({
               ))}
             </div>
           ) : null}
-        </MenuPanel>
+        </MenuSurface>
       ) : null}
 
       <ToolbarButton

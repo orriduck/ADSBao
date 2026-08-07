@@ -548,6 +548,28 @@
     }
 }
 
+@keyframes map-settings-sheet-mobile-enter {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes map-settings-sheet-mobile-exit {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+}
+
 @keyframes map-settings-sheet-overlay-enter {
     from {
         opacity: 0;
@@ -577,6 +599,14 @@
 
 .map-settings-sheet[data-state="closed"] {
     animation: map-settings-sheet-exit 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.map-settings-sheet--mobile[data-state="open"] {
+    animation-name: map-settings-sheet-mobile-enter;
+}
+
+.map-settings-sheet--mobile[data-state="closed"] {
+    animation-name: map-settings-sheet-mobile-exit;
 }
 
 .map-settings-sheet-overlay[data-state="open"] {
@@ -6551,6 +6581,8 @@ body {
 
 @media (max-width: 600px) {
     .atc-toaster[data-sonner-toaster][data-x-position="right"] {
+        top: auto;
+        bottom: max(5.5rem, calc(1rem + env(safe-area-inset-bottom)));
         left: auto;
         right: var(--mobile-offset-right);
         width: min(

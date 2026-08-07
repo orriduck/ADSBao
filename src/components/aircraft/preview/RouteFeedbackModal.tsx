@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RouteFeedbackFields from "./RouteFeedbackFields";
 import { useRouteFeedbackSubmit } from "@/features/aviation/flight-routes/useRouteFeedbackSubmit";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -15,6 +16,7 @@ export default function RouteFeedbackModal({
   onApplyTemporaryRoute,
   open,
   onOpenChange,
+  mobile = false,
 }) {
   const { t } = useI18n();
   const callsign = (aircraft?.callsign || "").trim().toUpperCase();
@@ -38,6 +40,46 @@ export default function RouteFeedbackModal({
 
   const handleClose = () => onOpenChange(false);
 
+  const body = (
+    <>
+      <p className="route-feedback-modal__callsign notranslate" translate="no">
+        {callsign}
+      </p>
+      <RouteFeedbackFields
+        originIcao={submitState.originIcao}
+        destinationIcao={submitState.destinationIcao}
+        onOriginChange={submitState.setOriginIcao}
+        onDestinationChange={submitState.setDestinationIcao}
+        error={submitState.error}
+        submitting={submitState.submitting}
+        onCancel={handleClose}
+        onSubmit={async (event) => {
+          event.preventDefault();
+          const ok = await submitState.submit();
+          if (ok) handleClose();
+        }}
+      />
+    </>
+  );
+
+  if (mobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[min(100dvh,680px)] rounded-t-[var(--atc-radius-panel)] border-[var(--app-frost-border)] bg-[var(--atc-surface-preview-card)] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 text-atc-text shadow-[var(--preview-card-shadow)] [backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]"
+          overlayClassName="[background:color-mix(in_oklab,var(--atc-bg)_74%,transparent)] [backdrop-filter:blur(12px)] [-webkit-backdrop-filter:blur(12px)]"
+        >
+          <SheetHeader className="pr-10 text-left">
+            <SheetTitle className="text-[16px] font-bold leading-tight text-atc-text">{title}</SheetTitle>
+            <SheetDescription className="sr-only">{callsign}</SheetDescription>
+          </SheetHeader>
+          {body}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -60,23 +102,7 @@ export default function RouteFeedbackModal({
               </button>
             </Dialog.Close>
           </div>
-          <p className="route-feedback-modal__callsign notranslate" translate="no">
-            {callsign}
-          </p>
-          <RouteFeedbackFields
-            originIcao={submitState.originIcao}
-            destinationIcao={submitState.destinationIcao}
-            onOriginChange={submitState.setOriginIcao}
-            onDestinationChange={submitState.setDestinationIcao}
-            error={submitState.error}
-            submitting={submitState.submitting}
-            onCancel={handleClose}
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const ok = await submitState.submit();
-              if (ok) handleClose();
-            }}
-          />
+          {body}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

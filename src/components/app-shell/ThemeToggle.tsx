@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { MenuPanel } from "@/components/ui/MenuPanel";
+import { MenuSurface } from "@/components/ui/MenuPanel";
 
 const THEME_ITEMS = [
   { value: "light", iconKey: "sun" },
@@ -122,7 +122,7 @@ export default function ThemeToggle({
   return (
     <div ref={containerRef} className="relative isolate z-dropdown inline-flex">
       {open && hasMenu ? (
-        <MenuPanel
+        <MenuSurface
           role="menu"
           aria-label={t("ui.themeMenuLabel")}
           className={`absolute z-dropdown flex-row gap-1 min-w-0 ${placementClass} ${alignClass}`}
@@ -147,7 +147,7 @@ export default function ThemeToggle({
               </button>
             );
           })}
-        </MenuPanel>
+        </MenuSurface>
       ) : null}
 
       <button

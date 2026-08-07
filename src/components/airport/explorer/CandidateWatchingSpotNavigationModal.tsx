@@ -9,12 +9,14 @@ type CandidateWatchingSpotNavigationModalProps = {
   spot?: Record<string, any> | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mobile?: boolean;
 };
 
 export default function CandidateWatchingSpotNavigationModal({
   spot,
   open,
   onOpenChange,
+  mobile = false,
 }: CandidateWatchingSpotNavigationModalProps) {
   const { t } = useI18n();
   const links = useMemo(
@@ -43,14 +45,18 @@ export default function CandidateWatchingSpotNavigationModal({
         />
         <Dialog.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-[var(--z-index-modal-content)]",
-            "flex w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 flex-col gap-4",
-            "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
-            "[background:var(--atc-surface-preview-card)] p-5 text-atc-text",
+            "fixed z-[var(--z-index-modal-content)] flex flex-col gap-4",
+            mobile
+              ? "inset-x-[env(safe-area-inset-left)] bottom-0 max-h-[min(100dvh,520px)] w-auto rounded-t-[var(--atc-radius-panel)] border-x border-t border-[var(--app-frost-border)] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4"
+              : "left-1/2 top-1/2 w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] p-5",
+            "[background:var(--atc-surface-preview-card)] text-atc-text",
             "shadow-[var(--preview-card-shadow)] outline-none",
             "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+            mobile
+              ? "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom"
+              : "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
+            "motion-reduce:animate-none motion-reduce:transition-none",
           )}
         >
           <div className="flex items-start justify-between gap-3">

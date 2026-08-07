@@ -18,24 +18,27 @@ const forwardRef = React.forwardRef as <
 // panel surface (background, border, shadow) only touches one file.
 //
 // Usage:
-//   <MenuPanel>
+//   <MenuSurface>
 //     <MenuItem selected onClick={...}>All</MenuItem>
 //     <MenuItem variant="header" selected partial>Group</MenuItem>
 //     <MenuItem>Item</MenuItem>
-//   </MenuPanel>
+//   </MenuSurface>
 //
 // Renders any child structure — left/middle/right slots are the
 // caller's responsibility. The variant controls type ramps and the
 // selected/hover/partial visual language.
 
-export const MenuPanel = forwardRef(function MenuPanel(
+// This is deliberately presentation-only. Callers must pair it with a Radix
+// behavior primitive (Select, Popover, DropdownMenu) that owns anchoring,
+// dismissal, focus restoration and collision handling.
+export const MenuSurface = forwardRef(function MenuSurface(
   { className, ...props },
   ref,
 ) {
   return (
     <div
       ref={ref}
-      data-ui="menu-panel"
+      data-ui="menu-surface"
       className={cn(
         "flex flex-col font-[var(--airport-sidebar-sans)]",
         // Frosted dropdown/popover surface — semi-opaque so the shared

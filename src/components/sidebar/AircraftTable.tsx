@@ -15,7 +15,7 @@ import {
   FilterCardValue,
 } from "@/components/ui/FilterCard";
 import {
-  MenuPanel,
+  MenuSurface,
   MenuItem,
   MenuItemCheck,
   MenuItemLabel,
@@ -529,7 +529,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         <FilterPillValue>{displayValue}</FilterPillValue>
       </FilterCard>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
-        <MenuPanel
+        <MenuSurface
           ref={panelRef}
           style={panelStyle}
           role="listbox"
@@ -607,7 +607,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
               </div>
             );
           })}
-        </MenuPanel>,
+        </MenuSurface>,
         document.body,
       )}
     </div>
@@ -734,7 +734,7 @@ function AircraftAltitudeFilterCard({
         <FilterPillValue>{displayValue}</FilterPillValue>
       </FilterCard>
       {open && panelStyle && typeof document !== "undefined" && createPortal(
-        <MenuPanel
+        <MenuSurface
           ref={panelRef}
           style={panelStyle}
           role="listbox"
@@ -762,7 +762,7 @@ function AircraftAltitudeFilterCard({
               </MenuItem>
             );
           })}
-        </MenuPanel>,
+        </MenuSurface>,
         document.body,
       )}
     </div>

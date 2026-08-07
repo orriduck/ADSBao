@@ -697,6 +697,7 @@ function AirportExplorerContent({
           <CandidateWatchingSpotNavigationModal
             spot={navigationSpot}
             open={Boolean(navigationSpot)}
+            mobile={isMobile}
             onOpenChange={(nextOpen) => {
               if (!nextOpen) setNavigationSpotId("");
             }}

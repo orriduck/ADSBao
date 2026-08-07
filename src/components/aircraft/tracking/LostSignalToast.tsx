@@ -1,110 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import {
-  LOST_SIGNAL_TOAST_ID,
-  LOST_SIGNAL_RESUME_GRACE_MS,
-  buildLostSignalToastOptions,
-  resolveLostSignalToastDelayMs,
-} from "@/features/aircraft/tracking/lostSignalToastModel";
 
-const LOST_SIGNAL_TOAST_DELAY_MS = 45_000;
-
-function isPageHidden() {
-  return (
-    typeof document !== "undefined" &&
-    (document.hidden || document.visibilityState === "hidden")
-  );
-}
-
+// A tracking decision belongs next to the affected map, not in the global
+// notification queue. It intentionally stays visible until the user chooses.
 export default function LostSignalToast({
   active = false,
   callsign = "",
   onStay,
   onBackHome,
-  delayMs = LOST_SIGNAL_TOAST_DELAY_MS,
-  resumeGraceMs = LOST_SIGNAL_RESUME_GRACE_MS,
 }) {
   const { t } = useI18n();
-  const [visibilityVersion, setVisibilityVersion] = useState(0);
-  const wasHiddenRef = useRef(false);
-  const resumeGraceUntilRef = useRef(0);
-
-  useEffect(() => {
-    const markHidden = () => {
-      wasHiddenRef.current = true;
-      toast.dismiss(LOST_SIGNAL_TOAST_ID);
-      setVisibilityVersion((value) => value + 1);
-    };
-    const markVisible = () => {
-      if (wasHiddenRef.current) {
-        wasHiddenRef.current = false;
-        resumeGraceUntilRef.current =
-          Date.now() + Math.max(0, Number(resumeGraceMs) || 0);
-        toast.dismiss(LOST_SIGNAL_TOAST_ID);
-      }
-      setVisibilityVersion((value) => value + 1);
-    };
-    const handleVisibility = () => {
-      if (isPageHidden()) markHidden();
-      else markVisible();
-    };
-    const handlePageShow = () => {
-      if (!isPageHidden()) {
-        wasHiddenRef.current = false;
-        resumeGraceUntilRef.current =
-          Date.now() + Math.max(0, Number(resumeGraceMs) || 0);
-        toast.dismiss(LOST_SIGNAL_TOAST_ID);
-        setVisibilityVersion((value) => value + 1);
-      }
-    };
-
-    if (isPageHidden()) wasHiddenRef.current = true;
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("pagehide", markHidden);
-    window.addEventListener("pageshow", handlePageShow);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("pagehide", markHidden);
-      window.removeEventListener("pageshow", handlePageShow);
-    };
-  }, [resumeGraceMs]);
-
-  useEffect(() => {
-    const toastDelay = resolveLostSignalToastDelayMs({
-      active,
-      hidden: isPageHidden(),
-      delayMs,
-      nowMs: Date.now(),
-      resumeGraceUntilMs: resumeGraceUntilRef.current,
-    });
-
-    if (toastDelay == null) {
-      toast.dismiss(LOST_SIGNAL_TOAST_ID);
-      return undefined;
-    }
-
-    const { title, ...options } = buildLostSignalToastOptions({
-      callsign,
-      t,
-      onStay,
-      onBackHome,
-    });
-    const timer = window.setTimeout(() => {
-      if (isPageHidden()) return;
-      toast.warning(title, options);
-    }, toastDelay);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    active,
-    callsign,
-    delayMs,
-    onBackHome,
-    onStay,
-    t,
-    visibilityVersion,
-  ]);
-
-  return null;
+  if (!active) return null;
+  return (
+    <aside className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-[var(--z-index-modal-content)] w-[min(92vw,420px)] -translate-x-1/2 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] p-3 text-atc-text shadow-[var(--app-panel-shadow)] [backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]" aria-label={t("lostSignal.title", { callsign })}>
+      <p className="text-[13px] font-semibold">{t("lostSignal.title", { callsign })}</p>
+      <p className="mt-1 text-[11px] leading-snug text-atc-dim">{t("lostSignal.description")}</p>
+      <div className="mt-3 flex justify-end gap-2">
+        <button className="rounded-[var(--atc-radius-pill)] px-3 py-1.5 text-[11px] font-semibold text-atc-dim hover:bg-[var(--atc-control-surface-hover)]" onClick={onStay} type="button">{t("lostSignal.acknowledge")}</button>
+        <button className="rounded-[var(--atc-radius-pill)] border border-transparent px-3 py-1.5 text-[11px] font-semibold [background:var(--atc-glass-active-bg)] text-[var(--atc-click-fg)] shadow-[var(--atc-glass-rim-shadow)]" onClick={onBackHome} type="button">{t("lostSignal.home")}</button>
+      </div>
+    </aside>
+  );
 }

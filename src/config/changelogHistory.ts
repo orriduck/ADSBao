@@ -146,14 +146,22 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
     summary: "修复后端 bug。",
     highlights: [],
   },
-  "v0.4.0": {
-    title: "ADSBao Web 转向",
-    summary: "新增或优化：ADSBao Web 转向。",
-    highlights: [],
-  },
 };
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
+  {
+    version: "v3.4.3",
+    kind: "feat",
+    title: {
+      en: "Onboard mode",
+      zh: "机上模式",
+    },
+    summary: {
+      en: "Flight tracking now persists after the page closes, with a clear stop control.",
+      zh: "航班追踪在关闭页面后仍会持续，并提供明确的停止控制。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.3.8",
     kind: "feat",
@@ -862,13 +870,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     kind: "feat",
     title: "Backend fixes",
     summary: "Fixed backend bugs.",
-    highlights: [],
-  },
-  {
-    version: "v0.4.0",
-    kind: "breaking",
-    title: "ADSBao web pivot",
-    summary: "Added or improved: ADSBao web pivot.",
     highlights: [],
   },
 ];
