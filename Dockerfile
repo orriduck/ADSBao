@@ -8,21 +8,7 @@ COPY public ./public
 COPY src ./src
 RUN pnpm run build
 
-FROM golang:1.26-bookworm AS go-build
-WORKDIR /src
-COPY services/data-service/go.mod services/data-service/go.sum ./
-RUN go mod download
-COPY services/data-service ./
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/adsbao-data-service ./cmd/adsbao-data-service
-
-FROM debian:bookworm-slim AS runner
-WORKDIR /app
-ENV PORT=8080
-ENV STATIC_DIR=/app/public
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
-COPY --from=go-build /out/adsbao-data-service /app/adsbao-data-service
-COPY --from=web-build /src/dist /app/public
+FROM nginx:1.29-alpine
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=web-build /src/dist /usr/share/nginx/html
 EXPOSE 8080
-CMD ["/app/adsbao-data-service"]
