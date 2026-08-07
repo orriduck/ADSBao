@@ -6,7 +6,9 @@ import {
   getAirportDiscoveryTopics,
   getNearbyAirportDisplayItems,
   mergeAirportSearchRows,
+  resolveHomeSearchDestination,
   resolveSubmittedAirport,
+  resolveTrackableCallsign,
 } from "./airportSearchModel";
 
 const staticAirports = [
@@ -125,3 +127,16 @@ assert.equal(
   "KLAX",
 );
 assert.equal(resolveSubmittedAirport({ query: "", rows, staticAirports }), null);
+
+assert.deepEqual(
+  resolveHomeSearchDestination({ query: "DAL58", rows: [], staticAirports }),
+  { type: "aircraft", callsign: "DAL58" },
+);
+assert.equal(
+  resolveTrackableCallsign({ query: " dal 58 ", rows: [], staticAirports }),
+  "DAL58",
+);
+assert.deepEqual(
+  resolveHomeSearchDestination({ query: "lax", rows: [], staticAirports }),
+  { type: "airport", airport: staticAirports[1] },
+);

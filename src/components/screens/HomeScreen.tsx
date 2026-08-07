@@ -124,11 +124,20 @@ export default function HomeScreen() {
     navigate(setLocaleSearchParam("/", "", locale));
   };
 
+  const handleTrackFlight = (callsign) => {
+    const normalized = String(callsign || "").trim().toUpperCase();
+    if (!normalized) return;
+    navigate(
+      setLocaleSearchParam(`/aircraft/${normalized}`, "track=1", locale),
+    );
+  };
+
   if (!currentIcao) {
     return (
       <AirportSearchPanel
         onOpenAirport={handleOpenAirport}
         onPrefetchAirport={handlePrefetchAirport}
+        onTrackFlight={handleTrackFlight}
       />
     );
   }

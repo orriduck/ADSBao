@@ -2,7 +2,8 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   createAirportSelection,
-  resolveSubmittedAirport,
+  resolveHomeSearchDestination,
+  resolveTrackableCallsign,
 } from "@/features/airport/search/airportSearchModel";
 import { AirportSearchResults } from "./AirportSearchResults";
 import AirportDiscoveryPanel from "./AirportDiscoveryPanel";
@@ -12,6 +13,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 export default function AirportSearchPanel({
   onOpenAirport,
   onPrefetchAirport,
+  onTrackFlight,
 }) {
   const { t } = useI18n();
   const {
@@ -35,14 +37,21 @@ export default function AirportSearchPanel({
     onOpenAirport(createAirportSelection(airport));
   };
 
+  const trackingCallsign = resolveTrackableCallsign({
+    query,
+    rows,
+    staticAirports: staticDiscoveryAirports,
+  });
+
   const doSearch = (event) => {
     event.preventDefault();
-    const airport = resolveSubmittedAirport({
+    const destination = resolveHomeSearchDestination({
       query,
       rows,
       staticAirports: staticDiscoveryAirports,
     });
-    if (airport) openAirport(airport);
+    if (destination?.type === "airport") openAirport(destination.airport);
+    if (destination?.type === "aircraft") onTrackFlight?.(destination.callsign);
   };
 
   return (
@@ -75,6 +84,8 @@ export default function AirportSearchPanel({
             countLabel={countLabel}
             onOpen={openAirport}
             onPrefetch={onPrefetchAirport}
+            trackingCallsign={trackingCallsign}
+            onTrackFlight={onTrackFlight}
           />
         ) : (
           <AirportDiscoveryPanel

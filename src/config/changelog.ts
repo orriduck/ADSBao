@@ -46,19 +46,19 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 70;
+export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.5.0",
+    version: "v3.6.0",
     kind: "feat",
     title: {
-      en: "Clearer temporary controls",
-      zh: "临时交互更清晰",
+      en: "Track a flight from home",
+      zh: "首页直接追踪航班",
     },
     summary: {
-      en: "Settings and route feedback now adapt their surfaces to desktop and mobile.",
-      zh: "地图设置与航路反馈现在会按桌面和移动端采用合适的交互层。",
+      en: "Enter a callsign in the home search to open persistent flight tracking.",
+      zh: "在首页搜索中输入 callsign，即可进入持续航班追踪。",
     },
     highlights: [],
   },

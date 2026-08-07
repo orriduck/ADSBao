@@ -560,7 +560,7 @@ const en = {
     },
   },
   search: {
-    placeholder: "Search airport or city",
+    placeholder: "Search airport, city, or flight callsign",
     enter: "enter",
     searchResults: "Search results",
     searchingAirports: "Searching airports...",
@@ -570,6 +570,9 @@ const en = {
     resultCountMany: "{count} results",
     searchAirportsError: "Search failed",
     noAirportMatched: "No airport matched \"{query}\".",
+    trackFlightPill: "FLIGHT",
+    trackFlight: "Track {callsign}",
+    trackFlightHint: "Open its persistent tracking page.",
     discovery: {
       pageTitle: "Airports",
       pageDescription: "Airport Situation Explorer",

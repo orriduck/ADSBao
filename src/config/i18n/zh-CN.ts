@@ -551,7 +551,7 @@ const zhCN = {
     },
   },
   search: {
-    placeholder: "搜索 ICAO、IATA、城市或名称",
+    placeholder: "搜索机场、城市或航班 callsign",
     enter: "回车",
     searchResults: "搜索结果",
     searchingAirports: "正在搜索机场…",
@@ -561,6 +561,9 @@ const zhCN = {
     resultCountMany: "{count} 条结果",
     searchAirportsError: "搜索失败",
     noAirportMatched: "没有匹配 \"{query}\" 的机场。",
+    trackFlightPill: "航班",
+    trackFlight: "追踪 {callsign}",
+    trackFlightHint: "进入持续追踪的航班页。",
     discovery: {
       pageTitle: "机场探索",
       pageDescription: "发现机场，进入实时态势。",

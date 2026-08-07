@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.5.0",
+    kind: "feat",
+    title: {
+      en: "Clearer temporary controls",
+      zh: "临时交互更清晰",
+    },
+    summary: {
+      en: "Settings and route feedback now adapt their surfaces to desktop and mobile.",
+      zh: "地图设置与航路反馈现在会按桌面和移动端采用合适的交互层。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.4.3",
     kind: "feat",
     title: {

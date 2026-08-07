@@ -1,5 +1,6 @@
-import { Loader2, Radar, SearchX } from "lucide-react";
+import { ChevronRight, Loader2, Radar, SearchX } from "lucide-react";
 import AirportRow from "./AirportRow";
+import { AirportListRow } from "./AirportListRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 
@@ -36,8 +37,11 @@ export function AirportSearchResults({
   countLabel,
   onOpen,
   onPrefetch,
+  trackingCallsign = "",
+  onTrackFlight,
 }) {
   const { t } = useI18n();
+  const hasResults = Boolean(trackingCallsign || rows.length);
 
   return (
     <div className="dither-content-stack flex flex-col">
@@ -64,7 +68,7 @@ export function AirportSearchResults({
           </span>
         </div>
 
-        {loading && !rows.length ? (
+        {loading && !hasResults ? (
           <SearchState
             spin
             icon={<Loader2 size={17} strokeWidth={2} />}
@@ -76,7 +80,7 @@ export function AirportSearchResults({
             title={t("search.searchAirportsError")}
             detail={error}
           />
-        ) : !rows.length ? (
+        ) : !hasResults ? (
           <SearchState
             icon={<Radar size={17} strokeWidth={2} />}
             title={t("search.noAirportMatched", { query: query.trim() })}
@@ -84,6 +88,19 @@ export function AirportSearchResults({
           />
         ) : (
           <ul className="app-list-motion dither-list mt-3 flex flex-col gap-1">
+            {trackingCallsign ? (
+              <li>
+                <AirportListRow
+                  as="button"
+                  active
+                  pill={t("search.trackFlightPill")}
+                  title={t("search.trackFlight", { callsign: trackingCallsign })}
+                  subtitle={t("search.trackFlightHint")}
+                  trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
+                  onClick={() => onTrackFlight?.(trackingCallsign)}
+                />
+              </li>
+            ) : null}
             {rows.map((airport, index) => (
               <AirportRow
                 key={airport.icao || airport.code || airport.name}

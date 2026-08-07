@@ -1,3 +1,5 @@
+import { isLookupCallsign, normalizeCallsign } from "@/utils/callsign";
+
 type AirportSearchAirport = {
   icao?: string;
   iata?: string;
@@ -57,6 +59,10 @@ type AirportSubmitOptions = {
   rows?: AirportSearchAirport[];
   staticAirports?: AirportSearchAirport[];
 };
+
+type HomeSearchDestination =
+  | { type: "airport"; airport: AirportSearchAirport }
+  | { type: "aircraft"; callsign: string };
 
 const normalizeAirportQuery = (value: unknown) =>
   String(value || "")
@@ -180,4 +186,47 @@ export function resolveSubmittedAirport({
     rows[0] ||
     null
   );
+}
+
+function resolveExactAirport({
+  query = "",
+  rows = [],
+  staticAirports = [],
+}: AirportSubmitOptions = {}) {
+  const normalizedQuery = normalizeAirportQuery(query);
+  if (!normalizedQuery) return null;
+  return [...rows, ...staticAirports].find((airport) => {
+    const icao = normalizeAirportQuery(airport.icao);
+    const iata = normalizeAirportQuery(airport.iata);
+    const code = normalizeAirportQuery(airport.code);
+    return (
+      normalizedQuery === icao ||
+      normalizedQuery === iata ||
+      normalizedQuery === code
+    );
+  }) || null;
+}
+
+// The home search deliberately resolves an exact airport before treating the
+// same short token as a callsign (for example, KJFK). Otherwise a valid
+// callsign enters the durable tracking route directly; free-text airport
+// searches retain the existing best-result behaviour.
+export function resolveHomeSearchDestination({
+  query = "",
+  rows = [],
+  staticAirports = [],
+}: AirportSubmitOptions = {}): HomeSearchDestination | null {
+  const exactAirport = resolveExactAirport({ query, rows, staticAirports });
+  if (exactAirport) return { type: "airport", airport: exactAirport };
+
+  const callsign = normalizeCallsign(query);
+  if (isLookupCallsign(callsign)) return { type: "aircraft", callsign };
+
+  const airport = resolveSubmittedAirport({ query, rows, staticAirports });
+  return airport ? { type: "airport", airport } : null;
+}
+
+export function resolveTrackableCallsign(options: AirportSubmitOptions = {}) {
+  const destination = resolveHomeSearchDestination(options);
+  return destination?.type === "aircraft" ? destination.callsign : "";
 }
