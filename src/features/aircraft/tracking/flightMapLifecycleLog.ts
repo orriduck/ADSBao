@@ -1,7 +1,7 @@
 // Structured, deduped diagnostic log for the flight map lifecycle. Kept on
 // purpose (long-lived) so navigation / loading issues can be inspected from the
 // browser console via the `[flightmap]` tag, in the same spirit as the existing
-// `[aircraft-trace:fetch]` and `[flightaware-enabled]` diagnostics. It only logs
+// `[aircraft-trace:fetch]` diagnostics. It only logs
 // when the meaningful state changes, so it never floods the console on position
 // ticks.
 

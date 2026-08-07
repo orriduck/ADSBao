@@ -6,13 +6,13 @@ const SHOW_QUERY_DEVTOOLS =
   import.meta.env.DEV && import.meta.env.VITE_QUERY_DEVTOOLS === "true";
 
 // Single QueryClient per browser session. Sensible defaults that match how
-// this app talks to its upstreams:
+// this app talks to its data service:
 //   - staleTime 60s: aircraft / metar polls overwrite this with shorter
 //     intervals per-query; static lookups (wiki, airports) get a quiet
 //     baseline so the cache survives short navigations.
 //   - gcTime 5min: keeps results around long enough to feel snappy on tab
 //     re-entry without holding upstream bytes forever.
-//   - retry 1: most upstreams (adsbdb, wikipedia, AviationWeather) are best-
+//   - retry 1: external lookups are best-
 //     effort. A single retry catches transient blips; more would mask real
 //     outages and slow the UI down.
 //   - refetchOnWindowFocus false: this app polls explicitly via the relevant

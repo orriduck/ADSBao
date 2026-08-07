@@ -25,7 +25,6 @@ type RawAdsbAircraft = {
   category?: string;
   positionTime?: unknown;
   positionQuality?: AircraftPositionQuality | null;
-  flightAwareUrl?: string;
   origin?: string;
   destination?: string;
   route?: string;
@@ -52,7 +51,6 @@ type NormalizedAircraftPosition = {
   receiveTime: number;
   positionQuality: AircraftPositionQuality | null;
   flight_position_source: string;
-  flightAwareUrl: string;
   origin: string;
   destination: string;
   route: string;
@@ -139,7 +137,6 @@ export function normalizeAdsbAircraft(
       flight_position_source:
         aircraft.flight_position_source || positionQuality?.flight_position_source,
     }),
-    flightAwareUrl: aircraft.flightAwareUrl || "",
     origin: aircraft.origin || "",
     destination: aircraft.destination || "",
     route: aircraft.route || "",

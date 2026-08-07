@@ -66,13 +66,13 @@ import { normalizeLocalWeather } from "../weather/localWeatherNormalizer";
       lat: 33.9416,
       lon: -118.4085,
     },
-    source: "flightaware",
+    source: "route",
   });
 
   assert.equal(route.callsignIata, "AA1234");
   assert.equal(route.airlineIcao, "AAL");
   assert.equal(route.airlineIata, "AA");
-  assert.equal(route.source, "flightaware");
+  assert.equal(route.source, "route");
 }
 
 {

@@ -170,7 +170,7 @@ function getAircraftLabels(
 
   return {
     callsign,
-    // Empty string when FA is off — templates check `labels.route &&`
+    // Empty string when no route is available — templates check `labels.route &&`
     // and skip the route line entirely instead of rendering a hint.
     route: resolvedRoute,
     type: type.toUpperCase(),
@@ -515,7 +515,7 @@ function drawTemplate(
 
   if (template === "previewCard") {
     // Compact card. Hierarchy: callsign (hero) → flight data (one line) →
-    // route (only with FlightAware). The orange type block bleeds flush into
+    // route. The orange type block bleeds flush into
     // the card's bottom-left corner.
     const cardW = Math.min(width - pad * 2, unit * 0.34);
     const ip = cardW * 0.06;

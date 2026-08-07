@@ -81,8 +81,6 @@ function AircraftRow({
     metric: "altitude",
     value: aircraft.altitude,
     onGround: aircraft.onGround,
-    flightPositionSource: aircraft.flight_position_source,
-    positionQuality: aircraft.positionQuality,
   });
   const altitudeDisplay = rawAltitude
     ? formatAltitude(aircraft.altitude, units.altitude, { kind: "cruise" })

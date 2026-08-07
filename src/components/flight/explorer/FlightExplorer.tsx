@@ -21,9 +21,6 @@ import {
   getTrackedFlightTraceRefreshKey,
 } from "@/features/aircraft/tracking/lostSignalTrackingModel";
 import {
-  getFlightAwareFallbackAutoFitKey,
-} from "@/features/aircraft/tracking/flightAwareFallbackTrackingModel";
-import {
   getFlightTrackingContextPosition,
   resolveFlightFocalLifecycle,
   resolveFlightTerminalReason,
@@ -75,8 +72,7 @@ const FOCAL_VISUAL_POSITION_TICK_MS = 500;
 const TRACE_VIEW_SESSION = "session";
 const TRACE_VIEW_ALL = "all";
 // Max wait for a focal position before the flight map resolves to the terminal
-// "no live position" card (covers flights that never settle, e.g. an oceanic
-// leg with no ADS-B and no FlightAware).
+// "no live position" card when the live feed has no plottable aircraft.
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
 export default function FlightExplorer({ callsign = "", trackingRequested = false, onboardMode = false }) {
@@ -139,7 +135,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     toggleMapLabels,
     setUserLocationPreferences,
     fitToTrace,
-    suspendMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
   const [wakeLockState, toggleWakeLock] = useWakeLock();
@@ -178,8 +173,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     lostSignal,
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
-    trackingState,
-    flightAwareFallback,
     realtimeStatus,
   } = useTrackedAircraft(callsign, { runStatus: trackingRun?.status });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
@@ -205,8 +198,8 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
 
   // Both trace views are scoped to the CURRENT leg (see traceLegModel)
   // and share the persisted trail: "Full trace" is the flight-path view
-  // (origin→destination arc overlays when the FlightAware grant is
-  // resolved), "All recorded points" shows the leg's recorded samples.
+  // (origin→destination arc overlays when a route resolves), "All recorded
+  // points" shows the leg's recorded samples.
   // The toggles differ in map fitting, never in what data is kept.
   const requestTraceView = useCallback(
     (mode) => {
@@ -244,49 +237,21 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     ],
     [mapFollowsAircraft, requestTraceView, traceViewMode],
   );
-  const flightAwareAutoFitKey = useMemo(
-    () =>
-      getFlightAwareFallbackAutoFitKey({
-        trackingState,
-        callsign,
-        aircraftHex: trackedAircraftForDisplay?.icao24,
-      }),
-    [callsign, trackedAircraftForDisplay?.icao24, trackingState],
-  );
-  const routeAutoFitKey = useMemo(() => {
-    if (flightAwareAutoFitKey) return flightAwareAutoFitKey;
-    if (trackingState?.status !== "oceanic_adsc") return "";
-    const normalizedCallsign = String(callsign || "").trim().toUpperCase();
-    const normalizedHex = String(trackedAircraftForDisplay?.icao24 || "")
-      .trim()
-      .toUpperCase();
-    if (!normalizedCallsign) return "";
-    return ["oceanic-adsc", normalizedCallsign, normalizedHex]
-      .filter(Boolean)
-      .join(":");
-  }, [
-    callsign,
-    flightAwareAutoFitKey,
-    trackedAircraftForDisplay?.icao24,
-    trackingState,
-  ]);
   const focalTraceRefreshKey = useMemo(
     () =>
       getTrackedFlightTraceRefreshKey({
         lostSignal,
         pollVersion: trackedPollVersion,
         visibilityRefreshVersion: trackedVisibilityRefreshVersion,
-        trackingState,
         pollMs: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
-        flightAwareTraceRefreshMs:
-          AIRCRAFT_TRAFFIC_CONFIG.flightAwareTraceRefreshMs,
+        lostSignalRefreshMs:
+          AIRCRAFT_TRAFFIC_CONFIG.lostSignalTraceRefreshMs,
         steadyRefreshMs: AIRCRAFT_TRAFFIC_CONFIG.traceSteadyRefreshMs,
       }),
     [
       lostSignal,
       trackedPollVersion,
       trackedVisibilityRefreshVersion,
-      trackingState,
     ],
   );
 
@@ -390,11 +355,8 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
   });
   const flightDisplayContext: Record<string, any> = useMemo(
     () =>
-      resolveFlightTrackingDisplayContext({
-        trackingState,
-        isMobile,
-      }),
-    [isMobile, trackingState],
+      resolveFlightTrackingDisplayContext(),
+    [],
   );
   const showNearbyContext = Boolean(flightDisplayContext.showNearbyContext !== false);
   const showNearbyTrafficContext =
@@ -609,7 +571,7 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
   // the route header. `trackedAircraft` straight out of useTrackedAircraft
   // has no route fields — we hand it the enriched entry from the same
   // array we already fed routes into, so the sidebar shows the route
-  // (community-feedback override or adsbdb) for the focal callsign.
+  // (community-feedback override or live lookup) for the focal callsign.
   const enrichedTrackedAircraft = useMemo(() => {
     if (!trackedAircraftForDisplay) return null;
     const trackedKey = getAircraftIdentity(trackedAircraftForDisplay);
@@ -809,12 +771,9 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
   //  - "loading"  → covering loading animation (key data not ready)
   //  - "position" → reveal the map centered on the aircraft
   //  - "terminal" → covering static card (no live position; never spinner / LAX)
-  const flightTrackingStatus = trackingState?.status || "";
   const hasFocalPosition = focalLat != null && focalLon != null;
-  // Some flights never "settle" (e.g. a trans-oceanic leg with no ADS-B and no
-  // FlightAware never emits a realtime event). Bound the wait: after a grace with
-  // no focal position the lifecycle resolves to the terminal card instead of an
-  // endless spinner.
+  // Bound the initial wait so a callsign with no live position resolves to the
+  // terminal card instead of an endless spinner.
   const [loadingGraceExpired, setLoadingGraceExpired] = useState(false);
   useEffect(() => {
     if (hasFocalPosition) {
@@ -830,12 +789,7 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
   }, [callsign, hasFocalPosition]);
   const flightLifecycle = resolveFlightFocalLifecycle({
     hasActiveFlight: Boolean(callsign),
-    // An upcoming, known passenger flight intentionally keeps waiting until
-    // FlightAware explicitly marks it terminal. Normal tracking stays bounded.
-    resolved:
-      onboardMode && flightTrackingStatus !== "flightaware_terminal"
-        ? false
-        : trackedAircraftSettled || loadingGraceExpired,
+    resolved: trackedAircraftSettled || loadingGraceExpired,
     hasFocalPosition,
   });
   const flightTrackingLoadingActive = flightLifecycle === "loading";
@@ -843,7 +797,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     flightLifecycle === "terminal"
       ? resolveFlightTerminalReason({
           lostSignal,
-          trackingStatus: flightTrackingStatus,
         })
       : "";
   useEffect(() => {
@@ -854,7 +807,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
       focalLon,
       settled: trackedAircraftSettled,
       lostSignal,
-      trackingStatus: flightTrackingStatus,
     });
   }, [
     callsign,
@@ -863,7 +815,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     focalLon,
     trackedAircraftSettled,
     lostSignal,
-    flightTrackingStatus,
   ]);
   const loadingOverlaySources = {
     trackedAircraftLoading: flightTrackingLoadingActive,
@@ -895,12 +846,11 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     () =>
       onboardMode
         ? resolveFlightJourneyProgress({
-            flightAwareFallback,
             confirmedRoute: enrichedTrackedAircraft?.flightRoute,
             aircraft: enrichedTrackedAircraft,
           })
         : null,
-    [enrichedTrackedAircraft, flightAwareFallback, onboardMode],
+    [enrichedTrackedAircraft, onboardMode],
   );
   const toolbarContextProps = {
     traceViewItems,
@@ -1083,18 +1033,10 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
               <MapFitToTraceController
                 routePath={focalRoutePath}
                 centerAnchor={{ lat: focalLat, lon: focalLon }}
-                centerAnchorFollowKey={
-                  !mapFollowsAircraft && focalLat != null && focalLon != null
-                    ? routeAutoFitKey
-                    : ""
-                }
-                autoFitKey={routeAutoFitKey}
+                centerAnchorFollowKey=""
+                autoFitKey=""
                 fitOptions={flightDisplayContext.mapFitOptions}
-                onAutoFit={
-                  flightDisplayContext.autoFitSuspendsFollow
-                    ? suspendMapFollow
-                    : undefined
-                }
+                onAutoFit={undefined}
               />
             </AirportMap>
           </Suspense>

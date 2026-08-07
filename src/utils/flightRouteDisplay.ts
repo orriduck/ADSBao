@@ -72,7 +72,7 @@ export const getFlightRouteEndpointIcaos = (route) => {
   return { origin, destination }
 }
 
-export const getFlightRouteAccuracyNotice = () => ''
+export const getFlightRouteAccuracyNotice = (_route?: unknown) => ''
 
 // ICAO-first airport code (KBOS), falling back to IATA. RouteBadge renders the
 // 4-letter ICAO identifiers to match the rest of the app's airport language.

@@ -23,9 +23,8 @@ const DEFAULT_FIT_OPTIONS = Object.freeze({
 // points exist and then performs the same fit once for that key.
 //
 // When the optional `routePath` prop is supplied, it is folded into the
-// bounds. The flight page passes this only for FlightAware-sourced focal
-// routes; otherwise fitting stays scoped to the visible focal/secondary
-// trace union and does not zoom out to static adsbdb endpoints.
+// bounds. The flight page leaves this empty, so fitting stays scoped to the
+// visible focal/secondary trace union and does not zoom out to route endpoints.
 //
 // After fitting we don't sync React's mapZoom: auto-follow is gated by
 // mapFollowsAircraft (the fitToTrace action already turns that off),

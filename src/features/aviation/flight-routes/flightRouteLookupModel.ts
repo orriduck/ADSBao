@@ -15,9 +15,6 @@ export type AircraftRouteCandidate = {
   lon?: unknown;
   origin?: unknown;
   destination?: unknown;
-  trackingState?: {
-    status?: unknown;
-  } | null;
   [key: string]: unknown;
 };
 
@@ -169,7 +166,6 @@ function getLookupCallsigns(aircraft: AircraftRouteCandidate[]) {
   return [
     ...new Set(
       (aircraft || [])
-        .filter((item) => !shouldSuppressRouteLookup(item))
         .map((item) => normalizeCallsign(item.callsign))
         .filter((callsign): callsign is string => isLookupCallsign(callsign)),
     ),
@@ -217,9 +213,6 @@ function buildRouteFromAircraftMetadata(aircraft: AircraftRouteCandidate = {}) {
 }
 
 const EARTH_RADIUS_NM = 3440.065;
-const ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES = new Set([
-  "missing",
-]);
 
 const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -265,7 +258,6 @@ function collectPendingRouteCandidates(
   );
 
   (aircraft || []).forEach((item, index) => {
-    if (shouldSuppressRouteLookup(item)) return;
     const callsign = normalizeCallsign(item?.callsign);
     if (!isLookupCallsign(callsign)) return;
     if (blocked.has(callsign)) return;
@@ -319,12 +311,6 @@ function normalizePriorityCallsigns(value: unknown) {
     priorities.set(callsign, index);
   });
   return priorities;
-}
-
-function shouldSuppressRouteLookup(aircraft: AircraftRouteCandidate = {}) {
-  return ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES.has(
-    String(aircraft?.trackingState?.status || "").trim().toLowerCase(),
-  );
 }
 
 export function resolvePendingRouteLookups({

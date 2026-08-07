@@ -53,7 +53,7 @@ import {
   assert.deepEqual(
     points,
     [[42, -71]],
-    "non-FlightAware route endpoints should not inflate trace fitting",
+    "route endpoints should not inflate trace fitting",
   );
 }
 

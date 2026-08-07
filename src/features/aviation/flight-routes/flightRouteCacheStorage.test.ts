@@ -24,7 +24,7 @@ const store = new Map<string, string>();
   },
 };
 
-function routeEntry(time: number, source = "adsbdb"): RouteCacheEntry {
+function routeEntry(time: number, source = "route"): RouteCacheEntry {
   return {
     route: { callsign: "DAL123", source },
     time,
@@ -32,21 +32,21 @@ function routeEntry(time: number, source = "adsbdb"): RouteCacheEntry {
 }
 
 try {
-  // Round-trip: hits (incl. provider-partitioned) survive; negative
+  // Round-trip: hits survive; negative
   // entries stay session-only so a failing upstream cannot poison every
   // subsequent page load.
   persistRouteCache(
     new Map<string, RouteCacheEntry>([
       ["DAL123|KBOS|BOS", routeEntry(NOW - 1_000)],
-      ["UAL1|FLIGHTAWARE", routeEntry(NOW - 2_000, "flightaware")],
+      ["UAL1", routeEntry(NOW - 2_000)],
       ["SWA555", { route: null, time: NOW - 3_000 }],
     ]),
     { now: NOW },
   );
   const restored = readPersistedRouteCache({ now: NOW });
   assert.equal(restored.size, 2, "only resolved routes should persist");
-  assert.equal(restored.get("DAL123|KBOS|BOS")?.route?.source, "adsbdb");
-  assert.equal(restored.get("UAL1|FLIGHTAWARE")?.route?.source, "flightaware");
+  assert.equal(restored.get("DAL123|KBOS|BOS")?.route?.source, "route");
+  assert.equal(restored.get("UAL1")?.route?.source, "route");
   assert.equal(restored.has("SWA555"), false, "negative entries never persist");
 
   // TTL pruning: expired hit entries drop on write/read.

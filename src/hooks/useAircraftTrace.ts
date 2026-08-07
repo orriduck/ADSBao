@@ -305,8 +305,8 @@ export function useAircraftTrace(
     };
   }, [hex, fullTrace, traceLabel]);
 
-  // Background refreshes: resume-from-tab, lost-signal, FlightAware
-  // fallback, and the steady periodic tick. These are silent — no
+  // Background refreshes: resume-from-tab, lost-signal, and the steady
+  // periodic tick. These are silent — no
   // loading flags — and an empty or failed response never replaces
   // points we already have: a rate-limited upstream returns an empty
   // payload with HTTP 200, and wiping the trail with it is exactly the

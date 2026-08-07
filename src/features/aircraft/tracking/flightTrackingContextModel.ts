@@ -29,7 +29,6 @@ export type FlightFocalLifecycle = "loading" | "position" | "terminal";
 
 type FlightTerminalReasonOptions = {
   lostSignal?: boolean;
-  trackingStatus?: string;
 };
 
 type FlightFocalLifecycleOptions = {
@@ -76,26 +75,19 @@ export function getFlightTrackingContextPosition({
 }
 
 // Map the tracked-flight signal onto the copy shown on the terminal card.
-// - flightaware_terminal → the flight ended (landed / arrived / cancelled)
-// - lostSignal / stale     → we had it but the live signal dropped
-// - everything else        → no live position at all
+// A lost signal means we previously had a position; otherwise there is no live
+// position available for the requested callsign.
 export function resolveFlightTerminalReason({
   lostSignal = false,
-  trackingStatus = "",
 }: FlightTerminalReasonOptions = {}): FlightTerminalReason {
-  const status = String(trackingStatus || "")
-    .trim()
-    .toLowerCase();
-  if (status === "flightaware_terminal") return "terminal";
-  if (lostSignal || status === "stale") return "lost";
+  if (lostSignal) return "lost";
   return "missing";
 }
 
 // Single source of truth for what the flight map shows. Once the feed has
-// RESOLVED (settled, or the loading grace timed out — some flights, e.g. a
-// trans-oceanic leg with no ADS-B and no FlightAware, never settle), a flight
-// with no plottable focal position is a TERMINAL state (a static card) — never
-// an indefinite spinner and never the fallback center.
+// RESOLVED (settled, or the loading grace timed out), a flight with no plottable
+// focal position is a TERMINAL state (a static card) — never an indefinite
+// spinner and never the fallback center.
 export function resolveFlightFocalLifecycle({
   hasActiveFlight = false,
   resolved = false,

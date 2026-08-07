@@ -4,10 +4,8 @@
 // load re-fetches routes the map view already resolved seconds earlier.
 //
 // Entries keep the exact cache-key/entry shape used by
-// `flightRouteLookupModel` — including the provider partition embedded in
-// the keys — so hydration cannot blur the FlightAware/adsbdb boundary:
-// lookups still go through `getFreshRouteCacheEntry`, which filters by
-// provider source.
+// `flightRouteLookupModel`, so hydration preserves the scheduler's normal
+// cache behavior across hard detail-page reloads.
 
 import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../../../config/aviation";
 import type { FlightRoute, RouteCacheEntry } from "./flightRouteLookupModel";

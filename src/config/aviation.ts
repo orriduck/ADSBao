@@ -21,7 +21,7 @@ export const AIRCRAFT_TRAFFIC_CONFIG = {
   rangeNm: 40,
   hiddenPollGraceMs: 5_000,
   hiddenPollMaxMs: 30_000,
-  flightAwareTraceRefreshMs: 60_000,
+  lostSignalTraceRefreshMs: 60_000,
   traceSteadyRefreshMs: 180_000,
 };
 

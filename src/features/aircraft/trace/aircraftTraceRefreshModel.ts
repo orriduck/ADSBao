@@ -7,7 +7,7 @@ export function resolveAircraftTraceRefreshSources({
   const sources = [{ source: "recent", full: false }];
   // The steady heartbeat only re-pulls the rolling recent tail. Full
   // traces are multi-MB and bypass the server cache, so they refresh
-  // only on the event-driven keys (resume, lost signal, FlightAware).
+  // only on the event-driven keys (resume and lost signal).
   if (fullTrace && !key.startsWith("steady:")) {
     sources.push({ source: "full", full: true });
   }

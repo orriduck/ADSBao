@@ -68,7 +68,8 @@ export default function FlightSidebar({
   const vs = toFiniteNumber(aircraft?.baroRate);
   const track = toFiniteNumber(aircraft?.track);
   const onGround = Boolean(aircraft?.onGround);
-  const trackingActive = Boolean(aircraft?.trackingState?.active);
+  const trackingActive =
+    trackingRunStatus === "active" || trackingRunStatus === "lost_signal";
   const positionSourceBadge = getAircraftPositionSourceBadge(
     aircraft?.positionQuality,
   );

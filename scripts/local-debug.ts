@@ -289,7 +289,6 @@ function localServiceEnv(port: number) {
       "VITE_SITE_URL",
     ]),
     ADSBAO_SITE_URL: env.ADSBAO_SITE_URL || viteOrigin,
-    FEATURE_FLAGS_ENV: env.FEATURE_FLAGS_ENV || "local",
     PORT: String(port),
   };
 }
@@ -500,11 +499,9 @@ async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
     checkEndpoint("frontend /", `${viteOrigin}/`),
     checkEndpoint("frontend KBOS", `${viteOrigin}/airport/KBOS?locale=zh-CN`),
     checkEndpoint("frontend /health proxy", `${viteOrigin}/health`),
-    checkEndpoint("frontend /api/feature-flags proxy", `${viteOrigin}/api/feature-flags`),
     checkEndpoint("frontend /debug/channels proxy", `${viteOrigin}/debug/channels`),
     checkEndpoint("frontend /debug/tracking proxy", `${viteOrigin}/debug/tracking`),
     checkEndpoint("service /health", `${localApiOrigin}/health`),
-    checkEndpoint("service /api/feature-flags", `${localApiOrigin}/api/feature-flags`),
     checkEndpoint("service /debug/channels", `${localApiOrigin}/debug/channels`),
     checkEndpoint("service /debug/tracking", `${localApiOrigin}/debug/tracking`),
   ]);

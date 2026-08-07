@@ -32,7 +32,7 @@ const flightRoute = {
   origin: { icao: "KEWR" },
   destination: { icao: "EGLL" },
   route: { icao: "KEWR-EGLL" },
-  source: "flightaware",
+  source: "route",
 };
 
 assert.equal(TRACKED_FLIGHT_METADATA_TTL_MS, 6 * 60 * 60 * 1000);

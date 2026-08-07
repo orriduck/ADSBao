@@ -96,7 +96,7 @@ assert.equal(isHttp4xxOr5xx(new Error("network timeout")), false);
     positionTime: 1_700_000_004_000,
     receiveTime: 1_700_000_020_000,
     positionQuality: {
-      source: "flightaware",
+      source: "live",
       sourceUpdatedAt: "2026-05-25T15:00:12.000Z",
       fetchedAt: "2026-05-25T15:01:40.000Z",
     },

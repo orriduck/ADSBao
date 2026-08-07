@@ -32,8 +32,6 @@ export function useTrackedAircraft(
   const [error, setError] = useState<any>(null);
   const [settled, setSettled] = useState(false);
   const [pollVersion, setPollVersion] = useState(0);
-  const [trackingState, setTrackingState] = useState<any>(null);
-  const [flightAwareFallback, setFlightAwareFallback] = useState<any>(null);
   const activeCallsignRef = useRef("");
   const retry = useCallback(() => {
     getAdsbaoRealtimeClient().connect();
@@ -51,15 +49,12 @@ export function useTrackedAircraft(
     ) => {
       const payload = normalizeTrackedPayload(payloadInput);
       const matches = Array.isArray(payload.ac) ? payload.ac : [];
-      const nextTrackingState = payload.trackingState || null;
       const nextSource =
         typeof source === "string" && source
           ? source
           : typeof payload.source === "string"
             ? payload.source
             : "";
-      setTrackingState(nextTrackingState);
-      setFlightAwareFallback(payload.flightAwareFallback || null);
       setFeedSource(nextSource);
       setError(null);
       setSettled(true);
@@ -77,13 +72,11 @@ export function useTrackedAircraft(
       });
       setAircraft({
         ...normalized,
-        trackingState: nextTrackingState,
       });
       const statusUpdatedDate = resolveTrackedAircraftStatusUpdatedDate({
         aircraft: normalized,
         fetchedAt,
         feedSource: nextSource,
-        trackingState: nextTrackingState,
       });
       if (statusUpdatedDate) {
         setLastUpdated((prev) =>
@@ -104,8 +97,6 @@ export function useTrackedAircraft(
       setError(null);
       setSettled(false);
       setPollVersion(0);
-      setTrackingState(null);
-      setFlightAwareFallback(null);
       activeCallsignRef.current = "";
       return;
     }
@@ -119,8 +110,6 @@ export function useTrackedAircraft(
       setError(null);
       setSettled(false);
       setPollVersion(0);
-      setTrackingState(null);
-      setFlightAwareFallback(null);
     }
   }, [callsign]);
 
@@ -160,8 +149,6 @@ export function useTrackedAircraft(
     lostSignal: runStatus === "lost_signal",
     pollVersion,
     visibilityRefreshVersion: 0,
-    trackingState,
-    flightAwareFallback,
     realtimeStatus,
     retry,
   };

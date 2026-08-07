@@ -5,7 +5,7 @@ const ROUTE_MISS_CACHE_TTL_SECONDS = 5 * 60;
 const ROUTE_STALE_WHILE_REVALIDATE_SECONDS = 10 * 60;
 
 export function buildRouteCacheHeaders(body, { bypassSharedCache = false } = {}) {
-  if (bypassSharedCache || body?.source === "flightaware") {
+  if (bypassSharedCache) {
     return { "Cache-Control": "no-store" };
   }
 

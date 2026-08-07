@@ -7,14 +7,14 @@ import {
 
 assert.deepEqual(
   buildRouteCacheHeaders(
-    { source: "flightaware", callsign: "RPA4397" },
+    { source: "route", callsign: "RPA4397" },
     { bypassSharedCache: true },
   ),
   { "Cache-Control": "no-store" },
 );
 
 assert.equal(
-  buildRouteCacheHeaders({ source: "adsbdb", callsign: "RPA4397" })[
+  buildRouteCacheHeaders({ source: "route", callsign: "RPA4397" })[
     "Cache-Control"
   ],
   "public, max-age=0, s-maxage=3600, stale-while-revalidate=600",
@@ -30,7 +30,7 @@ assert.equal(
       icao: "AAL",
       iata: "AA",
       name: "American Airlines",
-      iconUrl: "https://www.flightaware.com/images/airline_logos/90p/AAL.png",
+      iconUrl: "https://logos.example.test/AAL.png",
     },
     origin: {
       icao: "KBOS",
@@ -52,8 +52,8 @@ assert.equal(
     },
     route: { icao: "KBOS-KLAX", iata: "BOS-LAX" },
     airports: [{ icao: "KBOS" }, { icao: "KLAX" }],
-    source: "flightaware",
-    confidence: "scraped-reference",
+    source: "route",
+    confidence: "live",
   });
 
   assert.deepEqual(compact, {
@@ -65,8 +65,8 @@ assert.equal(
     origin: { icao: "KBOS", iata: "BOS", lat: 42.3656, lon: -71.0096 },
     destination: { icao: "KLAX", iata: "LAX", lat: 33.9416, lon: -118.4085 },
     route: { icao: "KBOS-KLAX", iata: "BOS-LAX" },
-    source: "flightaware",
-    confidence: "scraped-reference",
+    source: "route",
+    confidence: "live",
   });
 }
 
