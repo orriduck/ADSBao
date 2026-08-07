@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.4",
+    version: "v3.7.5",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "Focused flight previews resolve their route on demand, and account sign-in is available again.",
-      zh: "聚焦航班预览卡按需显示航路，账户登录也已恢复。",
+      en: "Focused flight previews resolve their route and show the aircraft's live progress, and account sign-in is available again.",
+      zh: "聚焦航班预览卡按需显示航路与飞机实时进度，账户登录也已恢复。",
     },
     highlights: [],
   },

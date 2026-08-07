@@ -1,6 +1,7 @@
 import { Plane } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useCrossfadeCycle } from "@/components/effects/useCrossfadeCycle";
+import { resolveFlightRouteProgress } from "@/features/aviation/flight-routes/flightRouteProgressModel";
 import { useRouteEndpointPlaces } from "@/hooks/useRouteEndpointPlaces";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
 
@@ -15,6 +16,11 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
   const { t } = useI18n();
   const route = aircraft?.flightRoute;
   const { origin, destination } = getFlightRouteEndpoints(route);
+  const routeProgress = resolveFlightRouteProgress({ route, aircraft });
+  const heading = Number(aircraft?.track);
+  // Lucide's plane artwork points northeast at rest, so remove that 45°
+  // baseline before applying a compass heading (0° = north).
+  const planeRotation = Number.isFinite(heading) ? heading - 45 : 45;
   const places = useRouteEndpointPlaces(route);
 
   const hasPlaces = Boolean(places.origin && places.destination);
@@ -43,13 +49,24 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
       >
         {originLabel}
       </span>
-      <span aria-hidden="true" className="h-px min-w-[14px] flex-1 bg-atc-line" />
+      <span
+        aria-hidden="true"
+        className="h-px min-w-[14px] flex-[1_1_0%] bg-atc-line"
+        style={routeProgress == null ? undefined : { flexGrow: routeProgress }}
+      />
       <Plane
         aria-hidden="true"
         strokeWidth={1.6}
-        className="size-[15px] flex-none rotate-45 fill-current text-[var(--atc-signal-accent)] md:size-[14px]"
+        className="size-[15px] flex-none fill-current text-[var(--atc-signal-accent)] md:size-[14px]"
+        style={{ transform: `rotate(${planeRotation}deg)` }}
       />
-      <span aria-hidden="true" className="h-px min-w-[14px] flex-1 bg-atc-line" />
+      <span
+        aria-hidden="true"
+        className="h-px min-w-[14px] flex-[1_1_0%] bg-atc-line"
+        style={
+          routeProgress == null ? undefined : { flexGrow: 1 - routeProgress }
+        }
+      />
       <span
         className={`notranslate flex-none ${fadeClass}`}
         translate="no"
