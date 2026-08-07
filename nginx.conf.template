@@ -31,6 +31,10 @@ server {
     proxy_pass $adsbao_service_origin;
   }
 
+  location = /runtime-env.js {
+    add_header Cache-Control "no-store";
+  }
+
   location / {
     try_files $uri $uri/ /index.html;
   }

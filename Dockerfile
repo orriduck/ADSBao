@@ -10,5 +10,7 @@ RUN pnpm run build
 
 FROM nginx:1.29-alpine
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY docker-entrypoint.d/40-runtime-env.sh /docker-entrypoint.d/40-runtime-env.sh
+RUN chmod +x /docker-entrypoint.d/40-runtime-env.sh
 COPY --from=web-build /src/dist /usr/share/nginx/html
 EXPOSE 8080
