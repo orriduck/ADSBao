@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.2",
+    version: "v3.7.3",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "Airport traffic stays responsive without background route lookups for every nearby flight.",
-      zh: "机场附近飞机保持实时显示，不再为每架附近航班后台查询航线。",
+      en: "Airport traffic stays responsive, while a focused flight preview resolves its route on demand.",
+      zh: "机场附近飞机保持实时显示；聚焦后的航班预览卡按需显示航路。",
     },
     highlights: [],
   },

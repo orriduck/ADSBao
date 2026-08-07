@@ -6,7 +6,6 @@ export type RouteContext = {
   iata?: unknown;
   lat?: unknown;
   lon?: unknown;
-  priorityCallsigns?: unknown;
 };
 
 export type AircraftRouteCandidate = {
@@ -55,13 +54,9 @@ type PendingRouteLookupOptions = {
   aircraft: AircraftRouteCandidate[];
   cache: Map<string, RouteCacheEntry>;
   inFlight: Set<string>;
-  queued?: Set<string>;
   routeContext?: RouteContext;
   now?: number;
-  maxLookups?: number;
 };
-
-type RouteLookupStatsOptions = Omit<PendingRouteLookupOptions, "maxLookups">;
 
 type RoutesByCallsignOptions = {
   aircraft: AircraftRouteCandidate[];
@@ -162,16 +157,6 @@ export function writeRouteCacheEntry(
   }
 }
 
-function getLookupCallsigns(aircraft: AircraftRouteCandidate[]) {
-  return [
-    ...new Set(
-      (aircraft || [])
-        .map((item) => normalizeCallsign(item.callsign))
-        .filter((callsign): callsign is string => isLookupCallsign(callsign)),
-    ),
-  ];
-}
-
 function airportFromMetadataCode(value: unknown) {
   const code = routeContextCode(value);
   if (code.length === 3) return { iata: code };
@@ -212,154 +197,20 @@ function buildRouteFromAircraftMetadata(aircraft: AircraftRouteCandidate = {}) {
   };
 }
 
-const EARTH_RADIUS_NM = 3440.065;
-
-const haversineNm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-  const toRad = (value: number) => (value * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const sinLat = Math.sin(dLat / 2);
-  const sinLon = Math.sin(dLon / 2);
-  const a =
-    sinLat * sinLat +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * sinLon * sinLon;
-  return 2 * EARTH_RADIUS_NM * Math.asin(Math.min(1, Math.sqrt(a)));
-};
-
-// Ranks candidates so aircraft farthest from the focal airport are scheduled
-// first. The default map view zooms out to show the whole nearby airspace, so
-// fetching the far-side traffic first makes more route labels appear quickly
-// where the user's eye is actually looking. Falls back to source order when
-// the focal coords or aircraft coords are missing.
-function collectPendingRouteCandidates(
-  {
-    aircraft,
-    cache,
-    inFlight,
-    queued = new Set(),
-    routeContext = {},
-    now = Date.now(),
-    maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
-  }: PendingRouteLookupOptions,
-) {
-  if (maxLookups <= 0) return [];
-  const focusLat = Number(routeContext.lat);
-  const focusLon = Number(routeContext.lon);
-  const haveFocus = Number.isFinite(focusLat) && Number.isFinite(focusLon);
-  const priorityCallsigns = normalizePriorityCallsigns(routeContext.priorityCallsigns);
-  const seen = new Map<
-    string,
-    { distance: number; index: number; priorityIndex: number }
-  >();
-  const blocked = new Set(
-    [...inFlight, ...queued]
-      .map((callsign) => normalizeCallsign(callsign))
-      .filter((callsign): callsign is string => Boolean(callsign)),
-  );
-
-  (aircraft || []).forEach((item, index) => {
-    const callsign = normalizeCallsign(item?.callsign);
-    if (!isLookupCallsign(callsign)) return;
-    if (blocked.has(callsign)) return;
-    if (getFreshRouteCacheEntry(cache, callsign, now, routeContext)) {
-      blocked.add(callsign);
-      return;
-    }
-    const priorityIndex = priorityCallsigns.get(callsign) ?? Number.POSITIVE_INFINITY;
-
-    if (!haveFocus) {
-      if (seen.has(callsign)) return;
-      seen.set(callsign, { distance: -1, index, priorityIndex });
-      return;
-    }
-
-    const lat = Number(item?.lat);
-    const lon = Number(item?.lon);
-    const distance = Number.isFinite(lat) && Number.isFinite(lon)
-      ? haversineNm(focusLat, focusLon, lat, lon)
-      : -1;
-    // Keep the farthest occurrence per callsign so duplicates don't pull the
-    // candidate forward by mistake.
-    const prior = seen.get(callsign);
-    if (!prior || distance > prior.distance) {
-      seen.set(callsign, { distance, index, priorityIndex });
-    }
-  });
-
-  return [...seen.entries()]
-    .sort((left, right) => {
-      const [, leftMeta] = left;
-      const [, rightMeta] = right;
-      if (leftMeta.priorityIndex !== rightMeta.priorityIndex) {
-        return leftMeta.priorityIndex - rightMeta.priorityIndex;
-      }
-      if (leftMeta.distance !== rightMeta.distance) {
-        return rightMeta.distance - leftMeta.distance; // farthest first
-      }
-      return leftMeta.index - rightMeta.index;
-    })
-    .slice(0, maxLookups)
-    .map(([callsign]) => callsign);
-}
-
-function normalizePriorityCallsigns(value: unknown) {
-  const values = Array.isArray(value) ? value : [value];
-  const priorities = new Map<string, number>();
-  values.forEach((item, index) => {
-    const callsign = normalizeCallsign(item);
-    if (!callsign || priorities.has(callsign)) return;
-    priorities.set(callsign, index);
-  });
-  return priorities;
-}
-
 export function resolvePendingRouteLookups({
   aircraft,
   cache,
   inFlight,
-  queued = new Set(),
   routeContext = {},
   now = Date.now(),
-  maxLookups = FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
 }: PendingRouteLookupOptions) {
-  return collectPendingRouteCandidates({
-    aircraft,
-    cache,
-    inFlight,
-    queued,
-    routeContext,
-    now,
-    maxLookups,
-  });
-}
-
-export function getRouteLookupStats({
-  aircraft,
-  cache,
-  queued = new Set(),
-  inFlight = new Set(),
-  routeContext = {},
-  now = Date.now(),
-}: RouteLookupStatsOptions) {
-  const callsigns = getLookupCallsigns(aircraft);
-  let done = 0;
-  let notDone = 0;
-
-  for (const callsign of callsigns) {
-    const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
-    if (cached) {
-      done += 1;
-    } else if (!queued.has(callsign) && !inFlight.has(callsign)) {
-      notDone += 1;
-    }
+  for (const item of aircraft || []) {
+    const callsign = normalizeCallsign(item?.callsign);
+    if (!isLookupCallsign(callsign) || inFlight.has(callsign)) continue;
+    if (getFreshRouteCacheEntry(cache, callsign, now, routeContext)) continue;
+    return [callsign];
   }
-
-  return {
-    done,
-    in_queue: queued.size,
-    inflight: inFlight.size,
-    not_do: notDone,
-  };
+  return [];
 }
 
 export function buildRoutesByCallsign({

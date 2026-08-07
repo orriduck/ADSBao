@@ -29,10 +29,6 @@ type FlightRouteSchedulerQuery = {
   routeContext?: RouteContext;
 };
 
-type PendingFlightRouteQuery = FlightRouteSchedulerQuery & {
-  maxLookups?: number;
-};
-
 export function createFlightRouteScheduler({
   cache = new Map(),
   now = Date.now,
@@ -75,19 +71,13 @@ export function createFlightRouteScheduler({
       });
     },
 
-    getPendingCallsigns({
-      aircraft = [],
-      routeContext = {},
-      maxLookups,
-    }: PendingFlightRouteQuery = {}) {
+    getPendingCallsigns({ aircraft = [], routeContext = {} }: FlightRouteSchedulerQuery = {}) {
       return resolvePendingRouteLookups({
         aircraft,
         cache,
         inFlight: new Set(),
-        queued: new Set(),
         routeContext,
         now: now(),
-        maxLookups,
       });
     },
 

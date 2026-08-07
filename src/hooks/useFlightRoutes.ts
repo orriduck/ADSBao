@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "../config/aviation";
 import { normalizeCallsign } from "../utils/callsign";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler";
 import type {
@@ -54,30 +53,18 @@ export function useFlightRoutes(
     null,
   );
   const routeUnsubscribersRef = useRef(new Map<string, () => void>());
-  // Priority hints reorder the pending-lookup queue so a focused/selected
-  // aircraft is fetched ahead of the rest; they never feed cache keys or
-  // channel names (see buildRouteCacheKey / normalizeRouteContext), only the
-  // scheduler's queue ordering. Key the memo on the joined string so a fresh
-  // priority array each position poll doesn't churn routeContext.
-  const priorityCallsignsKey = Array.isArray(routeContextInput?.priorityCallsigns)
-    ? routeContextInput.priorityCallsigns.filter(Boolean).map(String).join("|")
-    : "";
   const routeContext = useMemo(
     () => ({
       icao: routeContextInput?.icao,
       iata: routeContextInput?.iata,
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
-      priorityCallsigns: priorityCallsignsKey
-        ? priorityCallsignsKey.split("|")
-        : undefined,
     }),
     [
       routeContextInput?.iata,
       routeContextInput?.icao,
       routeContextInput?.lat,
       routeContextInput?.lon,
-      priorityCallsignsKey,
     ],
   );
   const routeTransport = useMemo(
@@ -121,7 +108,6 @@ export function useFlightRoutes(
         ? flightRouteScheduler.getPendingCallsigns({
             aircraft,
             routeContext,
-            maxLookups: FLIGHT_ROUTE_LOOKUP_CONFIG.maxQueueSize,
           })
         : [];
     },

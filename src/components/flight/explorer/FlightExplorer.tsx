@@ -464,43 +464,31 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
       nearbyAircraft,
     });
   }, [showNearbyTrafficContext, trackedAircraftForDisplay, nearbyAircraft]);
-  // Whatever the user has focused/selected gets its route fetched first, then
-  // the tracked aircraft, then the URL callsign. selectedAircraftId is an
-  // identity (hex, or callsign fallback), so resolve it to a callsign against
-  // the raw list before it reaches the priority queue.
-  const selectedPriorityCallsign = useMemo(() => {
+  // A route is only requested for the preview the user is looking at.
+  const focusedRouteCallsign = useMemo(() => {
     if (!selectedAircraftId) return "";
     const selected = rawAircraft.find(
       (item) => getAircraftIdentity(item) === selectedAircraftId,
     );
-    return selected ? normalizeCallsign(selected.callsign) : "";
+    return normalizeCallsign(selected?.callsign);
   }, [rawAircraft, selectedAircraftId]);
-  const routePriorityCallsigns = useMemo(
-    () => [
-      selectedPriorityCallsign,
-      trackedAircraftForDisplay?.callsign,
-      callsign,
-    ],
-    [callsign, selectedPriorityCallsign, trackedAircraftForDisplay?.callsign],
-  );
 
-  // Routes are fetched only for the user's focal aircraft (and a deliberate
-  // in-page selection), never for every aircraft visible in nearby traffic.
   const routeAircraft = useMemo(() => {
-    const wanted = [
-      ...new Set(
-        routePriorityCallsigns
-          .map((value) => normalizeCallsign(value))
-          .filter(Boolean),
-      ),
+    const routeCallsign =
+      focusedRouteCallsign ||
+      normalizeCallsign(trackedAircraftForDisplay?.callsign) ||
+      normalizeCallsign(callsign);
+    if (!routeCallsign) return [];
+    return [
+      rawAircraft.find((item) => normalizeCallsign(item.callsign) === routeCallsign) ||
+        { callsign: routeCallsign },
     ];
-    return wanted.map(
-      (routeCallsign) =>
-        rawAircraft.find(
-          (item) => normalizeCallsign(item.callsign) === routeCallsign,
-        ) || { callsign: routeCallsign },
-    );
-  }, [rawAircraft, routePriorityCallsigns]);
+  }, [
+    callsign,
+    focusedRouteCallsign,
+    rawAircraft,
+    trackedAircraftForDisplay?.callsign,
+  ]);
 
   // The same hook gives the preview-card feedback form an in-memory override
   // without turning nearby traffic into a background route-lookup workload.
@@ -512,7 +500,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     enabled: true,
     lat: contextLat,
     lon: contextLon,
-    priorityCallsigns: routePriorityCallsigns,
   });
 
   const aircraft = useMemo(
