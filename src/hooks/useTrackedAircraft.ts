@@ -18,21 +18,28 @@ export function useTrackedAircraft(
   callsign: unknown,
   {
     runStatus = "",
+    initialAircraft = null,
   }: {
     runStatus?: string;
+    initialAircraft?: any;
   } = {},
 ) {
   const hasActiveQuery = Boolean(callsign);
+  const normalizedCallsign = String(callsign || "").trim().toUpperCase();
+  const initialSeed =
+    String(initialAircraft?.callsign || "").trim().toUpperCase() === normalizedCallsign
+      ? initialAircraft
+      : null;
   const realtime = useAircraftTrackingRealtime(callsign, {
     enabled: hasActiveQuery,
   });
-  const [aircraft, setAircraft] = useState<any>(null);
+  const [aircraft, setAircraft] = useState<any>(() => initialSeed);
   const [feedSource, setFeedSource] = useState("");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<any>(null);
-  const [settled, setSettled] = useState(false);
+  const [settled, setSettled] = useState(Boolean(initialSeed));
   const [pollVersion, setPollVersion] = useState(0);
-  const activeCallsignRef = useRef("");
+  const activeCallsignRef = useRef(normalizedCallsign);
   const retry = useCallback(() => {
     getAdsbaoRealtimeClient().connect();
   }, []);
@@ -101,9 +108,8 @@ export function useTrackedAircraft(
       return;
     }
 
-    const normalized = String(callsign || "").trim().toUpperCase();
-    if (activeCallsignRef.current !== normalized) {
-      activeCallsignRef.current = normalized;
+    if (activeCallsignRef.current !== normalizedCallsign) {
+      activeCallsignRef.current = normalizedCallsign;
       setAircraft(null);
       setFeedSource("");
       setLastUpdated(null);
@@ -111,7 +117,7 @@ export function useTrackedAircraft(
       setSettled(false);
       setPollVersion(0);
     }
-  }, [callsign]);
+  }, [callsign, normalizedCallsign]);
 
   useEffect(() => {
     const event = realtime.event;

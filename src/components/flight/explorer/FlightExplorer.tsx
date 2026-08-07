@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import type { CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {
@@ -85,6 +85,7 @@ export default function FlightExplorer({ callsign = "", trackingRequested = fals
 
 function FlightExplorerContent({ callsign, trackingRequested = false, onboardMode = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useI18n();
   // Flight → flight navigation does a HARD reload to the new URL rather than an
   // in-place SPA swap. Each tracking page is then a guaranteed clean slate
@@ -174,7 +175,14 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     realtimeStatus,
-  } = useTrackedAircraft(callsign, { runStatus: trackingRun?.status });
+  } = useTrackedAircraft(callsign, {
+    runStatus: trackingRun?.status,
+    initialAircraft:
+      String(location.state?.aircraft?.callsign || "").trim().toUpperCase() ===
+      String(callsign || "").trim().toUpperCase()
+        ? location.state.aircraft
+        : null,
+  });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],

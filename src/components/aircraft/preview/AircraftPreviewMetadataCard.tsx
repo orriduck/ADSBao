@@ -54,6 +54,7 @@ export default function AircraftPreviewMetadataCard({
           {!alreadyTracking ? (
             <Link
               to={trackHref}
+              state={{ aircraft }}
               className="aircraft-preview-card__track-btn"
               aria-label={`${t("preview.track")} ${trackCallsign}`}
             >

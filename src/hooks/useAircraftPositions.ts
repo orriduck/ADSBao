@@ -127,6 +127,44 @@ export function useAircraftPositions(
     setSettled(true);
   }, [hasActiveQuery, realtime.event]);
 
+  // A new airport view must not wait for a WebSocket poll before it can show
+  // nearby aircraft. Seed it through the same private-service contract when
+  // the first realtime frame is slow; realtime remains the steady-state feed.
+  useEffect(() => {
+    if (!hasActiveQuery || settled) return undefined;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const client = createAircraftPositionClient();
+        const payload = normalizeRealtimeAircraftPayload(
+          await client.fetchNearbyAircraft({
+            lat: queryLat,
+            lon: queryLon,
+            distNm,
+          }),
+        );
+        if (cancelled) return;
+        const receiveTime = Date.now();
+        const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
+        const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
+        setAircraft(nextAircraft);
+        setFeedStatus("live");
+        setFeedSource(sourceFromAircraftPayload(payload));
+        const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
+        if (statusUpdatedDate) setLastUpdated(statusUpdatedDate);
+        setSettled(true);
+      } catch (error) {
+        if (!cancelled) console.warn("[aircraft-positions] initial snapshot failed", error);
+      }
+    }, 750);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [distNm, hasActiveQuery, queryLat, queryLon, settled]);
+
   useEffect(() => {
     if (!hasActiveQuery || !realtime.fallbackActive) return undefined;
 

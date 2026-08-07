@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.0",
+    version: "v3.7.1",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "The browser app now uses a single private service for live aviation data.",
-      zh: "浏览器应用现在通过统一的私有服务获取实时航空数据。",
+      en: "Airport traffic appears promptly, and opening a nearby flight keeps its current position.",
+      zh: "机场附近飞机会更快出现，打开附近航班时会保留刚刚看到的位置。",
     },
     highlights: [],
   },

@@ -189,7 +189,7 @@ export default function AircraftPreviewCard({
   // no-op so they don't bounce.
   const handleMobileTap = () => {
     if (!cardTrackHref || alreadyTracking) return;
-    navigate(cardTrackHref);
+    navigate(cardTrackHref, { state: { aircraft } });
   };
 
   // Swipe up anywhere on screen while the mobile preview is showing →
