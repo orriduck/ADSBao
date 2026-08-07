@@ -29,14 +29,14 @@ assert.equal(
 );
 assert.equal(
   getAircraftPositionSourceBadge({ source: "flightaware", kind: "estimated" }),
-  "flightaware",
+  "Estimated",
 );
 assert.equal(
   getAircraftPositionSourceBadge({
     flight_position_source: "flightaware",
     isEstimated: true,
   }),
-  "flightaware",
+  "Estimated",
 );
 assert.equal(
   getAircraftPositionSourceBadge({ flight_position_source: "mlat" }),
@@ -64,7 +64,7 @@ assert.equal(resolveFlightPositionSource({ flight_position_source: "MLAT" }), "m
 assert.equal(resolveFlightPositionSource({ flight_position_source: "ADSC" }), "adsc");
 assert.equal(
   resolveFlightPositionSource({ source: "flightaware", kind: "predicted" }),
-  "flightaware",
+  "estimated",
 );
 assert.equal(resolveFlightPositionSource({ isEstimated: true }), "estimated");
 assert.equal(resolveFlightPositionSource({ source: "adsb.lol" }), "adsb");
@@ -75,17 +75,17 @@ assert.deepEqual(
     routeProvider: ROUTE_PROVIDER.FLIGHTAWARE,
   }),
   {
-    feedSource: "ads-b",
+    feedSource: "Live feed",
   },
 );
 
 assert.deepEqual(
   buildMapSourceStatusDisplay({
-    feedSource: "custom-feed",
+    feedSource: "Live feed",
     routeProvider: ROUTE_PROVIDER.ADSBDB,
   }),
   {
-    feedSource: "custom-feed",
+    feedSource: "Live feed",
   },
 );
 

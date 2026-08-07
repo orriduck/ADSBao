@@ -242,7 +242,7 @@ export default defineConfig(({ mode }) => {
   const localApiOrigin =
     env.VITE_ADSBAO_LOCAL_API_ORIGIN ||
     env.ADSBAO_LOCAL_API_ORIGIN ||
-    "http://localhost:8081";
+    "http://localhost:8082";
   const clientEnv = {
     NODE_ENV: mode === "production" ? "production" : "development",
     VITE_ADSBAO_REALTIME_URL: env.VITE_ADSBAO_REALTIME_URL || "",

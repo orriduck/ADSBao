@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.6.0",
+    version: "v3.7.0",
     kind: "feat",
     title: {
-      en: "Track a flight from home",
-      zh: "首页直接追踪航班",
+      en: "Private service architecture",
+      zh: "私有服务架构",
     },
     summary: {
-      en: "Enter a callsign in the home search to open persistent flight tracking.",
-      zh: "在首页搜索中输入 callsign，即可进入持续航班追踪。",
+      en: "The browser app now uses a single private service for live aviation data.",
+      zh: "浏览器应用现在通过统一的私有服务获取实时航空数据。",
     },
     highlights: [],
   },

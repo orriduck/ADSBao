@@ -37,14 +37,14 @@ const rootDir = process.cwd();
 const tmpDir = join(rootDir, ".codex-tmp", "local-debug");
 const vitePort = 3000;
 const viteSession = "adsbao-dev";
-const serviceSession = "adsbao-data-service";
+const serviceSession = "adsbao-service";
 const dotenvEnv = loadDotenvFile(join(rootDir, ".env.local"));
 const env = { ...dotenvEnv, ...process.env };
 const localApiOrigin =
   env.VITE_ADSBAO_LOCAL_API_ORIGIN ||
   env.ADSBAO_LOCAL_API_ORIGIN ||
-  "http://localhost:8081";
-const localApiPort = parsePort(localApiOrigin, 8081);
+  "http://localhost:8082";
+const localApiPort = parsePort(localApiOrigin, 8082);
 const viteOrigin = env.ADSBAO_LOCAL_DEV_ORIGIN || `http://localhost:${vitePort}`;
 
 function printUsage() {
@@ -278,16 +278,12 @@ function localServiceEnv(port: number) {
   return {
     ...pickEnv(env, [
       "ADSBAO_DATABASE_URL",
-      "ADSBAO_REALTIME_AUTH_SECRET",
       "AIRPORT_DIRECTORY_BASE_URL",
       "ALLOWED_WS_ORIGINS",
       "CLERK_API_BASE_URL",
       "CLERK_JWKS_URL",
       "CLERK_SECRET_KEY",
       "DATABASE_URL",
-      "INTERNAL_ACCESS_ENABLED",
-      "FLIGHTAWARE_ACCESS_ENABLED",
-      "FLIGHTAWARE_FALLBACK_ENABLED",
       "OPENAIP_API_KEY",
       "OPENAIP_BASE_URL",
       "VITE_SITE_URL",
@@ -414,14 +410,14 @@ function startVite() {
 function startService() {
   mkdirSync(tmpDir, { recursive: true });
   const go = commandPath("go", ["/opt/homebrew/bin/go", "/usr/local/bin/go"]);
-  const serviceDir = join(rootDir, "services", "data-service");
-  const logFile = join(tmpDir, "data-service.log");
+  const serviceDir = join(rootDir, "..", "ADSBao-Secret-Service", "services", "adsbao-service");
+  const logFile = join(tmpDir, "adsbao-service.log");
   const envValues = localServiceEnv(localApiPort);
 
   if (tmuxAvailable()) {
     killTmuxSession(serviceSession);
     startWithTmux({
-      command: `${shellQuote(go)} run ./cmd/adsbao-data-service`,
+      command: `${shellQuote(go)} run ./cmd/adsbao-service`,
       cwd: serviceDir,
       envValues,
       logFile,
@@ -430,10 +426,10 @@ function startService() {
     return { method: `tmux:${serviceSession}`, logFile };
   }
 
-  const pidFile = join(tmpDir, "data-service.pid");
+  const pidFile = join(tmpDir, "adsbao-service.pid");
   startDetached({
     command: go,
-    args: ["run", "./cmd/adsbao-data-service"],
+    args: ["run", "./cmd/adsbao-service"],
     cwd: serviceDir,
     envValues,
     logFile,
@@ -479,7 +475,7 @@ async function ensureService(options: Options) {
   }
 
   const healthUrl = `${localApiOrigin}/health`;
-  const initial = await checkEndpoint("data-service health", healthUrl);
+  const initial = await checkEndpoint("service health", healthUrl);
   if (initial.ok || options.noStart) {
     return { action: initial.ok ? "adopted" : "not started", start: null };
   }
@@ -494,7 +490,7 @@ async function ensureService(options: Options) {
   const start = startService();
   const ready = await waitForHealthy(healthUrl);
   if (!ready?.ok) {
-    throw new Error(`data-service did not become healthy. See ${start.logFile}`);
+    throw new Error(`service did not become healthy. See ${start.logFile}`);
   }
   return { action: "started", start };
 }
@@ -507,10 +503,10 @@ async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
     checkEndpoint("frontend /api/feature-flags proxy", `${viteOrigin}/api/feature-flags`),
     checkEndpoint("frontend /debug/channels proxy", `${viteOrigin}/debug/channels`),
     checkEndpoint("frontend /debug/tracking proxy", `${viteOrigin}/debug/tracking`),
-    checkEndpoint("data-service /health", `${localApiOrigin}/health`),
-    checkEndpoint("data-service /api/feature-flags", `${localApiOrigin}/api/feature-flags`),
-    checkEndpoint("data-service /debug/channels", `${localApiOrigin}/debug/channels`),
-    checkEndpoint("data-service /debug/tracking", `${localApiOrigin}/debug/tracking`),
+    checkEndpoint("service /health", `${localApiOrigin}/health`),
+    checkEndpoint("service /api/feature-flags", `${localApiOrigin}/api/feature-flags`),
+    checkEndpoint("service /debug/channels", `${localApiOrigin}/debug/channels`),
+    checkEndpoint("service /debug/tracking", `${localApiOrigin}/debug/tracking`),
   ]);
 
   const git = gitSnapshot();
@@ -616,7 +612,7 @@ async function main() {
   )?.ok;
   const serviceHealthy = options.service
     ? report.endpoints.find(
-        (endpoint: EndpointCheck) => endpoint.name === "data-service /health",
+        (endpoint: EndpointCheck) => endpoint.name === "service /health",
       )?.ok
     : true;
 

@@ -87,8 +87,8 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
     highlights: [],
   },
   "v1.3.0": {
-    title: "adsbdb 航路、社区反馈与完整跑道地图",
-    summary: "新增或优化：adsbdb 航路、社区反馈与完整跑道地图。",
+    title: "航路、社区反馈与完整跑道地图",
+    summary: "新增或优化：航路、社区反馈与完整跑道地图。",
     highlights: [],
   },
   "v1.2.0": {
@@ -804,8 +804,8 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
     version: "v1.3.0",
     kind: "feat",
-    title: "adsbdb routes + community feedback + complete runway map",
-    summary: "Added or improved: adsbdb routes + community feedback + complete runway map.",
+    title: "Routes + community feedback + complete runway map",
+    summary: "Added or improved: routes + community feedback + complete runway map.",
     highlights: [],
   },
   {
