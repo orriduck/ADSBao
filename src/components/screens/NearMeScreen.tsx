@@ -306,22 +306,18 @@ function NearMePermissionPrompt({
         : t("nearMe.hint");
 
   return (
-    <aside className="pointer-events-none fixed inset-0 z-[var(--z-index-modal)] flex items-center justify-center p-5 text-atc-text">
-      <section
-        aria-live="polite"
-        className="pointer-events-auto w-full max-w-[20rem] rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] p-4 shadow-[var(--app-floating-shadow)] [backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]"
-      >
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 flex-none text-atc-faint">
-            <LocateFixed className="size-4" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-atc-dim">HERE</span>
-            <h1 className="mt-1 text-[18px] font-semibold leading-tight text-atc-text">{title}</h1>
-            <p className="mt-1.5 text-[12px] leading-snug text-atc-dim">{hint}</p>
-          </div>
+    <aside
+      aria-live="polite"
+      className="adsb-loading-overlay adsb-loading-overlay--airport adsb-loading-overlay--notice adsb-loading-overlay--sidebar-aware !fixed z-[var(--z-index-modal)]"
+    >
+      <section className="map-context-notice">
+        <div className="map-context-notice__eyebrow">
+          <LocateFixed className="size-3.5" aria-hidden="true" />
+          <span>HERE</span>
         </div>
-        <div className="mt-4 flex justify-end gap-2">
+        <h1 className="map-context-notice__title">{title}</h1>
+        <p className="map-context-notice__hint">{hint}</p>
+        <div className="map-context-notice__actions">
           <button
             type="button"
             onClick={onRequest}

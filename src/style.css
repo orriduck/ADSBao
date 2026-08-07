@@ -2499,6 +2499,66 @@ body:has(.dither-page-shell) {
     opacity: 0;
 }
 
+/* A notice lives in the same centre-map status layer as loading, not in its
+   own card. The map stays legible and the status stays contextual. */
+.adsb-loading-overlay--notice {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.adsb-loading-overlay--notice .adsb-loading-grid {
+    display: none;
+}
+
+.map-context-notice {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    max-width: min(19rem, calc(100vw - 3rem));
+    pointer-events: auto;
+    text-align: center;
+    text-shadow: 0 1px 12px color-mix(in oklab, var(--atc-bg) 70%, transparent);
+}
+
+.map-context-notice__eyebrow {
+    align-items: center;
+    color: var(--atc-dim);
+    display: inline-flex;
+    font-size: 10px;
+    font-weight: 650;
+    gap: 6px;
+    letter-spacing: 0.12em;
+}
+
+.map-context-notice__title {
+    color: var(--atc-text);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 9px 0 0;
+}
+
+.map-context-notice__hint {
+    color: var(--atc-dim);
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 7px 0 0;
+}
+
+.map-context-notice__actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+    .adsb-loading-overlay--notice.adsb-loading-overlay--sidebar-aware {
+        padding-left: 0;
+    }
+}
+
 .airport-symmetric-wave {
     align-items: center;
     display: flex;

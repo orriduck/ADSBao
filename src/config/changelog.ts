@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.6",
+    version: "v3.7.7",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "Focused flight previews resolve routes and live progress, Here mode keeps its tracking context visible while location access is resolved, and account sign-in is available again.",
-      zh: "聚焦航班预览卡按需显示航路与飞机实时进度；Here 模式在定位需要处理时保留追踪上下文，账户登录也已恢复。",
+      en: "Focused flight previews resolve routes and live progress, and Here mode keeps its tracking context visible with the same in-map status language while location access is resolved.",
+      zh: "聚焦航班预览卡按需显示航路与飞机实时进度；Here 模式在定位需要处理时保留追踪上下文，并沿用统一的地图内状态语言。",
     },
     highlights: [],
   },
