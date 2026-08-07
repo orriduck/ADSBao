@@ -6,7 +6,6 @@ import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 
 export default function AirportSidebar({
   icao = "",
@@ -36,8 +35,6 @@ export default function AirportSidebar({
   lastUpdated = null,
   feedStatus = "live",
   feedSource = "",
-  routeProvider = "",
-  flightAwareResolved = true,
   loadingStatus = "",
   // When true the explorer is centered on the user (not an airport).
   // The identity hero swaps to a "Your location" header and the
@@ -68,7 +65,6 @@ export default function AirportSidebar({
     ? candidateWatchingSpots
     : [];
   const movementFilter =
-    routeProvider === ROUTE_PROVIDER.FLIGHTAWARE &&
     (activeView === "departures" || activeView === "arrivals")
       ? activeView
       : "all";
@@ -107,7 +103,6 @@ export default function AirportSidebar({
         metar={metar}
         metarLoading={metarLoading}
         aircraft={aircraft}
-        routeProvider={routeProvider}
         frequencies={atcFrequencies}
         candidateSpotCount={spottingSpots.length}
         onOpenSpotting={handleSpottingView}
@@ -115,7 +110,6 @@ export default function AirportSidebar({
         nearMeSelfSpeedMps={nearMeSelfSpeedMps}
         nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
         nearMeSelfHeadingDeg={nearMeSelfHeadingDeg}
-        featureFlagsResolved={flightAwareResolved}
       />
     </>
   );
@@ -393,4 +387,3 @@ function inferFrequencyType(description) {
   if (/\bGATE\b/.test(normalized)) return "Gate";
   return "";
 }
-

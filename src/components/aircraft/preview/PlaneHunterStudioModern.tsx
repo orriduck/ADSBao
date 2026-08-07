@@ -18,7 +18,6 @@ import {
   useState,
 } from "react";
 import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
-import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
 
@@ -113,24 +112,17 @@ function mergeStickyAircraft(
 function getAircraftLabels(
   aircraft: Record<string, any> | null | undefined,
   enabledFields: Set<MetaField> = DEFAULT_META_FIELDS,
-  options: { flightAwareEnabled?: boolean } = {},
 ) {
   const callsign = normalizeLabel(
     aircraft?.callsign,
     normalizeLabel(aircraft?.icao24, "UNKNOWN"),
   ).toUpperCase();
-  // Route only appears in the photo templates when FlightAware is on.
-  // Without FA the route data is too unreliable / sparse to bake into a
-  // shareable image, so we suppress the entire route line rather than
-  // surface a "ROUTE PENDING" placeholder that confuses viewers.
-  const resolvedRoute = options.flightAwareEnabled
-    ? normalizeLabel(aircraft?.flightRouteLabel) ||
-      normalizeLabel(aircraft?.route) ||
-      [aircraft?.origin, aircraft?.destination]
-        .map((item) => normalizeLabel(item).toUpperCase())
-        .filter(Boolean)
-        .join(" - ")
-    : "";
+  const resolvedRoute = normalizeLabel(aircraft?.flightRouteLabel) ||
+    normalizeLabel(aircraft?.route) ||
+    [aircraft?.origin, aircraft?.destination]
+      .map((item) => normalizeLabel(item).toUpperCase())
+      .filter(Boolean)
+      .join(" - ");
   // Resolve the aircraft type through the shared display model (same source the
   // preview cards use) so it reads t / type / icaoType / desc consistently —
   // a bare `aircraft?.type` misses the ICAO `t` field on live entities.
@@ -1617,7 +1609,6 @@ export default function PlaneHunterStudio({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const { enabled: flightAwareEnabled } = useFlightAwareEnabled();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -1707,8 +1698,8 @@ export default function PlaneHunterStudio({
   }, [open, aircraft]);
   const labels = useMemo(
     () =>
-      getAircraftLabels(stableAircraft, enabledFields, { flightAwareEnabled }),
-    [stableAircraft, enabledFields, flightAwareEnabled],
+      getAircraftLabels(stableAircraft, enabledFields),
+    [stableAircraft, enabledFields],
   );
   // The compass tracks the LIVE aircraft position (not the frozen snapshot) so
   // it keeps pointing at the plane as it moves.

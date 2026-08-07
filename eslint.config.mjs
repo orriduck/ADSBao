@@ -9,7 +9,6 @@ export default tseslint.config(
       "dist/**",
       "coverage/**",
       "node_modules/**",
-      "services/data-service/**",
       "docs/superpowers/**",
     ],
   },

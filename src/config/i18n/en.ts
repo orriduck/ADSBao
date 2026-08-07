@@ -76,11 +76,6 @@ const en = {
         description:
           "Top-view aircraft silhouettes on the map. Icons by RexKramer1, licensed GPL-3.0, used with attribution.",
       },
-      adsbdb: {
-        title: "adsbdb Callsign Routes",
-        description:
-          "Public callsign to origin/destination lookup. Community-submitted corrections can temporarily override a route for 12 hours.",
-      },
       openMeteo: {
         title: "Open-Meteo Current Weather",
         description:
@@ -355,8 +350,6 @@ const en = {
   },
   aircraft: {
     noRoute: "No route",
-    adsbdbRouteAccuracyNotice:
-      "Route information can differ from the flight currently operating under this callsign.",
     airborne: "Airborne",
     ground: "Ground",
     gnd: "GND",
@@ -632,7 +625,6 @@ const en = {
     openDetails: "Open detail cards",
     expandDetails: "Expand detail cards",
     fitTrace: "Fit map to trace",
-    zoomLockedFlightAware: "Zoom is locked while using route fallback",
     approachingView: "Approaching view (click to cycle)",
     viewMenu: "Map range",
     viewMenuTitle: "Map range: {label}",

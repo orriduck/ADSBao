@@ -2,9 +2,6 @@ import { useMemo } from "react";
 import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
 import { useMetar } from "@/hooks/useMetar";
-import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
-import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
-import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { normalizeCallsign } from "@/utils/callsign";
 import { enrichAircraftWithRoutes } from "./airportExplorerModel";
@@ -13,12 +10,6 @@ export function useAirportExplorerData(
   airportProfile,
   options: { metarIcao?: string; selectedAircraftId?: string } = {},
 ) {
-  const { enabled: flightAwareEnabled, resolved: flightAwareResolved } = useFlightAwareEnabled();
-  const routeProvider = resolveRouteProvider({ flightAwareEnabled });
-  // While feature flags are still unresolved, hold the route provider
-  // at its pre-resolution state (adsbdb). This prevents the sidebar
-  // dep/arr cards from appearing/disappearing in a jarring layout jump
-  // when FlightAware flips from unresolved-false to resolved-true.
   // `metarIcao` overrides which station the weather card pulls from
   // when the explorer isn't anchored to a real airport (e.g. the
   // near-me view, which sources its temperature from the closest
@@ -64,10 +55,7 @@ export function useAirportExplorerData(
     applyTemporaryRoute,
   } = useFlightRoutes(aircraft, {
     ...airportProfile,
-    enabled: resolveRouteLookupEnabled({
-      featureFlagsResolved: flightAwareResolved,
-    }),
-    routeProvider,
+    enabled: true,
     priorityCallsigns,
   });
 
@@ -98,11 +86,9 @@ export function useAirportExplorerData(
       feedStatus,
       feedSource,
       realtimeStatus,
-      routeProvider,
       routeLoadingCount,
       aircraftLoadingOverlayActive,
       applyTemporaryRoute,
-      flightAwareResolved,
     },
   };
 }

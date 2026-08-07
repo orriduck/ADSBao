@@ -3,7 +3,7 @@ import {
   AVIATION_REQUEST_TIMEOUT_MS,
 } from "../../config/aviation";
 import { withAuditLogging } from "../../utils/apiLogger";
-import { normalizeLatitude, normalizeLongitude } from "@/server/http/apiProxySecurity";
+import { normalizeLatitude, normalizeLongitude } from "@/utils/httpResponse";
 import { fetchJson } from "../aviation/httpClient";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};

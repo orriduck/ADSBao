@@ -21,8 +21,6 @@ export interface RouteBadgeProps {
   to: string;
   /** Airline logo URL (e.g. /api/proxy/airlines/DAL). Omit/empty → no-image. */
   airlineLogoUrl?: string;
-  /** Lower-confidence (adsbdb) route — shows a faint trailing marker. */
-  uncertain?: boolean;
   className?: string;
 }
 
@@ -35,7 +33,6 @@ export default function RouteBadge({
   from,
   to,
   airlineLogoUrl,
-  uncertain = false,
   className,
 }: RouteBadgeProps) {
   const [logoFailed, setLogoFailed] = useState(false);
@@ -80,15 +77,6 @@ export default function RouteBadge({
           →
         </span>
         {to}
-        {uncertain ? (
-          <span
-            aria-hidden="true"
-            title="Approximate route (callsign reference data)"
-            className="ml-px text-[0.74em] leading-none text-atc-faint"
-          >
-            *
-          </span>
-        ) : null}
       </span>
     </span>
   );

@@ -1,5 +1,4 @@
 import type { UnitPreferences } from "@/features/app-shell/unitPreferences/unitPreferencesModel";
-import { ROUTE_PROVIDER } from "@/features/aviation/sourceDisplayModel";
 import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
   convertTemperatureFromC,
@@ -13,8 +12,8 @@ import {
 // product rules — which cells show, what they read, and how they behave — so
 // they can be tested without rendering: here mode swaps departures/arrivals for
 // the user's own GPS speed/altitude (the off-airport classification is always
-// 0/0, the bug this guards), the movement row only exists on the FlightAware
-// route provider, ATC only appears when there are frequencies, etc. The
+// 0/0, the bug this guards), airport movement comes from the live contract, and
+// ATC only appears when there are frequencies. The
 // component stays dumb: it maps each item to a <StatTile>, resolving the i18n
 // label, NumberFlow wrapping, and click handler from these descriptors.
 
@@ -48,8 +47,6 @@ export type SidebarStats = {
 
 export type BuildSidebarStatsInput = {
   nearMe: boolean;
-  routeProvider: string;
-  featureFlagsResolved: boolean;
   aircraft: Array<{ movement?: string }>;
   selfSpeedMps: number | null;
   selfAltitudeMeters: number | null;
@@ -63,13 +60,9 @@ export type BuildSidebarStatsInput = {
   spottingCount: number;
 };
 
-export function countAircraftMovements(
-  aircraft: Array<{ movement?: string }>,
-  routeProvider: string,
-): { departureCount: number; arrivalCount: number } {
-  if (routeProvider !== ROUTE_PROVIDER.FLIGHTAWARE) {
-    return { departureCount: 0, arrivalCount: 0 };
-  }
+export function countAircraftMovements(aircraft: Array<{ movement?: string }>): {
+  departureCount: number; arrivalCount: number;
+} {
   let departureCount = 0;
   let arrivalCount = 0;
   for (const item of aircraft) {
@@ -92,8 +85,6 @@ function metarTemperature(
 export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
   const {
     nearMe,
-    routeProvider,
-    featureFlagsResolved,
     aircraft,
     selfSpeedMps,
     selfAltitudeMeters,
@@ -106,16 +97,12 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
     spottingCount,
   } = input;
 
-  const showMovement =
-    !nearMe &&
-    featureFlagsResolved &&
-    routeProvider === ROUTE_PROVIDER.FLIGHTAWARE;
+  const showMovement = !nearMe;
 
   const movementRow: SidebarStat[] = [];
   if (showMovement) {
     const { departureCount, arrivalCount } = countAircraftMovements(
       aircraft,
-      routeProvider,
     );
     movementRow.push({
       id: "departures",

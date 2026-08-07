@@ -72,11 +72,6 @@ const zhCN = {
         description:
           "地图上的俯视飞机轮廓。图标来自 RexKramer1,按 GPL-3.0 授权并保留署名。",
       },
-      adsbdb: {
-        title: "adsbdb 呼号航路",
-        description:
-          "公开呼号到起降机场查询。社区提交的修正可在 12 小时内临时覆盖航路。",
-      },
       openMeteo: {
         title: "Open-Meteo 实时天气",
         description: "机场区域的本地温度、风和天气状况。",
@@ -349,8 +344,6 @@ const zhCN = {
   },
   aircraft: {
     noRoute: "无航路",
-    adsbdbRouteAccuracyNotice:
-      "航路信息可能与当前使用该呼号执行的实际航班不同。",
     airborne: "空中",
     ground: "地面",
     gnd: "地面",
@@ -623,7 +616,6 @@ const zhCN = {
     openDetails: "打开信息卡",
     expandDetails: "展开信息卡",
     fitTrace: "适配航迹",
-    zoomLockedFlightAware: "航路兜底时锁定缩放",
     approachingView: "进近视图(点击循环)",
     viewMenu: "地图范围",
     viewMenuTitle: "地图范围:{label}",

@@ -33,18 +33,12 @@ const sameAirport = (a, b) => {
   return [...aCodes].some((code) => bCodes.has(code))
 }
 
-const normalizedRouteSource = (route) =>
-  String(route?.source || '').trim().toLowerCase()
-
-const routeAccuracySuffix = (route) =>
-  normalizedRouteSource(route) === 'adsbdb' ? '*' : ''
-
 export const formatFlightRouteLabel = (route) => {
   const origin = airportCode(route?.origin)
   const destination = airportCode(route?.destination)
   if (!origin || !destination) return ''
   if (sameAirport(route.origin, route.destination)) return ''
-  return `${origin} -> ${destination}${routeAccuracySuffix(route)}`
+  return `${origin} -> ${destination}`
 }
 
 export const formatFlightRouteMunicipalityLabel = (route) => {
@@ -52,7 +46,7 @@ export const formatFlightRouteMunicipalityLabel = (route) => {
   const destination = airportMunicipality(route?.destination)
   if (!origin || !destination) return ''
   if (sameAirport(route.origin, route.destination)) return ''
-  return `${origin} -> ${destination}${routeAccuracySuffix(route)}`
+  return `${origin} -> ${destination}`
 }
 
 // Origin / destination codes for the preview-card route line. Empty strings
@@ -78,10 +72,7 @@ export const getFlightRouteEndpointIcaos = (route) => {
   return { origin, destination }
 }
 
-export const getFlightRouteAccuracyNotice = (route) =>
-  normalizedRouteSource(route) === 'adsbdb'
-    ? "This route may be inaccurate: adsbdb uses callsign reference data that may not match today's actual origin and destination."
-    : ''
+export const getFlightRouteAccuracyNotice = () => ''
 
 // ICAO-first airport code (KBOS), falling back to IATA. RouteBadge renders the
 // 4-letter ICAO identifiers to match the rest of the app's airport language.
@@ -102,7 +93,6 @@ const airlineLogoUrlForBadge = (route) => {
 
 // Resolve <RouteBadge> props from a flight route. Returns null when the route
 // is incomplete or circular (same airport) — the badge should render nothing.
-// `uncertain` flags adsbdb-sourced routes so the badge can show a faint marker.
 export const routeBadgePropsFromRoute = (route) => {
   const from = airportIcaoCode(route?.origin)
   const to = airportIcaoCode(route?.destination)
@@ -111,6 +101,5 @@ export const routeBadgePropsFromRoute = (route) => {
     from,
     to,
     airlineLogoUrl: airlineLogoUrlForBadge(route),
-    uncertain: normalizedRouteSource(route) === 'adsbdb',
   }
 }

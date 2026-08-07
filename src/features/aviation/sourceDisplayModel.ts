@@ -1,17 +1,5 @@
-// Browser code intentionally exposes data quality, not upstream identities.
-// Provider selection and source-specific implementation live in adsbao-service.
-export const ROUTE_PROVIDER = Object.freeze({
-  DEFAULT: "adsbdb",
-  ADSBDB: "adsbdb",
-  FLIGHTAWARE: "flightaware",
-});
-
 function normalizeKey(value: unknown) {
   return String(value || "").trim().toLowerCase();
-}
-
-export function resolveRouteProvider({ flightAwareEnabled = false } = {}) {
-  return flightAwareEnabled ? ROUTE_PROVIDER.FLIGHTAWARE : ROUTE_PROVIDER.ADSBDB;
 }
 
 export function resolveFlightPositionSource(quality: Record<string, any> = {}) {

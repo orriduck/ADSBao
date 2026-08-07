@@ -4940,8 +4940,8 @@ body {
     mix-blend-mode: screen;
 }
 
-.aircraft-trace--flightaware-route,
-.aircraft-trace--flightaware-route-glow {
+.aircraft-trace--flight-route,
+.aircraft-trace--flight-route-glow {
     stroke-dasharray: 10 12 !important;
 }
 

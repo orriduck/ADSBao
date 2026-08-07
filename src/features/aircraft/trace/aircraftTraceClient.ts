@@ -4,7 +4,7 @@ import {
 } from "../../../config/aviation";
 import { withAuditLogging } from "../../../utils/apiLogger";
 import { createRequestCache } from "../../../utils/requestCache";
-import { normalizeAircraftHex } from "@/server/http/apiProxySecurity";
+import { normalizeAircraftHex } from "@/utils/httpResponse";
 import { fetchJson } from "../../aviation/httpClient";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};

@@ -57,7 +57,6 @@ type AdsbaoRealtimeClientOptions = {
   connectTimeoutMs?: number;
   heartbeatIntervalMs?: number;
   heartbeatTimeoutMs?: number;
-  authTokenFetcher?: RealtimeAuthTokenFetcher | null;
   idleDisconnectMs?: number;
 };
 
@@ -71,8 +70,6 @@ declare global {
     __adsbaoRealtimeDebug?: Record<string, unknown>;
   }
 }
-
-type RealtimeAuthTokenFetcher = (provider: string) => Promise<string>;
 
 export function resolveSameOriginRealtimeUrl(locationLike?: RealtimeLocationLike | null) {
   const location = locationLike ||
@@ -122,41 +119,8 @@ function resolveDocumentHost(): RealtimeDocumentHost | null {
   return typeof document !== "undefined" ? document : null;
 }
 
-async function fetchRealtimeAuthToken(provider: string) {
-  const response = await fetch(
-    `/api/realtime/auth?provider=${encodeURIComponent(provider)}`,
-    {
-      cache: "no-store",
-      credentials: "same-origin",
-      headers: { Accept: "application/json" },
-    },
-  );
-  if (!response.ok) {
-    throw new Error(`Realtime auth failed (${response.status})`);
-  }
-  const payload = await response.json();
-  const token = String(payload?.token || "");
-  if (!token) throw new Error("Realtime auth response omitted token");
-  return token;
-}
-
 function realtimeSubscriptionKey(channel: string, params?: Record<string, unknown>) {
   return `${channel}|${JSON.stringify(params || {})}`;
-}
-
-function flightAwareProviderFromParams(params?: Record<string, unknown>) {
-  if (!params) return "";
-  const routeProvider = String(params.routeProvider || "").trim().toLowerCase();
-  if (routeProvider === "flightaware") return "flightaware";
-  if (params.flightAware === true || String(params.flightAware || "").toLowerCase() === "true") {
-    return "flightaware";
-  }
-  return "";
-}
-
-function routeProviderFromParams(params?: Record<string, unknown>) {
-  const provider = String(params?.routeProvider || "").trim().toLowerCase();
-  return provider === "flightaware" || provider === "adsbdb" ? provider : "";
 }
 
 export class AdsbaoRealtimeClient {
@@ -169,7 +133,6 @@ export class AdsbaoRealtimeClient {
   private readonly connectTimeoutMs: number;
   private readonly heartbeatIntervalMs: number;
   private readonly heartbeatTimeoutMs: number;
-  private readonly authTokenFetcher: RealtimeAuthTokenFetcher | null;
   private readonly idleDisconnectMs: number;
   private socket: RealtimeSocket | null = null;
   private connectionState: ConnectionState;
@@ -206,10 +169,6 @@ export class AdsbaoRealtimeClient {
     this.connectTimeoutMs = options.connectTimeoutMs ?? 8_000;
     this.heartbeatIntervalMs = options.heartbeatIntervalMs ?? 25_000;
     this.heartbeatTimeoutMs = options.heartbeatTimeoutMs ?? 10_000;
-    this.authTokenFetcher =
-      options.authTokenFetcher === undefined
-        ? fetchRealtimeAuthToken
-        : options.authTokenFetcher;
     this.idleDisconnectMs = options.idleDisconnectMs ?? 0;
     this.connectionState = url ? "closed" : "disabled";
     this.installLifecycleReconnectHandlers();
@@ -429,54 +388,11 @@ export class AdsbaoRealtimeClient {
 
   private sendSubscribe(subscription: Pick<StoredRealtimeSubscription, "channel" | "params">) {
     if (!this.canSend()) return;
-    const provider = flightAwareProviderFromParams(subscription.params);
-    if (!provider) {
-      this.send({
-        type: "subscribe",
-        channel: subscription.channel,
-        params: subscription.params,
-      });
-      return;
-    }
-    void this.sendAuthenticatedSubscribe(subscription, provider);
-  }
-
-  private async sendAuthenticatedSubscribe(
-    subscription: Pick<StoredRealtimeSubscription, "channel" | "params">,
-    provider: string,
-  ) {
-    const params = await this.withAuthParams(subscription.params, provider);
-    if (!this.hasActiveSubscription(subscription.channel, subscription.params)) return;
     this.send({
       type: "subscribe",
       channel: subscription.channel,
-      params,
+      params: subscription.params,
     });
-  }
-
-  private async withAuthParams(params: Record<string, unknown> | undefined, provider: string) {
-    try {
-      if (!this.authTokenFetcher) {
-        throw new Error("Realtime auth token fetcher is not configured");
-      }
-      const token = await this.authTokenFetcher(provider);
-      return {
-        ...(params || {}),
-        realtimeAuthToken: token,
-      };
-    } catch (error) {
-      this.syncDebug({
-        lastAuthErrorAt: new Date().toISOString(),
-        lastAuthProvider: provider,
-        lastAuthError:
-          error instanceof Error ? error.message : String(error || "unknown"),
-      });
-      return params;
-    }
-  }
-
-  private hasActiveSubscription(channel: string, params?: Record<string, unknown>) {
-    return this.subscriptions.has(realtimeSubscriptionKey(channel, params));
   }
 
   private canSend() {
@@ -541,9 +457,7 @@ export class AdsbaoRealtimeClient {
   ) {
     if (subscription.channel !== event.channel) return false;
     if (event.type !== "route:update") return true;
-    const provider = routeProviderFromParams(subscription.params);
-    if (!provider || !event.source) return true;
-    return provider === String(event.source).trim().toLowerCase();
+    return true;
   }
 
   private syncDebug(next: Record<string, unknown>) {

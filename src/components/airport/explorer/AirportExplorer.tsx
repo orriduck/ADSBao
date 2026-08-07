@@ -534,8 +534,6 @@ function AirportExplorerContent({
     lastUpdated: traffic.lastUpdated,
     feedStatus: traffic.feedStatus,
     feedSource: traffic.feedSource,
-    routeProvider: traffic.routeProvider,
-    flightAwareResolved: traffic.flightAwareResolved,
     loadingStatus: sourceLoadingStatus,
     nearMe,
     nearMeSelfSpeedMps: nearMe ? nearMeSelfLocation?.speedMps ?? null : null,
@@ -628,7 +626,6 @@ function AirportExplorerContent({
               feedSource={traffic.feedSource}
               feedStatus={traffic.feedStatus}
               lastUpdated={traffic.lastUpdated}
-              routeProvider={traffic.routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={traffic.realtimeStatus}
               userLocationStatusLines={userLocationStatusLines}

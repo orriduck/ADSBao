@@ -8,7 +8,7 @@ import {
   normalizeDistanceNm,
   normalizeLatitude,
   normalizeLongitude,
-} from "@/server/http/apiProxySecurity";
+} from "@/utils/httpResponse";
 import { fetchJson } from "../../aviation/httpClient";
 
 const env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};

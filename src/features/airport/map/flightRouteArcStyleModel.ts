@@ -3,7 +3,7 @@ import { isLightMapTheme } from "./airportMapModel";
 
 const FLIGHTAWARE_ROUTE_DASH_ARRAY = "10 12";
 
-export function buildFlightAwareRouteLayerStyles({
+export function buildFlightRouteLayerStyles({
   theme = "dark",
   opacity = 1,
 } = {}) {

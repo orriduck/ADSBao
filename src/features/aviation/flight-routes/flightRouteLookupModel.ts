@@ -6,7 +6,6 @@ export type RouteContext = {
   iata?: unknown;
   lat?: unknown;
   lon?: unknown;
-  routeProvider?: unknown;
   priorityCallsigns?: unknown;
 };
 
@@ -84,77 +83,15 @@ const routeContextCode = (value: unknown) =>
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
-const routeSourceCode = (value: unknown) =>
-  String(value || "").trim().toLowerCase();
-
-const isFlightAwareRouteContext = (routeContext: RouteContext = {}) =>
-  routeContextCode(routeContext.routeProvider) === "FLIGHTAWARE";
-
-function routeProviderSource(routeContext: RouteContext = {}) {
-  const provider = routeSourceCode(routeContext.routeProvider);
-  return provider === "flightaware" || provider === "adsbdb" ? provider : "";
-}
-
-function isUserConfirmedRoute(route: FlightRoute | null | undefined) {
-  return (
-    route?.temporary === true &&
-    routeSourceCode(route?.confidence) === "user-supplied"
-  );
-}
-
-function routeMatchesProviderSource(
-  route: FlightRoute | null | undefined,
-  routeContext: RouteContext = {},
-) {
-  // A route the current user explicitly submitted is neither an adsbdb nor a
-  // FlightAware result. Keep it usable across provider contexts without
-  // treating any provider cache entry as interchangeable.
-  if (isUserConfirmedRoute(route)) return true;
-  const requiredSource = routeProviderSource(routeContext);
-  if (!requiredSource) return true;
-  const source = routeSourceCode(route?.source);
-  return source === requiredSource;
-}
-
-function normalizeRouteForProviderSource(
-  route: FlightRoute | null,
-  routeContext: RouteContext = {},
-) {
-  if (!route) return null;
-  return routeMatchesProviderSource(route, routeContext) ? route : null;
-}
-
-function shouldUseAircraftMetadataFallback(routeContext: RouteContext = {}) {
-  return !routeProviderSource(routeContext);
-}
-
 const centerContextNumber = (value: unknown) => {
   const number = Number(value);
   if (!Number.isFinite(number)) return "";
   return String(Number((Math.round(number / 0.1) * 0.1).toFixed(4)));
 };
 
-function routeContextWithoutProvider(routeContext: RouteContext = {}) {
-  const { routeProvider: _routeProvider, ...rest } = routeContext;
-  return rest;
-}
-
-function routeContextProviderOnly(routeContext: RouteContext = {}) {
-  const provider = routeContext.routeProvider;
-  return routeProviderSource(routeContext) ? { routeProvider: provider } : {};
-}
-
 export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
   void routeContext;
   return ROUTE_LOOKUP_TRANSPORT.REALTIME;
-}
-
-export function resolveRouteLookupEnabled({
-  featureFlagsResolved = true,
-}: {
-  featureFlagsResolved?: unknown;
-} = {}) {
-  return featureFlagsResolved !== false;
 }
 
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {
@@ -162,11 +99,10 @@ export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext
   if (!normalizedCallsign) return "";
   const airportIcao = routeContextCode(routeContext.icao);
   const airportIata = routeContextCode(routeContext.iata);
-  const routeProvider = routeContextCode(routeContext.routeProvider);
   const centerLat = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lat);
   const centerLon = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lon);
   const centerParts = centerLat && centerLon ? ["CENTER", centerLat, centerLon] : [];
-  const suffix = [airportIcao, airportIata, ...centerParts, routeProvider]
+  const suffix = [airportIcao, airportIata, ...centerParts]
     .filter(Boolean)
     .join("|");
   return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;
@@ -178,23 +114,12 @@ function getFreshRouteCacheEntry(
   now = Date.now(),
   routeContext: RouteContext = {},
 ) {
-  const cacheKeys = isFlightAwareRouteContext(routeContext)
-    ? [
-        buildRouteCacheKey(callsign, routeContext),
-        buildRouteCacheKey(callsign, routeContextProviderOnly(routeContext)),
-      ].filter(Boolean)
-    : [
-        buildRouteCacheKey(callsign, routeContext),
-        buildRouteCacheKey(callsign, routeContextWithoutProvider(routeContext)),
-        buildRouteCacheKey(callsign),
-      ].filter(Boolean);
+  const cacheKeys = [buildRouteCacheKey(callsign, routeContext), buildRouteCacheKey(callsign)]
+    .filter(Boolean);
   let firstMiss: RouteCacheEntry | null = null;
   for (const cacheKey of [...new Set(cacheKeys)]) {
     const cached = getFreshRouteCacheEntryByKey(cache, cacheKey, now);
-    if (cached?.route) {
-      if (routeMatchesProviderSource(cached.route, routeContext)) return cached;
-      continue;
-    }
+    if (cached?.route) return cached;
     if (cached && !firstMiss) firstMiss = cached;
   }
   return firstMiss;
@@ -223,10 +148,7 @@ export function writeRouteCacheEntry(
   time: number,
   routeContext: RouteContext = {},
 ) {
-  const routeForContext = normalizeRouteForProviderSource(route, routeContext);
-  const exclusiveProvider =
-    isFlightAwareRouteContext(routeContext) ||
-    routeSourceCode(routeForContext?.source) === "flightaware";
+  const routeForContext = route;
   const cacheKeys = new Set(
     [
       callsign,
@@ -234,14 +156,7 @@ export function writeRouteCacheEntry(
       routeForContext?.callsignIcao,
       routeForContext?.callsignIata,
     ]
-      .flatMap((value) =>
-        exclusiveProvider
-          ? [
-              buildRouteCacheKey(value, routeContext),
-              buildRouteCacheKey(value, routeContextProviderOnly(routeContext)),
-            ]
-          : [buildRouteCacheKey(value, routeContext), buildRouteCacheKey(value)],
-      )
+      .flatMap((value) => [buildRouteCacheKey(value, routeContext), buildRouteCacheKey(value)])
       .filter(Boolean),
   );
 
@@ -303,7 +218,6 @@ function buildRouteFromAircraftMetadata(aircraft: AircraftRouteCandidate = {}) {
 
 const EARTH_RADIUS_NM = 3440.065;
 const ROUTE_LOOKUP_SUPPRESSED_TRACKING_STATUSES = new Set([
-  "flightaware_terminal",
   "missing",
 ]);
 
@@ -474,9 +388,7 @@ export function buildRoutesByCallsign({
     const cached = getFreshRouteCacheEntry(cache, callsign, now, routeContext);
     const route =
       cached?.route ||
-      (shouldUseAircraftMetadataFallback(routeContext)
-        ? buildRouteFromAircraftMetadata(item)
-        : null);
+      buildRouteFromAircraftMetadata(item);
     if (route) routes[callsign] = route;
   }
   return routes;

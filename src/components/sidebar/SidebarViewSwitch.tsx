@@ -23,7 +23,6 @@ export default function SidebarViewSwitch({
   metar = null,
   metarLoading = false,
   aircraft = [],
-  routeProvider = "",
   frequencies = [],
   candidateSpotCount = 0,
   onOpenSpotting,
@@ -31,7 +30,6 @@ export default function SidebarViewSwitch({
   nearMeSelfSpeedMps = null,
   nearMeSelfAltitudeMeters = null,
   nearMeSelfHeadingDeg = null,
-  featureFlagsResolved = true,
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
@@ -45,15 +43,13 @@ export default function SidebarViewSwitch({
 
   // The footer's product rules — which cells show, what they read, and how they
   // behave (here mode swaps departures/arrivals for the user's own GPS
-  // speed/altitude, the movement row only exists on FlightAware, ATC only when
+  // speed/altitude, the movement row is available at airports, ATC only when
   // there are frequencies) — live in a pure, tested model. This component only
   // maps each descriptor to a <StatTile>.
   const stats = useMemo(
     () =>
       buildSidebarStats({
         nearMe,
-        routeProvider,
-        featureFlagsResolved,
         aircraft,
         selfSpeedMps: nearMeSelfSpeedMps,
         selfAltitudeMeters: nearMeSelfAltitudeMeters,
@@ -67,8 +63,6 @@ export default function SidebarViewSwitch({
       }),
     [
       nearMe,
-      routeProvider,
-      featureFlagsResolved,
       aircraft,
       nearMeSelfSpeedMps,
       nearMeSelfAltitudeMeters,

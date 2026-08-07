@@ -3,7 +3,7 @@ import L from "leaflet";
 import { useMapInstance } from "./MapContext";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";
 import { resolveDocumentTheme } from "@/features/airport/map/airportMapModel";
-import { buildFlightAwareRouteLayerStyles } from "@/features/airport/map/flightAwareRouteArcStyleModel";
+import { buildFlightRouteLayerStyles } from "@/features/airport/map/flightRouteArcStyleModel";
 import {
   safeAddToMap,
   safeRemoveFromMap,
@@ -31,12 +31,12 @@ function toUsablePath(path = []) {
 }
 
 function addRouteLayer(layer, map, layers) {
-  const added = safeAddToMap(layer, map, { label: "FlightAwareRouteArc" });
+  const added = safeAddToMap(layer, map, { label: "FlightRouteArc" });
   if (added) layers.push(added);
   return added;
 }
 
-export default function FlightAwareRouteArc({
+export default function FlightRouteArc({
   path = [],
   theme = null,
   opacity = 1,
@@ -70,7 +70,7 @@ export default function FlightAwareRouteArc({
 
     const pane = ensureAirportMapPane(map, AIRPORT_MAP_PANES.trace);
     const effectiveTheme = theme || documentTheme;
-    const routeStyles = buildFlightAwareRouteLayerStyles({
+    const routeStyles = buildFlightRouteLayerStyles({
       theme: effectiveTheme,
       opacity,
     });
@@ -82,7 +82,7 @@ export default function FlightAwareRouteArc({
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--flightaware-route-glow",
+        className: "aircraft-trace aircraft-trace--flight-route-glow",
       }),
       map,
       layers,
@@ -94,7 +94,7 @@ export default function FlightAwareRouteArc({
         interactive: false,
         lineCap: "round",
         lineJoin: "round",
-        className: "aircraft-trace aircraft-trace--flightaware-route",
+        className: "aircraft-trace aircraft-trace--flight-route",
       }),
       map,
       layers,

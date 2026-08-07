@@ -1,4 +1,4 @@
-import { readResponseJson } from "@/server/http/apiProxySecurity"
+import { readResponseJson } from "@/utils/httpResponse"
 import { buildAdsbaoUserAgent } from "../../../config/siteMeta"
 
 import { withAuditLogging } from "../../../utils/apiLogger"

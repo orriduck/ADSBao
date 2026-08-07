@@ -68,7 +68,6 @@ export function useFlightRoutes(
       iata: routeContextInput?.iata,
       lat: Number(routeContextInput?.lat),
       lon: Number(routeContextInput?.lon),
-      routeProvider: routeContextInput?.routeProvider,
       priorityCallsigns: priorityCallsignsKey
         ? priorityCallsignsKey.split("|")
         : undefined,
@@ -78,7 +77,6 @@ export function useFlightRoutes(
       routeContextInput?.icao,
       routeContextInput?.lat,
       routeContextInput?.lon,
-      routeContextInput?.routeProvider,
       priorityCallsignsKey,
     ],
   );

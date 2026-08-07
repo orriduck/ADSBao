@@ -62,9 +62,7 @@ export default function FlightSidebar({
   const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
-  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute)
-    ? t("aircraft.adsbdbRouteAccuracyNotice")
-    : "";
+  const routeAccuracyNotice = getFlightRouteAccuracyNotice(aircraft?.flightRoute);
   const speed = toFiniteNumber(aircraft?.velocity);
   const altitude = toFiniteNumber(aircraft?.altitude);
   const vs = toFiniteNumber(aircraft?.baroRate);

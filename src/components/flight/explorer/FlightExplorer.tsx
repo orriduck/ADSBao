@@ -33,10 +33,7 @@ import {
   resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
 } from "@/features/aircraft/tracking/flightTrackingDisplayModel";
-import { resolveFocusedFlightAwareRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
-import { resolveRouteLookupEnabled } from "@/features/aviation/flight-routes/flightRouteLookupModel";
-import { useFlightAwareEnabled } from "@/features/app-shell/auth/useFlightAwareEnabled";
-import { resolveRouteProvider } from "@/features/aviation/sourceDisplayModel";
+import { resolveFocusedFlightRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
 import { AIRCRAFT_TRAFFIC_CONFIG } from "@/config/aviation";
 import {
@@ -70,7 +67,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 import { resolveFlightJourneyProgress } from "@/features/aircraft/onboard/flightJourneyProgressModel";
 
-const FlightAwareRouteArc = lazy(() => import("@/components/map/FlightAwareRouteArc"));
+const FlightRouteArc = lazy(() => import("@/components/map/FlightRouteArc"));
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 
@@ -107,11 +104,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
       window.location.reload();
     }
   }, [callsign, onboardMode]);
-  const {
-    enabled: flightAwareEnabled,
-    resolved: flightAwareResolved,
-  } = useFlightAwareEnabled();
-  const routeProvider = resolveRouteProvider({ flightAwareEnabled });
   const {
     desktopSidebarWidth,
     clientDeviceProfile,
@@ -532,12 +524,9 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
   } = useFlightRoutes(rawAircraft, {
-    enabled: resolveRouteLookupEnabled({
-      featureFlagsResolved: flightAwareResolved,
-    }),
+    enabled: true,
     lat: contextLat,
     lon: contextLon,
-    routeProvider,
     priorityCallsigns: routePriorityCallsigns,
   });
 
@@ -802,19 +791,15 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
   }, [focalKey, selectedAircraftId, setSelectedAircraftId, showNearbyContext]);
 
   const focalRoutePath = useMemo(() => {
-    return resolveFocusedFlightAwareRouteArcPath({
+    return resolveFocusedFlightRouteArcPath({
       selectedAircraft,
       focalAircraft: enrichedTrackedAircraft,
-      routeProvider,
-      routeEndpointAirportsOnly,
       from: { lat: focalLat, lon: focalLon },
     });
   }, [
     enrichedTrackedAircraft,
     focalLat,
     focalLon,
-    routeProvider,
-    routeEndpointAirportsOnly,
     selectedAircraft,
   ]);
 
@@ -910,12 +895,12 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     () =>
       onboardMode
         ? resolveFlightJourneyProgress({
-            flightAwareFallback: flightAwareEnabled ? flightAwareFallback : null,
+            flightAwareFallback,
             confirmedRoute: enrichedTrackedAircraft?.flightRoute,
             aircraft: enrichedTrackedAircraft,
           })
         : null,
-    [enrichedTrackedAircraft, flightAwareEnabled, flightAwareFallback, onboardMode],
+    [enrichedTrackedAircraft, flightAwareFallback, onboardMode],
   );
   const toolbarContextProps = {
     traceViewItems,
@@ -1044,7 +1029,6 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
               feedSource={feedSource}
               feedStatus="live"
               lastUpdated={lastUpdated}
-              routeProvider={routeProvider}
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={realtimeStatus}
               {...toolbarContextProps}
@@ -1095,7 +1079,7 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
             >
-              <FlightAwareRouteArc path={focalRoutePath} />
+              <FlightRouteArc path={focalRoutePath} />
               <MapFitToTraceController
                 routePath={focalRoutePath}
                 centerAnchor={{ lat: focalLat, lon: focalLon }}
