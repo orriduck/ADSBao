@@ -38,25 +38,22 @@ export function useAirportExplorerData(
     airportProfile.lat,
     airportProfile.lon,
   );
-  // Fetch the focused/selected aircraft's route first. selectedAircraftId is
-  // an aircraft identity (hex, or callsign as fallback), so resolve it back to
-  // a callsign against the live list before handing it to the priority queue.
-  const priorityCallsigns = useMemo(() => {
-    if (!options.selectedAircraftId) return undefined;
+  // A route lookup is intentional work for the aircraft the user selected;
+  // the nearby-traffic list itself must never fan out into route subscriptions.
+  const selectedRouteAircraft = useMemo(() => {
+    if (!options.selectedAircraftId) return [];
     const selected = aircraft.find(
       (item) => getAircraftIdentity(item) === options.selectedAircraftId,
     );
-    const callsign = selected ? normalizeCallsign(selected.callsign) : "";
-    return callsign ? [callsign] : undefined;
+    return selected && normalizeCallsign(selected.callsign) ? [selected] : [];
   }, [aircraft, options.selectedAircraftId]);
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
-  } = useFlightRoutes(aircraft, {
+  } = useFlightRoutes(selectedRouteAircraft, {
     ...airportProfile,
-    enabled: true,
-    priorityCallsigns,
+    enabled: selectedRouteAircraft.length > 0,
   });
 
   const aircraftWithRoutes = useMemo(

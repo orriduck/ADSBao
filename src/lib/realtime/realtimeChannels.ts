@@ -10,6 +10,7 @@ type RealtimeChannelRequest = {
 const MAX_AIRCRAFT_RANGE_NM = 250;
 const DEFAULT_AIRPORT_RANGE_NM = 40;
 const CENTER_GRID_DEGREES = 0.1;
+const TRAFFIC_CENTER_GRID_DEGREES = 0.01;
 
 function toFiniteNumber(value: unknown) {
   const number = Number(value);
@@ -32,6 +33,10 @@ function isLongitude(value: number | null): value is number {
 
 function roundToGrid(value: number, grid = CENTER_GRID_DEGREES) {
   return Number((Math.round(value / grid) * grid).toFixed(4));
+}
+
+function roundTrafficCenter(value: number) {
+  return roundToGrid(value, TRAFFIC_CENTER_GRID_DEGREES);
 }
 
 function formatNumber(value: number) {
@@ -65,8 +70,8 @@ export function buildCenterTrafficChannel({
   const normalizedLat = toFiniteNumber(lat);
   const normalizedLon = toFiniteNumber(lon);
   if (!isLatitude(normalizedLat) || !isLongitude(normalizedLon)) return null;
-  const roundedLat = roundToGrid(normalizedLat);
-  const roundedLon = roundToGrid(normalizedLon);
+  const roundedLat = roundTrafficCenter(normalizedLat);
+  const roundedLon = roundTrafficCenter(normalizedLon);
   const normalizedDist = normalizeRangeNm(distNm);
   return {
     channel: `traffic:center:${formatNumber(roundedLat)}:${formatNumber(roundedLon)}:${normalizedDist}`,

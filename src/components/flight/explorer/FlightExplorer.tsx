@@ -484,16 +484,31 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     [callsign, selectedPriorityCallsign, trackedAircraftForDisplay?.callsign],
   );
 
-  // Look up routes for the tracked aircraft and any nearby traffic the user
-  // might preview. The focal callsign is prioritized ahead of nearby traffic,
-  // and the same hook gives us the applyTemporaryRoute callback so the
-  // preview-card feedback form can splice an override into the in-memory cache
-  // without a refetch.
+  // Routes are fetched only for the user's focal aircraft (and a deliberate
+  // in-page selection), never for every aircraft visible in nearby traffic.
+  const routeAircraft = useMemo(() => {
+    const wanted = [
+      ...new Set(
+        routePriorityCallsigns
+          .map((value) => normalizeCallsign(value))
+          .filter(Boolean),
+      ),
+    ];
+    return wanted.map(
+      (routeCallsign) =>
+        rawAircraft.find(
+          (item) => normalizeCallsign(item.callsign) === routeCallsign,
+        ) || { callsign: routeCallsign },
+    );
+  }, [rawAircraft, routePriorityCallsigns]);
+
+  // The same hook gives the preview-card feedback form an in-memory override
+  // without turning nearby traffic into a background route-lookup workload.
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
     applyTemporaryRoute,
-  } = useFlightRoutes(rawAircraft, {
+  } = useFlightRoutes(routeAircraft, {
     enabled: true,
     lat: contextLat,
     lon: contextLon,
