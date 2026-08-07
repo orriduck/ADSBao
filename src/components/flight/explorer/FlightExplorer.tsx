@@ -75,15 +75,15 @@ const TRACE_VIEW_ALL = "all";
 // "no live position" card when the live feed has no plottable aircraft.
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
-export default function FlightExplorer({ callsign = "", trackingRequested = false, onboardMode = false }) {
+export default function FlightExplorer({ callsign = "", onboardMode = false }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent callsign={callsign} trackingRequested={trackingRequested} onboardMode={onboardMode} />
+      <FlightExplorerContent callsign={callsign} onboardMode={onboardMode} />
     </ExplorerUiProvider>
   );
 }
 
-function FlightExplorerContent({ callsign, trackingRequested = false, onboardMode = false }) {
+function FlightExplorerContent({ callsign, onboardMode = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
@@ -164,7 +164,7 @@ function FlightExplorerContent({ callsign, trackingRequested = false, onboardMod
     run: trackingRun,
     traceHistory: trackingTraceHistory,
     stop: stopTracking,
-  } = useTrackingRun(callsign, { requested: trackingRequested });
+  } = useTrackingRun(callsign);
 
   const {
     aircraft: trackedAircraft,

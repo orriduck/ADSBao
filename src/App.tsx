@@ -27,7 +27,6 @@ function FlightRoute() {
   return (
     <FlightScreen
       callsign={normalizeCallsign(callsign)}
-      trackingRequested={searchParams.get("track") === "1"}
       onboardMode={onboardMode}
     />
   );

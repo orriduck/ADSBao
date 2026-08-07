@@ -96,11 +96,11 @@ export function buildCallsignChannel(callsign: unknown) {
   return normalized ? `callsign:${normalized}` : "";
 }
 
-// 追踪由后端保存为一次 run；页面只携带明确的启动意图，不再把 ICAO24 当成第二
-// 个实时订阅的提示。
+// 进入任何航班页都会由后端开始或复用一次持久追踪 run；ICAO24 不再作为第二个
+// 实时订阅的提示。
 export function buildAircraftDetailHref(callsign: unknown) {
   const cs = String(callsign || "").trim().toUpperCase();
-  return cs ? `/aircraft/${cs}?track=1` : "";
+  return cs ? `/aircraft/${cs}` : "";
 }
 
 function normalizeRouteContext(routeContext: Record<string, unknown> = {}) {

@@ -128,7 +128,7 @@ export default function HomeScreen() {
     const normalized = String(callsign || "").trim().toUpperCase();
     if (!normalized) return;
     navigate(
-      setLocaleSearchParam(`/aircraft/${normalized}`, "track=1", locale),
+      setLocaleSearchParam(`/aircraft/${normalized}`, "", locale),
     );
   };
 

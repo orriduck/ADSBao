@@ -21,7 +21,7 @@ async function request(path: string, init?: RequestInit) {
   return response.json();
 }
 
-export function useTrackingRun(callsign: string, { requested = false } = {}) {
+export function useTrackingRun(callsign: string) {
   const [run, setRun] = useState<TrackingRun | null>(null);
   const [observations, setObservations] = useState<TrackingObservation[]>([]);
   const [error, setError] = useState<unknown>(null);
@@ -35,7 +35,7 @@ export function useTrackingRun(callsign: string, { requested = false } = {}) {
     if (!callsign) return;
     const lookup = await request(`/api/tracking-runs?callsign=${encodeURIComponent(callsign)}`);
     let nextRun = lookup?.run || null;
-    if (!nextRun && requested && !stopped) {
+    if (!nextRun && !stopped) {
       const created = await request("/api/tracking-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,7 +51,7 @@ export function useTrackingRun(callsign: string, { requested = false } = {}) {
     const detail = await request(`/api/tracking-runs/${encodeURIComponent(nextRun.id)}`);
     setRun(detail?.run || nextRun);
     setObservations(Array.isArray(detail?.observations) ? detail.observations : []);
-  }, [callsign, requested, stopped]);
+  }, [callsign, stopped]);
 
   useEffect(() => {
     let disposed = false;
