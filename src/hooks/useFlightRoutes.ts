@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildRoutesByCallsign,
+  filterRouteLookupStatuses,
   resolvePendingRouteLookups,
   writeRouteCacheEntry,
   type AircraftRouteCandidate,
@@ -146,10 +147,19 @@ export function useFlightRoutes(
     });
   }, [routeCandidates, version]);
 
+  // Cleanup aborts a superseded lookup, but React may render before its
+  // status-map update lands. Only expose statuses belonging to the current
+  // candidate set so an old pending/retrying callsign cannot hold this view
+  // in a loading state after selection changes.
+  const activeRouteStatusByCallsign = useMemo(
+    () => filterRouteLookupStatuses(routeStatusByCallsign, routeCandidates),
+    [routeCandidates, routeStatusByCallsign],
+  );
+
   return {
     routesByCallsign,
-    routeStatusByCallsign,
-    loadingCount: Object.values(routeStatusByCallsign).filter(
+    routeStatusByCallsign: activeRouteStatusByCallsign,
+    loadingCount: Object.values(activeRouteStatusByCallsign).filter(
       (status) => status === "pending" || status === "retrying",
     ).length,
   };

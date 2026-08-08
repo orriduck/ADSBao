@@ -187,6 +187,20 @@ export function resolvePendingRouteLookups({
   return [];
 }
 
+export function filterRouteLookupStatuses<T extends string>(
+  statuses: Record<string, T>,
+  aircraft: AircraftRouteCandidate[],
+) {
+  const activeCallsigns = new Set(
+    (aircraft || [])
+      .map((item) => normalizeCallsign(item?.callsign))
+      .filter(isLookupCallsign),
+  );
+  return Object.fromEntries(
+    Object.entries(statuses).filter(([callsign]) => activeCallsigns.has(callsign)),
+  ) as Record<string, T>;
+}
+
 export function buildRoutesByCallsign({
   aircraft,
   cache,

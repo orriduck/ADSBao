@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  filterRouteLookupStatuses,
   resolvePendingRouteLookups,
   writeRouteCacheEntry,
 } from "./flightRouteLookupModel";
@@ -37,6 +38,15 @@ assert.deepEqual(
   }),
   [],
   "cached candidates must not be looked up again on a later version pass",
+);
+
+assert.deepEqual(
+  filterRouteLookupStatuses(
+    { DAL1576: "pending", UAL1195: "retrying" },
+    [{ callsign: "UAL1195" }],
+  ),
+  { UAL1195: "retrying" },
+  "switching candidates must not retain an old loading status",
 );
 
 console.log("flightRouteLookupModel.test.ts ok");

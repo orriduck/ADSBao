@@ -18,12 +18,14 @@ export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
 ] as const;
 
 export const ADSBAO_NETWORK_ONLY_PATHS = [
-  "/events",
   "/runtime-env.js",
   "/adsbao-version.json",
 ] as const;
 
 export const ADSBAO_NETWORK_ONLY_PREFIXES = [
+  // EventSource URLs are nested under `/events/...`; never let the service
+  // worker treat a live stream as a cacheable static response.
+  "/events/",
   "/api/",
   "/debug",
   "/health",
