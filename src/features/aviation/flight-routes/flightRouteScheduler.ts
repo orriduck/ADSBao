@@ -1,9 +1,5 @@
 import { normalizeCallsign } from "../../../utils/callsign";
 import {
-  createRouteCachePersister,
-  readPersistedRouteCache,
-} from "./flightRouteCacheStorage";
-import {
   buildRoutesByCallsign,
   resolvePendingRouteLookups,
   type AircraftRouteCandidate,
@@ -21,7 +17,6 @@ type FlightRouteSchedulerState = {
 type FlightRouteSchedulerOptions = {
   cache?: Map<string, RouteCacheEntry>;
   now?: () => number;
-  persist?: (cache: Map<string, RouteCacheEntry>) => void;
 };
 
 type FlightRouteSchedulerQuery = {
@@ -32,7 +27,6 @@ type FlightRouteSchedulerQuery = {
 export function createFlightRouteScheduler({
   cache = new Map(),
   now = Date.now,
-  persist,
 }: FlightRouteSchedulerOptions = {}) {
   const listeners = new Set<(state: FlightRouteSchedulerState) => void>();
   let routeVersion = 0;
@@ -50,7 +44,6 @@ export function createFlightRouteScheduler({
     const normalized = normalizeCallsign(callsign);
     if (!normalized) return;
     writeRouteCacheEntry(cache, normalized, route, now(), routeContext);
-    persist?.(cache);
     routeVersion += 1;
     notify();
   };
@@ -104,9 +97,6 @@ export function createFlightRouteScheduler({
   };
 }
 
-// The singleton hydrates from localStorage so routes survive the hard
-// reload between detail pages, and writes back (debounced) as results land.
-export const flightRouteScheduler = createFlightRouteScheduler({
-  cache: readPersistedRouteCache(),
-  persist: createRouteCachePersister(),
-});
+// Route freshness belongs to the private service. A browser-local cache can
+// survive a diversion and override the newest server response.
+export const flightRouteScheduler = createFlightRouteScheduler();
