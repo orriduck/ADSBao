@@ -15,7 +15,6 @@ import {
 import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { NotificationPreferencesProvider } from "@/features/notifications/NotificationPreferencesProvider";
 import WebMcpProvider from "@/features/webmcp/WebMcpProvider";
-import { runtimeEnvValue } from "@/platform/env/runtimeEnv";
 import { isConcreteTheme } from "@/utils/theme";
 import App from "./App";
 import "leaflet/dist/leaflet.css";
@@ -46,21 +45,6 @@ function resolveInitialLocale() {
 function applyDocumentShell() {
   const initialTheme = resolveInitialTheme();
   document.documentElement.dataset.theme = initialTheme;
-  const realtimeUrl = runtimeEnvValue(
-    "VITE_ADSBAO_REALTIME_URL",
-    import.meta.env.VITE_ADSBAO_REALTIME_URL || "",
-  );
-  if (realtimeUrl) {
-    let meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="adsbao-realtime-url"]',
-    );
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "adsbao-realtime-url";
-      document.head.appendChild(meta);
-    }
-    meta.content = realtimeUrl;
-  }
   return { initialTheme };
 }
 

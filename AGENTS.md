@@ -15,7 +15,7 @@ the full validation decision tree there; do not duplicate it in this file.
   and the Vite frontend on port 3000. See `CLAUDE.md` for env vars and the
   full two-service startup procedure.
 - For deployed validation, use the Railway single-service deployment and verify
-  `/health`, `/api/feature-flags`, static SPA fallback, `/ws`, and the rendered
+  `/health`, `/api/feature-flags`, static SPA fallback, `/events`, and the rendered
   browser page.
 - For FlightAware-related features, merge the work and verify with Chrome,
   because the flow depends on Clerk login state.

@@ -43,9 +43,7 @@ import {
   ExplorerUiProvider,
   useExplorerUi,
 } from "@/components/explorer/ExplorerUiContext";
-import { useAircraftPositions } from "@/hooks/useAircraftPositions";
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
-import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
 import { useTrackingRun } from "@/hooks/useTrackingRun";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -174,6 +172,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     pollVersion: trackedPollVersion,
     visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     realtimeStatus,
+    nearbyAircraft: streamedNearbyAircraft,
+    nearbyAirports: streamedNearbyAirports,
+    nearbyContextSettled,
   } = useTrackedAircraft(callsign, {
     runStatus: trackingRun?.status,
     initialAircraft:
@@ -377,44 +378,13 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   );
   const showNearbyMapContext =
     flightDisplayContext.showNearbyMapContext !== false;
-  const nearbyAircraftQueryLat = showNearbyTrafficContext ? contextLat : null;
-  const nearbyAircraftQueryLon = showNearbyTrafficContext ? contextLon : null;
-  const nearbyAirportQueryLat = showNearbyAirportContext ? contextLat : null;
-  const nearbyAirportQueryLon = showNearbyAirportContext ? contextLon : null;
-
-  const {
-    aircraft: fetchedNearbyAircraft,
-    loading: fetchedNearbyAircraftLoading,
-    settled: fetchedNearbyAircraftSettled,
-  } = useAircraftPositions(
-    callsign || "",
-    nearbyAircraftQueryLat,
-    nearbyAircraftQueryLon,
-    {
-      pollWhenHidden: false,
-      distNm: flightDisplayContext.aircraftRangeNm,
-    },
-  );
-
-  // Pull airports around the focal so the sidebar list and the map's
-  // airport layer both show context relative to the moving flight.
-  const {
-    airports: fetchedNearbyAirports,
-    loading: fetchedNearbyAirportsLoading,
-    settled: fetchedNearbyAirportsSettled,
-  } = useNearbyAirports({
-    lat: nearbyAirportQueryLat,
-    lon: nearbyAirportQueryLon,
-    radiusNm: flightDisplayContext.airportRadiusNm,
-    limit: flightDisplayContext.airportLimit,
-  });
   const nearbyAircraft = useMemo(
-    () => (showNearbyTrafficContext ? fetchedNearbyAircraft : []),
-    [fetchedNearbyAircraft, showNearbyTrafficContext],
+    () => (showNearbyTrafficContext ? streamedNearbyAircraft : []),
+    [showNearbyTrafficContext, streamedNearbyAircraft],
   );
   const nearbyAirports = useMemo(
-    () => (showNearbyAirportContext ? fetchedNearbyAirports : []),
-    [fetchedNearbyAirports, showNearbyAirportContext],
+    () => (showNearbyAirportContext ? streamedNearbyAirports : []),
+    [showNearbyAirportContext, streamedNearbyAirports],
   );
   const selectedNavaid = useMemo(
     () =>
@@ -828,10 +798,10 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     trackedAircraftLoading: flightTrackingLoadingActive,
     trafficLoading:
       showNearbyTrafficContext &&
-      (fetchedNearbyAircraftLoading || !fetchedNearbyAircraftSettled),
+      !nearbyContextSettled,
     nearbyAirportsLoading:
       showNearbyAirportContext &&
-      (fetchedNearbyAirportsLoading || !fetchedNearbyAirportsSettled),
+      !nearbyContextSettled,
     routeLoadingCount,
   };
   const sourceLoadingState = resolveAircraftLoadingOverlayState({

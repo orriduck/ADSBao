@@ -34,6 +34,8 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
     const label =
       status === "pending"
         ? t("aircraft.loadingRoute")
+        : status === "retrying"
+          ? t("aircraft.retryingRoute")
         : status === "unavailable"
           ? t("aircraft.routeUnavailable")
           : t("aircraft.noRoute");

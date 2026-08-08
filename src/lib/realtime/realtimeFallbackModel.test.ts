@@ -5,7 +5,7 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
 {
   const fallback = shouldUseRealtimeFallback({
     available: true,
-    connectionState: "closed",
+    connectionState: "loading",
     hasEvent: false,
     graceExpired: false,
     eventType: "",
@@ -15,14 +15,31 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
   assert.equal(
     fallback,
     false,
-    "initial closed realtime connection should wait for the first event before fallback polling",
+    "initial SSE connection should wait for the first event before fallback polling",
   );
 }
 
 {
   const fallback = shouldUseRealtimeFallback({
     available: true,
-    connectionState: "closed",
+    connectionState: "loading",
+    hasEvent: false,
+    graceExpired: false,
+    eventType: "nearby:snapshot",
+    hasEventData: false,
+  });
+
+  assert.equal(
+    fallback,
+    false,
+    "static nearby context must preserve the initial traffic-data grace window",
+  );
+}
+
+{
+  const fallback = shouldUseRealtimeFallback({
+    available: true,
+    connectionState: "reconnecting",
     hasEvent: false,
     graceExpired: true,
     eventType: "",
@@ -32,14 +49,14 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
   assert.equal(
     fallback,
     true,
-    "closed realtime connection should fall back after the first-event grace window",
+    "reconnecting SSE should fall back after the first-event grace window",
   );
 }
 
 {
   const fallback = shouldUseRealtimeFallback({
     available: true,
-    connectionState: "open",
+    connectionState: "live",
     hasEvent: false,
     graceExpired: false,
     eventType: "",
@@ -49,24 +66,24 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
   assert.equal(
     fallback,
     false,
-    "open realtime connection should not fallback while waiting for the first event",
+    "live SSE connection should not fallback while waiting for the first event",
   );
 }
 
 {
   const fallback = shouldUseRealtimeFallback({
     available: true,
-    connectionState: "open",
+    connectionState: "live",
     hasEvent: true,
     graceExpired: false,
-    eventType: "channel:error",
+    eventType: "nearby:status",
     hasEventData: false,
   });
 
   assert.equal(
     fallback,
     true,
-    "channel errors without cached event data should activate fallback polling",
+    "SSE status without cached event data should activate fallback polling",
   );
 }
 

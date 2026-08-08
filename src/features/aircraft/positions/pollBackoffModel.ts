@@ -1,5 +1,5 @@
 // Backoff policy for the HTTP position-polling fallback. The realtime
-// WebSocket path needs no pacing, but when the fallback poller hits a
+// The SSE path needs no browser-side pacing, but when the fallback poller hits a
 // failing or rate-limited upstream, retrying every base interval just
 // hammers it. Consecutive failures double the delay up to a cap; one
 // success resets to the base cadence.

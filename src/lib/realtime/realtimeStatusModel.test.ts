@@ -4,7 +4,7 @@ import { resolveRealtimeStatusLabel } from "./realtimeStatusModel";
 assert.equal(
   resolveRealtimeStatusLabel({
     available: true,
-    connectionState: "connecting",
+    connectionState: "loading",
     settled: false,
   }),
   "CONNECTING",
@@ -12,7 +12,7 @@ assert.equal(
 assert.equal(
   resolveRealtimeStatusLabel({
     available: true,
-    connectionState: "closed",
+    connectionState: "reconnecting",
     settled: true,
   }),
   "RECONNECTING",
@@ -20,7 +20,7 @@ assert.equal(
 assert.equal(
   resolveRealtimeStatusLabel({
     available: true,
-    connectionState: "open",
+    connectionState: "live",
     settled: true,
   }),
   "",
@@ -28,7 +28,7 @@ assert.equal(
 assert.equal(
   resolveRealtimeStatusLabel({
     available: false,
-    connectionState: "closed",
+    connectionState: "reconnecting",
     settled: true,
   }),
   "",

@@ -216,7 +216,6 @@ export default defineConfig(({ mode }) => {
     "http://localhost:8082";
   const clientEnv = {
     NODE_ENV: mode === "production" ? "production" : "development",
-    VITE_ADSBAO_REALTIME_URL: env.VITE_ADSBAO_REALTIME_URL || "",
     VITE_CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY || "",
     VITE_SITE_URL: env.VITE_SITE_URL || env.ADSBAO_SITE_URL || "https://adsbao.dev",
     VITE_AIRCRAFT_PHOTOS_BASE: env.VITE_AIRCRAFT_PHOTOS_BASE || "",
@@ -243,9 +242,9 @@ export default defineConfig(({ mode }) => {
           target: localApiOrigin,
           changeOrigin: true,
         },
-        "/ws": {
+        "/events": {
           target: localApiOrigin,
-          ws: true,
+          changeOrigin: true,
         },
         "/health": {
           target: localApiOrigin,

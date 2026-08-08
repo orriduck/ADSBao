@@ -4,8 +4,8 @@ import { FLIGHT_ROUTE_LOOKUP_CONFIG } from "./aviation";
 
 assert.equal(
   FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs,
-  6 * 60 * 60 * 1000,
-  "route hits should stay warm across long tracking sessions",
+  30 * 60 * 1000,
+  "route hits should match the approved 30-minute cache window",
 );
 assert.ok(
   FLIGHT_ROUTE_LOOKUP_CONFIG.missCacheMs < FLIGHT_ROUTE_LOOKUP_CONFIG.hitCacheMs,

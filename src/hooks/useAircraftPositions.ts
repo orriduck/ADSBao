@@ -14,12 +14,14 @@ import {
 import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveNextPollDelayMs } from "../features/aircraft/positions/pollBackoffModel";
+import { buildNearbyCoordinateRequest } from "../lib/realtime/nearbySseRequests";
 import {
-  EMPTY_REALTIME_PARAMS,
-  useRealtimeAircraftChannel,
-} from "./useRealtimeAircraftChannel";
-import { buildAircraftTrafficChannel } from "../lib/realtime/realtimeChannels";
+  hasAircraftPayload,
+  hasNearbyAircraftPayload,
+  readNearbyAirportsUpdate,
+} from "../lib/realtime/nearbySsePayloadModel";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
+import { useNearbySseChannel } from "./useNearbySseChannel";
 
 const MAX_AIRCRAFT_RANGE_NM = 250;
 
@@ -33,7 +35,7 @@ function sourceFromAircraftPayload(payload: Record<string, any>) {
   if (typeof payload.source === "string" && payload.source.trim()) {
     return payload.source.trim();
   }
-  return "adsb.lol";
+  return "";
 }
 
 function statusFromAircraftPayload(payload: Record<string, any>) {
@@ -56,28 +58,23 @@ export function useAircraftPositions(
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [feedStatus, setFeedStatus] = useState("live");
   const [feedSource, setFeedSource] = useState("");
+  const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
   const traceTrackerRef = useRef(createAircraftTraceTracker());
   const channelKeyRef = useRef("");
 
-  const realtimeRequest = useMemo(() => {
+  const nearbyRequest = useMemo(() => {
     if (!hasActiveQuery) return null;
-    return buildAircraftTrafficChannel({
+    return buildNearbyCoordinateRequest({
       lat: queryLat,
       lon: queryLon,
-      distNm,
     });
-  }, [distNm, hasActiveQuery, queryLat, queryLon]);
+  }, [hasActiveQuery, queryLat, queryLon]);
 
-  const realtime = useRealtimeAircraftChannel({
-    channel: realtimeRequest?.channel || "",
-    // 关键:用稳定的 frozen 常量兜底,避免 `|| {}` 每次 render 都 mint 新对象。
-    // params 是 useRealtimeAircraftChannel 里订阅 effect 的依赖,引用一变就会
-    // 触发 unsubscribe+resubscribe(订阅抖动)。realtimeRequest 非空时其 params
-    // 已在 useMemo 内稳定。
-    params: realtimeRequest?.params ?? EMPTY_REALTIME_PARAMS,
+  const realtime = useNearbySseChannel({
+    request: nearbyRequest,
     enabled: hasActiveQuery && realtimeEnabled,
   });
-  const channelKey = realtimeRequest?.channel || "";
+  const channelKey = nearbyRequest?.key || "";
 
   useEffect(() => {
     if (!hasActiveQuery) {
@@ -88,6 +85,7 @@ export function useAircraftPositions(
       setLastUpdated(null);
       setFeedStatus("live");
       setFeedSource("");
+      setNearbyAirports([]);
       return;
     }
 
@@ -99,27 +97,32 @@ export function useAircraftPositions(
       setLastUpdated(null);
       setFeedStatus("live");
       setFeedSource("");
+      setNearbyAirports([]);
     }
   }, [channelKey, hasActiveQuery]);
 
   useEffect(() => {
     const event = realtime.event;
-    if (!hasActiveQuery || !event || event.type !== "aircraft:update") return;
+    if (
+      !hasActiveQuery ||
+      !event ||
+      (event.type !== "nearby:snapshot" && event.type !== "nearby:traffic")
+    ) {
+      return;
+    }
 
-    const payload = normalizeRealtimeAircraftPayload(event.data);
+    const context = event.data as Record<string, any>;
+    const airportUpdate = readNearbyAirportsUpdate(context);
+    if (airportUpdate) setNearbyAirports(airportUpdate);
+    if (!hasNearbyAircraftPayload(context)) return;
+    const payload = normalizeRealtimeAircraftPayload(context?.aircraft);
     const fetchedAt = Date.parse(event.fetchedAt);
     const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
     const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
     const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
     setAircraft(nextAircraft);
     setFeedStatus(event.stale ? "infer" : "live");
-    setFeedSource(
-      typeof event.source === "string"
-        ? event.source
-        : typeof payload.source === "string"
-          ? payload.source
-          : "",
-    );
+    setFeedSource(typeof payload.source === "string" ? payload.source : "");
     const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
     if (statusUpdatedDate) {
       setLastUpdated((prev) =>
@@ -131,9 +134,9 @@ export function useAircraftPositions(
     setSettled(true);
   }, [hasActiveQuery, realtime.event]);
 
-  // A new airport view must not wait for a WebSocket poll before it can show
-  // nearby aircraft. Seed it through the same private-service contract when
-  // the first realtime frame is slow; realtime remains the steady-state feed.
+  // A new airport view must not wait for the first SSE frame before it can
+  // show nearby aircraft. Seed it through the ordinary private-service
+  // endpoint; SSE remains the steady-state feed.
   useEffect(() => {
     if (!hasActiveQuery || settled) return undefined;
 
@@ -141,14 +144,14 @@ export function useAircraftPositions(
     const timer = window.setTimeout(async () => {
       try {
         const client = createAircraftPositionClient();
-        const payload = normalizeRealtimeAircraftPayload(
-          await client.fetchNearbyAircraft({
-            lat: queryLat,
-            lon: queryLon,
-            distNm,
-          }),
-        );
+        const rawPayload = await client.fetchNearbyAircraft({
+          lat: queryLat,
+          lon: queryLon,
+          distNm,
+        });
         if (cancelled) return;
+        if (!hasAircraftPayload(rawPayload)) return;
+        const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
@@ -179,14 +182,14 @@ export function useAircraftPositions(
 
     const load = async () => {
       try {
-        const payload = normalizeRealtimeAircraftPayload(
-          await client.fetchNearbyAircraft({
-            lat: queryLat,
-            lon: queryLon,
-            distNm,
-          }),
-        );
+        const rawPayload = await client.fetchNearbyAircraft({
+          lat: queryLat,
+          lon: queryLon,
+          distNm,
+        });
         if (cancelled) return;
+        if (!hasAircraftPayload(rawPayload)) return;
+        const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
@@ -244,7 +247,7 @@ export function useAircraftPositions(
     hasActiveQuery && (!settled || realtime.fallbackActive);
   const realtimeStatus = resolveRealtimeStatusLabel({
     available: realtime.available,
-    connectionState: realtime.connectionState,
+    connectionState: realtime.state,
     settled,
   });
 
@@ -261,5 +264,7 @@ export function useAircraftPositions(
     feedSource,
     realtimeActive: realtime.connected && !realtime.fallbackActive,
     realtimeStatus,
+    nearbyAirports,
+    nearbyChannel: nearbyRequest?.channel || "",
   };
 }

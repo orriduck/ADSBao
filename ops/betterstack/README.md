@@ -38,8 +38,8 @@ and logs:
 - Outbound provider status mix, provider error percentage, and external request
   latency from structured logs.
 - Database transaction counts by operation/result.
-- WebSocket active connections, upgrades, disconnects, subscribe/unsubscribe
-  activity, message outcomes, and channel gauges.
+- SSE active connections, disconnects, and named nearby snapshot/traffic/status
+  event outcomes.
 - Recent external warning/error logs with extracted status and duration columns.
 
 Known gaps:

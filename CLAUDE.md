@@ -8,7 +8,7 @@ provider-specific compatibility branches here.
 ## Local development
 
 Adopt existing servers instead of restarting them. The frontend runs on port
-3000 and proxies the same-origin API/WebSocket paths to the private service on
+3000 and proxies the same-origin API/SSE paths to the private service on
 port 8082.
 
 ```bash
