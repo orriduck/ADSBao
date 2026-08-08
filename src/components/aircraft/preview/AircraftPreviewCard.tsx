@@ -263,13 +263,13 @@ export default function AircraftPreviewCard({
           {typeof onDismiss === "function" ? (
             <button
               type="button"
-              className="pointer-events-auto absolute right-[10px] top-[10px] z-[5] grid size-8 place-items-center rounded-full border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+              className="pointer-events-auto absolute right-[14px] top-[14px] z-[5] grid size-6 place-items-center rounded-full text-atc-dim transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-muted)] hover:text-atc-text active:scale-[0.92] focus-visible:bg-[var(--atc-control-surface-muted)] focus-visible:text-atc-text focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
               aria-label={t("ui.close")}
               title={t("ui.close")}
               onPointerDown={(event) => event.stopPropagation()}
               onClick={onDismiss}
             >
-              <X aria-hidden="true" className="size-[15px]" strokeWidth={1.8} />
+              <X aria-hidden="true" className="size-[14px]" strokeWidth={1.8} />
             </button>
           ) : null}
           {!isAirport && !isNavaid && !isReportingPoint && (

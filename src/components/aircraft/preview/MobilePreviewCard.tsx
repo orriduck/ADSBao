@@ -129,17 +129,17 @@ export default function MobilePreviewCard({
     >
       {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
       {!isTop ? grabber : null}
-      <div className={cn("min-w-0", dismissible && "pr-10")}>{children}</div>
+      <div className={cn("min-w-0", dismissible && "pr-7")}>{children}</div>
       {dismissible ? (
         <button
           type="button"
-          className="pointer-events-auto absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-full border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="pointer-events-auto absolute right-3 top-3 z-10 grid size-6 place-items-center rounded-full text-atc-dim transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-muted)] hover:text-atc-text active:scale-[0.92] focus-visible:bg-[var(--atc-control-surface-muted)] focus-visible:text-atc-text focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={dismissLabel}
           title={dismissLabel}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={onDismiss}
         >
-          <X aria-hidden="true" className="size-[15px]" strokeWidth={1.8} />
+          <X aria-hidden="true" className="size-[14px]" strokeWidth={1.8} />
         </button>
       ) : null}
       {/* Expanded detail reveals between the collapsed content and the
