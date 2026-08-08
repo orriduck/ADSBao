@@ -39,7 +39,7 @@ export default function AirportRow({
 
   // Search results share the home discovery row. The featured best-match row
   // reads as the obvious pick through luminance only — a quiet inked wash and
-  // a fully-inked chip, not a color shift (orange stays the near-me CTA).
+  // a fully-inked chip, not a color shift.
   return (
     <li
       style={motionStyle}

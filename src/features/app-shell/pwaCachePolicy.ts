@@ -10,18 +10,10 @@ export const ADSBAO_OFFLINE_NAVIGATION_PATHS = [
   "/changelog",
 ] as const;
 
-export const ADSBAO_HOME_VIDEO_PATH =
-  "/brand/adsbao-aircraft-brand-loop-20260619.mp4";
-
-export const ADSBAO_HOME_VIDEO_POSTER_PATH =
-  "/brand/adsbao-aircraft-brand-poster.jpg";
-
 export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
   "/manifest.webmanifest",
   "/icon.png",
   "/apple-icon.png",
-  ADSBAO_HOME_VIDEO_PATH,
-  ADSBAO_HOME_VIDEO_POSTER_PATH,
   "/brand/adsbao-logo.png",
 ] as const;
 

@@ -17,7 +17,7 @@ let tablePromise: Promise<AirportCityTable> | null = null;
 function loadTable(): Promise<AirportCityTable> {
   if (!tablePromise) {
     tablePromise = import("@/data/airportCities.json").then(
-      (module) => (module.default ?? module) as AirportCityTable,
+      (module) => (module.default ?? module) as unknown as AirportCityTable,
     );
   }
   return tablePromise;

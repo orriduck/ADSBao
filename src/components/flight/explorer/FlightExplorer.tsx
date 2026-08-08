@@ -163,7 +163,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   const {
     run: trackingRun,
     traceHistory: trackingTraceHistory,
-    stop: stopTracking,
   } = useTrackingRun(callsign);
 
   const {
@@ -490,12 +489,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     trackedAircraftForDisplay?.callsign,
   ]);
 
-  // The same hook gives the preview-card feedback form an in-memory override
-  // without turning nearby traffic into a background route-lookup workload.
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
-    applyTemporaryRoute,
   } = useFlightRoutes(routeAircraft, {
     enabled: true,
     lat: contextLat,
@@ -581,7 +577,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   // the route header. `trackedAircraft` straight out of useTrackedAircraft
   // has no route fields — we hand it the enriched entry from the same
   // array we already fed routes into, so the sidebar shows the route
-  // (community-feedback override or live lookup) for the focal callsign.
+  // resolved for the focal callsign.
   const enrichedTrackedAircraft = useMemo(() => {
     if (!trackedAircraftForDisplay) return null;
     const trackedKey = getAircraftIdentity(trackedAircraftForDisplay);
@@ -856,7 +852,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     () =>
       onboardMode
         ? resolveFlightJourneyProgress({
-            confirmedRoute: enrichedTrackedAircraft?.flightRoute,
+            route: enrichedTrackedAircraft?.flightRoute,
             aircraft: enrichedTrackedAircraft,
           })
         : null,
@@ -904,7 +900,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     onboardMode,
     journeyProgress,
     trackingRunStatus: trackingRun?.status || "",
-    onStopTracking: stopTracking,
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
@@ -934,7 +929,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
         onSelectAirspace={setSelectedAirspaceId}
         isMobile={isMobile}
         sidebarOpen={sidebarOpen && !sidebarCollapsed}
-        onApplyTemporaryRoute={applyTemporaryRoute}
         onDismiss={clearAllPreviewSelections}
         clientDeviceProfile={clientDeviceProfile}
         preferMobilePreview={clientDeviceLayout.useDesktopMobileLandscapeLayout}
@@ -1052,7 +1046,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
           </Suspense>
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
+            <div className="sidebar-layout-overlay absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
               <FlightSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}

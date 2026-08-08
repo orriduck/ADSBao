@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Cloud,
   CloudDrizzle,
@@ -12,8 +11,6 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { useLocalWeather } from "@/hooks/useLocalWeather";
-import { useStablePlaceWeatherCoords } from "@/hooks/useStablePlaceWeatherCoords";
 import FlightRuleGlyph, { type FlightRule } from "@/components/weather/FlightRuleGlyph";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -65,34 +62,17 @@ export default function WeatherBriefingStack({
   metar = null,
   metarRaw = "",
   metarLoading = false,
-  airportLat = 0,
-  airportLon = 0,
-  nearMe = false,
+  localWeather = null,
+  localWeatherLoading = false,
+  view = "local",
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const [view, setView] = useState("metar");
-  // In here-mode the device position streams in continuously; gate the weather
-  // fetch on the reverse-geocoded place name so it only refreshes when we cross
-  // into a new place, not on every GPS micro-update. Fixed airports pass through.
-  const weatherCoords = useStablePlaceWeatherCoords(airportLat, airportLon, {
-    enabled: nearMe,
-    language: locale,
-  });
-  const { weather: local, loading: localLoading } = useLocalWeather(
-    weatherCoords.lat,
-    weatherCoords.lon,
-  );
-  const effectiveView = nearMe ? "local" : view;
 
   return (
-    <div className="flex flex-col gap-4 px-[var(--airport-sidebar-inset)] pb-7 pt-3.5">
-      {!nearMe ? (
-        <WeatherSegment view={effectiveView} onChange={setView} t={t} />
-      ) : null}
-
-      <div key={effectiveView} className="app-panel-transition flex flex-col gap-5">
-        {effectiveView === "metar" ? (
+    <div className="px-[var(--airport-sidebar-inset)] pb-7 pt-3.5">
+      <div key={view} className="app-panel-transition flex flex-col gap-5">
+        {view === "metar" ? (
           <MetarView
             metar={metar}
             metarRaw={metarRaw}
@@ -102,46 +82,13 @@ export default function WeatherBriefingStack({
           />
         ) : (
           <LocalView
-            local={local}
-            loading={localLoading}
+            local={localWeather}
+            loading={localWeatherLoading}
             t={t}
             units={units}
           />
         )}
       </div>
-    </div>
-  );
-}
-
-// Neutral iOS-style segmented control: a faint pill track with a raised milky
-// chip for the active view and dim text for the inactive one. Never the accent.
-function WeatherSegment({ view, onChange, t }) {
-  const items = [
-    { id: "metar", label: "METAR" },
-    { id: "local", label: t("weather.local") },
-  ];
-  return (
-    <div
-      role="tablist"
-      aria-label={t("panels.weather")}
-      className="grid grid-cols-2 gap-1 rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--atc-text)_5%,transparent)] p-1"
-    >
-      {items.map((item) => {
-        const active = view === item.id;
-        return (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            data-active={active ? "true" : undefined}
-            onClick={() => onChange(item.id)}
-            className="rounded-[calc(var(--atc-radius-pill)_-_4px)] px-3 py-1.5 text-center text-[calc(12px*var(--sb-body-scale))] text-atc-dim transition-[background,color,box-shadow] duration-200 hover:text-atc-text data-[active=true]:bg-[var(--atc-control-surface)] data-[active=true]:text-atc-text data-[active=true]:shadow-[var(--atc-control-inset-shadow)]"
-          >
-            {item.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -178,7 +125,7 @@ function MetricCell({ label, value }) {
 }
 
 function MetricGrid({ children }) {
-  return <div className="grid grid-cols-3 gap-x-3 gap-y-3.5">{children}</div>;
+  return <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">{children}</div>;
 }
 
 function WeatherGlyph({ glyph, ...props }) {

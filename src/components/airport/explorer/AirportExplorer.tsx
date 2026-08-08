@@ -518,8 +518,6 @@ function AirportExplorerContent({
     metar: weather.metar,
     metarRaw: weather.metarRaw,
     metarLoading: weather.metarLoading,
-    metarError: weather.metarError,
-    metarStatusCode: weather.metarStatusCode ?? null,
     aircraft: traffic.aircraft,
     airports: nearbyAirports.airports,
     // In near-me mode there's no airport identity, so airport-specific
@@ -581,8 +579,6 @@ function AirportExplorerContent({
             }
             isMobile={isMobile}
             sidebarOpen={sidebarOpen && !sidebarCollapsed}
-            airportProfile={airportProfile}
-            onApplyTemporaryRoute={traffic.applyTemporaryRoute}
             onDismiss={handleClearPreviewSelections}
             clientDeviceProfile={clientDeviceProfile}
             preferMobilePreview={
@@ -687,7 +683,7 @@ function AirportExplorerContent({
           </Suspense>
 
           {isMobile && sidebarOpen && (
-            <div className="absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
+            <div className="sidebar-layout-overlay absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
               <AirportSidebar {...sidebarProps} onClose={closeSidebar} />
             </div>
           )}

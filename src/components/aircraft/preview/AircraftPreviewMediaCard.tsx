@@ -38,10 +38,6 @@ export default function AircraftPreviewMediaCard({ photo, onError }) {
           onError={onError}
         />
       </div>
-      <span className="aircraft-preview-tracking-pill" aria-hidden="true">
-        <span className="aircraft-preview-tracking-pill__dot" />
-        {t("preview.trackingPill")}
-      </span>
       {credit ? (
         <span className="aircraft-preview-photo__credit">
           {t("preview.photoCreditPrefix")}

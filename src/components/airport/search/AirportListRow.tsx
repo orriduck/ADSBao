@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type Tone = "default" | "accent";
-
 type AirportListRowProps = {
   /** Left code chip — an ICAO (mono) or the "HERE" near-me marker. */
   pill: ReactNode;
@@ -13,8 +11,6 @@ type AirportListRowProps = {
   /** Vertical placement of the trailing slot. "start" levels it with the
    *  name's first line; "center" (default) centers it in the row. */
   trailingAlign?: "center" | "start";
-  /** "accent" paints the one orange CTA row (the near-me HERE entry). */
-  tone?: Tone;
   /** Selected "best match" search row — differs by color/luminance only. */
   active?: boolean;
   as?: "button" | "a" | "div";
@@ -25,7 +21,6 @@ type AirportListRowProps = {
 // The Explorer (home) discovery / search list row. Hierarchy comes from SIZE
 // + luminance, never weight: a mono code chip on the left rail, a near-black
 // name, and a faint subtitle. Whitespace groups the rows; there are no boxes.
-// The single orange accent (tone="accent") is reserved for the near-me CTA.
 //
 // The chip column width / font-size read CSS vars (--lr-chip-col, --lr-chip-fs)
 // with the Explorer defaults baked in as fallbacks, so the About page can pass
@@ -37,38 +32,30 @@ export function AirportListRow({
   subtitle,
   trailing,
   trailingAlign = "center",
-  tone = "default",
   active = false,
   as = "div",
   onClick,
   className,
   ...rest
 }: AirportListRowProps) {
-  const accent = tone === "accent";
   const interactive = as === "button" || as === "a";
 
   // Chip typeface / size / shape stays IDENTICAL across states — only the
-  // color (ink, hairline, fill) changes between resting / accent / selected.
+  // color (ink, hairline, fill) changes between resting and selected.
   const chip = (
     <span
       className={cn(
         "mt-[2px] inline-flex w-[var(--lr-chip-col,46px)] items-center justify-center self-start rounded-[6px] py-[3px]",
         "whitespace-nowrap font-code text-[length:var(--lr-chip-fs,calc(10px*var(--sb-body-scale)))] leading-none [letter-spacing:0.6px]",
-        accent
+        active
           ? cn(
-              "text-[var(--atc-signal-accent-strong)]",
-              "bg-[color-mix(in_oklab,var(--atc-signal-accent)_10%,transparent)]",
-              "shadow-[inset_0_0_0_0.5px_color-mix(in_oklab,var(--atc-signal-accent)_30%,transparent)]",
+              "text-atc-text",
+              "shadow-[inset_0_0_0_0.5px_color-mix(in_oklab,var(--atc-text)_34%,transparent)]",
             )
-          : active
-            ? cn(
-                "text-atc-text",
-                "shadow-[inset_0_0_0_0.5px_color-mix(in_oklab,var(--atc-text)_34%,transparent)]",
-              )
-            : cn(
-                "text-atc-dim",
-                "shadow-[inset_0_0_0_0.5px_var(--atc-line-strong)]",
-              ),
+          : cn(
+              "text-atc-dim",
+              "shadow-[inset_0_0_0_0.5px_var(--atc-line-strong)]",
+            ),
       )}
     >
       {pill}
@@ -94,9 +81,9 @@ export function AirportListRow({
         // Trailing icon sits centered in the row by default; "start" levels it
         // with the name's first line (matching the chip) for tall, wrapping rows.
         trailingAlign === "start" ? "mt-[2px] self-start" : "self-center",
-        accent ? "text-[var(--atc-signal-accent)]" : "text-atc-faint",
+        "text-atc-faint",
         interactive && "group-hover:translate-x-0.5",
-        interactive && !accent && "group-hover:text-atc-dim",
+        interactive && "group-hover:text-atc-dim",
       )}
     >
       {trailing}
@@ -107,17 +94,10 @@ export function AirportListRow({
     "group grid w-full grid-cols-[var(--lr-chip-col,46px)_minmax(0,1fr)_16px] items-center gap-x-3",
     "rounded-[10px] px-2.5 py-[9px] text-left",
     "transition-[background-color,box-shadow] duration-150",
-    accent
-      ? cn(
-          "bg-[color-mix(in_oklab,var(--atc-signal-accent)_7%,transparent)]",
-          "shadow-[inset_2px_0_0_var(--atc-signal-accent)]",
-          interactive &&
-            "hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)]",
-        )
-      : active
-        ? "bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)]"
-        : interactive &&
-          "hover:bg-[color-mix(in_oklab,var(--atc-text)_4.5%,transparent)]",
+    active
+      ? "bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)]"
+      : interactive &&
+        "hover:bg-[color-mix(in_oklab,var(--atc-text)_4.5%,transparent)]",
     interactive &&
       "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-signal-accent)]",
     className,
@@ -128,7 +108,6 @@ export function AirportListRow({
     <Comp
       {...(as === "button" ? { type: "button" } : {})}
       data-active={active ? "true" : undefined}
-      data-tone={accent ? "accent" : undefined}
       onClick={onClick}
       className={classes}
       {...rest}

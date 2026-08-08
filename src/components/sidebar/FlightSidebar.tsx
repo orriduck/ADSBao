@@ -13,7 +13,6 @@ import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDispla
 import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
   formatFlightTelemetryMetric,
-  resolveTrackDirectionTranslationKey,
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
@@ -53,7 +52,6 @@ export default function FlightSidebar({
   onboardMode = false,
   journeyProgress = null,
   trackingRunStatus = "",
-  onStopTracking = null,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -86,12 +84,6 @@ export default function FlightSidebar({
       />
       {onboardMode && journeyProgress ? (
         <FlightJourneyProgressCard progress={journeyProgress} />
-      ) : null}
-      {trackingRunStatus === "active" || trackingRunStatus === "lost_signal" ? (
-        <div className="mx-[var(--airport-sidebar-inset)] mt-3 flex items-center justify-between gap-3 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] px-3 py-2 shadow-[var(--atc-control-inset-shadow-subtle)]">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-atc-dim">{t("preview.tracking")}</span>
-          <button className="rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-2.5 py-1 text-[10px] font-semibold text-atc-text" onClick={onStopTracking} type="button">{t("sidebar.stopTracking")}</button>
-        </div>
       ) : null}
       <FlightTelemetryGrid
         speed={speed}
@@ -245,29 +237,21 @@ function FlightTelemetryGrid({
   trackingActive,
 }) {
   const { t } = useI18n();
-  // Local "highlighted metric" state — clicking any card toggles its
-  // active state so the user can pin a metric the same way the airport
-  // page pins WEATHER vs FLIGHTS. Click an already-active card to
-  // deselect.
-  const [activeMetric, setActiveMetric] = useState<string | null>(null);
-  const toggle = (id: string) =>
-    setActiveMetric((current) => (current === id ? null : id));
+  // Focus only marks the metric the user is reading. It does not alter a
+  // value's units or representation, and one metric is always focused.
+  const [focusedMetric, setFocusedMetric] = useState("speed");
   const speedDisplay = formatFlightTelemetryMetric({
     metric: "speed",
     value: speed,
-    alternate: activeMetric === "speed",
   });
   const altitudeDisplay = formatFlightTelemetryMetric({
     metric: "altitude",
     value: altitude,
-    alternate: activeMetric === "altitude",
   });
   const verticalSpeedDisplay = formatFlightTelemetryMetric({
     metric: "verticalSpeed",
     value: vs,
-    alternate: activeMetric === "vs",
   });
-  const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
 
   const altitudeValue = onGround
     ? t("aircraft.gnd")
@@ -282,35 +266,32 @@ function FlightTelemetryGrid({
   const trackValue =
     track == null
       ? "—"
-      : activeMetric === "track"
-        ? trackDirectionKey
-          ? t(trackDirectionKey)
-          : "—"
-        : (
-            <MetricNumberFlow
-              value={Math.round(track)}
-              suffix="°"
-              suffixPosition="sup"
-            />
-          );
+      : (
+          <MetricNumberFlow
+            value={Math.round(track)}
+            suffix="°"
+            suffixPosition="sup"
+          />
+        );
   const phaseValue = onGround
     ? t("aircraft.ground")
     : altitude != null || trackingActive
       ? t("aircraft.airborne")
       : "—";
 
-  // Speed + Altitude are the primary read; vertical speed / track / phase are
-  // auxiliary. One joined glass block (matching the airport hero stats block):
-  // two large metrics on top, a small three-up footer below.
+  // Speed occupies the opening row; the remaining four equally sized metrics
+  // form two pairs. The orange focus moves between metrics without changing
+  // their underlying representation.
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] shadow-[var(--atc-control-inset-shadow-subtle)]">
+      <div className="sidebar-hero-stats overflow-hidden">
         <div className="grid grid-cols-2">
           <StatTile
-            size="lg"
+            size="hero"
+            className="col-span-2"
             label={t("metrics.speed")}
-            active={activeMetric === "speed"}
-            onClick={() => toggle("speed")}
+            active={focusedMetric === "speed"}
+            onClick={() => setFocusedMetric("speed")}
             value={
               speedDisplay ? (
                 <MetricNumberFlow
@@ -322,19 +303,18 @@ function FlightTelemetryGrid({
               )
             }
           />
+        </div>
+        <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
           <StatTile
-            size="lg"
             label={t("metrics.altitude")}
-            active={activeMetric === "altitude"}
-            onClick={() => toggle("altitude")}
+            active={focusedMetric === "altitude"}
+            onClick={() => setFocusedMetric("altitude")}
             value={altitudeValue}
           />
-        </div>
-        <div className="flex border-t border-[var(--app-frost-border)]">
           <StatTile
             label={t("metrics.verticalSpeed")}
-            active={activeMetric === "vs"}
-            onClick={() => toggle("vs")}
+            active={focusedMetric === "vs"}
+            onClick={() => setFocusedMetric("vs")}
             value={
               verticalSpeedDisplay ? (
                 <MetricNumberFlow
@@ -347,16 +327,18 @@ function FlightTelemetryGrid({
               )
             }
           />
+        </div>
+        <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
           <StatTile
             label={t("metrics.track")}
-            active={activeMetric === "track"}
-            onClick={() => toggle("track")}
+            active={focusedMetric === "track"}
+            onClick={() => setFocusedMetric("track")}
             value={trackValue}
           />
           <StatTile
             label={t("metrics.flightPhase")}
-            active={activeMetric === "status"}
-            onClick={() => toggle("status")}
+            active={focusedMetric === "status"}
+            onClick={() => setFocusedMetric("status")}
             value={phaseValue}
           />
         </div>

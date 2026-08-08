@@ -1,5 +1,4 @@
 import type { UnitPreferences } from "@/features/app-shell/unitPreferences/unitPreferencesModel";
-import { ARRIVAL, DEPARTURE } from "@/utils/aircraftMovement";
 import {
   convertTemperatureFromC,
   formatAltitudeFromMeters,
@@ -8,14 +7,10 @@ import {
   type GroundSpeedUnit,
 } from "@/utils/units";
 
-// Pure view-model for the sidebar's joined hero-stats footer. It owns the
-// product rules — which cells show, what they read, and how they behave — so
-// they can be tested without rendering: here mode swaps departures/arrivals for
-// the user's own GPS speed/altitude (the off-airport classification is always
-// 0/0, the bug this guards), airport movement comes from the live contract, and
-// ATC only appears when there are frequencies. The
-// component stays dumb: it maps each item to a <StatTile>, resolving the i18n
-// label, NumberFlow wrapping, and click handler from these descriptors.
+// Pure view-model for the joined airport summary. Fixed airports expose the
+// two weather views, ATC, and spotting below the total-flight headline; here
+// mode instead keeps the user's own movement readouts. The component only maps
+// these descriptors to StatTile, resolving i18n and click handlers there.
 
 type SidebarStatInteraction =
   // A view switch (active when activeView === view); the component wires it to
@@ -47,37 +42,26 @@ export type SidebarStats = {
 
 export type BuildSidebarStatsInput = {
   nearMe: boolean;
-  aircraft: Array<{ movement?: string }>;
   selfSpeedMps: number | null;
   selfAltitudeMeters: number | null;
   // Device-compass heading in degrees, or null when the compass has no signal.
   selfHeadingDeg: number | null;
   groundSpeedUnit: GroundSpeedUnit;
-  metar: { rawTemp?: unknown } | null;
+  metar: { flightCategory?: unknown } | null;
   metarLoading: boolean;
+  localTemperatureC: number | null;
+  localWeatherLoading: boolean;
   units: UnitPreferences;
   atcCount: number;
   spottingCount: number;
 };
 
-export function countAircraftMovements(aircraft: Array<{ movement?: string }>): {
-  departureCount: number; arrivalCount: number;
-} {
-  let departureCount = 0;
-  let arrivalCount = 0;
-  for (const item of aircraft) {
-    if (item?.movement === DEPARTURE) departureCount += 1;
-    else if (item?.movement === ARRIVAL) arrivalCount += 1;
-  }
-  return { departureCount, arrivalCount };
-}
-
-function metarTemperature(
-  metar: { rawTemp?: unknown } | null,
+function localTemperature(
+  temperatureC: number | null,
   unit: UnitPreferences["temperature"],
 ): { value: number | string; unit: string } {
   const label = temperatureUnitLabel(unit);
-  const temp = Number(metar?.rawTemp);
+  const temp = Number(temperatureC);
   if (!Number.isFinite(temp)) return { value: "—", unit: label };
   return { value: Math.round(convertTemperatureFromC(temp, unit)), unit: label };
 }
@@ -85,40 +69,21 @@ function metarTemperature(
 export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
   const {
     nearMe,
-    aircraft,
     selfSpeedMps,
     selfAltitudeMeters,
     selfHeadingDeg,
     groundSpeedUnit,
     metar,
     metarLoading,
+    localTemperatureC,
+    localWeatherLoading,
     units,
     atcCount,
     spottingCount,
   } = input;
 
-  const showMovement = !nearMe;
-
   const movementRow: SidebarStat[] = [];
-  if (showMovement) {
-    const { departureCount, arrivalCount } = countAircraftMovements(
-      aircraft,
-    );
-    movementRow.push({
-      id: "departures",
-      labelKey: "sidebar.departures",
-      value: departureCount,
-      display: "numberFlow",
-      interaction: { kind: "view", view: "departures" },
-    });
-    movementRow.push({
-      id: "arrivals",
-      labelKey: "sidebar.arrivals",
-      value: arrivalCount,
-      display: "numberFlow",
-      interaction: { kind: "view", view: "arrivals" },
-    });
-  } else if (nearMe) {
+  if (nearMe) {
     const speed = formatGroundSpeed(selfSpeedMps, groundSpeedUnit);
     const altitude = formatAltitudeFromMeters(selfAltitudeMeters, units.altitude, {
       kind: "ground",
@@ -142,21 +107,55 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
     });
   }
 
-  const temperature = metarLoading
+  const temperature = localWeatherLoading
     ? { value: "—" as const, unit: temperatureUnitLabel(units.temperature) }
-    : metarTemperature(metar, units.temperature);
+    : localTemperature(localTemperatureC, units.temperature);
+  const flightRule = String(metar?.flightCategory ?? "").trim();
 
-  const contextRow: SidebarStat[] = [
-    {
-      id: "briefing",
-      labelKey: "sidebar.weather",
-      value: temperature.value,
-      display: "text",
-      unit: temperature.value === "—" ? undefined : temperature.unit,
-      interaction: { kind: "view", view: "briefing" },
-    },
-  ];
-  if (atcCount > 0) {
+  const contextRow: SidebarStat[] = nearMe
+    ? [
+        {
+          id: "briefing",
+          labelKey: "sidebar.weather",
+          value: temperature.value,
+          display: "text",
+          unit: temperature.value === "—" ? undefined : temperature.unit,
+          interaction: { kind: "view", view: "weather" },
+        },
+      ]
+    : [
+        {
+          id: "weather",
+          labelKey: "sidebar.weather",
+          value: temperature.value,
+          display: "text",
+          unit: temperature.value === "—" ? undefined : temperature.unit,
+          interaction: { kind: "view", view: "weather" },
+        },
+        {
+          id: "flightRules",
+          labelKey: "sidebar.flightRule",
+          value: metarLoading ? "—" : flightRule || "—",
+          display: "text",
+          interaction: { kind: "view", view: "flightRules" },
+        },
+        {
+          id: "atc",
+          labelKey: "sidebar.atc",
+          value: atcCount,
+          display: "numberFlow",
+          interaction: { kind: "view", view: "atc" },
+        },
+        {
+          id: "spotting",
+          labelKey: "sidebar.spotting",
+          value: spottingCount,
+          display: "numberFlow",
+          interaction: { kind: "spotting" },
+        },
+      ];
+
+  if (nearMe && atcCount > 0) {
     contextRow.push({
       id: "atc",
       labelKey: "sidebar.atc",
@@ -183,14 +182,6 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
       display: "text",
       unit: bearing == null ? undefined : "°",
       interaction: { kind: "readonly" },
-    });
-  } else {
-    contextRow.push({
-      id: "spotting",
-      labelKey: "sidebar.spotting",
-      value: spottingCount,
-      display: "numberFlow",
-      interaction: { kind: "spotting" },
     });
   }
 

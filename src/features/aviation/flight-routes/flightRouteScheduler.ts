@@ -82,15 +82,6 @@ export function createFlightRouteScheduler({
       commitRoute(callsign, route || null, routeContext);
     },
 
-    applyTemporaryRoute(
-      callsign: unknown,
-      route: FlightRoute | null,
-      routeContext: RouteContext = {},
-    ) {
-      if (!route) return;
-      commitRoute(callsign, route, routeContext);
-    },
-
     dispose() {
       listeners.clear();
     },

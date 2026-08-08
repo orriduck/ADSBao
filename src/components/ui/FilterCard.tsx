@@ -218,17 +218,16 @@ export function FilterCardValue({
   );
 }
 
-// Container row of filter cards. `columns` toggles the layout
-// between the 3-up "Show / Traffic / Route" arrangement and the
-// 2×2 four-filter grid used on the detail pages.
+// Detail filters remain a two-up rail. A third narrow column makes labels
+// compete with their selected values, so this primitive intentionally caps
+// the matrix at two columns.
 export function FilterCardGrid({
   className,
-  columns = 3,
+  columns = 2,
   ...props
-}: React.ComponentProps<"div"> & { columns?: number }) {
-  // `data-cols` lets the sidebar CSS layer collect the 2-up detail filter
-  // strip into one bordered glass block (de-clutter) while leaving the 3-up
-  // inline arrangement alone.
+}: React.ComponentProps<"div"> & { columns?: 2 }) {
+  // `data-cols` lets the sidebar CSS layer collect the two-up detail filter
+  // strip into one bordered glass block.
   return (
     <div
       role="group"
@@ -236,9 +235,7 @@ export function FilterCardGrid({
       data-cols={String(columns)}
       className={cn(
         "grid gap-0 px-[var(--airport-sidebar-inset)] py-1.5",
-        columns === 2
-          ? "grid-cols-[repeat(2,minmax(0,1fr))]"
-          : "grid-cols-[repeat(3,minmax(0,1fr))]",
+        "grid-cols-[repeat(2,minmax(0,1fr))]",
         "[.airport-map-kit_&]:gap-0 [.airport-map-kit_&]:py-1",
         className,
       )}

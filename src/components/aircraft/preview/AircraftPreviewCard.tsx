@@ -1,6 +1,6 @@
 import { lazy, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { Camera, Hand } from "lucide-react";
+import { Camera } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
@@ -17,10 +17,8 @@ import ReportingPointPreviewMetadataCard from "./ReportingPointPreviewMetadataCa
 import ReportingPointPreviewMobileCard from "./ReportingPointPreviewMobileCard";
 import MobilePreviewCard, {
   MobilePreviewActions,
-  MobilePreviewIconButton,
   MobilePreviewTrackButton,
 } from "./MobilePreviewCard";
-import RouteFeedbackModal from "./RouteFeedbackModal";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
 import {
@@ -50,8 +48,6 @@ export default function AircraftPreviewCard({
   onOpenCandidateWatchingSpotNavigation = undefined,
   isMobile = false,
   sidebarOpen = false,
-  airportProfile = null,
-  onApplyTemporaryRoute,
   onDismiss,
   suppressMobileWhenAlreadyTracking = false,
   clientDeviceProfile = null,
@@ -201,18 +197,6 @@ export default function AircraftPreviewCard({
     onDismiss?.();
   });
 
-  // Mobile route-feedback affordance: small text link → centered modal.
-  // The desktop inline form (in AircraftPreviewMetadataCard) is more
-  // ergonomic at 280px, but on touch we don't have the space to expand
-  // inline without crowding the existing telemetry. The modal is mounted
-  // outside the card so closing it doesn't reuse the preview reveal.
-  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const aircraftCallsign = (aircraft?.callsign || "").trim().toUpperCase();
-  const feedbackAvailable =
-    isAircraftPreview &&
-    Boolean(aircraftCallsign) &&
-    typeof onApplyTemporaryRoute === "function";
-  const showMobileFeedbackTrigger = showMobilePreview && feedbackAvailable;
   const planeHunterDeviceAllowed =
     shouldEnablePlaneHunterForClientDeviceProfile(clientDeviceProfile);
   const showPlaneHunterTrigger =
@@ -222,9 +206,6 @@ export default function AircraftPreviewCard({
     showMobilePreview &&
     isCandidateWatchingSpot &&
     typeof onOpenCandidateWatchingSpotNavigation === "function";
-  const mobileFeedbackLabel = aircraft?.flightRouteLabel
-    ? t("routeFeedback.suggestCorrection")
-    : t("routeFeedback.suggestRight");
   const mobileTrackLabel = isAirport
     ? alreadyTracking
       ? t("preview.viewingAirport")
@@ -319,11 +300,6 @@ export default function AircraftPreviewCard({
                   ? () => setPlaneHunterOpen(true)
                   : undefined
               }
-              onSuggestCorrection={
-                feedbackAvailable
-                  ? () => setFeedbackModalOpen(true)
-                  : undefined
-              }
               traceStatusVisible={traceStatusVisible}
               traceStatusState={traceAsyncState}
               traceStatusLabels={traceStatusLabels}
@@ -342,12 +318,10 @@ export default function AircraftPreviewCard({
           style={mobilePreviewSafeAreaStyle}
           actions={
             // One always-visible action row. For an aircraft the Track button
-            // is the orange accent, beside the camera (Plane Hunter) and
-            // raise-hand (suggest correction) icon buttons.
+            // is the orange accent, beside the camera (Plane Hunter) action.
             (showMobileTrackButton ||
               showMobileSpotNavigationTrigger ||
-              showMobilePlaneHunterTrigger ||
-              showMobileFeedbackTrigger) ? (
+              showMobilePlaneHunterTrigger) ? (
               <MobilePreviewActions>
                 <div className="flex items-stretch gap-1.5">
                   {showMobileTrackButton && (
@@ -376,15 +350,6 @@ export default function AircraftPreviewCard({
                     >
                       <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
                     </MobilePreviewTrackButton>
-                  )}
-                  {showMobileFeedbackTrigger && (
-                    <MobilePreviewIconButton
-                      onClick={() => setFeedbackModalOpen(true)}
-                      aria-label={mobileFeedbackLabel}
-                      title={mobileFeedbackLabel}
-                    >
-                      <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-                    </MobilePreviewIconButton>
                   )}
                 </div>
               </MobilePreviewActions>
@@ -419,16 +384,6 @@ export default function AircraftPreviewCard({
             />
           )}
         </MobilePreviewCard>
-      )}
-      {feedbackAvailable && (
-        <RouteFeedbackModal
-          aircraft={aircraft}
-          airportProfile={airportProfile}
-          onApplyTemporaryRoute={onApplyTemporaryRoute}
-          open={feedbackModalOpen}
-          onOpenChange={setFeedbackModalOpen}
-          mobile={isMobile || preferMobilePreview}
-        />
       )}
       {showPlaneHunterTrigger && (
         <PlaneHunterStudio

@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
 import OnboardFlightPrompt from "@/components/flight/onboard/OnboardFlightPrompt";
-import { AIRPORT_MAP_FALLBACK_CENTER } from "@/config/airportMap";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -217,22 +216,30 @@ export default function NearMeScreen() {
     };
   }, [requestCompassHeading, requestLocation]);
 
-  // Keep the explorer mounted while permission is pending or denied. A valid
-  // map context avoids replacing the app with a decorative empty state, then
-  // the real device fix takes over as soon as the browser provides one.
-  const airport = useMemo(() => {
-    const center = coords || AIRPORT_MAP_FALLBACK_CENTER;
-    return {
-      icao: "",
-      name: t("sidebar.nearMeTitle"),
-      lat: center.lat,
-      lon: center.lon,
-    };
-  }, [coords, t]);
-
   const handleBack = useCallback(() => {
     navigate(setLocaleSearchParam("/", "", locale));
   }, [navigate, locale]);
+
+  // Here has no useful workspace until the browser supplies a location. Keep
+  // the map and nearby-aircraft subscriptions unmounted while permission is
+  // pending, denied, or unavailable instead of showing a misleading fallback
+  // airport behind the permission state.
+  if (status !== "granted" || !coords) {
+    return (
+      <main
+        className="app-route-transition near-me-permission-screen"
+        onPointerDown={handleNearMeInteraction}
+      >
+        <NearMePermissionPrompt
+          status={status}
+          errorMessage={errorMessage}
+          onRequest={handleRequestLocation}
+          onBack={handleBack}
+          t={t}
+        />
+      </main>
+    );
+  }
 
   return (
     <div
@@ -242,7 +249,12 @@ export default function NearMeScreen() {
       <>
         <AirportExplorer
           icao=""
-          airport={airport}
+          airport={{
+            icao: "",
+            name: t("sidebar.nearMeTitle"),
+            lat: coords.lat,
+            lon: coords.lon,
+          }}
           mode="nearMe"
           nearMeUserLocation={coords}
           nearMeSidebarLocation={sidebarCoords || coords}
@@ -254,15 +266,6 @@ export default function NearMeScreen() {
               : undefined
           }
         />
-        {status !== "granted" ? (
-          <NearMePermissionPrompt
-            status={status}
-            errorMessage={errorMessage}
-            onRequest={handleRequestLocation}
-            onBack={handleBack}
-            t={t}
-          />
-        ) : null}
         <OnboardFlightPrompt
           airport={onboardAirport}
           open={Boolean(onboardAirport)}
@@ -306,9 +309,9 @@ function NearMePermissionPrompt({
         : t("nearMe.hint");
 
   return (
-    <aside
+    <section
       aria-live="polite"
-      className="adsb-loading-overlay adsb-loading-overlay--airport adsb-loading-overlay--notice adsb-loading-overlay--sidebar-aware !fixed z-[var(--z-index-modal)]"
+      className="near-me-permission-screen__content"
     >
       <section className="map-context-notice">
         <div className="map-context-notice__eyebrow">
@@ -339,6 +342,6 @@ function NearMePermissionPrompt({
           </button>
         </div>
       </section>
-    </aside>
+    </section>
   );
 }

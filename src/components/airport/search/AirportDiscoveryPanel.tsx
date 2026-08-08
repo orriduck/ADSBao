@@ -142,18 +142,14 @@ function DiscoverySectionHeader({
   id,
   title,
 }) {
-  // Decorative upright serif group label (regular weight, never bold) with a
-  // small accent tick — one of the three places orange is allowed on this page.
-  // The tick sits flush with the search box's left edge; rows indent past it.
+  // The directory is supporting context for the command-first home screen.
+  // Keep group labels quiet: orange is reserved for live tracking signals,
+  // not for every visual subdivision of the home rail.
   return (
     <header className="min-w-0">
       <h2
         id={id}
-        className={
-          "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
-          "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
-          "before:bg-[var(--atc-signal-accent)] before:content-['']"
-        }
+        className="min-w-0 text-[calc(12px*var(--sb-title-scale))] font-semibold leading-snug text-atc-dim"
       >
         {title}
       </h2>
@@ -170,7 +166,6 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
     <li>
       <AirportListRow
         as="button"
-        tone="accent"
         onClick={onRequest}
         pill="HERE"
         title={title}

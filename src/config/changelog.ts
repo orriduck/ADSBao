@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.9",
+    version: "v3.7.10",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "Flight previews now refresh routes from the service so diversions use their effective destination.",
-      zh: "航班预览现在从服务端刷新航线，改降时会使用有效终点。",
+      en: "Refined live routes and tracking surfaces.",
+      zh: "优化实时航路与追踪界面。",
     },
     highlights: [],
   },

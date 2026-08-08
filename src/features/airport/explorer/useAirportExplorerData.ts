@@ -21,8 +21,6 @@ export function useAirportExplorerData(
     parsed: metar,
     loading: metarLoading,
     settled: metarSettled,
-    error: metarError,
-    statusCode: metarStatusCode,
   } = useMetar(metarLookupIcao);
   const {
     aircraft,
@@ -50,7 +48,6 @@ export function useAirportExplorerData(
   const {
     routesByCallsign,
     loadingCount: routeLoadingCount,
-    applyTemporaryRoute,
   } = useFlightRoutes(selectedRouteAircraft, {
     ...airportProfile,
     enabled: selectedRouteAircraft.length > 0,
@@ -72,8 +69,6 @@ export function useAirportExplorerData(
       metarRaw,
       metarLoading,
       metarSettled,
-      metarError,
-      metarStatusCode,
     },
     traffic: {
       aircraft: aircraftWithRoutes,
@@ -85,7 +80,6 @@ export function useAirportExplorerData(
       realtimeStatus,
       routeLoadingCount,
       aircraftLoadingOverlayActive,
-      applyTemporaryRoute,
     },
   };
 }

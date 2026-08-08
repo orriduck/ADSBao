@@ -20,6 +20,22 @@ const ROW_HEIGHT_ESTIMATE_PX = 42;
 const OVERSCAN_ROWS = 6;
 const ENTER_ANIMATION_MS = 300;
 
+type NearbyItem = {
+  id: string;
+  type: "aircraft" | "airport";
+  data: any;
+};
+
+type NearbyVirtualRowProps = {
+  index: number;
+  start: number;
+  shouldAnimateEnter: boolean;
+  item: NearbyItem;
+  selected: boolean;
+  onSelectAircraft?: (...args: any[]) => void;
+  onSelectAirport?: (...args: any[]) => void;
+};
+
 // Progressive reveal: only the first slice of the (already filtered/sorted)
 // list is fed to the virtualizer, growing by a page as the user scrolls toward
 // the end. Virtualization still windows the rendered DOM, but capping the
@@ -251,7 +267,7 @@ const NearbyVirtualRow = memo(function NearbyVirtualRow({
   selected,
   onSelectAircraft,
   onSelectAirport,
-}) {
+}: NearbyVirtualRowProps) {
   // `entering` toggles the keyframes class. It's initialised from the parent's
   // flag at mount, but rows can also be reused across filter changes (same key,
   // new shouldAnimateEnter prop) — the second effect re-triggers the animation

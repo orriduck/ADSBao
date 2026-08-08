@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 // Presentational stat tile for the sidebar's joined "hero stats" blocks — the
 // label-over-value cell that fills the bordered rows under a headline metric.
 // Used by the airport / here-mode hero stats (`md`) and the flight-tracking
-// telemetry grid (`lg` for the two big speed/altitude metrics, `md` for the
-// auxiliary V/S / track / phase row). Values stay regular weight at every size —
+// telemetry grid (`hero` for the focused speed readout, `md` for the four
+// auxiliary metrics). Values stay regular weight at every size —
 // hierarchy comes from size + luminance, never weight (DESIGN.md). It is
 // intentionally dumb: callers pass an
 // already-formatted value (NumberFlow, an em dash, plain text) plus the
@@ -22,7 +22,7 @@ import type { ReactNode } from "react";
 // whole app reads the selected stat the same way. This supersedes the old
 // ui/MetricCard tile primitive (which carried an unused glass capsule); the live
 // glass-capsule reference now lives in SelectableCard / FilterCard / Toolbar.
-type StatTileSize = "md" | "lg";
+type StatTileSize = "md" | "lg" | "hero";
 
 type StatTileProps = {
   label: ReactNode;
@@ -33,6 +33,7 @@ type StatTileProps = {
   onClick?: () => void;
   readOnly?: boolean;
   size?: StatTileSize;
+  className?: string;
 };
 
 const SIZE_CLASSES: Record<
@@ -52,6 +53,13 @@ const SIZE_CLASSES: Record<
       "text-[calc(26px*var(--sb-body-scale))] font-normal leading-none tracking-[-0.5px] tabular-nums text-atc-text",
     gap: "mt-1.5",
   },
+  hero: {
+    pad: "px-[15px] pb-[14px] pt-[15px]",
+    label: "text-[calc(10px*var(--sb-body-scale))] text-atc-faint",
+    value:
+      "text-[calc(44px*var(--sb-body-scale))] font-normal leading-[0.9] tracking-[-0.02em] tabular-nums text-atc-text",
+    gap: "mt-1.5",
+  },
 };
 
 export default function StatTile({
@@ -63,6 +71,7 @@ export default function StatTile({
   onClick,
   readOnly = false,
   size = "md",
+  className = "",
 }: StatTileProps) {
   const sizing = SIZE_CLASSES[size];
   const body = (
@@ -90,7 +99,7 @@ export default function StatTile({
   if (readOnly) {
     return (
       <div
-        className={`relative min-w-0 flex-1 text-left [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] ${sizing.pad}`}
+        className={`relative min-w-0 flex-1 text-left [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] ${sizing.pad} ${className}`}
       >
         {body}
       </div>
@@ -103,7 +112,7 @@ export default function StatTile({
       data-active={active ? "true" : undefined}
       onClick={onClick}
       aria-pressed={active}
-      className={`relative min-w-0 flex-1 text-left transition-[background-color] duration-200 ease-out [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100 ${sizing.pad}`}
+      className={`relative min-w-0 flex-1 text-left transition-[background-color] duration-200 ease-out [&:not(:last-child)]:border-r [&:not(:last-child)]:border-[var(--app-frost-border)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100 ${sizing.pad} ${className}`}
     >
       {body}
     </button>

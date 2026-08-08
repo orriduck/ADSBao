@@ -4,7 +4,6 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import {
-  ADSBAO_HOME_VIDEO_PATH,
   ADSBAO_NETWORK_ONLY_PATHS,
   ADSBAO_NETWORK_ONLY_PREFIXES,
   ADSBAO_OFFLINE_NAVIGATION_PATHS,
@@ -131,7 +130,6 @@ const PRECACHE_URLS = ${JSON.stringify(precacheUrls, null, 2)};
 const OFFLINE_NAVIGATION_PATHS = ${JSON.stringify(ADSBAO_OFFLINE_NAVIGATION_PATHS)};
 const NETWORK_ONLY_PATHS = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PATHS)};
 const NETWORK_ONLY_PREFIXES = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PREFIXES)};
-const HOME_VIDEO_PATH = ${JSON.stringify(ADSBAO_HOME_VIDEO_PATH)};
 const RUNTIME_ENV_FALLBACK = "window.__ADSBAO_ENV__ = Object.assign({}, window.__ADSBAO_ENV__, {});\\n";
 
 function cleanNavigationPath(pathname) {
@@ -189,11 +187,6 @@ self.addEventListener("fetch", (event) => {
 
   if (isNetworkOnly(url.pathname)) return;
 
-  if (url.pathname === HOME_VIDEO_PATH) {
-    event.respondWith(videoResponse(request));
-    return;
-  }
-
   if (request.mode === "navigate" && isOfflineNavigation(url.pathname)) {
     event.respondWith(
       fetch(request).catch(() => caches.match("/") || caches.match("/index.html")),
@@ -212,40 +205,6 @@ async function cacheFirst(request, cacheKey) {
   return fetch(request);
 }
 
-async function videoResponse(request) {
-  const cache = await caches.open(CACHE_NAME);
-  let response = await cache.match(HOME_VIDEO_PATH);
-  if (!response) {
-    response = await fetch(request);
-    if (response.ok) await cache.put(HOME_VIDEO_PATH, response.clone());
-  }
-  return rangeAwareResponse(request, response);
-}
-
-async function rangeAwareResponse(request, response) {
-  const range = request.headers.get("range");
-  if (!range) return response;
-
-  const blob = await response.blob();
-  const match = /^bytes=(\\d*)-(\\d*)$/.exec(range);
-  if (!match) return response;
-
-  const start = match[1] ? Number(match[1]) : 0;
-  const end = match[2] ? Number(match[2]) : blob.size - 1;
-  if (!Number.isFinite(start) || !Number.isFinite(end) || start > end) {
-    return response;
-  }
-
-  return new Response(blob.slice(start, end + 1), {
-    status: 206,
-    headers: {
-      "Accept-Ranges": "bytes",
-      "Content-Length": String(end - start + 1),
-      "Content-Range": "bytes " + start + "-" + end + "/" + blob.size,
-      "Content-Type": response.headers.get("Content-Type") || "video/mp4",
-    },
-  });
-}
 `;
 }
 

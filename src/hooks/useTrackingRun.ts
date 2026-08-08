@@ -25,17 +25,12 @@ export function useTrackingRun(callsign: string) {
   const [run, setRun] = useState<TrackingRun | null>(null);
   const [observations, setObservations] = useState<TrackingObservation[]>([]);
   const [error, setError] = useState<unknown>(null);
-  const [stopped, setStopped] = useState(false);
-
-  useEffect(() => {
-    setStopped(false);
-  }, [callsign]);
 
   const refresh = useCallback(async () => {
     if (!callsign) return;
     const lookup = await request(`/api/tracking-runs?callsign=${encodeURIComponent(callsign)}`);
     let nextRun = lookup?.run || null;
-    if (!nextRun && !stopped) {
+    if (!nextRun) {
       const created = await request("/api/tracking-runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,7 +46,7 @@ export function useTrackingRun(callsign: string) {
     const detail = await request(`/api/tracking-runs/${encodeURIComponent(nextRun.id)}`);
     setRun(detail?.run || nextRun);
     setObservations(Array.isArray(detail?.observations) ? detail.observations : []);
-  }, [callsign, stopped]);
+  }, [callsign]);
 
   useEffect(() => {
     let disposed = false;
@@ -67,13 +62,6 @@ export function useTrackingRun(callsign: string) {
     };
   }, [refresh]);
 
-  const stop = useCallback(async () => {
-    if (!run?.id) return;
-    const result = await request(`/api/tracking-runs/${encodeURIComponent(run.id)}`, { method: "DELETE" });
-    setRun(result?.run || null);
-    setStopped(true);
-  }, [run?.id]);
-
   const traceHistory = useMemo(
     () => observations.map(({ aircraft, receivedAt }) => ({
       ...(aircraft || {}),
@@ -82,5 +70,5 @@ export function useTrackingRun(callsign: string) {
     [observations],
   );
 
-  return { run, error, refresh, stop, traceHistory };
+  return { run, error, refresh, traceHistory };
 }

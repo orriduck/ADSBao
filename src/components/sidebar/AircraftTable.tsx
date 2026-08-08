@@ -235,7 +235,7 @@ function AircraftTable({
           </div>
         </div>
 
-        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-1.5">
+        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-3">
           <label className="search-input flex items-center gap-2 px-3 py-1.5">
             <Search
               className="h-3.5 w-3.5 shrink-0 text-atc-dim"
@@ -252,68 +252,70 @@ function AircraftTable({
           </label>
         </div>
 
-        <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
-          <EntityFilterCycleCard
-            label={t("sidebar.targets")}
-            value={entityFilter}
-            onValueChange={() =>
-              setEntityFilter(getNextEntityFilter(entityFilter))
-            }
-            options={ENTITY_FILTER_OPTIONS}
-            ariaLabel={t("filters.showAria")}
-          />
+        <div className="aircraft-table-filter-shell">
+          <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
+            <EntityFilterCycleCard
+              label={t("sidebar.targets")}
+              value={entityFilter}
+              onValueChange={() =>
+                setEntityFilter(getNextEntityFilter(entityFilter))
+              }
+              options={ENTITY_FILTER_OPTIONS}
+              ariaLabel={t("filters.showAria")}
+            />
 
-          <TooltipProvider delayDuration={250}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <FilterCard
-                  data-tone="accent"
-                  active={trafficFilter === "routed"}
-                  contentLayout="split"
-                  aria-pressed={trafficFilter === "routed"}
-                  onClick={() =>
-                    setTrafficFilter(
-                      trafficFilter === "routed" ? "all" : "routed",
-                    )
-                  }
-                >
-                  <FilterCardLabel className="flex items-center gap-1.5">
-                    {trafficFilter === "routed" ? (
-                      <span
-                        aria-hidden="true"
-                        className="size-1.5 shrink-0 rounded-full bg-[var(--atc-signal-accent)]"
-                      />
-                    ) : null}
-                    {t("sidebar.route")}
-                  </FilterCardLabel>
-                  <FilterCardValue>
-                    {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
-                  </FilterCardValue>
-                </FilterCard>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[220px] text-left">
-                <strong className="block text-[calc(11px*var(--sb-body-scale))] font-semibold uppercase tracking-wide">
-                  {t("sidebar.routed")}
-                </strong>
-                <span className="mt-1 block text-[calc(11px*var(--sb-body-scale))] font-normal leading-snug">
-                  {t("filters.routedTooltip")}
-                </span>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+            <TooltipProvider delayDuration={250}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <FilterCard
+                    data-tone="accent"
+                    active={trafficFilter === "routed"}
+                    contentLayout="split"
+                    aria-pressed={trafficFilter === "routed"}
+                    onClick={() =>
+                      setTrafficFilter(
+                        trafficFilter === "routed" ? "all" : "routed",
+                      )
+                    }
+                  >
+                    <FilterCardLabel className="flex items-center gap-1.5">
+                      {trafficFilter === "routed" ? (
+                        <span
+                          aria-hidden="true"
+                          className="size-1.5 shrink-0 rounded-full bg-[var(--atc-signal-accent)]"
+                        />
+                      ) : null}
+                      {t("sidebar.route")}
+                    </FilterCardLabel>
+                    <FilterCardValue>
+                      {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
+                    </FilterCardValue>
+                  </FilterCard>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[220px] text-left">
+                  <strong className="block text-[calc(11px*var(--sb-body-scale))] font-semibold uppercase tracking-wide">
+                    {t("sidebar.routed")}
+                  </strong>
+                  <span className="mt-1 block text-[calc(11px*var(--sb-body-scale))] font-normal leading-snug">
+                    {t("filters.routedTooltip")}
+                  </span>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-          <AircraftTypeFilterCard
-            groups={typeGroups}
-            selectedTypes={selectedTypes}
-            onChange={setTypeFilter}
-          />
-          <AircraftAltitudeFilterCard
-            label={t("sidebar.altitudeFilter")}
-            selectedLevels={selectedAltitudeLevels}
-            onChange={setAltitudeLevel}
-            ariaLabel={t("filters.altitudeFilterAria")}
-          />
-        </FilterCardGrid>
+            <AircraftTypeFilterCard
+              groups={typeGroups}
+              selectedTypes={selectedTypes}
+              onChange={setTypeFilter}
+            />
+            <AircraftAltitudeFilterCard
+              label={t("sidebar.altitudeFilter")}
+              selectedLevels={selectedAltitudeLevels}
+              onChange={setAltitudeLevel}
+              ariaLabel={t("filters.altitudeFilterAria")}
+            />
+          </FilterCardGrid>
+        </div>
       </div>
 
       <div className="aircraft-table-list-card flex flex-col">

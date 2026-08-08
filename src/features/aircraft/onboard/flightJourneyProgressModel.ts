@@ -13,27 +13,18 @@ function asRecord(value: unknown): JourneyRecord | null {
     : null;
 }
 
-function isUserConfirmedRoute(route: unknown) {
-  const record = asRecord(route);
-  return Boolean(
-    record?.temporary === true &&
-      String(record?.confidence || "").trim().toLowerCase() === "user-supplied",
-  );
-}
-
 function coordinate(point: JourneyRecord | null, key: "lat" | "lon") {
   const value = Number(point?.[key]);
   return Number.isFinite(value) ? value : null;
 }
 
-function routeProgressFromConfirmedRoute({
+function routeProgressFromRoute({
   route,
   aircraft,
 }: {
   route?: unknown;
   aircraft?: unknown;
 } = {}): FlightJourneyProgress | null {
-  if (!isUserConfirmedRoute(route)) return null;
   const routeRecord = asRecord(route);
   const aircraftRecord = asRecord(aircraft);
   const origin = asRecord(routeRecord?.origin);
@@ -79,15 +70,12 @@ function greatCircleAngle(latA: number, lonA: number, latB: number, lonB: number
   return 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
 }
 
-// Progress needs deliberate journey context: private schedule data, or a route
-// the user explicitly confirmed. An automatically resolved route by itself is
-// never enough to turn an ADS-B position into a passenger journey indicator.
 export function resolveFlightJourneyProgress({
-  confirmedRoute,
+  route,
   aircraft,
 }: {
-  confirmedRoute?: unknown;
+  route?: unknown;
   aircraft?: unknown;
 } = {}): FlightJourneyProgress | null {
-  return routeProgressFromConfirmedRoute({ route: confirmedRoute, aircraft });
+  return routeProgressFromRoute({ route, aircraft });
 }

@@ -10,18 +10,20 @@ import {
 import { defaultGroundSpeedUnit, type GroundSpeedUnit } from "@/utils/units";
 
 // Frosted "hero stats block": one joined rounded glass container with a big
-// headline metric (nearby flights) over a row of small footer cells
-// (weather / ATC / spotting / movement). This is the single quiet segment that
-// switches every left-column view, so only one summary surface shows at a time.
+// flight count over a fixed two-by-two control matrix (weather / flight rule /
+// ATC / spotting). This is the single quiet segment that switches every
+// left-column view, so only one summary surface shows at a time.
 // Each segment doubles as the view-switch control — the active segment shows
 // the reserved orange accent rail + faint wash (DESIGN.md: row-selection,
 // trace, track button, and the active hero/telemetry segment). Hierarchy comes
 // from size and luminance, not weight — numerals stay regular.
 export default function SidebarViewSwitch({
-  activeView = "briefing",
+  activeView = "traffic",
   onViewChange,
   metar = null,
   metarLoading = false,
+  localWeather = null,
+  localWeatherLoading = false,
   aircraft = [],
   frequencies = [],
   candidateSpotCount = 0,
@@ -41,35 +43,34 @@ export default function SidebarViewSwitch({
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
 
-  // The footer's product rules — which cells show, what they read, and how they
-  // behave (here mode swaps departures/arrivals for the user's own GPS
-  // speed/altitude, the movement row is available at airports, ATC only when
-  // there are frequencies) — live in a pure, tested model. This component only
-  // maps each descriptor to a <StatTile>.
+  // The summary's product rules live in a pure model. This component only maps
+  // each descriptor to a StatTile and wires its interaction.
   const stats = useMemo(
     () =>
       buildSidebarStats({
         nearMe,
-        aircraft,
         selfSpeedMps: nearMeSelfSpeedMps,
         selfAltitudeMeters: nearMeSelfAltitudeMeters,
         selfHeadingDeg: nearMeSelfHeadingDeg,
         groundSpeedUnit,
         metar,
         metarLoading,
+        localTemperatureC: localWeather?.temperatureC ?? null,
+        localWeatherLoading,
         units,
         atcCount,
         spottingCount,
       }),
     [
       nearMe,
-      aircraft,
       nearMeSelfSpeedMps,
       nearMeSelfAltitudeMeters,
       nearMeSelfHeadingDeg,
       groundSpeedUnit,
       metar,
       metarLoading,
+      localWeather?.temperatureC,
+      localWeatherLoading,
       units,
       atcCount,
       spottingCount,
@@ -116,10 +117,6 @@ export default function SidebarViewSwitch({
     );
   };
 
-  // The flight-count is the hero only on the traffic view. On the other
-  // sub-views it demotes to a compact summary row so it does not stack a
-  // second hero above that view's own hero (e.g. the weather flight-rules
-  // block). The headline stays a tab back to traffic; structure is unchanged.
   const isTraffic = activeView === "traffic";
   const selfSpeedStat = stats.movementRow.find((stat) => stat.id === "selfSpeed");
   const selfAltitudeStat = stats.movementRow.find(
@@ -128,7 +125,7 @@ export default function SidebarViewSwitch({
 
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className="overflow-hidden rounded-[var(--atc-radius-panel)] border border-[color-mix(in_oklab,var(--atc-text)_8%,transparent)] bg-[color-mix(in_oklab,var(--atc-text)_3.5%,transparent)]">
+      <div className="sidebar-hero-stats overflow-hidden">
         {nearMe ? (
           // Here mode: nearby-count and speed are both a primary read (same
           // lg StatTile treatment as the tracked-flight sidebar's speed/
@@ -145,53 +142,31 @@ export default function SidebarViewSwitch({
             {selfSpeedStat ? renderStat(selfSpeedStat, "lg") : null}
           </div>
         ) : (
-          // One morphing layout (not two swapped branches) so switching to/from
-          // the traffic view animates: the hero block expands via a max-height
-          // transition, the count cross-fades between its compact (inline, right)
-          // and hero (large, below) positions, and the padding eases. The
-          // isTraffic-driven class swaps (not group-data variants) are what the
-          // CSS transitions interpolate.
-          <button
-            type="button"
-            data-active={isTraffic ? "true" : undefined}
-            onClick={() => onViewChange?.("traffic")}
-            aria-pressed={isTraffic}
-            className={`relative block w-full px-[11px] text-left transition-[background-color,padding] duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:origin-center before:scale-x-0 before:bg-[var(--atc-signal-accent)] before:transition-transform before:duration-300 before:ease-[cubic-bezier(0.34,1.3,0.64,1)] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_11%,transparent)] data-[active=true]:before:scale-x-100 ${
-              isTraffic ? "pb-3 pt-[15px]" : "py-[14px]"
-            }`}
-          >
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-[0.14em] text-atc-faint">
-                {t("sidebar.flights")}
-              </span>
-              <span
-                className={`tabular-nums text-[calc(16px*var(--sb-body-scale))] font-normal text-atc-text transition-opacity duration-200 ease-out ${
-                  isTraffic ? "opacity-0" : "opacity-100"
-                }`}
-              >
-                <NumberFlow value={aircraft.length} />
-              </span>
-            </div>
-            <div
-              className={`overflow-hidden transition-[max-height,opacity] duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                isTraffic ? "max-h-[80px] opacity-100" : "max-h-0 opacity-0"
-              }`}
-            >
-              <span className="block pt-1.5 text-[calc(44px*var(--sb-body-scale))] font-normal leading-[0.9] tracking-[-0.02em] tabular-nums text-atc-text">
-                <NumberFlow value={aircraft.length} />
-              </span>
-            </div>
-          </button>
-        )}
-        {!nearMe && stats.movementRow.length > 0 ? (
-          <div className="flex border-t border-[var(--app-frost-border)]">
-            {stats.movementRow.map((stat) => renderStat(stat))}
+          <div className="flex">
+            <StatTile
+              size="hero"
+              label={t("sidebar.flights")}
+              active={isTraffic}
+              onClick={() => onViewChange?.("traffic")}
+              value={<NumberFlow value={aircraft.length} />}
+            />
           </div>
-        ) : null}
-        <div className="flex border-t border-[var(--app-frost-border)]">
-          {nearMe && selfAltitudeStat ? renderStat(selfAltitudeStat) : null}
-          {stats.contextRow.map((stat) => renderStat(stat))}
-        </div>
+        )}
+        {nearMe ? (
+          <div className="flex border-t border-[var(--app-frost-border)]">
+            {selfAltitudeStat ? renderStat(selfAltitudeStat) : null}
+            {stats.contextRow.map((stat) => renderStat(stat))}
+          </div>
+        ) : (
+          <>
+            <div className="flex border-t border-[var(--app-frost-border)]">
+              {stats.contextRow.slice(0, 2).map((stat) => renderStat(stat))}
+            </div>
+            <div className="flex border-t border-[var(--app-frost-border)]">
+              {stats.contextRow.slice(2, 4).map((stat) => renderStat(stat))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

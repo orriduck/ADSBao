@@ -16,7 +16,7 @@ export default function LostSignalToast({
       <p className="mt-1 text-[11px] leading-snug text-atc-dim">{t("lostSignal.description")}</p>
       <div className="mt-3 flex justify-end gap-2">
         <button className="rounded-[var(--atc-radius-pill)] px-3 py-1.5 text-[11px] font-semibold text-atc-dim hover:bg-[var(--atc-control-surface-hover)]" onClick={onStay} type="button">{t("lostSignal.acknowledge")}</button>
-        <button className="rounded-[var(--atc-radius-pill)] border border-transparent px-3 py-1.5 text-[11px] font-semibold [background:var(--atc-glass-active-bg)] text-[var(--atc-click-fg)] shadow-[var(--atc-glass-rim-shadow)]" onClick={onBackHome} type="button">{t("lostSignal.home")}</button>
+        <button className="rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-3 py-1.5 text-[11px] font-semibold text-atc-text shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background,box-shadow] hover:bg-[var(--atc-control-hover-bg)]" onClick={onBackHome} type="button">{t("lostSignal.home")}</button>
       </div>
     </aside>
   );

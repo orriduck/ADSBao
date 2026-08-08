@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { normalizeCallsign } from "../utils/callsign";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { flightRouteScheduler } from "../features/aviation/flight-routes/flightRouteScheduler";
 import type {
   AircraftRouteCandidate,
@@ -174,18 +173,8 @@ export function useFlightRoutes(
     });
   }, [aircraft, routeContext, version]);
 
-  const applyTemporaryRoute = useCallback(
-    (callsign: unknown, route: FlightRoute | null) => {
-      const normalized = normalizeCallsign(callsign);
-      if (!normalized || !route) return;
-      flightRouteScheduler.applyTemporaryRoute(normalized, route, routeContext);
-    },
-    [routeContext],
-  );
-
   return {
     routesByCallsign,
     loadingCount: pendingCallsigns.length,
-    applyTemporaryRoute,
   };
 }

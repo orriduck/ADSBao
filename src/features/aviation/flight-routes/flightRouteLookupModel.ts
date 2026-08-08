@@ -42,7 +42,6 @@ export type FlightRoute = {
   };
   source?: string;
   confidence?: string;
-  temporary?: boolean;
 };
 
 export type RouteCacheEntry = {

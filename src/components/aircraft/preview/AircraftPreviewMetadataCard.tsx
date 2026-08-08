@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Camera, Hand } from "lucide-react";
+import { Camera } from "lucide-react";
 import AircraftPreviewIdentity from "./AircraftPreviewIdentity";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
@@ -10,7 +10,6 @@ import { buildAircraftDetailHref } from "@/lib/realtime/realtimeChannels";
 export default function AircraftPreviewMetadataCard({
   aircraft,
   onOpenPlaneHunter,
-  onSuggestCorrection,
   traceStatusVisible = false,
   traceStatusState = null,
   traceStatusLabels = null,
@@ -49,7 +48,8 @@ export default function AircraftPreviewMetadataCard({
           ) : null}
         </div>
       )}
-      {trackHref ? (
+      {trackHref &&
+      (!alreadyTracking || typeof onOpenPlaneHunter === "function") ? (
         <div className="aircraft-preview-card__actions">
           {!alreadyTracking ? (
             <Link
@@ -60,15 +60,7 @@ export default function AircraftPreviewMetadataCard({
             >
               {t("preview.track")}
             </Link>
-          ) : (
-            <button
-              type="button"
-              className="aircraft-preview-card__track-btn"
-              disabled
-            >
-              {t("preview.tracking")}
-            </button>
-          )}
+          ) : null}
           {typeof onOpenPlaneHunter === "function" && (
             <button
               type="button"
@@ -78,17 +70,6 @@ export default function AircraftPreviewMetadataCard({
               title={t("preview.planeHunter")}
             >
               <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-            </button>
-          )}
-          {typeof onSuggestCorrection === "function" && (
-            <button
-              type="button"
-              className="aircraft-preview-card__icon-btn"
-              onClick={onSuggestCorrection}
-              aria-label={t("routeFeedback.suggestCorrection")}
-              title={t("routeFeedback.suggestCorrection")}
-            >
-              <Hand aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
             </button>
           )}
         </div>

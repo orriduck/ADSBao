@@ -1,7 +1,5 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo } from "react";
 import { Plane } from "lucide-react";
-import { routeBadgePropsFromRoute } from "../../utils/flightRouteDisplay";
-import RouteBadge from "@/components/ui/RouteBadge";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { formatFlightTelemetryMetric } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
@@ -43,32 +41,6 @@ function AircraftRow({
   });
   const { preferences: units } = useUnitPreferences();
   const callsign = aircraft.callsign?.trim() || aircraft.icao24 || "-";
-  // The subline is the route badge when a route exists, and nothing otherwise —
-  // the registration / N-number is never shown here.
-  const routeBadge = routeBadgePropsFromRoute(aircraft.flightRoute);
-  const hasRoute = Boolean(routeBadge);
-
-  // Play the badge reveal ONLY when a route resolves while the SAME aircraft is
-  // already mounted and on screen — the route lookup lands well after the row
-  // paints. prevRoute.mounted gates out the first render; the id check gates out
-  // a slot's occupant changing on a re-sort (rows are position-keyed, so the
-  // slot's aircraft swaps in place — that's CardFlipSlot's cross-fade, not a
-  // route appearing). Only a genuine same-aircraft no-route -> route fires it.
-  const [revealRoute, setRevealRoute] = useState(false);
-  const prevRouteRef = useRef({ id: aircraftId, mounted: false, had: hasRoute });
-  useEffect(() => {
-    const prev = prevRouteRef.current;
-    const sameAircraft = prev.id === aircraftId;
-    if (prev.mounted && sameAircraft && hasRoute && !prev.had) {
-      setRevealRoute(true);
-    }
-    prevRouteRef.current = { id: aircraftId, mounted: true, had: hasRoute };
-  }, [aircraftId, hasRoute]);
-  useEffect(() => {
-    if (!revealRoute) return undefined;
-    const timer = window.setTimeout(() => setRevealRoute(false), 320);
-    return () => window.clearTimeout(timer);
-  }, [revealRoute]);
 
   const distValue = toNumber(aircraft.distanceNm);
   const distanceDisplay = formatNearbyDistanceDisplay(distValue, units.distance);
@@ -80,7 +52,6 @@ function AircraftRow({
   const rawAltitude = formatFlightTelemetryMetric({
     metric: "altitude",
     value: aircraft.altitude,
-    onGround: aircraft.onGround,
   });
   const altitudeDisplay = rawAltitude
     ? formatAltitude(aircraft.altitude, units.altitude, { kind: "cruise" })
@@ -105,19 +76,13 @@ function AircraftRow({
         <Plane size={13} strokeWidth={2.4} />
       </span>
 
-      <div className="flex min-w-0 flex-1 items-baseline gap-2">
+      <div className="flex min-w-0 flex-1 items-baseline">
         <span
           className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[calc(12.5px*var(--sb-body-scale))] text-atc-text"
           translate="no"
         >
           {callsign}
         </span>
-        {routeBadge ? (
-          <RouteBadge
-            {...routeBadge}
-            className={`shrink-0 ${revealRoute ? "route-badge-reveal" : ""}`}
-          />
-        ) : null}
       </div>
 
       <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
@@ -171,7 +136,6 @@ export default memo(AircraftRow, (prev, next) =>
     nestedFields: [
       "callsign",
       "icao24",
-      "flightRoute",
       "distanceNm",
       "altitude",
       "baroRate",

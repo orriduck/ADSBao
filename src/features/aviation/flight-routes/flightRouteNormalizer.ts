@@ -61,12 +61,5 @@ export const normalizeFlightRoute = (payload) => {
     airports: Array.isArray(route.airports) ? route.airports : [],
     source: route.source || "route",
     confidence: route.confidence || "",
-    // Carry the community-feedback flags through so the renderer can show
-    // the `*` suffix and the "user-supplied" hint without re-fetching the
-    // record from ADSBao persistence. These fields are unset for live routes.
-    temporary: Boolean(route.temporary),
-    displaySuffix: String(route.displaySuffix || "").trim(),
-    expiresAt: route.expiresAt || null,
-    feedbackReason: route.feedbackReason || "",
   };
 };

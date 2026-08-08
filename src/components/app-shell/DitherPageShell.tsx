@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useLocation } from "react-router-dom";
-import BrandingVideoBackground from "@/components/effects/BrandingVideoBackground";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import {
   SidebarBrandDock,
@@ -14,6 +13,7 @@ import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/cl
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { scheduleViewportScrollReset } from "@/features/app-shell/viewportScroll";
 import { usePageEntrance } from "@/animations/usePageEntrance";
+import PageMotionGrid from "@/components/app-shell/PageMotionGrid";
 
 export default function DitherPageShell({
   className = "",
@@ -151,12 +151,11 @@ export default function DitherPageShell({
         )}
       </div>
 
-      <div className="dither-page-background relative isolate flex-1 overflow-hidden">
-        {/* Skip the looping brand video on mobile devices: decoding it during a
-            cold first-screen boot competes for the main thread and is the kind
-            of work that dragged the mobile entrance. The background area is
-            mostly behind the full-width panel on mobile anyway. */}
-        {clientDeviceLayout.isMobileDevice ? null : <BrandingVideoBackground />}
+      <div
+        className="dither-page-background relative isolate flex-1 overflow-hidden"
+        aria-hidden="true"
+      >
+        <PageMotionGrid key={routeKey} />
       </div>
     </div>
   );

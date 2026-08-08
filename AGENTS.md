@@ -51,3 +51,5 @@ The user uses Chinese labels for semver:
 When bumping: always update **both** `package.json` ("version") and
 `src/config/changelog.ts` (prepend entry with `version: "vX.Y.Z"`) in the
 same commit. They must stay in sync or the update toast breaks.
+
+## Imported Claude Cowork project instructions

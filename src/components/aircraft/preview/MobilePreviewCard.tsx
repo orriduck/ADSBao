@@ -176,30 +176,3 @@ export const MobilePreviewTrackButton = React.forwardRef(
     );
   },
 );
-
-// Square frosted icon button — camera (Plane Hunter) / raise-hand (suggest
-// correction) beside the Track pill. Neutral; the accent stays on Track.
-export const MobilePreviewIconButton = React.forwardRef(
-  function MobilePreviewIconButton(
-    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
-    ref: React.ForwardedRef<HTMLButtonElement>,
-  ) {
-    return (
-      <button
-        ref={ref}
-        type="button"
-        className={cn(
-          "pointer-events-auto flex aspect-square min-h-[34px] flex-none items-center justify-center cursor-pointer [[data-density=compact]_&]:min-h-[30px]",
-          "rounded-[calc(var(--atc-radius-card)-3px)] border border-atc-line",
-          "bg-[var(--atc-control-surface)] text-atc-dim",
-          "[-webkit-tap-highlight-color:transparent]",
-          "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
-          "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96]",
-          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-);

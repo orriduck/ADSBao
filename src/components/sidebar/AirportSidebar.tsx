@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
@@ -6,6 +6,8 @@ import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import WeatherBriefingStack from "./WeatherBriefingStack";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { useLocalWeather } from "@/hooks/useLocalWeather";
+import { useStablePlaceWeatherCoords } from "@/hooks/useStablePlaceWeatherCoords";
 
 export default function AirportSidebar({
   icao = "",
@@ -21,8 +23,6 @@ export default function AirportSidebar({
   metar = null,
   metarRaw = "",
   metarLoading = false,
-  metarError = null,
-  metarStatusCode = null,
   aircraft = [],
   airports = [],
   frequencies = [],
@@ -58,22 +58,26 @@ export default function AirportSidebar({
   mobileToolbar = null,
   fillAircraftList = true,
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [activeView, setActiveView] = useState("traffic");
   const atcFrequencies = Array.isArray(frequencies) ? frequencies : [];
   const spottingSpots = Array.isArray(candidateWatchingSpots)
     ? candidateWatchingSpots
     : [];
-  const movementFilter =
-    (activeView === "departures" || activeView === "arrivals")
-      ? activeView
-      : "all";
-
-  useEffect(() => {
-    if (activeView === "atc" && atcFrequencies.length === 0) {
-      setActiveView("traffic");
-    }
-  }, [activeView, atcFrequencies.length]);
+  const weatherFocusLat = nearMe ? placeLat ?? lat : lat;
+  const weatherFocusLon = nearMe ? placeLon ?? lon : lon;
+  const stableWeatherCoords = useStablePlaceWeatherCoords(
+    weatherFocusLat,
+    weatherFocusLon,
+    { enabled: nearMe, language: locale },
+  );
+  const localWeatherCoords = nearMe
+    ? stableWeatherCoords
+    : { lat: weatherFocusLat, lon: weatherFocusLon };
+  const { weather: localWeather, loading: localWeatherLoading } = useLocalWeather(
+    localWeatherCoords.lat,
+    localWeatherCoords.lon,
+  );
 
   const handleSpottingView = () => {
     const previousView = activeView;
@@ -102,6 +106,8 @@ export default function AirportSidebar({
         onViewChange={setActiveView}
         metar={metar}
         metarLoading={metarLoading}
+        localWeather={localWeather}
+        localWeatherLoading={localWeatherLoading}
         aircraft={aircraft}
         frequencies={atcFrequencies}
         candidateSpotCount={spottingSpots.length}
@@ -114,22 +120,14 @@ export default function AirportSidebar({
     </>
   );
   const activeViewContent =
-    activeView === "briefing" ? (
+    activeView === "weather" || activeView === "flightRules" ? (
       <WeatherBriefingStack
-        icao={icao}
-        iata={iata}
-        name={name}
-        city={city}
-        country={country}
         metar={metar}
         metarRaw={metarRaw}
         metarLoading={metarLoading}
-        metarError={metarError}
-        metarStatusCode={metarStatusCode}
-        airportCode={iata || icao}
-        airportLat={lat}
-        airportLon={lon}
-        nearMe={nearMe}
+        localWeather={localWeather}
+        localWeatherLoading={localWeatherLoading}
+        view={activeView === "weather" ? "local" : "metar"}
       />
     ) : activeView === "atc" ? (
       <AtcFrequencyPanel icao={icao} frequencies={atcFrequencies} />
@@ -148,7 +146,7 @@ export default function AirportSidebar({
         focusLon={focusLon}
         selectedAircraftId={selectedAircraftId}
         selectedAirportIcao={selectedAirportIcao}
-        movementFilter={movementFilter}
+        movementFilter="all"
         onSelectAircraft={onSelectAircraft}
         onSelectAirport={onSelectAirport}
         fill={fillAircraftList}
@@ -173,7 +171,7 @@ export default function AirportSidebar({
       mobileToolbar={mobileToolbar}
     >
       <div
-        key={`${activeView}:${movementFilter}`}
+        key={activeView}
         className={
           // The whole sidebar is ONE scroll region (owned by the shell panel),
           // so this content area never owns a nested scroll: it flows at its

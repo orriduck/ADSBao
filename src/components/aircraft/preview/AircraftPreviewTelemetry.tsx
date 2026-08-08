@@ -4,7 +4,7 @@ import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPre
 import { toFiniteNumber } from "@/utils/math";
 import { formatAltitude } from "@/utils/units";
 
-// Live flight telemetry — GS / ALT / V/S. Values tween between polls via
+// Live flight telemetry — GS / ALT / V/S / phase. Values tween between polls via
 // NumberFlow so the readout reads as continuously instrumented (the
 // aircraft is actually moving), not as a stuttering update.
 export default function AircraftPreviewTelemetry({ aircraft }) {
@@ -41,6 +41,10 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
         value={vs != null ? Math.round(vs) : null}
         unit="fpm"
         signed
+      />
+      <TextStat
+        label={t("metrics.flightPhase")}
+        value={onGround ? t("aircraft.ground") : t("aircraft.airborne")}
       />
     </dl>
   );

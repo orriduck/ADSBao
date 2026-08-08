@@ -82,7 +82,7 @@ export default function SidebarShell({
   });
 
   const panelClasses = [
-    "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-atc-bg",
+    "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-transparent",
     variant === "airport" ? "airport-sidebar-panel" : "flight-sidebar-panel",
     isMobileOverlay
       ? variant === "airport"
