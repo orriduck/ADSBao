@@ -2098,14 +2098,6 @@ body:has(.dither-page-shell) {
         display: none;
     }
 
-    .dither-page-shell.search-screen .dither-page-background {
-        display: block;
-        inset: 0;
-        min-height: var(--app-viewport-height, 100dvh);
-        position: absolute;
-        width: 100vw;
-    }
-
     .dither-page-background.plane-hunter-stage {
         border-radius: 0;
         display: block;
