@@ -4,6 +4,7 @@
 const zhCN = {
   app: {
     feedLive: "实时数据",
+    feedCached: "缓存数据",
     live: "实时",
     airportExplorer: "机场",
     aboutTitle: "关于",

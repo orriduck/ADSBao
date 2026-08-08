@@ -27,6 +27,12 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
   return source === "adsb" ? "ads-b" : "";
 }
 
-export function buildMapSourceStatusDisplay({ feedSource = "" }: Record<string, any> = {}) {
-  return { feedSource: feedSource ? "Live feed" : "" };
+export function buildMapSourceStatusDisplay({
+  feedSource = "",
+  feedStatus = "live",
+  liveLabel = "Live feed",
+  cachedLabel = "Cached feed",
+}: Record<string, any> = {}) {
+  if (!feedSource) return { feedSource: "" };
+  return { feedSource: feedStatus === "infer" ? cachedLabel : liveLabel };
 }

@@ -1,4 +1,5 @@
 import MapSourceStatusDisplay from "@/components/map/MapSourceStatusDisplay";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { buildMapSourceStatusDisplay } from "@/features/aviation/sourceDisplayModel";
 
 export default function MobileMapSourceStatus({
@@ -10,7 +11,13 @@ export default function MobileMapSourceStatus({
   statusLines = [],
   wakeLockActive = false,
 }) {
-  const status = buildMapSourceStatusDisplay({ feedSource });
+  const { t } = useI18n();
+  const status = buildMapSourceStatusDisplay({
+    feedSource,
+    feedStatus,
+    liveLabel: t("app.feedLive"),
+    cachedLabel: t("app.feedCached"),
+  });
   const updatedLabel = formatUpdated(lastUpdated);
 
   return (

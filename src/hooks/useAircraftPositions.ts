@@ -36,6 +36,10 @@ function sourceFromAircraftPayload(payload: Record<string, any>) {
   return "adsb.lol";
 }
 
+function statusFromAircraftPayload(payload: Record<string, any>) {
+  return payload.stale === true ? "infer" : "live";
+}
+
 export function useAircraftPositions(
   _icao: unknown,
   lat: unknown,
@@ -149,7 +153,7 @@ export function useAircraftPositions(
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
         setAircraft(nextAircraft);
-        setFeedStatus("live");
+        setFeedStatus(statusFromAircraftPayload(payload));
         setFeedSource(sourceFromAircraftPayload(payload));
         const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
         if (statusUpdatedDate) setLastUpdated(statusUpdatedDate);
@@ -187,7 +191,7 @@ export function useAircraftPositions(
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
         setAircraft(nextAircraft);
-        setFeedStatus("live");
+        setFeedStatus(statusFromAircraftPayload(payload));
         setFeedSource(sourceFromAircraftPayload(payload));
         const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
         if (statusUpdatedDate) {
