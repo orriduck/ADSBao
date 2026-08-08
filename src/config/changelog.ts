@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.10.2",
+    version: "v3.10.3",
     kind: "feat",
     title: {
-      en: "80 NM airport exploration, stable flight tracking, and clearer saved settings",
-      zh: "80 海里机场探索、稳定航班追踪与更清晰的设置保存提示",
+      en: "80 NM airport exploration, continuous flight tracking, and clearer saved settings",
+      zh: "80 海里机场探索、连续航班航迹与更清晰的设置保存提示",
     },
     summary: {
-      en: "Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view so position updates cannot compete with an in-progress drag, while completed map-setting saves now appear as full, unobstructed notices.",
-      zh: "机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，避免位置更新与正在进行的拖动竞争；地图设置保存完成后则以完整、不被遮挡的提示显示。",
+      en: "Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view, keeps the watched aircraft's full current-leg trail visible, and moves its marker, centre, and remaining route from one inferred position. Completed map-setting saves appear as full, unobstructed notices.",
+      zh: "机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，始终保留被追踪飞机当前航段的完整轨迹，并让飞机标记、地图中心和剩余航线共同基于同一推断位置移动。地图设置保存完成后则以完整、不被遮挡的提示显示。",
     },
     highlights: [],
   },

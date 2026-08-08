@@ -267,12 +267,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   });
   const trackedLat = toFiniteCoordinate(trackedAircraftForDisplay?.lat);
   const trackedLon = toFiniteCoordinate(trackedAircraftForDisplay?.lon);
-  if (trackedLat != null && trackedLon != null) {
-    lastKnownRef.current = {
-      lat: trackedLat,
-      lon: trackedLon,
-    };
-  }
   useEffect(() => {
     // Clear the carried-over focal position on flight switch. Without resetting
     // lastKnownRef the new flight's focalLat would inherit the PREVIOUS flight's
@@ -326,8 +320,35 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   }, []);
   const visualFocalLat = toFiniteCoordinate(visualFocalPosition.lat);
   const visualFocalLon = toFiniteCoordinate(visualFocalPosition.lon);
-  const focalLat = visualFocalLat ?? lastKnownRef.current.lat;
-  const focalLon = visualFocalLon ?? lastKnownRef.current.lon;
+  const initialVisualFocalPosition = useMemo(() => {
+    if (!trackedAircraftForDisplay || trackedLat == null || trackedLon == null) {
+      return null;
+    }
+    const now = Date.now();
+    return calculateAircraftVisualPosition(
+      beginAircraftMotionState(trackedAircraftForDisplay, now),
+      now,
+    );
+  }, [trackedAircraftForDisplay, trackedLat, trackedLon]);
+  const focalLat =
+    visualFocalLat ??
+    toFiniteCoordinate(initialVisualFocalPosition?.lat) ??
+    lastKnownRef.current.lat;
+  const focalLon =
+    visualFocalLon ??
+    toFiniteCoordinate(initialVisualFocalPosition?.lon) ??
+    lastKnownRef.current.lon;
+  const focalVisualPosition = useMemo(
+    () =>
+      focalLat != null && focalLon != null
+        ? { lat: focalLat, lon: focalLon }
+        : null,
+    [focalLat, focalLon],
+  );
+  useEffect(() => {
+    if (visualFocalLat == null || visualFocalLon == null) return;
+    lastKnownRef.current = { lat: visualFocalLat, lon: visualFocalLon };
+  }, [visualFocalLat, visualFocalLon]);
   const contextPosition = useMemo(
     () =>
       getFlightTrackingContextPosition({
@@ -473,24 +494,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
       }),
     [rawAircraft, routeStatusByCallsign, routesByCallsign],
   );
-
-  // Backfill the focal position from the merged (nearby-favored) array so
-  // the map center uses the freshest position across all data sources,
-  // not just the dedicated callsign API result.
-  const focalFromMerged = useMemo(() => {
-    if (!trackedAircraftForDisplay) return null;
-    const key = getAircraftIdentity(trackedAircraftForDisplay);
-    return aircraft.find((item) => getAircraftIdentity(item) === key) || null;
-  }, [aircraft, trackedAircraftForDisplay]);
-
-  useEffect(() => {
-    if (!focalFromMerged) return;
-    const lat = toFiniteCoordinate(focalFromMerged.lat);
-    const lon = toFiniteCoordinate(focalFromMerged.lon);
-    if (lat != null && lon != null) {
-      lastKnownRef.current = { lat, lon };
-    }
-  }, [focalFromMerged]);
 
   const focalKey = trackedAircraftForDisplay
     ? getAircraftIdentity(trackedAircraftForDisplay)
@@ -900,7 +903,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
       selectedAircraft={selectedAircraft}
       focalAircraft={enrichedTrackedAircraft}
       showSelectedTrace={showNearbyMapContext}
-      focalRecordedOnly
+      focalFullTrace
+      focalClipToLeg
+      focalVisualPosition={focalVisualPosition}
     >
       <AircraftPreviewCard
         aircraft={selectedAircraft}
@@ -995,6 +1000,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               selectedNavaidKey={selectedNavaidKey}
               selectedAirspaceId={selectedAirspaceId}
               focalAircraftId={focalKey}
+              focalVisualPosition={focalVisualPosition}
               followsCenter={mapFollowsAircraft}
               floatingSidebarAware={!isMobile && sidebarOpen}
               onSelectAircraft={selectAircraft}

@@ -117,6 +117,7 @@ export default function AirportMap({
   selectedCandidateWatchingSpotId = "",
   candidateWatchingSpots = [],
   focalAircraftId = "",
+  focalVisualPosition = null,
   followsCenter = true,
   floatingSidebarAware = false,
   onSelectAircraft,
@@ -843,6 +844,7 @@ export default function AirportMap({
             theme={currentTheme}
             selectedAircraftId={selectedAircraftId}
             focalAircraftId={focalAircraftId}
+            focalVisualPosition={focalVisualPosition}
             selectionActive={selectionActive}
             traceActive={renderSelectedAircraftTrace}
             showCallsigns={showCallsigns}

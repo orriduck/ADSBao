@@ -297,11 +297,42 @@ export function dedupeTracePointsByMinuteLatest(points = []) {
   );
 }
 
+// Geometry must retain the 15-second live buckets and inferred head produced
+// by composeAircraftTrace. Minute-level dedupe belongs to historical source
+// reconciliation, not the final render path: applying it there can reduce a
+// newly started tracking run to one point and make the trace disappear.
+export function dedupeTracePointsByTimestampLatest(points = []) {
+  const timestamps = new Map();
+  if (!Array.isArray(points)) return [];
+
+  for (const point of points) {
+    const timestampMs = Number(point?.timestampMs ?? point?.time);
+    if (
+      !isFiniteNumber(point?.lat) ||
+      !isFiniteNumber(point?.lon) ||
+      !Number.isFinite(timestampMs)
+    ) {
+      continue;
+    }
+    timestamps.set(timestampMs, {
+      ...point,
+      timestampMs,
+      lat: Number(point.lat),
+      lon: Number(point.lon),
+    });
+  }
+
+  return Array.from(timestamps.values()).sort(
+    (a, b) => a.timestampMs - b.timestampMs,
+  );
+}
+
 // Resolve overlapping trace points across multiple sources. Live samples keep
 // a finer bucket so turning traces do not rewrite the same minute's control
 // point, while historical sources still collapse to the latest point per
-// minute. If two sources publish the same timestamp in a bucket, the explicit
-// `priority` field breaks the tie (higher wins).
+// minute. A live fix must only replace a historical point at the exact same
+// time; suppressing the entire minute loses the first part of a newly watched
+// trail. If two sources publish the same timestamp, `priority` breaks the tie.
 //
 // Used by the aircraft detail page where three sources overlap:
 //   priority 3 — live polled position (freshest, includes telemetry)
@@ -309,7 +340,7 @@ export function dedupeTracePointsByMinuteLatest(points = []) {
 //   priority 1 — trace_full (historical baseline)
 function mergeTracesByPriority({ sources = [] } = {}) {
   const buckets = new Map();
-  const liveMinuteBuckets = new Set();
+  const timestamps = new Map();
   for (const source of sources) {
     if (!source) continue;
     const priority = Number(source.priority) || 0;
@@ -317,18 +348,16 @@ function mergeTracesByPriority({ sources = [] } = {}) {
       Number.isFinite(Number(source.bucketMs)) && Number(source.bucketMs) > 0
         ? Number(source.bucketMs)
         : TRACE_MINUTE_BUCKET_MS;
-    const suppressesMinuteBucket = Boolean(source.suppressesMinuteBucket);
     const points = Array.isArray(source.points) ? source.points : [];
     for (const point of points) {
       if (!isFiniteNumber(point?.lat) || !isFiniteNumber(point?.lon)) continue;
       const timestampMs = Number(point?.timestampMs ?? point?.time);
       if (!Number.isFinite(timestampMs)) continue;
-      const minuteBucket = traceMinuteBucket(timestampMs);
-      if (!suppressesMinuteBucket && liveMinuteBuckets.has(minuteBucket)) {
+      const bucket = `${bucketMs}:${traceBucket(timestampMs, bucketMs)}`;
+      const sameTimestamp = timestamps.get(timestampMs);
+      if (sameTimestamp && sameTimestamp.priority >= priority) {
         continue;
       }
-      if (suppressesMinuteBucket) liveMinuteBuckets.add(minuteBucket);
-      const bucket = `${bucketMs}:${traceBucket(timestampMs, bucketMs)}`;
       const existing = buckets.get(bucket);
       if (
         existing &&
@@ -337,7 +366,13 @@ function mergeTracesByPriority({ sources = [] } = {}) {
       ) {
         continue;
       }
-      buckets.set(bucket, {
+      if (sameTimestamp) {
+        buckets.delete(sameTimestamp.bucket);
+      }
+      if (existing) {
+        timestamps.delete(existing.timestampMs);
+      }
+      const entry = {
         priority,
         timestampMs,
         point: {
@@ -351,7 +386,9 @@ function mergeTracesByPriority({ sources = [] } = {}) {
           baroRate: isFiniteNumber(point?.baroRate) ? Number(point.baroRate) : null,
           ...(point?.inferred ? { inferred: true } : null),
         },
-      });
+      };
+      buckets.set(bucket, entry);
+      timestamps.set(timestampMs, { priority, bucket });
     }
   }
   return Array.from(buckets.values())

@@ -305,6 +305,28 @@ import {
   const composed = composeAircraftTrace({
     mode: "focus",
     sources: {
+      persisted: [
+        { lat: 42.0, lon: -71.0, timestampMs: 60_000 },
+        { lat: 42.02, lon: -70.98, timestampMs: 120_000 },
+      ],
+      live: [{ lat: 42.03, lon: -70.97, timestampMs: 135_000 }],
+      visualHead: [
+        { lat: 42.031, lon: -70.969, timestampMs: 140_000, inferred: true },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    composed.points.map((point) => point.timestampMs),
+    [60_000, 120_000, 135_000, 140_000],
+    "focus traces retain recorded history, the current live fix, and its inferred head",
+  );
+}
+
+{
+  const composed = composeAircraftTrace({
+    mode: "focus",
+    sources: {
       recent: [{ lat: 1, lon: 1, timestampMs: 1_000, altitude: 100 }],
       live: [
         {

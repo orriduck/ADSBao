@@ -66,6 +66,7 @@ interface AircraftCanvasSetData {
   aircraft: any[];
   selectedId: string;
   focalId: string;
+  focalVisualPosition: { lat: number; lon: number } | null;
   selectionActive: boolean;
   traceActive: boolean;
   showCallsigns: boolean;
@@ -228,9 +229,13 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
       // Always advance the eased position (cheap; keeps off-screen planes
       // correct when they re-enter); peek when fully settled to avoid resetting
       // lastStepMs needlessly.
-      const pos = animating
+      const displayedPosition = animating
         ? calculateAircraftVisualPosition(motion, now, zoom)
         : peekAircraftDisplayedPosition(motion);
+      const pos =
+        d.id === this._focalId && this._focalVisualPosition
+          ? this._focalVisualPosition
+          : displayedPosition;
       if (!pos) continue;
       const lp = map.latLngToLayerPoint([pos.lat, pos.lon]);
       if (!b.contains(lp)) {
@@ -270,6 +275,10 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
   setData(data: AircraftCanvasSetData) {
     this._selectedId = data.selectedId;
     this._focalId = data.focalId;
+    this._focalVisualPosition = latLngFinite(
+      data.focalVisualPosition?.lat,
+      data.focalVisualPosition?.lon,
+    );
     this._palette = data.palette;
     this._reducedMotion = data.reducedMotion;
     this._drawList = buildDrawList(data.aircraft, {
@@ -312,7 +321,11 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
       const motion = this._motion.get(d.id);
       if (!motion) continue;
       // Read-only: hit testing must never advance the easing.
-      const pos = peekAircraftDisplayedPosition(motion);
+      const displayedPosition = peekAircraftDisplayedPosition(motion);
+      const pos =
+        d.id === this._focalId && this._focalVisualPosition
+          ? this._focalVisualPosition
+          : displayedPosition;
       if (!pos) continue;
       const cp = this._map.latLngToContainerPoint([pos.lat, pos.lon]);
       points.push({ id: d.id, x: cp.x, y: cp.y });
@@ -371,6 +384,7 @@ export interface AircraftCanvasLayerProps {
   theme?: string;
   selectedAircraftId?: string;
   focalAircraftId?: string;
+  focalVisualPosition?: { lat: number; lon: number } | null;
   selectionActive?: boolean;
   traceActive?: boolean;
   showCallsigns?: boolean;
@@ -383,6 +397,7 @@ export default function AircraftCanvasLayer({
   theme = "dark",
   selectedAircraftId = "",
   focalAircraftId = "",
+  focalVisualPosition = null,
   selectionActive = false,
   traceActive = false,
   showCallsigns = true,
@@ -444,6 +459,7 @@ export default function AircraftCanvasLayer({
       aircraft,
       selectedId: selectedAircraftId,
       focalId: focalAircraftId,
+      focalVisualPosition,
       selectionActive,
       traceActive,
       showCallsigns,
@@ -457,6 +473,7 @@ export default function AircraftCanvasLayer({
     theme,
     selectedAircraftId,
     focalAircraftId,
+    focalVisualPosition,
     selectionActive,
     traceActive,
     showCallsigns,

@@ -59,18 +59,29 @@ import { computeTraceGeometry } from "./traceGeometry";
 
   const geometry = computeTraceGeometry({ tracePoints, maxRenderPoints: 80 });
 
-  assert.ok(geometry, "minute-deduped trace should still produce geometry");
+  assert.ok(geometry, "same-minute tracking samples should still produce geometry");
   assert.ok(
-    geometry.samplePoints.every(
-      (point) => (point.timestampMs - base) % 60_000 === 45_000,
+    geometry.samplePoints.some(
+      (point) => (point.timestampMs - base) % 60_000 === 5_000,
     ),
-    "sample dots should use the latest point in each minute",
+    "sample dots should retain the first live point in each minute",
   );
   assert.ok(
-    geometry.labelPoints.every(
+    geometry.samplePoints.some(
       (point) => (point.timestampMs - base) % 60_000 === 45_000,
     ),
-    "time/altitude labels should use the latest point in each minute",
+    "sample dots should retain the later live point in each minute",
+  );
+}
+
+{
+  const tracePoints = [
+    { lat: 42, lon: -71, timestampMs: 1_700_000_000_000 },
+    { lat: 42.01, lon: -70.99, timestampMs: 1_700_000_015_000, inferred: true },
+  ];
+  assert.ok(
+    computeTraceGeometry({ tracePoints, maxRenderPoints: 80 }),
+    "a real fix and its inferred tracking head should render before a minute elapses",
   );
 }
 

@@ -4,7 +4,7 @@
 
 import {
   buildAircraftTraceCurve,
-  dedupeTracePointsByMinuteLatest,
+  dedupeTracePointsByTimestampLatest,
   downsampleTracePoints,
   segmentTracePoints,
 } from "./aircraftTraceModel";
@@ -109,10 +109,10 @@ export function computeTraceGeometry({
 }) {
   if (!Array.isArray(tracePoints) || tracePoints.length < 2) return null;
 
-  const minuteTracePoints = dedupeTracePointsByMinuteLatest(tracePoints);
-  if (minuteTracePoints.length < 2) return null;
+  const renderTracePoints = dedupeTracePointsByTimestampLatest(tracePoints);
+  if (renderTracePoints.length < 2) return null;
 
-  const segmented = segmentTracePoints(minuteTracePoints);
+  const segmented = segmentTracePoints(renderTracePoints);
   const segments = segmented.segments
     .map((segment, index) => {
       if (!Array.isArray(segment.points) || segment.points.length < 2) {

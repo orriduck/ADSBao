@@ -152,8 +152,8 @@ function localTraceHistoryToTracePoints(aircraft: AircraftTraceHookRecord | null
 
 // Resolves the displayed trace from independent sources through
 // `composeAircraftTrace`. Airport selections stitch recent+live. The flight
-// page's focal aircraft uses recordedOnly, which stitches only the active
-// tracking run with live fixes and never imports provider history.
+// page's focal aircraft additionally combines provider history with the active
+// tracking run, its live fixes, and one inferred display head.
 //
 // Priority order inside a valid stitch is: real live fixes >
 // trace_recent > trace_full > durable tracking-run points.
@@ -177,10 +177,8 @@ export function useAircraftTrace(
 ) {
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
-  const recordedOnly = Boolean(options?.recordedOnly);
-  // Historical-source callers may still clip to a single leg. The tracked
-  // flight's recordedOnly path bypasses those sources altogether.
   const clipToLeg = Boolean(options?.clipToLeg);
+  const externalVisualPosition = resolveLatLonPosition(options?.visualPosition);
   const traceRefreshKey =
     typeof options?.traceRefreshKey === "string"
       ? options.traceRefreshKey
@@ -208,10 +206,9 @@ export function useAircraftTrace(
     [selectedAircraft],
   );
 
-  // Fetch sources whenever the selected aircraft changes. A focal aircraft
-  // on the tracking page opts into recordedOnly: that trail is built solely
-  // from the active tracking run plus live fixes, so opening the page never
-  // imports provider history from before recording began.
+  // Fetch sources whenever the selected aircraft changes. The tracking page
+  // asks for the full current-leg history, then joins it with the durable run
+  // samples and new live fixes below.
   useEffect(() => {
     if (!hex) {
       setActiveHex("");
@@ -243,13 +240,6 @@ export function useAircraftTrace(
     setRecentTraceUnavailable(false);
     cycleRef.current += 1;
     setTraceCycle(cycleRef.current);
-
-    if (recordedOnly) {
-      setRecentLoading(false);
-      setFullPoints([]);
-      setFullLoading(false);
-      return undefined;
-    }
 
     fetchTraceSource({
       hex,
@@ -309,7 +299,7 @@ export function useAircraftTrace(
     return () => {
       disposed = true;
     };
-  }, [hex, fullTrace, recordedOnly, traceLabel]);
+  }, [hex, fullTrace, traceLabel]);
 
   // Background refreshes: resume-from-tab, lost-signal, and the steady
   // periodic tick. These are silent — no
@@ -325,7 +315,7 @@ export function useAircraftTrace(
       refreshKey: traceRefreshKey,
       fullTrace,
     });
-    if (recordedOnly || !hex || sources.length === 0) return undefined;
+    if (!hex || sources.length === 0) return undefined;
 
     let disposed = false;
     const label = traceLabel;
@@ -358,7 +348,7 @@ export function useAircraftTrace(
     return () => {
       disposed = true;
     };
-  }, [hex, traceRefreshKey, fullTrace, recordedOnly, traceLabel]);
+  }, [hex, traceRefreshKey, fullTrace, traceLabel]);
 
   // Grow the trail with REAL fixes: every fresh upstream position sample
   // (a new positionTime) appends an authoritative, persistable point at
@@ -396,11 +386,25 @@ export function useAircraftTrace(
     }
   }, [hex, selectedAircraft]);
 
-  // The visual head follows the same motion model as the aircraft marker
-  // so the trace tip tracks inferred movement between fixes. It is a
-  // single display-only point (inferred → filtered from persistence).
+  // The visual head follows the same inferred position that centers the
+  // tracking map and anchors its remaining route. Airport selections fall
+  // back to their own motion state; the tracked focal supplies that canonical
+  // visual position through the provider.
   useEffect(() => {
     if (!hex || typeof window === "undefined") return undefined;
+
+    if (externalVisualPosition) {
+      const point = liveAircraftToTracePoint(selectedAircraft, {
+        position: externalVisualPosition,
+        timestampMs: Date.now(),
+        inferred: true,
+      });
+      if (point) {
+        latestVisualTracePointRef.current = point;
+        setVisualHeadPoint(point);
+      }
+      return undefined;
+    }
 
     const tick = () => {
       const motion = traceMotionRef.current;
@@ -419,21 +423,21 @@ export function useAircraftTrace(
     tick();
     const timer = window.setInterval(tick, TRACE_VISUAL_TICK_MS);
     return () => window.clearInterval(timer);
-  }, [hex, selectedAircraft]);
+  }, [externalVisualPosition, hex, selectedAircraft]);
 
   const composedTrace = useMemo(() => {
     if (activeHex !== hex) {
       return { points: [], loading: false };
     }
     return composeAircraftTrace({
-      mode: recordedOnly ? "selected" : fullTrace ? "focus" : "selected",
+      mode: fullTrace ? "focus" : "selected",
       sources: {
         live: livePoints,
         visualHead: visualHeadPoint ? [visualHeadPoint] : [],
         recent: recentPoints,
         local: localTracePoints,
         full: fullPoints,
-        persisted: [],
+        persisted: fullTrace ? localTracePoints : [],
       },
       recentLoading,
       fullLoading,
@@ -443,7 +447,6 @@ export function useAircraftTrace(
     activeHex,
     hex,
     fullTrace,
-    recordedOnly,
     livePoints,
     visualHeadPoint,
     recentPoints,

@@ -53,7 +53,9 @@ export function SelectedAircraftTraceProvider({
   selectedAircraft = null,
   focalAircraft = null,
   showSelectedTrace = true,
-  focalRecordedOnly = false,
+  focalFullTrace = false,
+  focalClipToLeg = false,
+  focalVisualPosition = null,
   children,
 }) {
   const focalIdentity = focalAircraft
@@ -67,11 +69,10 @@ export function SelectedAircraftTraceProvider({
       ? selectedAircraft
       : null;
   const primaryHook = useAircraftTrace(primaryAircraft);
-  // The tracked-flight page renders only its durable tracking-run samples.
-  // It never mixes provider history into the focal trail; a secondary plane
-  // clicked by the user still uses the regular recent-trace behavior.
   const focalHook = useAircraftTrace(focalAircraft, {
-    recordedOnly: focalRecordedOnly,
+    fullTrace: focalFullTrace,
+    clipToLeg: focalClipToLeg,
+    visualPosition: focalVisualPosition,
   });
 
   const primary = useMemo(
