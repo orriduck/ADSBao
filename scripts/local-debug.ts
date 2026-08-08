@@ -284,6 +284,7 @@ function localServiceEnv(port: number) {
       "CLERK_JWKS_URL",
       "CLERK_SECRET_KEY",
       "DATABASE_URL",
+      "FR24_API_TOKEN",
       "OPENAIP_API_KEY",
       "OPENAIP_BASE_URL",
       "VITE_SITE_URL",

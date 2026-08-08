@@ -27,12 +27,36 @@ export type RouteLookupStatus = "pending" | "retrying" | "unavailable";
 
 const routeClient = createFlightRouteClient();
 
+function routeMetadataKey(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
 function routeCandidateKey(aircraft: AircraftRouteCandidate[]) {
   return (aircraft || [])
-    .map((item) => normalizeCallsign(item?.callsign))
-    .filter(isLookupCallsign)
+    .map((item) => {
+      const callsign = normalizeCallsign(item?.callsign);
+      if (!isLookupCallsign(callsign)) return "";
+      return [
+        callsign,
+        routeMetadataKey(item?.origin),
+        routeMetadataKey(item?.destination),
+      ].join(":");
+    })
     .filter(Boolean)
     .join(",");
+}
+
+function buildRouteCandidates(aircraft: AircraftRouteCandidate[]) {
+  const seen = new Set<string>();
+  return (aircraft || []).flatMap((item) => {
+    const callsign = normalizeCallsign(item?.callsign);
+    if (!isLookupCallsign(callsign) || seen.has(callsign)) return [];
+    seen.add(callsign);
+    return [{ callsign, origin: item?.origin, destination: item?.destination }];
+  });
 }
 
 /**
@@ -51,14 +75,7 @@ export function useFlightRoutes(
     Record<string, RouteLookupStatus>
   >({});
   const candidateKey = useMemo(() => routeCandidateKey(aircraft), [aircraft]);
-  const routeCandidates = useMemo(
-    () =>
-      candidateKey
-        .split(",")
-        .filter(Boolean)
-        .map((callsign) => ({ callsign })),
-    [candidateKey],
-  );
+  const routeCandidates = useMemo(() => buildRouteCandidates(aircraft), [candidateKey]);
 
   useEffect(() => {
     if (!enabled || routeCandidates.length === 0) return undefined;

@@ -181,6 +181,10 @@ export function resolvePendingRouteLookups({
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item?.callsign);
     if (!isLookupCallsign(callsign) || inFlight.has(callsign)) continue;
+    // A focused paid fallback may already carry a valid origin/destination.
+    // Use that neutral aircraft metadata directly instead of spending a second
+    // paid route lookup for the same callsign.
+    if (buildRouteFromAircraftMetadata(item)) continue;
     if (getFreshRouteCacheEntry(cache, callsign, now, routeContext)) continue;
     return [callsign];
   }

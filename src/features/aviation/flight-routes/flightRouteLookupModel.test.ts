@@ -28,6 +28,24 @@ const second = resolvePendingRouteLookups({
 });
 assert.deepEqual(second, ["UAL1195"]);
 
+assert.deepEqual(
+  resolvePendingRouteLookups({
+    aircraft: [
+      {
+        callsign: "PAIDMETA",
+        origin: "KJFK",
+        destination: "KLAX",
+      },
+      { callsign: "UAL1195" },
+    ],
+    cache: new Map(),
+    inFlight: new Set(),
+    now: 0,
+  }),
+  ["UAL1195"],
+  "valid aircraft route metadata must not trigger a duplicate HTTP lookup",
+);
+
 writeRouteCacheEntry(cache, second[0], null, 0);
 assert.deepEqual(
   resolvePendingRouteLookups({
