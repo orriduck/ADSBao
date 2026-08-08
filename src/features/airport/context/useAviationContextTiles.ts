@@ -7,12 +7,17 @@ import { createRequestCache } from "@/utils/requestCache";
 type ContextTileRecord = Record<string, any>;
 
 const FRONTEND_CACHE_TTL_MS = 5 * 60 * 1000;
+// Keep the restored airspace payload separate from the legacy empty-tile cache.
+const AIRSPACE_CONTEXT_CACHE_VERSION = "2";
 const tileRequestCache = createRequestCache<ContextTileRecord>({
   ttlMs: FRONTEND_CACHE_TTL_MS,
 });
 
 function tilePath(resource: string, tile: ContextTileRecord) {
-  return `/api/${resource}/${tile.z}/${tile.x}/${tile.y}`;
+  const path = `/api/${resource}/${tile.z}/${tile.x}/${tile.y}`;
+  return resource === "airspace"
+    ? `${path}?v=${AIRSPACE_CONTEXT_CACHE_VERSION}`
+    : path;
 }
 
 function tileSignature(tile: ContextTileRecord) {

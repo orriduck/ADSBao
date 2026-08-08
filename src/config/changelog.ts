@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 72;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.9.4",
+    version: "v3.9.5",
     kind: "feat",
     title: {
       en: "Recorded flight trace views",
       zh: "主动记录航迹视图",
     },
     summary: {
-      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme. Turning on Airspace now loads viewport context on airport pages, signed-in settings save with the verified account identity, and the metrics, flight search, and filter matrix now share one lightly milky glass treatment with a tighter value scale.",
-      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。开启空域图层后，机场页现在也会加载视口空域数据；已登录用户的设置会以已验证的账户身份保存；指标卡、航班搜索框与筛选矩阵共享同一层轻微乳白玻璃，筛选值字号也更紧凑。",
+      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme. Airspace now loads viewport context on airport pages and uses a fresh cache key so restored boundaries appear immediately; signed-in settings save with the verified account identity, and the metrics, flight search, and filter matrix now share one lightly milky glass treatment with a tighter value scale.",
+      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。空域图层现在会在机场页加载视口数据，并使用新的缓存键让恢复后的边界立即出现；已登录用户的设置会以已验证的账户身份保存；指标卡、航班搜索框与筛选矩阵共享同一层轻微乳白玻璃，筛选值字号也更紧凑。",
     },
     highlights: [],
   },
