@@ -6203,27 +6203,49 @@ body {
     margin-left: auto;
 }
 
+/* The update toast is persistent and actionable. On phones it belongs above
+   the bottom map/navigation rail, centred so neither side of the map is given
+   accidental visual priority. */
 @media (max-width: 600px) {
     .atc-toaster[data-sonner-toaster][data-x-position="right"] {
         top: auto;
-        bottom: max(5.5rem, calc(1rem + env(safe-area-inset-bottom)));
-        left: auto;
-        right: var(--mobile-offset-right);
+        bottom: calc(var(--map-toolbar-mobile-clearance) + 12px);
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
         width: min(
             var(--width),
-            calc(100vw - var(--mobile-offset-left) - var(--mobile-offset-right))
+            calc(100vw - 32px)
         );
     }
 
     .atc-toaster[data-sonner-toaster][data-x-position="right"]
         [data-sonner-toast] {
-        left: auto;
+        /* Sonner owns this element's vertical translateY animation. Keep that
+           transform intact; only the outer toaster handles centring. */
+        left: 0;
         right: 0;
-        width: min(
-            var(--width),
-            calc(100vw - var(--mobile-offset-left) - var(--mobile-offset-right))
-        );
+        width: 100%;
     }
+
+    /* The shared toaster is declared top-right for desktop. On phones its
+       outer anchor moves to the dock-safe bottom, so its children must switch
+       from Sonner's top stack to the matching bottom stack as well. */
+    .atc-toaster[data-sonner-toaster][data-y-position="top"]
+        [data-sonner-toast] {
+        bottom: 0;
+        top: auto;
+    }
+}
+
+/* The retained traffic extent is a geographic boundary, not a new card or
+   control surface. Keep it quiet enough for the map and aircraft to lead. */
+.airport-map__nearby-boundary {
+    fill: color-mix(in oklab, var(--atc-signal-accent) 5%, transparent);
+    pointer-events: none;
+    stroke: color-mix(in oklab, var(--atc-signal-accent) 58%, var(--atc-text) 18%);
+    stroke-dasharray: 5 7;
+    stroke-width: 1.25px;
 }
 
 /* Aircraft preview card — appears on sidebar-row hover. Rounded surface

@@ -52,6 +52,7 @@ export default function MapControlBar({
   onToggleShowCallsigns,
   onSelectBaseLayer,
   onMap = null,
+  onRecenter = null,
   onToggleUserLocation = null,
   onToggleSidebar,
   onToggleWakeLock = null,
@@ -138,6 +139,7 @@ export default function MapControlBar({
           normalizedTraceViewItems.length > 0 && !zoomActive
         }
         onZoom={onZoom}
+        onRecenter={onRecenter}
         traceItems={normalizedTraceViewItems}
         currentTheme={themePreference}
         themeTitle={themeTitle}

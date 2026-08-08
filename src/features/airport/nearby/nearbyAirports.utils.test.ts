@@ -19,7 +19,7 @@ import {
   assert.equal(query.radiusNm, NEARBY_AIRPORT_DEFAULTS.radiusNm);
   assert.equal(
     query.radiusNm,
-    AIRCRAFT_TRAFFIC_CONFIG.rangeNm * 1.5,
+    AIRCRAFT_TRAFFIC_CONFIG.rangeNm,
   );
   assert.equal(query.limit, NEARBY_AIRPORT_LIMITS.maxLimit);
   assert.equal("country" in query, false);

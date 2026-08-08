@@ -198,6 +198,7 @@ function AirportExplorerContent({
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [navigationSpotId, setNavigationSpotId] = useState("");
+  const [airportMapInstance, setAirportMapInstance] = useState(null);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
     navaids: [],
@@ -209,6 +210,14 @@ function AirportExplorerContent({
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
+  const recenterAirportMap = useCallback(() => {
+    if (!airportMapInstance || airportProfile.lat == null || airportProfile.lon == null) {
+      return;
+    }
+    airportMapInstance.setView([airportProfile.lat, airportProfile.lon], mapZoom, {
+      animate: true,
+    });
+  }, [airportMapInstance, airportProfile.lat, airportProfile.lon, mapZoom]);
   const userLocationLayer = useUserLocationLayer({
     enabled: !nearMe,
     focalLat: airportProfile.lat,
@@ -643,6 +652,7 @@ function AirportExplorerContent({
               loadingStatus={sourceLoadingStatus}
               realtimeStatus={traffic.realtimeStatus}
               userLocationStatusLines={userLocationStatusLines}
+              onRecenter={recenterAirportMap}
               {...toolbarContextProps}
             />
           )}
@@ -696,6 +706,7 @@ function AirportExplorerContent({
               loadingOverlayActive={loadingOverlayActive}
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
+              onMapInstanceChange={setAirportMapInstance}
             />
           </Suspense>
 

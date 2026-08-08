@@ -21,6 +21,7 @@ export default function ExplorerMapMenu({
   wakeLockState = { supported: false, active: false },
   onToggleWakeLock = null,
   onMap = null,
+  onRecenter = null,
   onToggleUserLocation = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
@@ -95,6 +96,7 @@ export default function ExplorerMapMenu({
       onToggleUserLocation={onToggleUserLocation}
       onToggleSidebar={toggleSidebar}
       onMap={onMap}
+      onRecenter={onRecenter}
       onToggleWakeLock={onToggleWakeLock}
     />
   );

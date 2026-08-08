@@ -23,7 +23,10 @@ export const AIRPORT_EXPLORER_UI_CONFIG = {
 export const AIRCRAFT_TRAFFIC_CONFIG = {
   pollMs: 3_000,
   pollBackoffMaxMs: 30_000,
-  rangeNm: 40,
+  // The airport explorer keeps one stable, airport-centred traffic circle.
+  // Panning the map stays inside this retained data radius rather than
+  // starting a new live subscription for each viewport movement.
+  rangeNm: 80,
   hiddenPollGraceMs: 5_000,
   hiddenPollMaxMs: 30_000,
   lostSignalTraceRefreshMs: 60_000,

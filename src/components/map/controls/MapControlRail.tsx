@@ -45,6 +45,7 @@ export default function MapControlRail({
   wakeLockSupported = false,
   onToggleSidebar,
   onMap = null,
+  onRecenter = null,
   onCycleTheme,
   onToggleSettings,
   onToggleWakeLock = null,
@@ -87,6 +88,7 @@ export default function MapControlRail({
           disabled={zoomDisabled}
           adjustmentDisabled={zoomAdjustmentDisabled}
           onZoom={onZoom}
+          onRecenter={onRecenter}
           traceItems={traceItems}
           menuPlacement={menuPlacement}
         />
@@ -189,6 +191,7 @@ function ZoomSliderButton({
   disabled = false,
   adjustmentDisabled = false,
   onZoom,
+  onRecenter = null,
   traceItems = [],
   menuPlacement = "bottom",
 }) {
@@ -254,6 +257,22 @@ function ZoomSliderButton({
           <div className="mt-1.5 text-center text-[12px] font-semibold tabular-nums text-atc-text">
             {current}x
           </div>
+
+          {onRecenter ? (
+            <div className="mt-2 border-t border-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] pt-1.5">
+              <MenuItem
+                onClick={() => {
+                  onRecenter();
+                  setOpen(false);
+                }}
+              >
+                <span className="flex-none [&_svg]:size-3.5">
+                  <MapControlIcon iconKey="locateFixed" />
+                </span>
+                <MenuItemLabel>{t("map.recenter")}</MenuItemLabel>
+              </MenuItem>
+            </div>
+          ) : null}
 
           {/* 航迹视图(跟随飞机 / 完整航迹 / 所有记录点)—— 只在飞机追踪页有。 */}
           {traceItems.length > 0 ? (
