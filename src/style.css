@@ -6535,8 +6535,14 @@ body {
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
 }
 
-.aircraft-preview-card--dismissible .aircraft-preview-metadata-card {
-    padding-right: 42px;
+/* The close control shares space with the heading only. Telemetry, selectors,
+   and actions below it retain the card's full content width. */
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card > :first-child > :first-child {
+    padding-right: 34px;
+}
+
+[data-ui="mobile-preview-card"][data-dismissible="true"] > [data-preview-content] > :first-child > :first-child {
+    padding-right: 34px;
 }
 
 /* Primary CTA inside the preview card. Orange is reserved for this action,

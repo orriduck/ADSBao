@@ -129,7 +129,9 @@ export default function MobilePreviewCard({
     >
       {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
       {!isTop ? grabber : null}
-      <div className={cn("min-w-0", dismissible && "pr-7")}>{children}</div>
+      <div data-preview-content className="min-w-0">
+        {children}
+      </div>
       {dismissible ? (
         <button
           type="button"
