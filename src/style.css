@@ -8095,7 +8095,7 @@ body {
    metrics focus treatment instead of becoming its own rounded pill. */
 .airport-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]:not([data-active="true"]):not([data-state="open"]),
 .flight-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]:not([data-active="true"]):not([data-state="open"]) {
-    background: var(--atc-control-surface-muted);
+    background: var(--atc-control-surface);
     border-radius: 0;
 }
 
@@ -8130,7 +8130,7 @@ body {
 .flight-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"][data-state="open"] {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: color-mix(in oklab, var(--atc-signal-accent) 11%, var(--atc-control-surface-muted));
+    background: color-mix(in oklab, var(--atc-signal-accent) 11%, var(--atc-control-surface));
     border-radius: 0;
     box-shadow: none;
     margin: 0;
@@ -8187,7 +8187,7 @@ body {
    shows when it merely carries a non-default selection. */
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
-    background: color-mix(in oklab, var(--atc-signal-accent) 10%, transparent);
+    background: color-mix(in oklab, var(--atc-signal-accent) 10%, var(--atc-control-surface));
     box-shadow: none;
 }
 
