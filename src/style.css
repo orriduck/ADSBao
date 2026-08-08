@@ -6083,11 +6083,12 @@ body {
 /* The sidebar search lives on a white column, so it needs a fine luminous
    perimeter in addition to the shared frosted-input material. */
 .aircraft-table-search-bar .search-input {
+    background: var(--atc-control-surface);
     border-color: var(--atc-control-border);
     border-radius: var(--atc-radius-card);
-    box-shadow:
-        var(--atc-control-inset-shadow),
-        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 4%, transparent);
+    box-shadow: var(--atc-control-inset-shadow);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
 }
 
 /* Override carousel slide flex to fit narrower sidebar column */
@@ -8039,18 +8040,18 @@ body {
     padding-top: 2px;
 }
 
-/* Detail filters are one joined matrix, matching the airport metrics: the
-   wrapper supplies the only rounded perimeter and the grid's 1px gaps become
-   direct internal dividers. */
+/* Detail filters are one joined matrix, matching the airport metrics. The
+   wrapper owns the sole milky surface, border, rim, and rounded perimeter;
+   cells sit flush so this reads as one ordered control rather than four cards. */
 .airport-sidebar-panel .aircraft-table-filter-shell,
 .flight-sidebar-panel .aircraft-table-filter-shell {
     margin: 0 var(--airport-sidebar-inset);
     overflow: hidden;
-    padding: 1px;
+    padding: 0;
     border: 1px solid var(--atc-control-border);
     border-radius: var(--atc-radius-card);
-    background: var(--atc-control-divider);
-    box-shadow: var(--atc-control-inset-shadow-subtle);
+    background: var(--atc-control-surface);
+    box-shadow: var(--atc-control-inset-shadow);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
 }
@@ -8063,7 +8064,7 @@ body {
     border: 0;
     border-radius: 0;
     background: transparent;
-    gap: 1px;
+    gap: 0;
 }
 
 .airport-sidebar-panel [data-ui="metric-card"],
@@ -8090,12 +8091,11 @@ body {
     background: transparent;
 }
 
-/* The 1px shell shows through between cards and at every outer edge. Resting
-   filters share the same frosted field, while a selected/open cell uses the
-   metrics focus treatment instead of becoming its own rounded pill. */
+/* Resting filter cells inherit the shell's shared frosted field. A selected
+   or open cell uses only a light signal wash, never a separate card surface. */
 .airport-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]:not([data-active="true"]):not([data-state="open"]),
 .flight-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]:not([data-active="true"]):not([data-state="open"]) {
-    background: var(--atc-control-surface);
+    background: transparent;
     border-radius: 0;
 }
 

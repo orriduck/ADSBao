@@ -235,7 +235,7 @@ function AircraftTable({
           </div>
         </div>
 
-        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-3">
+        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-4">
           <label className="search-input flex items-center gap-2 px-3 py-1.5">
             <Search
               className="h-3.5 w-3.5 shrink-0 text-atc-dim"
