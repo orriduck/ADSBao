@@ -132,7 +132,10 @@ export function useFlightRoutes(
       controller?.abort();
       if (retryTimer != null) window.clearTimeout(retryTimer);
     };
-  }, [candidateKey, enabled, routeCandidates]);
+  // `finish` advances `version` after caching each result. Including it here
+  // lets the next uncached callsign run without waiting for a traffic update;
+  // the cache means that rerun cannot refetch a completed candidate.
+  }, [candidateKey, enabled, routeCandidates, version]);
 
   const routesByCallsign = useMemo(() => {
     void version;

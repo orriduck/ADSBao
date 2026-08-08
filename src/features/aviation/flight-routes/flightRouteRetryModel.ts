@@ -24,7 +24,9 @@ export function resolveRouteRetryDelayMs({
   retryAfterMs?: number | null;
   random?: () => number;
 }) {
-  if (retryAfterMs != null) return Math.min(ROUTE_RETRY_MAX_MS, retryAfterMs);
+  // A positive Retry-After is an explicit server pacing instruction. Capping
+  // it locally would retry early (and can make a 429 storm worse).
+  if (retryAfterMs != null && retryAfterMs > 0) return retryAfterMs;
   const exponential = Math.min(
     ROUTE_RETRY_MAX_MS,
     ROUTE_RETRY_BASE_MS * 2 ** Math.max(0, attempt),

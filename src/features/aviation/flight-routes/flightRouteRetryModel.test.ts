@@ -23,5 +23,10 @@ assert.equal(
   resolveRouteRetryDelayMs({ attempt: 0, retryAfterMs: 9_000, random: () => 0 }),
   9_000,
 );
+assert.equal(
+  resolveRouteRetryDelayMs({ attempt: 0, retryAfterMs: 120_000, random: () => 0 }),
+  120_000,
+  "a server Retry-After longer than local backoff must be honored",
+);
 
 console.log("flightRouteRetryModel.test.ts ok");
