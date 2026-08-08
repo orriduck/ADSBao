@@ -36,6 +36,27 @@ function uniqueBy(items = [], keyFn) {
   return output;
 }
 
+function collectContextTileRecords(payloads: ContextTileRecord[]) {
+  return {
+    airspaces: uniqueBy(
+      payloads.flatMap((payload) => payload.airspaces || []),
+      (item) => item?.id || item?.name,
+    ),
+    navaids: uniqueBy(
+      payloads.flatMap((payload) => payload.navaids || []),
+      (item) => item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`,
+    ),
+    navaidCounts: uniqueBy(
+      payloads.flatMap((payload) => payload.navaidCounts || []),
+      (item) => item?.key || `${item?.z}:${item?.x}:${item?.y}`,
+    ),
+    waypoints: uniqueBy(
+      payloads.flatMap((payload) => payload.waypoints || []),
+      (item) => item?.id || `${item?.name}:${item?.lat}:${item?.lon}`,
+    ),
+  };
+}
+
 async function fetchTile(url: string) {
   return tileRequestCache.request(url, () =>
     fetch(url).then(async (response) => {
@@ -127,65 +148,24 @@ export function useAviationContextTiles({
       return undefined;
     }
 
-    const payloadsByUrl = new Map<string, ContextTileRecord>();
-    let pendingCount = requestUrls.length;
-    let rejectedReason = null;
-    const commitPayloads = () => {
-      if (cancelled) return;
-      const payloads = requestUrls
-        .map((url) => payloadsByUrl.get(url))
-        .filter(Boolean);
-      setAirspaces(
-        uniqueBy(
-          payloads.flatMap((payload) => payload.airspaces || []),
-          (item) => item?.id || item?.name,
-        ),
-      );
-      setNavaids(
-        uniqueBy(
-          payloads.flatMap((payload) => payload.navaids || []),
-          (item) => item?.id || `${item?.ident}:${item?.lat}:${item?.lon}`,
-        ),
-      );
-      setNavaidCounts(
-        uniqueBy(
-          payloads.flatMap((payload) => payload.navaidCounts || []),
-          (item) => item?.key || `${item?.z}:${item?.x}:${item?.y}`,
-        ),
-      );
-      setWaypoints(
-        uniqueBy(
-          payloads.flatMap((payload) => payload.waypoints || []),
-          (item) => item?.id || `${item?.name}:${item?.lat}:${item?.lon}`,
-        ),
-      );
-      setError(rejectedReason);
-    };
-
     setLoading(true);
     setError(null);
-    setAirspaces([]);
-    setNavaids([]);
-    setNavaidCounts([]);
-    setWaypoints([]);
 
-    requestUrls.forEach((url) => {
-      fetchTile(url)
-        .then((payload) => {
-          payloadsByUrl.set(url, payload);
-          commitPayloads();
-        })
-        .catch((reason) => {
-          rejectedReason ||= reason;
-          setError(rejectedReason);
-        })
-        .finally(() => {
-          pendingCount -= 1;
-          if (!cancelled && pendingCount === 0) {
-            setLoading(false);
-          }
-        });
-    });
+    void Promise.all(requestUrls.map(fetchTile))
+      .then((payloads) => {
+        if (cancelled) return;
+        const next = collectContextTileRecords(payloads);
+        setAirspaces(next.airspaces);
+        setNavaids(next.navaids);
+        setNavaidCounts(next.navaidCounts);
+        setWaypoints(next.waypoints);
+      })
+      .catch((reason) => {
+        if (!cancelled) setError(reason);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
       cancelled = true;

@@ -207,18 +207,33 @@ export class NearbySseClient {
     const source = new this.EventSourceCtor(stored.request.url);
     stored.source = source;
     source.onopen = () => {
-      if (this.sources.get(stored.request.key) !== stored) return;
+      if (
+        this.sources.get(stored.request.key) !== stored ||
+        stored.source !== source
+      ) {
+        return;
+      }
       this.setState(stored, stored.hasDataFrame ? "live" : "loading");
     };
     source.onerror = () => {
-      if (this.sources.get(stored.request.key) !== stored) return;
+      if (
+        this.sources.get(stored.request.key) !== stored ||
+        stored.source !== source
+      ) {
+        return;
+      }
       // Native EventSource owns reconnection and preserves Last-Event-ID.
       // The browser Network panel continues to show this same named stream.
       this.setState(stored, "reconnecting");
     };
     for (const type of NEARBY_SSE_EVENT_TYPES) {
       source.addEventListener(type, (message) => {
-        if (this.sources.get(stored.request.key) !== stored) return;
+        if (
+          this.sources.get(stored.request.key) !== stored ||
+          stored.source !== source
+        ) {
+          return;
+        }
         const event = parseEvent(type, message.data);
         if (!event || event.channel !== stored.request.channel) return;
         if (type !== "nearby:status") {

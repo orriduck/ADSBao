@@ -88,9 +88,45 @@ assert.deepEqual(received, [
 ]);
 assert.ok(states.includes("live"), "snapshot moves a source to live");
 
+client.restart(request.key);
+const restartedSource = FakeEventSource.instances[1];
+assert.ok(restartedSource, "restart creates a replacement EventSource");
+source.emit("nearby:traffic", {
+  protocolVersion: "1",
+  channel: request.channel,
+  eventId: "late-old-source",
+  sequence: 3,
+  emittedAt: "2026-08-08T00:00:01Z",
+  stale: true,
+  data: { aircraft: { ac: [] } },
+});
+assert.equal(
+  received.length,
+  4,
+  "a frame from the closed source must not overwrite the replacement stream",
+);
+restartedSource.emit("nearby:traffic", {
+  protocolVersion: "1",
+  channel: request.channel,
+  eventId: "replacement-source",
+  sequence: 4,
+  emittedAt: "2026-08-08T00:00:02Z",
+  stale: false,
+  data: { aircraft: { ac: [] } },
+});
+assert.equal(received.length, 6, "the replacement source remains active");
+
 unsubscribeA();
-assert.equal(source.closed, false, "one consumer keeps the shared source alive");
+assert.equal(
+  restartedSource.closed,
+  false,
+  "one consumer keeps the replacement source alive",
+);
 unsubscribeB();
-assert.equal(source.closed, true, "last consumer releases the source after grace");
+assert.equal(
+  restartedSource.closed,
+  true,
+  "last consumer releases the replacement source after grace",
+);
 
 console.log("nearbySseClient.test.ts ok");

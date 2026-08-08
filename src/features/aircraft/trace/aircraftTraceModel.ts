@@ -5,6 +5,7 @@ const DEFAULT_TRACE_MAX_SAMPLES = 36;
 const DEFAULT_TRACE_MAX_AGE_MS = 3 * 60 * 1000;
 const DEFAULT_TRACE_MIN_DISTANCE_NM = 0.03;
 const DEFAULT_TRACE_MIN_SAMPLE_GAP_MS = 1_500;
+const DEFAULT_TRANSIENT_MISSING_GRACE_MS = 2_500;
 const DEFAULT_CURVE_STEPS = 8;
 const DEFAULT_REMOTE_TRACE_MAX_POINTS = 240;
 const DEFAULT_SOLID_TRACE_MAX_GAP_MS = 90 * 1000;
@@ -108,6 +109,7 @@ export function createAircraftTraceTracker(options = {}) {
     maxAgeMs: DEFAULT_TRACE_MAX_AGE_MS,
     minDistanceNm: DEFAULT_TRACE_MIN_DISTANCE_NM,
     minSampleGapMs: DEFAULT_TRACE_MIN_SAMPLE_GAP_MS,
+    transientMissingGraceMs: DEFAULT_TRANSIENT_MISSING_GRACE_MS,
     ...options,
   };
   const histories = new Map<string, TraceRecord[]>();
@@ -116,12 +118,13 @@ export function createAircraftTraceTracker(options = {}) {
   // last returned array so a fully-unchanged tick returns the same array
   // reference (lets the poller skip setState entirely).
   const lastEmitted = new Map<string, TraceRecord>();
+  const lastSeenAt = new Map<string, number>();
   let lastResult: TraceRecord[] = [];
 
   return {
     update(aircraft = [], nowMs = Date.now()) {
       const activeIds = new Set();
-      let changedFromLast = aircraft.length !== lastResult.length;
+      let changedFromLast = false;
 
       const nextAircraft = aircraft.map((item, index) => {
         const id = getAircraftTraceId(item);
@@ -134,6 +137,7 @@ export function createAircraftTraceTracker(options = {}) {
         }
 
         activeIds.add(id);
+        lastSeenAt.set(id, nowMs);
         const previousHistory = trimTraceHistory(histories.get(id) || [], nowMs, config);
         const lastPoint = previousHistory.at(-1) || null;
         const nextHistory = shouldAppendTracePoint(lastPoint, point, config)
@@ -151,12 +155,22 @@ export function createAircraftTraceTracker(options = {}) {
         return emitted;
       });
 
-      for (const id of histories.keys()) {
+      for (const [id, emitted] of lastEmitted.entries()) {
         if (!activeIds.has(id)) {
+          const lastSeen = lastSeenAt.get(id) ?? Number.NEGATIVE_INFINITY;
+          if (nowMs - lastSeen <= config.transientMissingGraceMs) {
+            const index = nextAircraft.length;
+            nextAircraft.push(emitted);
+            if (lastResult[index] !== emitted) changedFromLast = true;
+            continue;
+          }
           histories.delete(id);
           lastEmitted.delete(id);
+          lastSeenAt.delete(id);
         }
       }
+
+      if (nextAircraft.length !== lastResult.length) changedFromLast = true;
 
       // Nothing changed (same length, every slot reference-identical) →
       // return the previous array so consumers can skip re-rendering.
@@ -167,6 +181,7 @@ export function createAircraftTraceTracker(options = {}) {
     clear() {
       histories.clear();
       lastEmitted.clear();
+      lastSeenAt.clear();
       lastResult = [];
     },
   };

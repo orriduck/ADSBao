@@ -13,6 +13,21 @@ import {
 
 {
   const tracker = createAircraftTraceTracker({
+    transientMissingGraceMs: 1_000,
+  });
+  const firstPass = tracker.update(
+    [{ icao24: "abc123", lat: 42.0, lon: -71.0 }],
+    1_000,
+  );
+  const transientMiss = tracker.update([], 1_500);
+  assert.equal(transientMiss.length, 1, "one missing frame keeps the aircraft visible");
+  assert.equal(transientMiss[0], firstPass[0], "the retained record stays stable");
+  const expiredMiss = tracker.update([], 2_001);
+  assert.equal(expiredMiss.length, 0, "the retained aircraft expires after the grace window");
+}
+
+{
+  const tracker = createAircraftTraceTracker({
     maxSamples: 4,
     maxAgeMs: 30_000,
     minDistanceNm: 0.01,

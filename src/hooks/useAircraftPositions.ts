@@ -61,6 +61,11 @@ export function useAircraftPositions(
   const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
   const traceTrackerRef = useRef(createAircraftTraceTracker());
   const channelKeyRef = useRef("");
+  const realtimeFrameRef = useRef({
+    channel: "",
+    sequence: 0,
+    revision: 0,
+  });
 
   const nearbyRequest = useMemo(() => {
     if (!hasActiveQuery) return null;
@@ -79,6 +84,11 @@ export function useAircraftPositions(
   useEffect(() => {
     if (!hasActiveQuery) {
       channelKeyRef.current = "";
+      realtimeFrameRef.current = {
+        channel: "",
+        sequence: 0,
+        revision: realtimeFrameRef.current.revision + 1,
+      };
       traceTrackerRef.current.clear();
       setAircraft([]);
       setSettled(false);
@@ -91,6 +101,11 @@ export function useAircraftPositions(
 
     if (channelKeyRef.current !== channelKey) {
       channelKeyRef.current = channelKey;
+      realtimeFrameRef.current = {
+        channel: nearbyRequest?.channel || "",
+        sequence: 0,
+        revision: realtimeFrameRef.current.revision + 1,
+      };
       traceTrackerRef.current.clear();
       setAircraft([]);
       setSettled(false);
@@ -111,10 +126,33 @@ export function useAircraftPositions(
       return;
     }
 
+    const expectedChannel = nearbyRequest?.channel || "";
+    if (!expectedChannel || event.channel !== expectedChannel) return;
+
+    const previousFrame = realtimeFrameRef.current;
+    const sequence = Number(event.sequence) || 0;
+    if (
+      previousFrame.channel === expectedChannel &&
+      sequence > 0 &&
+      previousFrame.sequence > 0 &&
+      sequence <= previousFrame.sequence
+    ) {
+      return;
+    }
+    realtimeFrameRef.current = {
+      channel: expectedChannel,
+      sequence: sequence > 0 ? sequence : previousFrame.sequence,
+      revision: previousFrame.revision,
+    };
+
     const context = event.data as Record<string, any>;
     const airportUpdate = readNearbyAirportsUpdate(context);
     if (airportUpdate) setNearbyAirports(airportUpdate);
     if (!hasNearbyAircraftPayload(context)) return;
+    realtimeFrameRef.current = {
+      ...realtimeFrameRef.current,
+      revision: realtimeFrameRef.current.revision + 1,
+    };
     const payload = normalizeRealtimeAircraftPayload(context?.aircraft);
     const fetchedAt = Date.parse(event.fetchedAt);
     const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
@@ -132,7 +170,7 @@ export function useAircraftPositions(
       );
     }
     setSettled(true);
-  }, [hasActiveQuery, realtime.event]);
+  }, [hasActiveQuery, nearbyRequest?.channel, realtime.event]);
 
   // A new airport view must not wait for the first SSE frame before it can
   // show nearby aircraft. Seed it through the ordinary private-service
@@ -143,13 +181,21 @@ export function useAircraftPositions(
     let cancelled = false;
     const timer = window.setTimeout(async () => {
       try {
+        const requestChannel = channelKey;
+        const realtimeRevisionAtStart = realtimeFrameRef.current.revision;
         const client = createAircraftPositionClient();
         const rawPayload = await client.fetchNearbyAircraft({
           lat: queryLat,
           lon: queryLon,
           distNm,
         });
-        if (cancelled) return;
+        if (
+          cancelled ||
+          channelKeyRef.current !== requestChannel ||
+          realtimeFrameRef.current.revision !== realtimeRevisionAtStart
+        ) {
+          return;
+        }
         if (!hasAircraftPayload(rawPayload)) return;
         const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
@@ -170,7 +216,7 @@ export function useAircraftPositions(
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [distNm, hasActiveQuery, queryLat, queryLon, settled]);
+  }, [channelKey, distNm, hasActiveQuery, queryLat, queryLon, settled]);
 
   useEffect(() => {
     if (!hasActiveQuery || !realtime.fallbackActive) return undefined;
@@ -182,12 +228,20 @@ export function useAircraftPositions(
 
     const load = async () => {
       try {
+        const requestChannel = channelKey;
+        const realtimeRevisionAtStart = realtimeFrameRef.current.revision;
         const rawPayload = await client.fetchNearbyAircraft({
           lat: queryLat,
           lon: queryLon,
           distNm,
         });
-        if (cancelled) return;
+        if (
+          cancelled ||
+          channelKeyRef.current !== requestChannel ||
+          realtimeFrameRef.current.revision !== realtimeRevisionAtStart
+        ) {
+          return;
+        }
         if (!hasAircraftPayload(rawPayload)) return;
         const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
@@ -236,6 +290,7 @@ export function useAircraftPositions(
       if (timer != null) window.clearTimeout(timer);
     };
   }, [
+    channelKey,
     distNm,
     hasActiveQuery,
     queryLat,
