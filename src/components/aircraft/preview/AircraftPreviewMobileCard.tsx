@@ -16,9 +16,9 @@ type AircraftPreviewMobileCardProps = {
   traceStatusState?: AsyncStatusState | null;
 };
 
-// Compact mobile card: [callsign + type · route][small photo, top-right] over a
-// single telemetry line; the action row (Track + camera + suggest) sits below
-// in the shared actions slot. V/S is the one accent in the telemetry line.
+// Compact mobile card: a small photo on the left, then callsign + type over the
+// route. The right edge stays clear for the shared close control; telemetry and
+// actions continue at the card's full width below.
 export default function AircraftPreviewMobileCard({
   aircraft,
   photo,
@@ -56,6 +56,15 @@ export default function AircraftPreviewMobileCard({
   return (
     <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
       <div className="flex items-start gap-3">
+        {showPhoto ? (
+          <img
+            src={photoSrc}
+            alt=""
+            draggable="false"
+            className="size-[46px] flex-none rounded-[11px] object-cover"
+            onError={() => setFailedPhotoSrc(photoSrc)}
+          />
+        ) : null}
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-baseline gap-2">
             <span
@@ -108,15 +117,6 @@ export default function AircraftPreviewMobileCard({
             )}
           </div>
         </div>
-        {showPhoto ? (
-          <img
-            src={photoSrc}
-            alt=""
-            draggable="false"
-            className="size-[46px] flex-none rounded-[11px] object-cover"
-            onError={() => setFailedPhotoSrc(photoSrc)}
-          />
-        ) : null}
       </div>
 
       <div className="flex flex-wrap items-baseline gap-x-[7px] gap-y-1 border-t border-atc-line pt-[7px] font-mono text-[13px] tabular-nums text-atc-text">

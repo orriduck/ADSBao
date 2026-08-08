@@ -1,9 +1,9 @@
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
 import AircraftPreviewRouteLine from "./AircraftPreviewRouteLine";
 
-// Card header: callsign on the left, TYPE / CATEGORY (e.g. "B739 / A3") on the
-// right — no registration. The visual route line sits below. Hierarchy is size
-// + luminance: the callsign leads, the type recedes.
+// Card header: callsign followed by TYPE / CATEGORY (e.g. "B739 / A3") — no
+// registration. This leaves the title corner quiet for the close control; the
+// visual route line remains full-width below.
 export default function AircraftPreviewIdentity({ aircraft }) {
   const callsign =
     (aircraft?.callsign || "").trim() || aircraft?.icao24?.toUpperCase() || "—";
@@ -14,7 +14,7 @@ export default function AircraftPreviewIdentity({ aircraft }) {
 
   return (
     <div className="mb-2.5 flex flex-col gap-[9px] md:mb-2 md:gap-[7px]">
-      <div className="flex min-w-0 items-baseline justify-between gap-3">
+      <div className="flex min-w-0 items-baseline gap-3">
         <span
           className="notranslate min-w-0 truncate font-mono text-[21px] leading-none tracking-[0.02em] text-atc-text md:text-[18px]"
           translate="no"

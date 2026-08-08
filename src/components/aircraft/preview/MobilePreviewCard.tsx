@@ -135,7 +135,7 @@ export default function MobilePreviewCard({
       {dismissible ? (
         <button
           type="button"
-          className="pointer-events-auto absolute right-3 top-3 z-10 grid size-6 place-items-center rounded-full text-atc-dim transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-muted)] hover:text-atc-text active:scale-[0.92] focus-visible:bg-[var(--atc-control-surface-muted)] focus-visible:text-atc-text focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="pointer-events-auto absolute right-3 top-3 z-10 grid size-6 cursor-pointer place-items-center rounded-full text-atc-dim transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-muted)] hover:text-atc-text active:scale-[0.92] focus-visible:bg-[var(--atc-control-surface-muted)] focus-visible:text-atc-text focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={dismissLabel}
           title={dismissLabel}
           onPointerDown={(event) => event.stopPropagation()}
