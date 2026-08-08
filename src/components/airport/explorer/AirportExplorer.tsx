@@ -198,6 +198,13 @@ function AirportExplorerContent({
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [navigationSpotId, setNavigationSpotId] = useState("");
+  const [contextTiles, setContextTiles] = useState({
+    airspaces: [],
+    navaids: [],
+    navaidCounts: [],
+    loading: false,
+    error: null,
+  });
   const airportProfile = useMemo(
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
@@ -301,6 +308,17 @@ function AirportExplorerContent({
         : null,
     [candidateWatchingSpots.spots, navigationSpotId],
   );
+  const contextualAirspaces = useMemo(() => {
+    const seen = new Set();
+    return [...(airport?.airspaces || []), ...contextTiles.airspaces].filter(
+      (airspace) => {
+        const key = String(airspace?.id || airspace?.name || "");
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      },
+    );
+  }, [airport?.airspaces, contextTiles.airspaces]);
   const selection = useMemo(
     () =>
       resolveAirportExplorerSelection({
@@ -312,14 +330,14 @@ function AirportExplorerContent({
         selectedNavaidKey,
         reportingPoints: airport?.reportingPoints || [],
         selectedReportingPointKey,
-        airspaces: airport?.airspaces || [],
+        airspaces: contextualAirspaces,
         selectedAirspaceId,
         selectedAirspaceIds,
         candidateWatchingSpots: candidateWatchingSpots.spots,
         selectedCandidateWatchingSpotId,
       }),
     [
-      airport?.airspaces,
+      contextualAirspaces,
       airport?.nearbyNavaids,
       airport?.reportingPoints,
       candidateWatchingSpots.spots,
@@ -646,6 +664,7 @@ function AirportExplorerContent({
               // this active for both airport and Here modes so the same
               // visible polygons follow the map whenever the layer is on.
               contextTileOverlays
+              onContextTilesChange={setContextTiles}
               showMapLabels={showMapLabels}
               showRunwayBeams={showRunwayBeams}
               showNavaidMarkers={showNavaidMarkers}
