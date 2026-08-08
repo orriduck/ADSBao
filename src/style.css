@@ -7522,14 +7522,6 @@ body {
     box-shadow: none;
 }
 
-@media (max-height: 430px) {
-    .map-settings-persistence[data-status="guest"],
-    .map-settings-persistence[data-status="idle"],
-    .map-settings-persistence[data-status="saved"] {
-        display: none;
-    }
-}
-
 @media (min-width: 768px) {
     .dither-page-shell {
         /* Match the detail page sidebar (.airport-map-kit stays at 18.8rem

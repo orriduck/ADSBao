@@ -1,4 +1,5 @@
-import { useUser } from "@/platform/auth/clerkClient";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import {
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
@@ -26,7 +27,6 @@ import {
   NEARBY_AIRCRAFT_RADIUS_PRESETS_NM,
   NEARBY_AIRPORT_RADIUS_PRESETS_NM,
 } from "@/features/notifications/notificationPreferencesModel";
-import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 import { MapControlIcon } from "./mapControlIcons";
 
 const UNIT_GROUPS = [
@@ -305,7 +305,6 @@ export default function MapSettingsSheet({
   onToggleShowCallsigns,
   onToggleUserLocation = null,
   mapSettingsSaveStatus = "idle",
-  mapSettingsSaveStatusCode = null,
   mapSettingsSaveCycle = 0,
 }) {
   const { t } = useI18n();
@@ -340,7 +339,6 @@ export default function MapSettingsSheet({
       requestNotificationPermission();
     }
   };
-  const { isLoaded, isSignedIn } = useUser();
   const settings = normalizeMapSettings(mapSettings);
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
@@ -365,12 +363,34 @@ export default function MapSettingsSheet({
     : userLocationActive
       ? t("mapLayers.showUserLocation")
       : t("mapLayers.hideUserLocation");
-  const showGuestPrompt = isLoaded && !isSignedIn;
-  const showSignedInPersistence = isLoaded && isSignedIn;
-  const deviceLabelKey =
-    mapSettingsDevice === "mobile"
-      ? "mapSettings.devices.mobile"
-      : "mapSettings.devices.desktop";
+  const lastSaveToastKeyRef = useRef("");
+  useEffect(() => {
+    if (
+      mapSettingsSaveCycle <= 0 ||
+      (mapSettingsSaveStatus !== "saved" && mapSettingsSaveStatus !== "error")
+    ) {
+      return;
+    }
+
+    const toastKey = `${mapSettingsSaveCycle}:${mapSettingsSaveStatus}`;
+    if (lastSaveToastKeyRef.current === toastKey) return;
+    lastSaveToastKeyRef.current = toastKey;
+
+    if (mapSettingsSaveStatus === "saved") {
+      toast.success(t("mapSettings.savedSettings"), {
+        id: "map-settings-save",
+        description: t("mapSettings.savedSettingsAvailable"),
+        duration: 5000,
+      });
+      return;
+    }
+
+    toast.error(t("mapSettings.saveError"), {
+      id: "map-settings-save",
+      duration: 5000,
+    });
+  }, [mapSettingsSaveCycle, mapSettingsSaveStatus, t]);
+
   const mobileSheet = mapSettingsDevice === "mobile";
   const sheetPositionStyle = mobileSheet
     ? {
@@ -704,48 +724,6 @@ export default function MapSettingsSheet({
             </section>
           </div>
 
-          {showGuestPrompt ? (
-            <div
-              className="map-settings-persistence px-4 py-0.5 text-[8.5px] leading-none text-atc-muted"
-              data-status="guest"
-            >
-              {t("mapSettings.guestPrompt")}
-            </div>
-          ) : null}
-
-          {showSignedInPersistence ? (
-            <div
-              className={cn(
-                "map-settings-persistence px-4 py-0.5 text-[8.5px] leading-none",
-                mapSettingsSaveStatus === "error"
-                  ? "text-[var(--atc-interaction-danger)]"
-                  : "text-atc-muted",
-              )}
-              data-status={mapSettingsSaveStatus}
-              role="status"
-              aria-live="polite"
-            >
-              <span className="flex items-center justify-between gap-3">
-                <span className="block text-[9.5px] font-semibold leading-tight text-atc-text">
-                  {t("mapSettings.deviceScope", { device: t(deviceLabelKey) })}
-                </span>
-                <AsyncStatusLine
-                  loading={mapSettingsSaveStatus === "saving"}
-                  error={
-                    mapSettingsSaveStatus === "error" ? "save failed" : null
-                  }
-                  statusCode={mapSettingsSaveStatusCode}
-                  cycleKey={`map-settings:${mapSettingsSaveCycle}`}
-                  pendingLabel={t("mapSettings.savingSettings")}
-                  successLabel={t("mapSettings.savedSettings")}
-                  errorLabel={t("mapSettings.saveError")}
-                />
-              </span>
-              <span className="mt-1 block">
-                {t("mapSettings.savedSettingsAvailable")}
-              </span>
-            </div>
-          ) : null}
         </div>
       </SheetContent>
     </Sheet>

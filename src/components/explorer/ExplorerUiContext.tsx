@@ -483,7 +483,6 @@ export function ExplorerUiProvider({ children }) {
   const [accountMapSettingsHydrated, setAccountMapSettingsHydrated] =
     useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
-  const [mapSettingsSaveStatusCode, setMapSettingsSaveStatusCode] = useState<number | null>(null);
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
   const clientDeviceProfile = useClientDeviceProfile({
     includeSafeAreaInsets: true,
@@ -758,7 +757,6 @@ export function ExplorerUiProvider({ children }) {
     const timeoutId = window.setTimeout(async () => {
       saveStarted = true;
       setMapSettingsSaveStatus("saving");
-      setMapSettingsSaveStatusCode(null);
       setMapSettingsSaveCycle((c) => c + 1);
       try {
         const response = await fetch("/api/map-settings", {
@@ -771,7 +769,6 @@ export function ExplorerUiProvider({ children }) {
           signal: controller.signal,
         });
         if (!response.ok) {
-          if (!cancelled) setMapSettingsSaveStatusCode(response.status);
           throw new Error("save failed");
         }
         const payload = await response.json();
@@ -791,7 +788,6 @@ export function ExplorerUiProvider({ children }) {
             settings: savedSettings,
           });
         }
-        setMapSettingsSaveStatusCode(response.status);
         setMapSettingsSaveStatus("saved");
       } catch (error: any) {
         if (cancelled || error?.name === "AbortError") {
@@ -1005,7 +1001,6 @@ export function ExplorerUiProvider({ children }) {
       mapSettingsHydrated,
       mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
-      mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,
       trafficFilter,
       typeFilter,
@@ -1075,7 +1070,6 @@ export function ExplorerUiProvider({ children }) {
       mapSettingsHydrated,
       mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
-      mapSettingsSaveStatusCode,
       mapSettingsSaveCycle,
       trafficFilter,
       typeFilter,

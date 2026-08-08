@@ -29,7 +29,6 @@ export default function MapControlBar({
   mapSettings,
   mapSettingsDevice = "desktop",
   mapSettingsSaveStatus = "idle",
-  mapSettingsSaveStatusCode = null,
   mapSettingsSaveCycle = 0,
   userLocationActive = false,
   userLocationPending = false,
@@ -108,7 +107,6 @@ export default function MapControlBar({
         showCallsigns={showCallsigns}
         mapSettingsDevice={mapSettingsDevice}
         mapSettingsSaveStatus={mapSettingsSaveStatus}
-        mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
         mapSettingsSaveCycle={mapSettingsSaveCycle}
         userLocationActive={userLocationActive}
         userLocationPending={userLocationPending}

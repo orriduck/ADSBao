@@ -39,7 +39,6 @@ export default function ExplorerMapMenu({
     mapSettings,
     mapSettingsDevice,
     mapSettingsSaveStatus,
-    mapSettingsSaveStatusCode,
     mapSettingsSaveCycle,
     setMapZoom,
     setMapBaseLayer,
@@ -71,7 +70,6 @@ export default function ExplorerMapMenu({
       mapSettings={mapSettings}
       mapSettingsDevice={mapSettingsDevice}
       mapSettingsSaveStatus={mapSettingsSaveStatus}
-      mapSettingsSaveStatusCode={mapSettingsSaveStatusCode}
       mapSettingsSaveCycle={mapSettingsSaveCycle}
       userLocationActive={userLocationActive}
       userLocationPending={userLocationPending}
