@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.12",
+    version: "v3.8.0",
     kind: "feat",
     title: {
-      en: "Private service architecture",
-      zh: "私有服务架构",
+      en: "More observable live tracking",
+      zh: "更易观察的实时追踪",
     },
     summary: {
-      en: "Clearly labels cached traffic while live updates recover.",
-      zh: "明确标注缓存飞机数据，并持续恢复实时更新。",
+      en: "Live airport and flight context now reconnects transparently and reports clearer update status.",
+      zh: "机场与航班的实时信息现在可自动恢复，并更清楚地显示更新状态。",
     },
     highlights: [],
   },
