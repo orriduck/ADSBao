@@ -491,6 +491,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
 
   const {
     routesByCallsign,
+    routeStatusByCallsign,
     loadingCount: routeLoadingCount,
   } = useFlightRoutes(routeAircraft, {
     enabled: true,
@@ -507,9 +508,10 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
           ...item,
           flightRoute: route,
           flightRouteLabel: formatFlightRouteLabel(route),
+          flightRouteLookupStatus: key ? routeStatusByCallsign[key] : undefined,
         };
       }),
-    [rawAircraft, routesByCallsign],
+    [rawAircraft, routeStatusByCallsign, routesByCallsign],
   );
 
   // Backfill the focal position from the merged (nearby-favored) array so

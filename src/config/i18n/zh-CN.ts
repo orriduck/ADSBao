@@ -342,6 +342,8 @@ const zhCN = {
   },
   aircraft: {
     noRoute: "无航路",
+    loadingRoute: "正在获取航路…",
+    routeUnavailable: "航路暂时不可用",
     airborne: "空中",
     ground: "地面",
     gnd: "地面",

@@ -12,6 +12,7 @@ import {
 import { createRouteDisplayBatcher } from "../features/aviation/flight-routes/flightRouteDisplayBatchModel";
 import { getAdsbaoRealtimeClient } from "../lib/realtime/adsbaoRealtimeClient";
 import { buildRouteChannel } from "../lib/realtime/realtimeChannels";
+import { normalizeCallsign } from "../utils/callsign";
 
 type FlightRouteHookContext = RouteContext & {
   enabled?: boolean;
@@ -21,6 +22,11 @@ type RouteEventData = {
   callsign?: unknown;
   route?: FlightRoute | null;
 };
+
+type RouteLookupStatus = "pending" | "unavailable";
+
+const routeCallsignFromChannel = (channel: unknown) =>
+  normalizeCallsign(String(channel || "").split(":")[1]);
 
 function routeSubscriptionKey({
   channel,
@@ -47,6 +53,9 @@ export function useFlightRoutes(
   const enabled = routeContextInput?.enabled !== false;
   const client = useMemo(() => getAdsbaoRealtimeClient(), []);
   const [version, setVersion] = useState(0);
+  const [routeStatusByCallsign, setRouteStatusByCallsign] = useState<
+    Record<string, RouteLookupStatus>
+  >({});
   const mountedRef = useRef(true);
   const routeDisplayBatcherRef = useRef<ReturnType<typeof createRouteDisplayBatcher> | null>(
     null,
@@ -151,16 +160,36 @@ export function useFlightRoutes(
           listener: (event) => {
             if (event.type === "route:update") {
               const data = event.data as RouteEventData;
+              const resolvedCallsign = normalizeCallsign(data?.callsign || callsign);
               flightRouteScheduler.applyRouteResult(
-                data?.callsign || callsign,
+                resolvedCallsign,
                 data?.route || null,
                 routeContext,
               );
+              setRouteStatusByCallsign((current) => {
+                if (!resolvedCallsign || !current[resolvedCallsign]) return current;
+                const next = { ...current };
+                delete next[resolvedCallsign];
+                return next;
+              });
+              return;
+            }
+            if (event.type === "channel:error") {
+              const failedCallsign = routeCallsignFromChannel(event.channel) || callsign;
+              if (!failedCallsign) return;
+              setRouteStatusByCallsign((current) => ({
+                ...current,
+                [failedCallsign]: "unavailable",
+              }));
               return;
             }
           },
         });
         routeUnsubscribersRef.current.set(key, unsubscribe);
+        setRouteStatusByCallsign((current) => ({
+          ...current,
+          [callsign]: current[callsign] || "pending",
+        }));
       }
     }
   }, [client, pendingCallsigns, routeContext, routeTransport]);
@@ -175,6 +204,7 @@ export function useFlightRoutes(
 
   return {
     routesByCallsign,
+    routeStatusByCallsign,
     loadingCount: pendingCallsigns.length,
   };
 }

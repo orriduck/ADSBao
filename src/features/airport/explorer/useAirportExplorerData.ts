@@ -47,6 +47,7 @@ export function useAirportExplorerData(
   }, [aircraft, options.selectedAircraftId]);
   const {
     routesByCallsign,
+    routeStatusByCallsign,
     loadingCount: routeLoadingCount,
   } = useFlightRoutes(selectedRouteAircraft, {
     ...airportProfile,
@@ -59,8 +60,14 @@ export function useAirportExplorerData(
         aircraft,
         routesByCallsign,
         airportProfile,
+      }).map((item) => {
+        const callsign = normalizeCallsign(item.callsign);
+        return {
+          ...item,
+          flightRouteLookupStatus: callsign ? routeStatusByCallsign[callsign] : undefined,
+        };
       }),
-    [aircraft, routesByCallsign, airportProfile],
+    [aircraft, routesByCallsign, routeStatusByCallsign, airportProfile],
   );
 
   return {

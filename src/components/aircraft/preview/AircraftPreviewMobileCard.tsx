@@ -96,7 +96,13 @@ export default function AircraftPreviewMobileCard({
                 {destinationLabel}
               </span>
             ) : (
-              <span className="italic text-atc-faint">{t("aircraft.noRoute")}</span>
+              <span className="italic text-atc-faint">
+                {aircraft?.flightRouteLookupStatus === "pending"
+                  ? t("aircraft.loadingRoute")
+                  : aircraft?.flightRouteLookupStatus === "unavailable"
+                    ? t("aircraft.routeUnavailable")
+                    : t("aircraft.noRoute")}
+              </span>
             )}
           </div>
         </div>

@@ -348,6 +348,8 @@ const en = {
   },
   aircraft: {
     noRoute: "No route",
+    loadingRoute: "Loading route…",
+    routeUnavailable: "Route temporarily unavailable",
     airborne: "Airborne",
     ground: "Ground",
     gnd: "GND",

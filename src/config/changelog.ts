@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.7.10",
+    version: "v3.7.11",
     kind: "feat",
     title: {
       en: "Private service architecture",
       zh: "私有服务架构",
     },
     summary: {
-      en: "Refined live routes and tracking surfaces.",
-      zh: "优化实时航路与追踪界面。",
+      en: "Improved live aircraft and route recovery.",
+      zh: "优化实时飞机与航路恢复。",
     },
     highlights: [],
   },

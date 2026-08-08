@@ -30,9 +30,16 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
   const destinationLabel = showPlaces ? places.destination : destination;
 
   if (!origin || !destination) {
+    const status = aircraft?.flightRouteLookupStatus;
+    const label =
+      status === "pending"
+        ? t("aircraft.loadingRoute")
+        : status === "unavailable"
+          ? t("aircraft.routeUnavailable")
+          : t("aircraft.noRoute");
     return (
       <span className="font-mono text-[11px] italic tracking-[0.02em] text-atc-faint md:text-[10px]">
-        {t("aircraft.noRoute")}
+        {label}
       </span>
     );
   }
