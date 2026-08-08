@@ -64,10 +64,9 @@ export function useNearbySseChannel({
           setStatusEvent(nextEvent);
           return;
         }
-        if (!hasNearbyStreamPayload(nextEvent.data)) return;
         receivedForThisChannel = true;
         setEvent(nextEvent);
-        if (receivedForThisChannel) setGraceExpired(false);
+        if (hasNearbyStreamPayload(nextEvent.data)) setGraceExpired(false);
       },
       onState: setState,
     });
@@ -85,7 +84,10 @@ export function useNearbySseChannel({
     connectionState: state,
     eventType: statusEvent?.type || event?.type || "",
     graceExpired,
-    hasEvent: Boolean(event),
+    // A static snapshot may contain useful nearby-airport context before
+    // traffic arrives. It is delivered above, but must not end the initial
+    // data grace window or count as a live traffic result for HTTP fallback.
+    hasEvent: hasEventData,
     hasEventData,
   });
   const retry = useCallback(() => {

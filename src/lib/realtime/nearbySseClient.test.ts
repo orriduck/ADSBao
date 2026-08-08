@@ -59,10 +59,17 @@ source.emit("nearby:snapshot", {
   sequence: 1,
   emittedAt: "2026-08-08T00:00:00Z",
   stale: false,
-  data: { anchor: { lat: 42.36, lon: -71.01 } },
+  data: {
+    anchor: { lat: 42.36, lon: -71.01 },
+    nearbyAirports: [{ icao: "KBOS" }],
+  },
 });
-assert.deepEqual(received, [], "anchor-only snapshot must not settle a stream");
-assert.equal(states.includes("live"), false, "pending snapshot must not mark live");
+assert.deepEqual(
+  received,
+  ["a:nearby:snapshot:1", "b:nearby:snapshot:1"],
+  "static nearby context must be delivered before traffic",
+);
+assert.equal(states.includes("live"), false, "static context must not mark live");
 
 source.emit("nearby:snapshot", {
   protocolVersion: "1",
@@ -73,7 +80,12 @@ source.emit("nearby:snapshot", {
   stale: false,
   data: { aircraft: { ac: [] }, nearbyAirports: [] },
 });
-assert.deepEqual(received, ["a:nearby:snapshot:2", "b:nearby:snapshot:2"]);
+assert.deepEqual(received, [
+  "a:nearby:snapshot:1",
+  "b:nearby:snapshot:1",
+  "a:nearby:snapshot:2",
+  "b:nearby:snapshot:2",
+]);
 assert.ok(states.includes("live"), "snapshot moves a source to live");
 
 unsubscribeA();

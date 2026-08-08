@@ -222,9 +222,10 @@ export class NearbySseClient {
         const event = parseEvent(type, message.data);
         if (!event || event.channel !== stored.request.channel) return;
         if (type !== "nearby:status") {
-          if (!hasNearbyStreamPayload(event.data)) return;
-          stored.hasDataFrame = true;
-          this.setState(stored, event.stale ? "stale" : "live");
+          if (hasNearbyStreamPayload(event.data)) {
+            stored.hasDataFrame = true;
+            this.setState(stored, event.stale ? "stale" : "live");
+          }
         } else if (event.stale && stored.hasDataFrame) {
           this.setState(stored, "stale");
         }

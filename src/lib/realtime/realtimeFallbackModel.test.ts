@@ -22,6 +22,23 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
 {
   const fallback = shouldUseRealtimeFallback({
     available: true,
+    connectionState: "loading",
+    hasEvent: false,
+    graceExpired: false,
+    eventType: "nearby:snapshot",
+    hasEventData: false,
+  });
+
+  assert.equal(
+    fallback,
+    false,
+    "static nearby context must preserve the initial traffic-data grace window",
+  );
+}
+
+{
+  const fallback = shouldUseRealtimeFallback({
+    available: true,
     connectionState: "reconnecting",
     hasEvent: false,
     graceExpired: true,
