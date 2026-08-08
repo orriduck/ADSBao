@@ -642,12 +642,10 @@ function AirportExplorerContent({
               reportingPoints={airport?.reportingPoints || []}
               airspaces={airport?.airspaces || []}
               airport={airport}
-              // In near-me mode the airport profile has no ICAO and so
-              // no server-side airspaces / navaids attached. Flip the
-              // lat/lon-keyed aviation context tile fetch on so the
-              // map still shows Class B/C/D etc. polygons around the
-              // user — same hook the flight explorer already uses.
-              contextTileOverlays={nearMe}
+              // Airspace is viewport context, not airport-detail data. Keep
+              // this active for both airport and Here modes so the same
+              // visible polygons follow the map whenever the layer is on.
+              contextTileOverlays
               showMapLabels={showMapLabels}
               showRunwayBeams={showRunwayBeams}
               showNavaidMarkers={showNavaidMarkers}

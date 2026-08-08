@@ -209,7 +209,7 @@ export function FilterCardValue({
         // ancestor-selector approach as FilterCardLabel above.
         "[[data-active=true]_&]:text-[var(--atc-click-fg)]",
         "[[data-state=open]_&]:text-[var(--atc-click-fg)]",
-        "[.airport-map-kit_&]:text-[calc(16px*var(--sb-body-scale))]",
+        "[.airport-map-kit_&]:text-[calc(13px*var(--sb-body-scale))]",
         className,
       )}
       data-ui="filter-value"
