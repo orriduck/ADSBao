@@ -16,7 +16,10 @@ const airportMunicipality = (airport) =>
 export const formatRoutePlaceLabel = (
   { city, countryCode }: { city?: unknown; countryCode?: unknown } = {},
 ) => {
-  const name = String(city || '').trim()
+  const name = String(city || '')
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
   if (!name) return ''
   const flag = flagEmoji(countryCode)
   return flag ? `${flag} ${name}` : name

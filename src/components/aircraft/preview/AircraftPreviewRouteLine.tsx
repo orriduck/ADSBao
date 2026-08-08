@@ -1,26 +1,23 @@
-import { Plane } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useCrossfadeCycle } from "@/components/effects/useCrossfadeCycle";
 import { resolveFlightRouteProgress } from "@/features/aviation/flight-routes/flightRouteProgressModel";
 import { useRouteEndpointPlaces } from "@/hooks/useRouteEndpointPlaces";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
 
-// Visual route line: ORIGIN ——✈—— DESTINATION. A hairline on each side of the
-// accent plane glyph (the one place the accent appears in the route block).
+// Visual route line: ORIGIN ——•—— DESTINATION. A hairline on each side of the
+// accent dot marks the current route position without competing with the
+// aircraft silhouette on the map.
 // Falls back to a quiet "no route" so the header height stays stable.
 //
 // When the route carries city data the endpoints
 // crossfade-carousel between the IATA codes and "🇺🇸 City" place labels; the
-// accent glyph and hairlines stay put so only the two labels swap.
+// accent dot shares their crossfade so the whole changing route identity reads
+// as one transition.
 export default function AircraftPreviewRouteLine({ aircraft }) {
   const { t } = useI18n();
   const route = aircraft?.flightRoute;
   const { origin, destination } = getFlightRouteEndpoints(route);
   const routeProgress = resolveFlightRouteProgress({ route, aircraft });
-  const heading = Number(aircraft?.track);
-  // Lucide's plane artwork points northeast at rest, so remove that 45°
-  // baseline before applying a compass heading (0° = north).
-  const planeRotation = Number.isFinite(heading) ? heading - 45 : 45;
   const places = useRouteEndpointPlaces(route);
 
   const hasPlaces = Boolean(places.origin && places.destination);
@@ -63,11 +60,10 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
         className="h-px min-w-[14px] flex-[1_1_0%] bg-atc-line"
         style={routeProgress == null ? undefined : { flexGrow: routeProgress }}
       />
-      <Plane
+      <span
         aria-hidden="true"
-        strokeWidth={1.6}
-        className="size-[15px] flex-none fill-current text-[var(--atc-signal-accent)] md:size-[14px]"
-        style={{ transform: `rotate(${planeRotation}deg)` }}
+        className={`size-[7px] flex-none rounded-full bg-[var(--atc-signal-accent)] ${fadeClass}`}
+        style={style}
       />
       <span
         aria-hidden="true"
