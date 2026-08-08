@@ -3115,6 +3115,36 @@ body:has(.dither-page-shell) {
     /* Foreground on a SOLID signal-accent fill — white on the mid-orange light
        canvas (near-black override on the brighter dark-canvas orange below). */
     --atc-signal-accent-fg: #fff;
+    /* One restrained hairline language for sidebar controls and map chrome.
+       The main perimeter stays visible at 13%; internal dividers step down so
+       joined groups read as one ordered component rather than four boxes. */
+    --atc-control-border: color-mix(
+        in oklab,
+        var(--atc-text) 13%,
+        transparent
+    );
+    --atc-control-divider: color-mix(
+        in oklab,
+        var(--atc-text) 7%,
+        transparent
+    );
+    /* Preview actions are the one solid signal-accent control. Keep their
+       edge and lift shallow so the orange communicates state, not gloss. */
+    --atc-action-primary-border: color-mix(
+        in oklab,
+        var(--atc-signal-accent) 82%,
+        var(--atc-text) 8%
+    );
+    --atc-action-primary-shadow:
+        0 3px 10px
+            color-mix(in oklab, var(--atc-signal-accent) 16%, transparent),
+        inset 0 1px 0
+            color-mix(in oklab, var(--atc-signal-accent-fg) 24%, transparent);
+    --atc-action-focus-ring: color-mix(
+        in oklab,
+        var(--atc-signal-accent) 66%,
+        var(--atc-bg)
+    );
     /* SECONDARY target (clicked) — a high-contrast NEUTRAL, not a hue: the
        orange primary stays the only added colour, and the selected target is
        told apart purely by luminance. Theme-split: a near-black dark grey on
@@ -5335,11 +5365,11 @@ body {
     background: var(--atc-toolbar-surface);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
-    border: 1px solid var(--app-frost-border);
+    border: 1px solid var(--atc-control-border);
     border-radius: 999px;
     box-shadow:
-        var(--atc-toolbar-inset-shadow),
-        0 2px 6px color-mix(in oklab, var(--atc-bg) 38%, transparent);
+        var(--atc-control-inset-shadow-subtle),
+        0 2px 5px color-mix(in oklab, var(--atc-bg) 32%, transparent);
     color: var(--atc-text);
     text-shadow: none;
 }
@@ -5374,14 +5404,10 @@ body {
    light canvas, bright on the dark canvas) so it stays legible either way. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
     .airport-overlay-label__code.atc-code-pill {
-    background: color-mix(in oklab, var(--atc-signal-accent) 76%, transparent);
-    -webkit-backdrop-filter: var(--app-frost);
-    backdrop-filter: var(--app-frost);
-    border: 0;
+    background: var(--atc-signal-accent);
+    border: 1px solid var(--atc-action-primary-border);
     border-radius: 999px;
-    box-shadow:
-        var(--atc-toolbar-inset-shadow),
-        0 2px 6px color-mix(in oklab, var(--atc-bg) 40%, transparent);
+    box-shadow: var(--atc-action-primary-shadow);
     color: var(--atc-signal-accent-fg);
 }
 
@@ -5406,13 +5432,15 @@ body {
 
 .airport-overlay-label__detail--near {
     align-items: center;
-    background: var(--atc-solid-accent);
-    border: 0;
+    background: var(--atc-toolbar-surface);
+    -webkit-backdrop-filter: var(--app-frost);
+    backdrop-filter: var(--app-frost);
+    border: 1px solid var(--atc-control-border);
     border-radius: 999px;
     box-shadow:
-        0 1px 3px color-mix(in oklab, var(--atc-text) 22%, transparent),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-solid-accent-fg) 13%, transparent);
-    color: var(--atc-solid-accent-fg);
+        var(--atc-control-inset-shadow-subtle),
+        0 2px 5px color-mix(in oklab, var(--atc-bg) 32%, transparent);
+    color: var(--atc-text-secondary);
     display: inline-flex;
     font-family: var(--font-sans);
     font-size: 6.5px;
@@ -5424,19 +5452,19 @@ body {
 }
 
 .airport-overlay-label__detail-label {
-    color: color-mix(in oklab, var(--atc-solid-accent-fg) 65%, transparent);
+    color: var(--atc-text-muted);
     font-weight: var(--weight-regular);
 }
 
 .airport-overlay-label__detail-value {
-    color: var(--atc-solid-accent-fg);
+    color: var(--atc-text-primary);
     font-weight: var(--weight-regular);
     min-width: 1ch;
     text-align: right;
 }
 
 .airport-overlay-label__detail-separator {
-    color: color-mix(in oklab, var(--atc-solid-accent-fg) 42%, transparent);
+    color: var(--atc-text-muted);
     font-weight: var(--weight-regular);
 }
 
@@ -6055,7 +6083,7 @@ body {
 /* The sidebar search lives on a white column, so it needs a fine luminous
    perimeter in addition to the shared frosted-input material. */
 .aircraft-table-search-bar .search-input {
-    border-color: color-mix(in oklab, var(--atc-text) 11%, var(--app-frost-border));
+    border-color: var(--atc-control-border);
     border-radius: var(--atc-radius-card);
     box-shadow:
         var(--atc-control-inset-shadow),
@@ -6506,32 +6534,24 @@ body {
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
 }
 
-/* Primary CTA inside the preview card — Saira display type reads
-   as a confident action ("Track this aircraft"). Card itself has
-   pointer-events:none, so the button restores its own pointer-events. */
+/* Primary CTA inside the preview card. Orange is reserved for this action,
+   while the solid fill, shallow lift, and sidebar sans keep it restrained. */
 .aircraft-preview-card__track-btn {
     display: block;
     box-sizing: border-box;
     width: 100%;
     margin-top: 14px;
-    padding: 11px 14px;
-    border: 1px solid
-        color-mix(in oklab, var(--atc-signal-accent) 88%, black 8%);
-    border-radius: var(--atc-radius-control);
-    background: linear-gradient(
-        180deg,
-        color-mix(in oklab, var(--atc-signal-accent) 92%, white 8%),
-        var(--atc-signal-accent)
-    );
-    box-shadow:
-        0 8px 18px color-mix(in oklab, var(--atc-signal-accent) 34%, transparent),
-        inset 0 -2px 0 color-mix(in oklab, black 18%, transparent);
-    color: #fff;
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: var(--weight-regular);
+    padding: 10px 14px;
+    border: 1px solid var(--atc-action-primary-border);
+    border-radius: var(--atc-radius-card);
+    background: var(--atc-signal-accent);
+    box-shadow: var(--atc-action-primary-shadow);
+    color: var(--atc-signal-accent-fg);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
     font-style: normal;
-    letter-spacing: 0.08em;
+    letter-spacing: normal;
     line-height: 1.15;
     overflow-wrap: anywhere;
     text-align: center;
@@ -6548,23 +6568,21 @@ body {
 }
 
 .aircraft-preview-card__track-btn:visited {
-    color: #fff;
+    color: var(--atc-signal-accent-fg);
 }
 
 :root[data-theme="dark"] .aircraft-preview-card__track-btn,
 :root[data-theme="dark"] .aircraft-preview-card__track-btn:visited {
-    color: #fff;
+    color: var(--atc-signal-accent-fg);
 }
 
 .aircraft-preview-card__track-btn:hover {
-    filter: brightness(1.04);
-    box-shadow:
-        0 10px 22px color-mix(in oklab, var(--primary-bright) 28%, transparent),
-        inset 0 -2px 0 color-mix(in oklab, var(--primary-ink) 30%, transparent);
+    filter: brightness(1.03);
+    box-shadow: var(--atc-action-primary-shadow);
 }
 
 .aircraft-preview-card__track-btn:focus-visible {
-    outline: 2px solid color-mix(in oklab, var(--primary-bright) 72%, white);
+    outline: 2px solid var(--atc-action-focus-ring);
     outline-offset: 3px;
 }
 
@@ -6584,7 +6602,7 @@ body {
 .aircraft-preview-card__actions {
     display: flex;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
     margin-top: 14px;
     pointer-events: auto;
 }
@@ -6599,11 +6617,11 @@ body {
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    width: 42px;
-    border-radius: 13px;
-    border: 1px solid var(--app-frost-border);
-    background: var(--atc-control-surface);
-    box-shadow: var(--atc-control-inset-shadow);
+    width: 38px;
+    border-radius: var(--atc-radius-card);
+    border: 1px solid var(--atc-control-border);
+    background: var(--atc-control-surface-muted);
+    box-shadow: var(--atc-control-inset-shadow-subtle);
     color: var(--atc-dim);
     cursor: pointer;
     pointer-events: auto;
@@ -8029,10 +8047,10 @@ body {
     margin: 0 var(--airport-sidebar-inset);
     overflow: hidden;
     padding: 1px;
-    border: 1px solid var(--app-frost-border);
+    border: 1px solid var(--atc-control-border);
     border-radius: var(--atc-radius-card);
-    background: var(--atc-control-surface-muted);
-    box-shadow: var(--atc-control-inset-shadow);
+    background: var(--atc-control-divider);
+    box-shadow: var(--atc-control-inset-shadow-subtle);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
 }
@@ -8170,8 +8188,7 @@ body {
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
     background: color-mix(in oklab, var(--atc-signal-accent) 10%, transparent);
-    box-shadow: inset 0 0 0 1px
-        color-mix(in oklab, var(--atc-signal-accent) 32%, transparent);
+    box-shadow: none;
 }
 
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] [data-ui="filter-value"],
@@ -8214,33 +8231,42 @@ body {
 .airport-sidebar-panel [data-ui="filter-card"][data-layout="split"],
 .flight-sidebar-panel [data-ui="filter-card"][data-layout="split"] {
     align-content: center;
-    align-items: center;
+    align-items: start;
     display: grid;
-    gap: 6px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 1fr;
+    gap: 4px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
     justify-items: stretch;
-    min-height: 30px;
-    padding-left: 7px;
-    padding-right: 7px;
+    min-height: 46px;
+    padding: 8px 9px 9px;
     text-align: left;
 }
 
 .airport-sidebar-panel [data-ui="filter-card"][data-layout="split"] [data-ui="filter-label"],
 .flight-sidebar-panel [data-ui="filter-card"][data-layout="split"] [data-ui="filter-label"] {
+    grid-column: 1;
+    grid-row: 1;
     justify-self: start;
     text-align: left;
 }
 
 .airport-sidebar-panel [data-ui="filter-card"][data-layout="split"] [data-ui="filter-value"],
 .flight-sidebar-panel [data-ui="filter-card"][data-layout="split"] [data-ui="filter-value"] {
-    justify-self: end;
-    text-align: right;
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    text-align: left;
+}
+
+.airport-sidebar-panel [data-ui="filter-card"][data-layout="split"] > span:last-child,
+.flight-sidebar-panel [data-ui="filter-card"][data-layout="split"] > span:last-child {
+    grid-column: 1;
+    grid-row: 2;
 }
 
 .airport-sidebar-panel [data-ui="filter-card"],
 .flight-sidebar-panel [data-ui="filter-card"] {
-    min-height: 30px;
+    min-height: 46px;
 }
 
 .airport-map-kit .airport-map-menu {
@@ -8852,7 +8878,7 @@ body {
 
 .sidebar-hero-stats {
     background: var(--atc-control-surface);
-    border: 1px solid color-mix(in oklab, var(--atc-text) 13%, transparent);
+    border: 1px solid var(--atc-control-border);
     border-radius: var(--atc-radius-panel);
     box-shadow: var(--atc-control-inset-shadow);
     -webkit-backdrop-filter: var(--app-frost);

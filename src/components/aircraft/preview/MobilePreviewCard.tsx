@@ -145,9 +145,7 @@ export function MobilePreviewActions({ children }: Record<string, any>) {
   );
 }
 
-// Primary action — full-width bright pill that matches the active
-// metric / filter card ink language (data-active flips to the same
-// primary tokens elsewhere).
+// Primary action — the same restrained signal-accent button as desktop.
 export const MobilePreviewTrackButton = React.forwardRef(
   function MobilePreviewTrackButton(
     { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -161,9 +159,9 @@ export const MobilePreviewTrackButton = React.forwardRef(
           "min-h-[34px] w-full px-[10px] cursor-pointer [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:px-2",
           "border border-[var(--atc-action-primary-border)]",
           "rounded-[calc(var(--atc-radius-card)-3px)]",
-          "bg-[var(--primary-bright)] text-[var(--primary-ink)]",
+          "bg-[var(--atc-signal-accent)] text-[var(--atc-signal-accent-fg)]",
           "shadow-[var(--atc-action-primary-shadow)]",
-          "font-[var(--font-display)] text-[11px] font-extrabold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
+          "font-[var(--font-sans)] text-[11px] font-semibold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[box-shadow,filter,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:brightness-[1.04] active:scale-[0.97] active:brightness-[0.96]",

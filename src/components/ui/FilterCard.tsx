@@ -28,7 +28,7 @@ function composeEventHandlers<Event>(
 
 // Compact filter "tile" shared by the AircraftTable filter strip and
 // the AircraftTypeFilterCard / AircraftFilterCardSelect dropdowns.
-// Same dense cell language as StatTile, with smaller padding + type ramps.
+// Same label-over-value language and type scale as the sidebar StatTile.
 
 const filterCardVariants = cva(
   cn(
@@ -179,7 +179,7 @@ export function FilterCardLabel({
   return (
     <span
       className={cn(
-        "uppercase text-[8px] font-bold leading-none tracking-normal",
+        "uppercase text-[8px] font-semibold leading-none tracking-normal",
         "text-atc-faint",
         // When the parent FilterCard is active or its select is open,
         // dim the label to the muted-on-ink token. Uses ancestor
@@ -187,7 +187,7 @@ export function FilterCardLabel({
         // doesn't carry the `group` class through asChild.
         "[[data-active=true]_&]:text-[var(--atc-click-muted)]",
         "[[data-state=open]_&]:text-[var(--atc-click-muted)]",
-        "[.airport-map-kit_&]:text-[7px]",
+        "[.airport-map-kit_&]:text-[calc(10px*var(--sb-body-scale))]",
         className,
       )}
       data-ui="filter-label"
@@ -203,13 +203,13 @@ export function FilterCardValue({
   return (
     <strong
       className={cn(
-        "uppercase text-[10px] font-extrabold leading-[1.15] tracking-normal",
+        "uppercase text-[10px] font-normal leading-[1.15] tracking-normal",
         "text-atc-text max-w-full break-words [overflow-wrap:anywhere]",
         // Promote to click-fg when the card flips to ink — same
         // ancestor-selector approach as FilterCardLabel above.
         "[[data-active=true]_&]:text-[var(--atc-click-fg)]",
         "[[data-state=open]_&]:text-[var(--atc-click-fg)]",
-        "[.airport-map-kit_&]:text-[8.5px]",
+        "[.airport-map-kit_&]:text-[calc(16px*var(--sb-body-scale))]",
         className,
       )}
       data-ui="filter-value"

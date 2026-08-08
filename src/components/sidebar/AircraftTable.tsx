@@ -278,15 +278,7 @@ function AircraftTable({
                       )
                     }
                   >
-                    <FilterCardLabel className="flex items-center gap-1.5">
-                      {trafficFilter === "routed" ? (
-                        <span
-                          aria-hidden="true"
-                          className="size-1.5 shrink-0 rounded-full bg-[var(--atc-signal-accent)]"
-                        />
-                      ) : null}
-                      {t("sidebar.route")}
-                    </FilterCardLabel>
+                    <FilterCardLabel>{t("sidebar.route")}</FilterCardLabel>
                     <FilterCardValue>
                       {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
                     </FilterCardValue>
@@ -400,11 +392,10 @@ function AircraftTable({
   );
 }
 
-// The four filter pills share one structure: [label] … [value]. Dropdown
-// pills (Targets / Aircraft / Alt) end in a small chevron so they read as
-// "opens a menu"; the Route toggle omits it. The chevron rides in the same
-// right-hand grid cell as the value, so the presence/absence of the chevron
-// is the only visual difference and the 2×2 grid stays perfectly aligned.
+// The four filter cells share one label-over-value structure. Dropdown cells
+// end in a small chevron; the Route toggle omits it. The value row stretches
+// across the card so all labels and values keep one clean left axis while the
+// chevrons land on one right axis.
 function FilterPillValue({
   children,
   dropdown = true,
@@ -413,7 +404,7 @@ function FilterPillValue({
   dropdown?: boolean;
 }) {
   return (
-    <span className="flex items-center gap-1 justify-self-end">
+    <span className="flex w-full items-center justify-between gap-1 justify-self-stretch">
       <FilterCardValue>{children}</FilterCardValue>
       {dropdown ? (
         <ChevronDown

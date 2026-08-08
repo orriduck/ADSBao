@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 72;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.9.0",
+    version: "v3.9.1",
     kind: "feat",
     title: {
       en: "Recorded flight trace views",
       zh: "主动记录航迹视图",
     },
     summary: {
-      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme.",
-      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。",
+      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme. Airport maps now load visible airspace context reliably, and signed-in settings save with the verified account identity.",
+      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。机场地图现会可靠加载可见空域，已登录用户的设置也会以已验证的账户身份保存。",
     },
     highlights: [],
   },

@@ -326,7 +326,7 @@ export default function AircraftPreviewCard({
                 <div className="flex items-stretch gap-1.5">
                   {showMobileTrackButton && (
                     <MobilePreviewTrackButton
-                      className="flex-1 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
+                      className="flex-1"
                       onClick={handleMobileTap}
                       disabled={alreadyTracking}
                     >
@@ -335,7 +335,7 @@ export default function AircraftPreviewCard({
                   )}
                   {showMobileSpotNavigationTrigger && (
                     <MobilePreviewTrackButton
-                      className="flex-1 border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
+                      className="flex-1"
                       onClick={onOpenCandidateWatchingSpotNavigation}
                     >
                       {t("preview.goToSpot")}
@@ -343,7 +343,7 @@ export default function AircraftPreviewCard({
                   )}
                   {showMobilePlaneHunterTrigger && (
                     <MobilePreviewTrackButton
-                      className="flex flex-1 items-center justify-center border-[color-mix(in_oklab,var(--atc-signal-accent)_88%,black_8%)] bg-[var(--atc-signal-accent)] text-white"
+                      className="flex flex-1 items-center justify-center"
                       onClick={() => setPlaneHunterOpen(true)}
                       aria-label={t("preview.planeHunter")}
                       title={t("preview.planeHunter")}
