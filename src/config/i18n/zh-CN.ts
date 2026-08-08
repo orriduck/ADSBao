@@ -603,6 +603,7 @@ const zhCN = {
     toggleSidebar: "切换侧栏",
     openDetails: "打开信息卡",
     expandDetails: "展开信息卡",
+    refreshPage: "刷新当前页",
     fitTrace: "适配航迹",
     approachingView: "进近视图(点击循环)",
     viewMenu: "地图范围",

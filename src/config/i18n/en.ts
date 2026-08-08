@@ -612,6 +612,7 @@ const en = {
     toggleSidebar: "Toggle sidebar",
     openDetails: "Open detail cards",
     expandDetails: "Expand detail cards",
+    refreshPage: "Refresh this page",
     fitTrace: "Fit map to trace",
     approachingView: "Approaching view (click to cycle)",
     viewMenu: "Map range",
