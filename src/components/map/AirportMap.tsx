@@ -22,7 +22,7 @@ import { AIRPORT_MAP_FALLBACK_CENTER } from "../../config/airportMap";
 import {
   AIRPORT_MAP_ZOOM,
   AIRPORT_MAP_ZOOM_MAX,
-  AIRPORT_MAP_ZOOM_MIN,
+  AIRPORT_MAP_FIT_ZOOM_MIN,
 } from "../../config/aviation";
 import MapAttribution from "./MapAttribution";
 import MapLoadingOverlay, {
@@ -209,7 +209,7 @@ export default function AirportMap({
     const map = L.map(mapEl.current, {
       center: [initialCenter.lat, initialCenter.lon],
       zoom,
-      minZoom: AIRPORT_MAP_ZOOM_MIN,
+      minZoom: AIRPORT_MAP_FIT_ZOOM_MIN,
       maxZoom: AIRPORT_MAP_ZOOM_MAX,
       zoomSnap: 0.25,
       zoomDelta: 0.5,
@@ -293,9 +293,8 @@ export default function AirportMap({
   }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
-  // selection so the user can drop "trace mode" without targeting an
-  // explicit element. Aircraft markers stop event propagation in their own
-  // container click handler, so this listener only fires on bare tiles.
+  // preview selection. On a flight page the URL-tracked focal trace remains
+  // mounted independently, so clearing a secondary preview never hides it.
   useEffect(() => {
     if (!mapInstance) return undefined;
     const handleMapClick = (event: any) => {
@@ -376,6 +375,7 @@ export default function AirportMap({
   const renderSelectedAircraftTrace = shouldRenderSelectedAircraftTrace({
     selectedAircraftId,
     selectedAircraft,
+    focalAircraftId,
   });
   const feedLoadingActive = hasActiveMapLoadingSource({
     active: loadingOverlayActive,

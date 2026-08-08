@@ -38,20 +38,33 @@ export function buildFlightRouteArcPath({
 }
 
 export function resolveFocusedFlightRouteArcPath({
-  selectedAircraft = null,
   focalAircraft = null,
   from = null,
   segments = 32,
 }: {
-  selectedAircraft?: Record<string, any> | null;
   focalAircraft?: Record<string, any> | null;
   from?: Record<string, any> | null;
   segments?: unknown;
 } = {}) {
-  const route = focalAircraft?.flightRoute || selectedAircraft?.flightRoute || null;
+  const route = focalAircraft?.flightRoute || null;
   return buildFlightRouteArcPath({
     route,
     from,
+    segments,
+  });
+}
+
+export function resolveFocusedFlightFullRoutePath({
+  focalAircraft = null,
+  segments = 32,
+}: {
+  focalAircraft?: Record<string, any> | null;
+  segments?: unknown;
+} = {}) {
+  const route = focalAircraft?.flightRoute || null;
+  return buildFlightRouteArcPath({
+    route,
+    from: route?.origin || null,
     segments,
   });
 }

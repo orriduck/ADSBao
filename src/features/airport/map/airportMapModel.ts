@@ -34,6 +34,7 @@ type VisibleAircraftOptions = {
 type SelectedAircraftTraceOptions = {
   selectedAircraftId?: unknown;
   selectedAircraft?: unknown;
+  focalAircraftId?: unknown;
 };
 
 export const isLightMapTheme = (theme: unknown) =>
@@ -77,8 +78,9 @@ export const resolveNearbyAirportLayerDisplay = ({
 export const shouldRenderSelectedAircraftTrace = ({
   selectedAircraftId = "",
   selectedAircraft = null,
+  focalAircraftId = "",
 }: SelectedAircraftTraceOptions = {}) =>
-  Boolean(selectedAircraftId && selectedAircraft);
+  Boolean(focalAircraftId || (selectedAircraftId && selectedAircraft));
 
 const toFiniteCoordinate = (value: unknown) => {
   if (value == null || value === "") return null;

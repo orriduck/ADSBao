@@ -9,8 +9,8 @@
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "browser"],
-  "background_color": "#f2f0ea",
-  "theme_color": "#f2f0ea",
+  "background_color": "#0a0f0c",
+  "theme_color": "#0a0f0c",
   "categories": ["travel", "navigation", "utilities"],
   "icons": [
     {

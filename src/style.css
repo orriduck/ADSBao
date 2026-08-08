@@ -716,6 +716,7 @@
     --theme-sidebar-card: oklch(0.982 0.004 165);
     --theme-sidebar-dark-bg: oklch(0.16 0.009 165);
     --theme-sidebar-dark-card: oklch(0.205 0.008 165);
+    --app-page-chrome-bg: var(--theme-sidebar-bg);
     --primary-bright: var(--theme-primary-bright);
     --primary-deep: var(--theme-primary-deep);
     --primary-ink: var(--theme-primary-ink);
@@ -1198,6 +1199,7 @@
     --primary-bright: oklch(0.93 0.006 165);
     --primary-deep: oklch(0.82 0.006 165);
     --primary-ink: oklch(0.13 0.007 165);
+    --app-page-chrome-bg: var(--theme-sidebar-dark-bg);
     --atc-bg: oklch(0.14 0.009 165);
     --atc-card: oklch(0.195 0.009 165);
     --atc-elev: oklch(0.255 0.01 165);
@@ -1585,14 +1587,14 @@
 }
 
 html {
-    background: var(--atc-bg);
+    background: var(--app-page-chrome-bg);
 }
 
 body {
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    background: var(--atc-bg);
+    background: var(--app-page-chrome-bg);
     color: var(--atc-text);
     font-family: var(--font-sans);
 }
@@ -6010,7 +6012,7 @@ body {
    The collapsed/static pill (.static) is a glass Toolbar and owns its own
    surface, so it is intentionally untouched here. */
 .sidebar-brand-dock.sticky {
-    background: color-mix(in oklab, var(--app-frost-tint) 96%, transparent);
+    background: var(--app-page-chrome-bg);
     box-shadow: none;
 }
 
@@ -6023,7 +6025,7 @@ body {
     height: 28px;
     background: linear-gradient(
         to bottom,
-        color-mix(in oklab, var(--app-frost-tint) 96%, transparent),
+        var(--app-page-chrome-bg),
         transparent
     );
     pointer-events: none;
@@ -8832,14 +8834,9 @@ body {
 
 .airport-desktop-sidebar,
 .sidebar-layout-overlay {
-    background: white;
+    background: var(--app-page-chrome-bg);
     border-right: 1px solid color-mix(in oklab, var(--atc-text) 12%, transparent);
     box-shadow: 1px 0 0 color-mix(in oklab, var(--app-frost-tint) 72%, transparent);
-}
-
-:root[data-theme="dark"] .airport-desktop-sidebar,
-:root[data-theme="dark"] .sidebar-layout-overlay {
-    background: var(--sidebar);
 }
 
 .airport-map-kit {

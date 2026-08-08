@@ -134,6 +134,9 @@ export default function MapControlBar({
         zoomMin={AIRPORT_MAP_ZOOM_MIN}
         zoomMax={AIRPORT_MAP_ZOOM_MAX}
         zoomDisabled={zoomDisabled}
+        zoomAdjustmentDisabled={
+          normalizedTraceViewItems.length > 0 && !zoomActive
+        }
         onZoom={onZoom}
         traceItems={normalizedTraceViewItems}
         currentTheme={themePreference}

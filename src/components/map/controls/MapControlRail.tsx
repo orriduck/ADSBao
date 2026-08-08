@@ -29,6 +29,7 @@ export default function MapControlRail({
   zoomMin = 10,
   zoomMax = 15,
   zoomDisabled = false,
+  zoomAdjustmentDisabled = false,
   onZoom,
   traceItems = [],
   currentTheme,
@@ -75,7 +76,7 @@ export default function MapControlRail({
         </ToolbarButton>
       ) : null}
 
-      {/* 缩放滑条 + 航迹视图(完整航迹/所有记录点)全部收进这一个按钮的子菜单,
+      {/* 缩放滑条 + 航迹视图(跟随飞机/完整航迹/所有记录点)全部收进这一个按钮的子菜单,
           避免工具栏过长。航迹两项只在飞机追踪页有。缩放与设置只在能看到地图时才有
           意义,所以移动端 sidebar(surface="sidebar")里隐藏它们。 */}
       {showZoom ? (
@@ -84,6 +85,7 @@ export default function MapControlRail({
           min={zoomMin}
           max={zoomMax}
           disabled={zoomDisabled}
+          adjustmentDisabled={zoomAdjustmentDisabled}
           onZoom={onZoom}
           traceItems={traceItems}
           menuPlacement={menuPlacement}
@@ -176,6 +178,7 @@ function ZoomSliderButton({
   min = 10,
   max = 15,
   disabled = false,
+  adjustmentDisabled = false,
   onZoom,
   traceItems = [],
   menuPlacement = "bottom",
@@ -222,10 +225,18 @@ function ZoomSliderButton({
               max={max}
               step={1}
               value={current}
-              disabled={disabled}
-              onChange={(event) => onZoom?.(Number(event.target.value))}
+              disabled={disabled || adjustmentDisabled}
+              onChange={(event) => {
+                if (!adjustmentDisabled) {
+                  onZoom?.(Number(event.target.value));
+                }
+              }}
               aria-label={t("map.viewMenu")}
-              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-[color-mix(in_oklab,var(--atc-text)_18%,transparent)] accent-[var(--atc-click-bg)]"
+              className={`h-1.5 flex-1 appearance-none rounded-full bg-[color-mix(in_oklab,var(--atc-text)_18%,transparent)] accent-[var(--atc-click-bg)] ${
+                adjustmentDisabled
+                  ? "cursor-not-allowed opacity-35"
+                  : "cursor-pointer"
+              }`}
             />
             <span className="w-7 flex-none text-[11px] tabular-nums text-atc-muted">
               {max}x
@@ -235,7 +246,7 @@ function ZoomSliderButton({
             {current}x
           </div>
 
-          {/* 航迹视图(完整航迹 / 所有记录点)—— 只在飞机追踪页有。 */}
+          {/* 航迹视图(跟随飞机 / 完整航迹 / 所有记录点)—— 只在飞机追踪页有。 */}
           {traceItems.length > 0 ? (
             <div className="mt-2 border-t border-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] pt-1.5">
               {traceItems.map((item) => (
@@ -245,7 +256,10 @@ function ZoomSliderButton({
                   aria-checked={Boolean(item.active)}
                   selected={Boolean(item.active)}
                   disabled={Boolean(item.disabled)}
-                  onClick={() => item.onSelect?.()}
+                  onClick={() => {
+                    item.onSelect?.();
+                    setOpen(false);
+                  }}
                   className="justify-between"
                 >
                   <span className="inline-flex min-w-0 items-center gap-2">

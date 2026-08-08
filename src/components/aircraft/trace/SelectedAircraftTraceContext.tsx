@@ -52,25 +52,26 @@ function deriveTrace(aircraft, hookResult, { fullTrace = false } = {}) {
 export function SelectedAircraftTraceProvider({
   selectedAircraft = null,
   focalAircraft = null,
-  fullTraceForFocal = false,
   showSelectedTrace = true,
-  focalClipToLeg = false,
-  focalTraceRefreshKey = "",
+  focalRecordedOnly = false,
   children,
 }) {
-  const primaryAircraft = showSelectedTrace ? selectedAircraft : null;
+  const focalIdentity = focalAircraft
+    ? getAircraftIdentity(focalAircraft)
+    : "";
+  const selectedIdentity = selectedAircraft
+    ? getAircraftIdentity(selectedAircraft)
+    : "";
+  const primaryAircraft =
+    showSelectedTrace && (!focalIdentity || selectedIdentity !== focalIdentity)
+      ? selectedAircraft
+      : null;
   const primaryHook = useAircraftTrace(primaryAircraft);
-  // Focal trace uses adsb.lol's trace_full endpoint on the aircraft
-  // detail page so the user sees the whole flight on load — not just
-  // the rolling tail. `focalClipToLeg` clips the historical sources to
-  // the current flight leg so earlier legs (or yesterday's
-  // same-callsign trail) stay out of the focal views. The persist key
-  // The durable tracking run supplies its own trace history. Secondary
-  // (clicked) traces stick with recent + no clipping.
+  // The tracked-flight page renders only its durable tracking-run samples.
+  // It never mixes provider history into the focal trail; a secondary plane
+  // clicked by the user still uses the regular recent-trace behavior.
   const focalHook = useAircraftTrace(focalAircraft, {
-    fullTrace: fullTraceForFocal,
-    clipToLeg: focalClipToLeg,
-    traceRefreshKey: focalTraceRefreshKey,
+    recordedOnly: focalRecordedOnly,
   });
 
   const primary = useMemo(
@@ -78,14 +79,14 @@ export function SelectedAircraftTraceProvider({
     [primaryAircraft, primaryHook],
   );
   const focal = useMemo(
-    () => deriveTrace(focalAircraft, focalHook, { fullTrace: fullTraceForFocal }),
-    [focalAircraft, focalHook, fullTraceForFocal],
+    () => deriveTrace(focalAircraft, focalHook),
+    [focalAircraft, focalHook],
   );
 
   const traces = useMemo(() => {
     const out = [];
     // The URL-tracked focal renders at full opacity and is emitted
-    // first so its richer trace (full + persisted) wins the dedupe.
+    // first so its page-owned recorded trace wins the dedupe.
     // If the primary refers to the same plane as the focal — the
     // default state before the user clicks anything — the bare
     // primary hook (recent-only, no persistence) would otherwise

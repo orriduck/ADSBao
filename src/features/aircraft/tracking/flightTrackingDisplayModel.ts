@@ -8,7 +8,6 @@ const DEFAULT_CONTEXT = Object.freeze({
   aircraftRangeNm: AIRCRAFT_TRAFFIC_CONFIG.rangeNm,
   airportRadiusNm: NEARBY_AIRPORT_DEFAULTS.radiusNm,
   airportLimit: NEARBY_AIRPORT_LIMITS.maxLimit,
-  fullTraceForFocal: true,
   showNearbyContext: true,
   showNearbyTrafficContext: true,
   showNearbyAirportContext: true,
@@ -16,7 +15,11 @@ const DEFAULT_CONTEXT = Object.freeze({
   showNearbyMapContext: true,
   zoomDisabled: false,
   mapFitOptions: Object.freeze({
-    padding: Object.freeze([60, 60]),
+    paddingTopLeft: Object.freeze([60, 60]),
+    // Airport badges grow to the right of their geographic anchor. Preserve
+    // enough right-side room that Full trace keeps the complete origin and
+    // destination badges visible, not merely their coordinates.
+    paddingBottomRight: Object.freeze([140, 60]),
     maxZoom: 14,
   }),
   autoFitSuspendsFollow: false,
@@ -48,4 +51,14 @@ export function resolveTrackedAircraftSelectionSync({
   }
 
   return null;
+}
+
+export function resolveFlightRouteCandidateCallsigns({
+  focalCallsign = "",
+  selectedCallsign = "",
+} = {}) {
+  const candidates = [focalCallsign, selectedCallsign]
+    .map((value) => String(value || "").trim().toUpperCase())
+    .filter(Boolean);
+  return [...new Set(candidates)];
 }

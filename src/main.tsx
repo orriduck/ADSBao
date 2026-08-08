@@ -16,6 +16,7 @@ import { UnitPreferencesProvider } from "@/features/app-shell/unitPreferences/Un
 import { NotificationPreferencesProvider } from "@/features/notifications/NotificationPreferencesProvider";
 import WebMcpProvider from "@/features/webmcp/WebMcpProvider";
 import { isConcreteTheme } from "@/utils/theme";
+import { startDocumentThemeColorSync } from "@/features/app-shell/documentThemeColor";
 import App from "./App";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -54,6 +55,7 @@ if (!root) {
 }
 
 const { initialTheme } = applyDocumentShell();
+startDocumentThemeColorSync();
 registerAdsbaoServiceWorker();
 
 createRoot(root).render(

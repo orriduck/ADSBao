@@ -74,6 +74,42 @@ import {
 }
 
 {
+  const points = buildTraceFitPoints({
+    traces: [],
+    routePath: [
+      [49.19, -123.18],
+      [-33.94, 151.18],
+    ],
+    allowRouteOnly: true,
+  });
+
+  assert.deepEqual(
+    points,
+    [
+      [49.19, -123.18],
+      [-33.94, 151.18],
+    ],
+    "full-route view can frame origin to destination before samples arrive",
+  );
+}
+
+{
+  const points = buildTraceFitPoints({
+    traces: [
+      {
+        tracePoints: Array.from({ length: 1_000 }, (_, index) => ({
+          lat: 30 + index / 100,
+          lon: -120 + index / 200,
+        })),
+      },
+    ],
+  });
+  assert.ok(points.length <= 4, "fit geometry virtualizes a long recorded run");
+  assert.deepEqual(points[0], [30, -120]);
+  assert.deepEqual(points[1], [39.99, -115.005]);
+}
+
+{
   assert.deepEqual(
     resolveTraceFitCenterAnchor({ lat: "42.36", lon: "-71.01" }),
     [42.36, -71.01],

@@ -23,8 +23,8 @@ const DEFAULT_FIT_OPTIONS = Object.freeze({
 // points exist and then performs the same fit once for that key.
 //
 // When the optional `routePath` prop is supplied, it is folded into the
-// bounds. The flight page leaves this empty, so fitting stays scoped to the
-// visible focal/secondary trace union and does not zoom out to route endpoints.
+// bounds. `allowRouteOnly` lets Full trace frame origin → destination even
+// before the first recorded sample; All recorded points leaves routePath empty.
 //
 // After fitting we don't sync React's mapZoom: auto-follow is gated by
 // mapFollowsAircraft (the fitToTrace action already turns that off),
@@ -32,6 +32,10 @@ const DEFAULT_FIT_OPTIONS = Object.freeze({
 // map stays anchored on the bounds we just computed.
 export default function MapFitToTraceController({
   routePath = [],
+  fitTraceAircraftId = "",
+  allowRouteOnly = false,
+  keepRouteInView = false,
+  fallbackAnchor = null,
   centerAnchor = null,
   centerAnchorFollowKey = "",
   autoFitKey = "",
@@ -44,13 +48,33 @@ export default function MapFitToTraceController({
   const lastSignalRef = useRef(0);
   const lastAutoFitKeyRef = useRef("");
   const lastCenterAnchorFollowKeyRef = useRef("");
+  const fitTraces = useMemo(() => {
+    const aircraftId = String(fitTraceAircraftId || "");
+    if (!aircraftId) return traces;
+    return traces.filter(
+      (trace) => String(trace?.aircraftHex || "") === aircraftId,
+    );
+  }, [fitTraceAircraftId, traces]);
   const fitPoints = useMemo(
-    () => buildTraceFitPoints({ traces, routePath }),
-    [traces, routePath],
+    () => buildTraceFitPoints({ traces: fitTraces, routePath, allowRouteOnly }),
+    [allowRouteOnly, fitTraces, routePath],
+  );
+  const routeFitPoints = useMemo(
+    () =>
+      buildTraceFitPoints({
+        traces: [],
+        routePath,
+        allowRouteOnly: true,
+      }),
+    [routePath],
   );
   const fitCenterAnchor = useMemo(
     () => resolveTraceFitCenterAnchor(centerAnchor),
     [centerAnchor],
+  );
+  const fitFallbackAnchor = useMemo(
+    () => resolveTraceFitCenterAnchor(fallbackAnchor),
+    [fallbackAnchor],
   );
   const panMapToAnchor = useCallback(
     (anchor, { animate = true } = {}) => {
@@ -70,13 +94,32 @@ export default function MapFitToTraceController({
     [map],
   );
   const fitMapToPoints = useCallback(
-    (points) => {
+    (points, reason = "trace") => {
       if (!map || points.length === 0) return;
       const bounds = L.latLngBounds(points);
-      map.fitBounds(
-        bounds,
-        withFloatingSidebarFitPadding(map, fitOptions || DEFAULT_FIT_OPTIONS),
+      const resolvedFitOptions = withFloatingSidebarFitPadding(
+        map,
+        fitOptions || DEFAULT_FIT_OPTIONS,
       );
+      const debugFitCount =
+        import.meta.env.DEV && typeof window !== "undefined"
+          ? Number((window as any).__adsbaoTraceViewDebug?.fitCount || 0) + 1
+          : 0;
+      const publishDebugState = () => {
+        if (!import.meta.env.DEV || typeof window === "undefined") return;
+        (window as any).__adsbaoTraceViewMap = map;
+        (window as any).__adsbaoTraceViewDebug = {
+          reason,
+          fitCount: debugFitCount,
+          pointCount: points.length,
+          requestedBounds: bounds.toBBoxString(),
+          visibleBounds: map.getBounds?.().toBBoxString?.() || "",
+          zoom: map.getZoom?.(),
+          updatedAt: new Date().toISOString(),
+        };
+      };
+      map.fitBounds(bounds, { ...resolvedFitOptions, animate: false });
+      publishDebugState();
       if (fitCenterAnchor) {
         window.requestAnimationFrame(() => panMapToAnchor(fitCenterAnchor));
       }
@@ -89,8 +132,65 @@ export default function MapFitToTraceController({
     lastSignalRef.current = fitToTraceSignal;
     if (fitToTraceSignal === 0) return;
 
-    fitMapToPoints(fitPoints);
-  }, [fitMapToPoints, fitToTraceSignal, fitPoints, map]);
+    fitMapToPoints(
+      fitPoints.length > 0
+        ? fitPoints
+        : fitFallbackAnchor
+          ? [fitFallbackAnchor]
+          : [],
+      allowRouteOnly ? "full-route" : "recorded-points",
+    );
+  }, [
+    allowRouteOnly,
+    fitFallbackAnchor,
+    fitMapToPoints,
+    fitToTraceSignal,
+    fitPoints,
+    map,
+  ]);
+
+  useEffect(() => {
+    if (!keepRouteInView || !map || routeFitPoints.length < 2) {
+      return undefined;
+    }
+
+    const endpoints = [routeFitPoints[0], routeFitPoints.at(-1)].filter(
+      Boolean,
+    );
+    let restoring = false;
+    let frameId: number | null = null;
+
+    const endpointsVisible = () => {
+      const bounds = map.getBounds?.();
+      return Boolean(
+        bounds &&
+          endpoints.every((point) =>
+            bounds.contains(L.latLng(point[0], point[1])),
+          ),
+      );
+    };
+    const fitRoute = () => {
+      restoring = true;
+      fitMapToPoints(routeFitPoints, "full-route-guard");
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        restoring = false;
+        frameId = null;
+      });
+    };
+    const ensureRouteVisible = () => {
+      if (!restoring && !endpointsVisible()) fitRoute();
+    };
+
+    fitRoute();
+    map.on("moveend", ensureRouteVisible);
+    map.on("resize", ensureRouteVisible);
+    return () => {
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+      map.off("moveend", ensureRouteVisible);
+      map.off("resize", ensureRouteVisible);
+    };
+  }, [fitMapToPoints, keepRouteInView, map, routeFitPoints]);
 
   useEffect(() => {
     const key = String(autoFitKey || "").trim();

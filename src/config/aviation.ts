@@ -7,6 +7,11 @@ export const AIRPORT_MAP_ZOOM = {
 // 机场地图自由缩放范围(Leaflet zoom)。预设作为滑条上的吸附点。
 export const AIRPORT_MAP_ZOOM_MIN = 10;
 export const AIRPORT_MAP_ZOOM_MAX = 15;
+// Full-route and recorded-trace fitting may need a continent-scale viewport.
+// This is intentionally separate from the user-facing 10–15 range slider:
+// programmatic trace views can zoom farther out, while Follow aircraft keeps
+// the familiar adjustable range.
+export const AIRPORT_MAP_FIT_ZOOM_MIN = 2;
 
 export const AIRPORT_EXPLORER_UI_CONFIG = {
   desktopSidebarWidth: "var(--app-sidebar-width)",

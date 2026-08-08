@@ -18,21 +18,21 @@ import {
 } from "@/components/map/MapLoadingOverlay";
 import LostSignalToast from "@/components/aircraft/tracking/LostSignalToast";
 import {
-  getTrackedFlightTraceRefreshKey,
-} from "@/features/aircraft/tracking/lostSignalTrackingModel";
-import {
   getFlightTrackingContextPosition,
   resolveFlightFocalLifecycle,
   resolveFlightTerminalReason,
 } from "@/features/aircraft/tracking/flightTrackingContextModel";
 import { logFlightMapLifecycle } from "@/features/aircraft/tracking/flightMapLifecycleLog";
 import {
+  resolveFlightRouteCandidateCallsigns,
   resolveTrackedAircraftSelectionSync,
   resolveFlightTrackingDisplayContext,
 } from "@/features/aircraft/tracking/flightTrackingDisplayModel";
-import { resolveFocusedFlightRouteArcPath } from "@/features/aviation/flight-routes/flightRouteArcModel";
+import {
+  resolveFocusedFlightFullRoutePath,
+  resolveFocusedFlightRouteArcPath,
+} from "@/features/aviation/flight-routes/flightRouteArcModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
-import { AIRCRAFT_TRAFFIC_CONFIG } from "@/config/aviation";
 import {
   mergeTrackedFlightMetadata,
   readTrackedFlightMetadata,
@@ -67,8 +67,8 @@ const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTrac
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 
 const FOCAL_VISUAL_POSITION_TICK_MS = 500;
-const TRACE_VIEW_SESSION = "session";
-const TRACE_VIEW_ALL = "all";
+const TRACE_VIEW_FULL = "full";
+const TRACE_VIEW_RECORDED = "recorded";
 // Max wait for a focal position before the flight map resolves to the terminal
 // "no live position" card when the live feed has no plottable aircraft.
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
@@ -134,15 +134,15 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     toggleMapLabels,
     setUserLocationPreferences,
     fitToTrace,
+    resumeMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
   const [wakeLockState, toggleWakeLock] = useWakeLock();
-  // Default the tracked flight to the session view: the CURRENT leg's
-  // full trace, leg-clipped so earlier legs and yesterday's
-  // same-callsign trail stay out (see traceLegModel), with the
-  // localStorage trail persistence active. The "all recorded points"
-  // view remains a toggle for seeing the full unclipped history.
-  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_SESSION);
+  // Both views render the same actively-recorded tracking run. They only
+  // differ in viewport scope: Full trace frames origin → destination, while
+  // All recorded points frames the observations captured since this tracking
+  // run began. Provider history is deliberately not part of either view.
+  const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_FULL);
   const pendingTraceFitRef = useRef(false);
 
   // Default-on location labels for the flight page: when tracking a
@@ -169,8 +169,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     lastUpdated,
     settled: trackedAircraftSettled,
     lostSignal,
-    pollVersion: trackedPollVersion,
-    visibilityRefreshVersion: trackedVisibilityRefreshVersion,
     realtimeStatus,
     nearbyAircraft: streamedNearbyAircraft,
     nearbyAirports: streamedNearbyAirports,
@@ -204,11 +202,8 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
       : merged;
   }, [cachedTrackedMetadata, trackedAircraft, trackingTraceHistory]);
 
-  // Both trace views are scoped to the CURRENT leg (see traceLegModel)
-  // and share the persisted trail: "Full trace" is the flight-path view
-  // (origin→destination arc overlays when a route resolves), "All recorded
-  // points" shows the leg's recorded samples.
-  // The toggles differ in map fitting, never in what data is kept.
+  // Switching a view suspends follow and asks the map controller to fit the
+  // corresponding geometry. Re-selecting the current view repeats the fit.
   const requestTraceView = useCallback(
     (mode) => {
       if (traceViewMode === mode) {
@@ -229,40 +224,29 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   const traceViewItems = useMemo(
     () => [
       {
+        id: "trace:follow",
+        labelKey: "map.followAircraft",
+        iconKey: "locateFixed",
+        active: mapFollowsAircraft,
+        onSelect: resumeMapFollow,
+      },
+      {
         id: "trace:full",
         labelKey: "map.fullTrace",
         iconKey: "route",
-        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_SESSION,
-        onSelect: () => requestTraceView(TRACE_VIEW_SESSION),
+        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_FULL,
+        onSelect: () => requestTraceView(TRACE_VIEW_FULL),
       },
       {
         id: "trace:all",
         labelKey: "map.allRecordedPoints",
         iconKey: "chartScatter",
-        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_ALL,
-        onSelect: () => requestTraceView(TRACE_VIEW_ALL),
+        active: !mapFollowsAircraft && traceViewMode === TRACE_VIEW_RECORDED,
+        onSelect: () => requestTraceView(TRACE_VIEW_RECORDED),
       },
     ],
-    [mapFollowsAircraft, requestTraceView, traceViewMode],
+    [mapFollowsAircraft, requestTraceView, resumeMapFollow, traceViewMode],
   );
-  const focalTraceRefreshKey = useMemo(
-    () =>
-      getTrackedFlightTraceRefreshKey({
-        lostSignal,
-        pollVersion: trackedPollVersion,
-        visibilityRefreshVersion: trackedVisibilityRefreshVersion,
-        pollMs: AIRCRAFT_TRAFFIC_CONFIG.pollMs,
-        lostSignalRefreshMs:
-          AIRCRAFT_TRAFFIC_CONFIG.lostSignalTraceRefreshMs,
-        steadyRefreshMs: AIRCRAFT_TRAFFIC_CONFIG.traceSteadyRefreshMs,
-      }),
-    [
-      lostSignal,
-      trackedPollVersion,
-      trackedVisibilityRefreshVersion,
-    ],
-  );
-
   // User can dismiss the lost-signal toast to keep watching the last
   // known trace. The dismissal resets whenever the feed comes back so a
   // later disappearance still prompts.
@@ -433,7 +417,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
       nearbyAircraft,
     });
   }, [showNearbyTrafficContext, trackedAircraftForDisplay, nearbyAircraft]);
-  // A route is only requested for the preview the user is looking at.
+  // The focal route is permanent page context. A selected secondary aircraft
+  // may add a second lookup for its preview, but it must never evict the focal
+  // route (otherwise the tracked flight's destination line disappears).
   const focusedRouteCallsign = useMemo(() => {
     if (!selectedAircraftId) return "";
     const selected = rawAircraft.find(
@@ -443,15 +429,18 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   }, [rawAircraft, selectedAircraftId]);
 
   const routeAircraft = useMemo(() => {
-    const routeCallsign =
-      focusedRouteCallsign ||
-      normalizeCallsign(trackedAircraftForDisplay?.callsign) ||
-      normalizeCallsign(callsign);
-    if (!routeCallsign) return [];
-    return [
-      rawAircraft.find((item) => normalizeCallsign(item.callsign) === routeCallsign) ||
-        { callsign: routeCallsign },
-    ];
+    const routeCallsigns = resolveFlightRouteCandidateCallsigns({
+      focalCallsign:
+        normalizeCallsign(trackedAircraftForDisplay?.callsign) ||
+        normalizeCallsign(callsign),
+      selectedCallsign: focusedRouteCallsign,
+    });
+    return routeCallsigns.map(
+      (routeCallsign) =>
+        rawAircraft.find(
+          (item) => normalizeCallsign(item.callsign) === routeCallsign,
+        ) || { callsign: routeCallsign },
+    );
   }, [
     callsign,
     focusedRouteCallsign,
@@ -502,20 +491,12 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     }
   }, [focalFromMerged]);
 
-  // Default the selection to the focal aircraft so its trace appears on
-  // load. Once the user clicks around it's their choice.
   const focalKey = trackedAircraftForDisplay
     ? getAircraftIdentity(trackedAircraftForDisplay)
     : "";
   const focalCallsignKey = String(
     trackedAircraftForDisplay?.callsign || callsign || "",
   ).trim();
-  const seededRef = useRef(false);
-  useEffect(() => {
-    if (seededRef.current || !focalKey) return;
-    seededRef.current = true;
-    setSelectedAircraftId(focalKey);
-  }, [focalKey, setSelectedAircraftId]);
   const previousFocalKeyRef = useRef("");
   useEffect(() => {
     if (!focalKey) return;
@@ -730,9 +711,8 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     setSelectedAircraftId(focalKey);
   }, [focalKey, selectedAircraftId, setSelectedAircraftId, showNearbyContext]);
 
-  const focalRoutePath = useMemo(() => {
+  const remainingRoutePath = useMemo(() => {
     return resolveFocusedFlightRouteArcPath({
-      selectedAircraft,
       focalAircraft: enrichedTrackedAircraft,
       from: { lat: focalLat, lon: focalLon },
     });
@@ -740,8 +720,40 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     enrichedTrackedAircraft,
     focalLat,
     focalLon,
-    selectedAircraft,
   ]);
+  const fullRouteOriginLat = enrichedTrackedAircraft?.flightRoute?.origin?.lat;
+  const fullRouteOriginLon = enrichedTrackedAircraft?.flightRoute?.origin?.lon;
+  const fullRouteDestinationLat =
+    enrichedTrackedAircraft?.flightRoute?.destination?.lat;
+  const fullRouteDestinationLon =
+    enrichedTrackedAircraft?.flightRoute?.destination?.lon;
+  const fullRoutePath = useMemo(
+    () =>
+      resolveFocusedFlightFullRoutePath({
+        focalAircraft: {
+          flightRoute: {
+            origin: { lat: fullRouteOriginLat, lon: fullRouteOriginLon },
+            destination: {
+              lat: fullRouteDestinationLat,
+              lon: fullRouteDestinationLon,
+            },
+          },
+        },
+      }),
+    [
+      fullRouteDestinationLat,
+      fullRouteDestinationLon,
+      fullRouteOriginLat,
+      fullRouteOriginLon,
+    ],
+  );
+  const fullRouteViewActive =
+    !mapFollowsAircraft && traceViewMode === TRACE_VIEW_FULL;
+  const displayedRoutePath = fullRouteViewActive
+    ? fullRoutePath
+    : remainingRoutePath;
+  const traceFitRoutePath =
+    traceViewMode === TRACE_VIEW_FULL ? fullRoutePath : [];
 
   const handleBack = () => navigate("/");
 
@@ -886,10 +898,8 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     <SelectedAircraftTraceProvider
       selectedAircraft={selectedAircraft}
       focalAircraft={enrichedTrackedAircraft}
-      fullTraceForFocal={flightDisplayContext.fullTraceForFocal}
       showSelectedTrace={showNearbyMapContext}
-      focalClipToLeg
-      focalTraceRefreshKey={focalTraceRefreshKey}
+      focalRecordedOnly
     >
       <AircraftPreviewCard
         aircraft={selectedAircraft}
@@ -1005,10 +1015,14 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
             >
-              <FlightRouteArc path={focalRoutePath} />
+              <FlightRouteArc path={displayedRoutePath} />
               <MapFitToTraceController
-                routePath={focalRoutePath}
-                centerAnchor={{ lat: focalLat, lon: focalLon }}
+                routePath={traceFitRoutePath}
+                fitTraceAircraftId={focalKey}
+                allowRouteOnly={traceViewMode === TRACE_VIEW_FULL}
+                keepRouteInView={fullRouteViewActive}
+                fallbackAnchor={{ lat: focalLat, lon: focalLon }}
+                centerAnchor={null}
                 centerAnchorFollowKey=""
                 autoFitKey=""
                 fitOptions={flightDisplayContext.mapFitOptions}

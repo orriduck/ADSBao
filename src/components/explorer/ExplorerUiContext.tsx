@@ -453,6 +453,12 @@ function airportExplorerUiReducer(state, action) {
         fitToTraceSignal: state.fitToTraceSignal + 1,
         mapFollowsAircraft: false,
       };
+    case "resumeMapFollow":
+      if (state.mapFollowsAircraft) return state;
+      return {
+        ...state,
+        mapFollowsAircraft: true,
+      };
     case "suspendMapFollow":
       if (!state.mapFollowsAircraft) return state;
       return {
@@ -961,6 +967,10 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "fitToTrace" });
   }, []);
 
+  const resumeMapFollow = useCallback(() => {
+    dispatch({ type: "resumeMapFollow" });
+  }, []);
+
   const suspendMapFollow = useCallback(() => {
     dispatch({ type: "suspendMapFollow" });
   }, []);
@@ -1040,6 +1050,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedCandidateWatchingSpotId,
       clearAllPreviewSelections,
       fitToTrace,
+      resumeMapFollow,
       suspendMapFollow,
     }),
     [
@@ -1109,6 +1120,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedCandidateWatchingSpotId,
       clearAllPreviewSelections,
       fitToTrace,
+      resumeMapFollow,
       suspendMapFollow,
     ],
   );
@@ -1163,6 +1175,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedCandidateWatchingSpotId,
       clearAllPreviewSelections,
       fitToTrace,
+      resumeMapFollow,
       suspendMapFollow,
     }),
     [
@@ -1188,6 +1201,7 @@ export function ExplorerUiProvider({ children }) {
       setSelectedCandidateWatchingSpotId,
       clearAllPreviewSelections,
       fitToTrace,
+      resumeMapFollow,
       suspendMapFollow,
     ],
   );

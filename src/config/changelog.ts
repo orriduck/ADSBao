@@ -46,19 +46,19 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 1;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 71;
+export const CHANGELOG_TOTAL_COUNT = 72;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.8.3",
+    version: "v3.9.0",
     kind: "feat",
     title: {
-      en: "More observable live tracking",
-      zh: "更易观察的实时追踪",
+      en: "Recorded flight trace views",
+      zh: "主动记录航迹视图",
     },
     summary: {
-      en: "Live airport and flight context now reconnects transparently, route lookup recovers more reliably from temporary source outages, and journey endpoints and filters are easier to scan.",
-      zh: "机场与航班的实时信息现在可自动恢复；航路查询在数据源暂时不可用时也会更稳定地恢复，飞行行程端点与筛选器也更易扫读。",
+      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme.",
+      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。",
     },
     highlights: [],
   },
