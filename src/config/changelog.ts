@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.10.0",
+    version: "v3.10.1",
     kind: "feat",
     title: {
-      en: "80 NM airport exploration",
-      zh: "80 海里机场探索范围",
+      en: "80 NM airport exploration and stable flight tracking",
+      zh: "80 海里机场探索与稳定航班追踪",
     },
     summary: {
-      en: "Airport maps now retain aircraft and nearby airports within an 80 NM airport-centred area. You can pan within that boundary, return to the airport from Map range, and receive a quiet notice if the map is corrected back into range.",
-      zh: "机场地图现在会保留以机场为中心、80 海里范围内的飞机与附近机场。你可以在该范围内移动视野、从地图范围菜单回到机场中心；若视野超出范围，地图会自动纠正并给出克制提示。",
+      en: "Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking now locks its live map view so position updates cannot compete with an in-progress drag.",
+      zh: "机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页则锁定实时地图视图，避免位置更新与正在进行的拖动竞争。",
     },
     highlights: [],
   },

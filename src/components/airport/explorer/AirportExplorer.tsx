@@ -26,6 +26,7 @@ import {
   resolveAirportProfile,
 } from "@/features/airport/explorer/airportExplorerModel";
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
+import { AirportMapInteractionMode } from "@/features/airport/map/mapInteractionMode";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
 import {
@@ -707,6 +708,7 @@ function AirportExplorerContent({
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
               onMapInstanceChange={setAirportMapInstance}
+              mapInteractionMode={AirportMapInteractionMode.AirportExploration}
             />
           </Suspense>
 

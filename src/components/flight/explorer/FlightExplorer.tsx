@@ -33,6 +33,7 @@ import {
   resolveFocusedFlightRouteArcPath,
 } from "@/features/aviation/flight-routes/flightRouteArcModel";
 import { mergeTrackedAircraftIntoNearby } from "@/features/airport/explorer/airportExplorerModel";
+import { AirportMapInteractionMode } from "@/features/airport/map/mapInteractionMode";
 import {
   mergeTrackedFlightMetadata,
   readTrackedFlightMetadata,
@@ -1014,6 +1015,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               loadingOverlaySources={loadingOverlaySources}
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
+              mapInteractionMode={AirportMapInteractionMode.FlightTracking}
             >
               <FlightRouteArc path={displayedRoutePath} />
               <MapFitToTraceController

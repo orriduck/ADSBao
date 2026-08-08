@@ -66,6 +66,10 @@ import {
   NEARBY_EXPLORER_RADIUS_NM,
   resolveViewportSafeCenterRadiusNm,
 } from "@/features/airport/map/nearbyExplorerRadiusModel";
+import {
+  AirportMapInteractionMode,
+  resolveAirportMapInteraction,
+} from "@/features/airport/map/mapInteractionMode";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -134,6 +138,7 @@ export default function AirportMap({
   flightTerminalReason = "",
   userLocation = null,
   onMapInstanceChange = null,
+  mapInteractionMode = AirportMapInteractionMode.AirportExploration,
   children = null,
 }: Record<string, any>) {
   const { locale, t } = useI18n();
@@ -159,6 +164,10 @@ export default function AirportMap({
   });
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
   const compactRunwayAnnotations = Number(zoom) <= AIRPORT_MAP_ZOOM.approach;
+  const mapInteraction = useMemo(
+    () => resolveAirportMapInteraction(mapInteractionMode),
+    [mapInteractionMode],
+  );
   const focalCenter = useMemo(
     () => resolveAirportMapFocalCenter({ lat, lon }),
     [lat, lon],
@@ -223,12 +232,10 @@ export default function AirportMap({
       zoomDelta: 0.5,
       zoomControl: false,
       attributionControl: false,
-      // Zoom stays on the map-range control; dragging remains available inside
-      // the retained traffic extent. min/max only clamp explicit zoom choices.
+      // Zoom stays on the map-range control. Each route explicitly selects
+      // whether its real-time map view permits dragging.
       scrollWheelZoom: false,
-      // Traffic is retained in one airport-centred 80 NM circle. Panning only
-      // changes the viewport; it never tears down the live subscription.
-      dragging: true,
+      dragging: mapInteraction.allowsDragging,
       touchZoom: false,
       doubleClickZoom: false,
       boxZoom: false,
@@ -256,13 +263,29 @@ export default function AirportMap({
   }, [canInitializeMap]);
 
   useEffect(() => {
+    if (!mapInstance) return;
+    if (mapInteraction.allowsDragging) {
+      mapInstance.dragging.enable();
+    } else {
+      mapInstance.dragging.disable();
+      mapDragRef.current = false;
+    }
+  }, [mapInstance, mapInteraction.allowsDragging]);
+
+  useEffect(() => {
     if (typeof onMapInstanceChange !== "function") return;
     onMapInstanceChange(mapInstance);
     return () => onMapInstanceChange(null);
   }, [mapInstance, onMapInstanceChange]);
 
   useEffect(() => {
-    if (!mapInstance || !focalCenter) return undefined;
+    if (
+      !mapInstance ||
+      !focalCenter ||
+      !mapInteraction.showsNearbyTrafficBoundary
+    ) {
+      return undefined;
+    }
 
     const boundary = L.circle([focalCenter.lat, focalCenter.lon], {
       className: "airport-map__nearby-boundary",
@@ -270,11 +293,19 @@ export default function AirportMap({
       interactive: false,
     }).addTo(mapInstance);
 
-    return () => boundary.remove();
-  }, [focalCenter, mapInstance]);
+    return () => {
+      boundary.remove();
+    };
+  }, [focalCenter, mapInstance, mapInteraction.showsNearbyTrafficBoundary]);
 
   useEffect(() => {
-    if (!mapInstance || !focalCenter) return undefined;
+    if (
+      !mapInstance ||
+      !focalCenter ||
+      !mapInteraction.constrainsViewportToNearbyTraffic
+    ) {
+      return undefined;
+    }
 
     const markDrag = () => {
       mapDragRef.current = true;
@@ -319,7 +350,12 @@ export default function AirportMap({
       mapInstance.off("dragstart", markDrag);
       mapInstance.off("moveend", constrainDrag);
     };
-  }, [focalCenter, mapInstance, t]);
+  }, [
+    focalCenter,
+    mapInstance,
+    mapInteraction.constrainsViewportToNearbyTraffic,
+    t,
+  ]);
 
   // followsCenter controls whether the map re-centers on every poll.
   // After "fit to trace" the caller flips this to false so the map
