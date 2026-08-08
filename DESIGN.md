@@ -199,7 +199,7 @@ interaction semantics.
 5. **Verify in a real browser, both themes**, against a busy map background:
    look for gray mud at capsule bottoms, color tint pulled through the
    frost, double edges (border + rim), and smudges across content.
-6. **Skills that restyle UI** (impeccable, frontend-design, shadcn theming,
-   etc.) must treat this file as the project design context and extend the
+6. **Skills that restyle UI** must treat this file as the project design
+   context and extend the
    two materials instead of introducing flat fills, hard borders, or new
    surface treatments.
