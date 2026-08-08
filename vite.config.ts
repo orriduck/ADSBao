@@ -55,6 +55,23 @@ function runtimeEnvCacheBustPlugin(version: string): Plugin {
   };
 }
 
+function retiredWebSocketRoutePlugin(): Plugin {
+  return {
+    name: "adsbao-retire-websocket-route",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.split("?")[0] !== "/ws") {
+          next();
+          return;
+        }
+        res.statusCode = 404;
+        res.setHeader("Cache-Control", "no-store");
+        res.end();
+      });
+    },
+  };
+}
+
 function adsbaoPwaServiceWorkerPlugin(version: string): Plugin {
   return {
     name: "adsbao-pwa-service-worker",
@@ -231,6 +248,7 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       appVersionManifestPlugin(ADSBAO_APP_VERSION),
       runtimeEnvCacheBustPlugin(ADSBAO_APP_VERSION),
+      retiredWebSocketRoutePlugin(),
       adsbaoPwaServiceWorkerPlugin(ADSBAO_APP_VERSION),
     ],
     server: {

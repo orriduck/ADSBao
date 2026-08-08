@@ -35,6 +35,12 @@ server {
     proxy_pass $adsbao_service_origin;
   }
 
+  # The realtime transport was retired; do not let SPA fallback make this old
+  # endpoint appear successful to browser debugging tools.
+  location = /ws {
+    return 404;
+  }
+
   location = /runtime-env.js {
     add_header Cache-Control "no-store";
   }
