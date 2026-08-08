@@ -55,13 +55,25 @@ source.onopen?.();
 source.emit("nearby:snapshot", {
   protocolVersion: "1",
   channel: request.channel,
-  eventId: "snapshot-1",
+  eventId: "pending-1",
   sequence: 1,
+  emittedAt: "2026-08-08T00:00:00Z",
+  stale: false,
+  data: { anchor: { lat: 42.36, lon: -71.01 } },
+});
+assert.deepEqual(received, [], "anchor-only snapshot must not settle a stream");
+assert.equal(states.includes("live"), false, "pending snapshot must not mark live");
+
+source.emit("nearby:snapshot", {
+  protocolVersion: "1",
+  channel: request.channel,
+  eventId: "snapshot-1",
+  sequence: 2,
   emittedAt: "2026-08-08T00:00:00Z",
   stale: false,
   data: { aircraft: { ac: [] }, nearbyAirports: [] },
 });
-assert.deepEqual(received, ["a:nearby:snapshot:1", "b:nearby:snapshot:1"]);
+assert.deepEqual(received, ["a:nearby:snapshot:2", "b:nearby:snapshot:2"]);
 assert.ok(states.includes("live"), "snapshot moves a source to live");
 
 unsubscribeA();

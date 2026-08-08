@@ -1,3 +1,5 @@
+import { hasNearbyStreamPayload } from "./nearbySsePayloadModel";
+
 export const NEARBY_SSE_EVENT_TYPES = [
   "nearby:snapshot",
   "nearby:traffic",
@@ -220,6 +222,7 @@ export class NearbySseClient {
         const event = parseEvent(type, message.data);
         if (!event || event.channel !== stored.request.channel) return;
         if (type !== "nearby:status") {
+          if (!hasNearbyStreamPayload(event.data)) return;
           stored.hasDataFrame = true;
           this.setState(stored, event.stale ? "stale" : "live");
         } else if (event.stale && stored.hasDataFrame) {

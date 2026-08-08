@@ -5,6 +5,7 @@ import {
   type NearbySseRequest,
   type NearbySseState,
 } from "@/lib/realtime/nearbySseClient";
+import { hasNearbyStreamPayload } from "@/lib/realtime/nearbySsePayloadModel";
 import { shouldUseRealtimeFallback } from "@/lib/realtime/realtimeFallbackModel";
 
 const INITIAL_NEARBY_SSE_GRACE_MS = 8_000;
@@ -63,6 +64,7 @@ export function useNearbySseChannel({
           setStatusEvent(nextEvent);
           return;
         }
+        if (!hasNearbyStreamPayload(nextEvent.data)) return;
         receivedForThisChannel = true;
         setEvent(nextEvent);
         if (receivedForThisChannel) setGraceExpired(false);
@@ -77,9 +79,7 @@ export function useNearbySseChannel({
     };
   }, [available, client, request]);
 
-  const hasEventData = Boolean(
-    event && event.type !== "nearby:status" && event.data,
-  );
+  const hasEventData = Boolean(event && hasNearbyStreamPayload(event.data));
   const fallbackActive = shouldUseRealtimeFallback({
     available,
     connectionState: state,

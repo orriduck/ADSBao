@@ -7,6 +7,11 @@ import { resolveTrackedAircraftStatusUpdatedDate } from "../features/aircraft/tr
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { buildNearbyCallsignRequest } from "../lib/realtime/nearbySseRequests";
+import {
+  hasNearbyAircraftPayload,
+  hasNearbyFocusPayload,
+  readNearbyAirportsUpdate,
+} from "../lib/realtime/nearbySsePayloadModel";
 import { useNearbySseChannel } from "./useNearbySseChannel";
 
 // Callsign streams use a dedicated focus payload but the service may return
@@ -166,14 +171,17 @@ export function useTrackedAircraft(
     }
 
     const context = event.data as Record<string, any>;
-    const nearbyPayload = normalizeRealtimeAircraftPayload(context?.aircraft);
     const fetchedAt = Date.parse(event.fetchedAt);
     const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
-    setNearbyAircraft(normalizeNearbyAircraft(context?.aircraft, receiveTime));
-    setNearbyAirports(
-      Array.isArray(context?.nearbyAirports) ? context.nearbyAirports : [],
-    );
-    setNearbyContextSettled(true);
+    const airportUpdate = readNearbyAirportsUpdate(context);
+    if (airportUpdate) setNearbyAirports(airportUpdate);
+    const hasAircraft = hasNearbyAircraftPayload(context);
+    const nearbyPayload = normalizeRealtimeAircraftPayload(context?.aircraft);
+    if (hasAircraft) {
+      setNearbyAircraft(normalizeNearbyAircraft(context?.aircraft, receiveTime));
+      setNearbyContextSettled(true);
+    }
+    if (!hasNearbyFocusPayload(context)) return;
 
     applyTrackedPayload(context?.focus, {
       source:

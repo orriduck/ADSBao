@@ -15,6 +15,11 @@ import { createAircraftPositionClient } from "../features/aircraft/positions/air
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveNextPollDelayMs } from "../features/aircraft/positions/pollBackoffModel";
 import { buildNearbyCoordinateRequest } from "../lib/realtime/nearbySseRequests";
+import {
+  hasAircraftPayload,
+  hasNearbyAircraftPayload,
+  readNearbyAirportsUpdate,
+} from "../lib/realtime/nearbySsePayloadModel";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { useNearbySseChannel } from "./useNearbySseChannel";
 
@@ -107,6 +112,9 @@ export function useAircraftPositions(
     }
 
     const context = event.data as Record<string, any>;
+    const airportUpdate = readNearbyAirportsUpdate(context);
+    if (airportUpdate) setNearbyAirports(airportUpdate);
+    if (!hasNearbyAircraftPayload(context)) return;
     const payload = normalizeRealtimeAircraftPayload(context?.aircraft);
     const fetchedAt = Date.parse(event.fetchedAt);
     const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
@@ -115,9 +123,6 @@ export function useAircraftPositions(
     setAircraft(nextAircraft);
     setFeedStatus(event.stale ? "infer" : "live");
     setFeedSource(typeof payload.source === "string" ? payload.source : "");
-    setNearbyAirports(
-      Array.isArray(context?.nearbyAirports) ? context.nearbyAirports : [],
-    );
     const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
     if (statusUpdatedDate) {
       setLastUpdated((prev) =>
@@ -139,14 +144,14 @@ export function useAircraftPositions(
     const timer = window.setTimeout(async () => {
       try {
         const client = createAircraftPositionClient();
-        const payload = normalizeRealtimeAircraftPayload(
-          await client.fetchNearbyAircraft({
-            lat: queryLat,
-            lon: queryLon,
-            distNm,
-          }),
-        );
+        const rawPayload = await client.fetchNearbyAircraft({
+          lat: queryLat,
+          lon: queryLon,
+          distNm,
+        });
         if (cancelled) return;
+        if (!hasAircraftPayload(rawPayload)) return;
+        const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
@@ -177,14 +182,14 @@ export function useAircraftPositions(
 
     const load = async () => {
       try {
-        const payload = normalizeRealtimeAircraftPayload(
-          await client.fetchNearbyAircraft({
-            lat: queryLat,
-            lon: queryLon,
-            distNm,
-          }),
-        );
+        const rawPayload = await client.fetchNearbyAircraft({
+          lat: queryLat,
+          lon: queryLon,
+          distNm,
+        });
         if (cancelled) return;
+        if (!hasAircraftPayload(rawPayload)) return;
+        const payload = normalizeRealtimeAircraftPayload(rawPayload);
         const receiveTime = Date.now();
         const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
         const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
