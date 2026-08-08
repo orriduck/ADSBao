@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 71;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.8.2",
+    version: "v3.8.3",
     kind: "feat",
     title: {
       en: "More observable live tracking",
       zh: "更易观察的实时追踪",
     },
     summary: {
-      en: "Live airport and flight context now reconnects transparently, route lookup recovers more reliably from temporary source outages, and journey endpoints transition more clearly.",
-      zh: "机场与航班的实时信息现在可自动恢复；航路查询在数据源暂时不可用时也会更稳定地恢复，飞行行程端点的过渡也更清晰。",
+      en: "Live airport and flight context now reconnects transparently, route lookup recovers more reliably from temporary source outages, and journey endpoints and filters are easier to scan.",
+      zh: "机场与航班的实时信息现在可自动恢复；航路查询在数据源暂时不可用时也会更稳定地恢复，飞行行程端点与筛选器也更易扫读。",
     },
     highlights: [],
   },
