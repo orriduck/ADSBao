@@ -1,6 +1,6 @@
 import { lazy, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import { Camera } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
 import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
@@ -255,9 +255,23 @@ export default function AircraftPreviewCard({
             !isAirport && !isNavaid && !isReportingPoint && hasPhoto
               ? "aircraft-preview-card--has-photo"
               : ""
-          } ${isAirport ? "aircraft-preview-card--airport" : ""} aircraft-preview-card--photo-${photoTone}`}
+          } ${isAirport ? "aircraft-preview-card--airport" : ""} ${
+            typeof onDismiss === "function" ? "aircraft-preview-card--dismissible" : ""
+          } aircraft-preview-card--photo-${photoTone}`}
           aria-label={previewAriaLabel}
         >
+          {typeof onDismiss === "function" ? (
+            <button
+              type="button"
+              className="pointer-events-auto absolute right-[10px] top-[10px] z-[5] grid size-8 place-items-center rounded-full border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+              aria-label={t("ui.close")}
+              title={t("ui.close")}
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={onDismiss}
+            >
+              <X aria-hidden="true" className="size-[15px]" strokeWidth={1.8} />
+            </button>
+          ) : null}
           {!isAirport && !isNavaid && !isReportingPoint && (
             hasPhoto && (
               <div
@@ -316,6 +330,8 @@ export default function AircraftPreviewCard({
             showPreferredMobilePreview ? "bottomRight" : "top"
           }
           style={mobilePreviewSafeAreaStyle}
+          onDismiss={onDismiss}
+          dismissLabel={t("ui.close")}
           actions={
             // One always-visible action row. For an aircraft the Track button
             // is the orange accent, beside the camera (Plane Hunter) action.

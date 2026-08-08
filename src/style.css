@@ -6535,6 +6535,10 @@ body {
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 9%, transparent);
 }
 
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card {
+    padding-right: 52px;
+}
+
 /* Primary CTA inside the preview card. Orange is reserved for this action,
    while the solid fill, shallow lift, and sidebar sans keep it restrained. */
 .aircraft-preview-card__track-btn {

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Shared shell for the bottom-of-screen mobile preview card. Both the
@@ -27,6 +28,8 @@ export default function MobilePreviewCard({
   expandable = false,
   grabberLabel,
   expandedContent = null,
+  onDismiss = null,
+  dismissLabel = "Close",
 }: Record<string, any>) {
   // NOTE: the enter animation replays on entity change via a `key` on the
   // *call site* (<MobilePreviewCard key=...>), not a prop here — a `key`
@@ -82,6 +85,7 @@ export default function MobilePreviewCard({
         <div className="min-h-0 overflow-hidden">{expandedContent}</div>
       </div>
     ) : null;
+  const dismissible = typeof onDismiss === "function";
 
   return (
     <aside
@@ -89,6 +93,7 @@ export default function MobilePreviewCard({
       data-density={compact ? "compact" : undefined}
       data-placement={placement === "bottomRight" ? "bottom-right" : "top"}
       data-expanded={expanded ? "true" : undefined}
+      data-dismissible={dismissible ? "true" : undefined}
       data-ui="mobile-preview-card"
       style={style}
       className={cn(
@@ -124,7 +129,19 @@ export default function MobilePreviewCard({
     >
       {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
       {!isTop ? grabber : null}
-      {children}
+      <div className={cn("min-w-0", dismissible && "pr-10")}>{children}</div>
+      {dismissible ? (
+        <button
+          type="button"
+          className="pointer-events-auto absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-full border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          aria-label={dismissLabel}
+          title={dismissLabel}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={onDismiss}
+        >
+          <X aria-hidden="true" className="size-[15px]" strokeWidth={1.8} />
+        </button>
+      ) : null}
       {/* Expanded detail reveals between the collapsed content and the
           actions so the action row stays put as the sheet grows. */}
       {reveal}
