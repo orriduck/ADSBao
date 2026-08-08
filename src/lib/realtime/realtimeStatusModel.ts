@@ -7,8 +7,13 @@ export function resolveRealtimeStatusLabel({
   connectionState: string;
   settled: boolean;
 }) {
-  if (!available || connectionState === "disabled" || connectionState === "open") {
+  if (
+    !available ||
+    connectionState === "disabled" ||
+    connectionState === "live" ||
+    connectionState === "stale"
+  ) {
     return "";
   }
-  return settled ? "RECONNECTING" : "CONNECTING";
+  return settled || connectionState === "reconnecting" ? "RECONNECTING" : "CONNECTING";
 }

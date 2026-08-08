@@ -119,23 +119,23 @@ const zhCN = {
     },
     items: {
       realtimeBackbone: {
-        title: "WebSocket 实时主干",
-        signal: "一个连接,多个频道",
+        title: "SSE nearby 流",
+        signal: "每个 nearby key 一条可读流",
         body:
-          "浏览器只打开一个 WebSocket,按当前视图订阅所需频道,并从常驻数据服务接收归一化更新。",
+          "浏览器为当前视图所需的 nearby context 建立同源 Server-Sent Events 流，接收名称清晰的快照、流量更新和中性状态事件。",
         flow: {
           browser: "浏览器",
-          socket: "WebSocket",
-          scheduler: "频道调度",
+          socket: "SSE 事件",
+          scheduler: "Nearby 数据源",
           payload: "归一化 payload",
         },
         details: {
           connect:
-            "页面加载后建立同源连接,机场、here 和追踪视图都通过频道参数描述自己的数据需求。",
+            "机场和 here 页面使用两位小数坐标 key。航班追踪只使用一条呼号流，包含焦点飞机和它的 nearby context。",
           share:
-            "同一个频道只保留一条后台轮询路径。多个视图需要同一中心点或同一呼号时共享结果。",
+            "相同 nearby key 在一个浏览器 tab 内共享一条 EventSource；服务端也为相同 key 共享数据源工作。",
           resume:
-            "断线后客户端恢复订阅,旧 payload 会标记新鲜度,让 UI 能显示连接状态而不重置地图。",
+            "原生 EventSource 重连让 Network 请求和具名事件始终可检查；stale 和 reconnecting 状态可见，地图不会被重置。",
         },
       },
       parallelPipelines: {
@@ -344,6 +344,7 @@ const zhCN = {
   aircraft: {
     noRoute: "无航路",
     loadingRoute: "正在获取航路…",
+    retryingRoute: "航路暂时不可用，正在重试…",
     routeUnavailable: "航路暂时不可用",
     airborne: "空中",
     ground: "地面",

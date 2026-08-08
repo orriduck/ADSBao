@@ -127,8 +127,8 @@
     },
     {
       "chart_type": "number_chart",
-      "name": "WS Connections",
-      "description": "Latest reported active WebSocket connections.",
+      "name": "SSE Connections",
+      "description": "Latest reported active SSE connections.",
       "x": 8,
       "y": 0,
       "w": 2,
@@ -144,7 +144,7 @@
       "chart_queries": [
         {
           "query_type": "sql_expression",
-          "sql_query": "SELECT round(maxMerge(value_max), 0) AS value FROM {{source}} WHERE name = 'adsbao.ws.connections.current' AND dt BETWEEN {{start_time}} AND {{end_time}}",
+          "sql_query": "SELECT round(maxMerge(value_max), 0) AS value FROM {{source}} WHERE name = 'adsbao.sse.connections.current' AND dt BETWEEN {{start_time}} AND {{end_time}}",
           "source_variable": "source",
           "name": null,
           "where_condition": null,
@@ -360,8 +360,8 @@
     },
     {
       "chart_type": "table_chart",
-      "name": "WebSocket Activity",
-      "description": "WebSocket upgrades, connects, disconnects, subscribes, unsubscribes, and message outcomes.",
+      "name": "SSE Activity",
+      "description": "SSE connections, disconnects, and named nearby-event outcomes.",
       "x": 6,
       "y": 14,
       "w": 6,
@@ -378,7 +378,7 @@
       "chart_queries": [
         {
           "query_type": "sql_expression",
-          "sql_query": "SELECT replaceRegexpOne(name, '^adsbao\\\\.ws\\\\.', '') AS metric, coalesce(nullIf(tags['result'], ''), coalesce(nullIf(tags['direction'], ''), 'all')) AS series, countMerge(events_count) AS events FROM {{source}} WHERE name IN ('adsbao.ws.upgrades', 'adsbao.ws.connections', 'adsbao.ws.disconnects', 'adsbao.ws.messages', 'adsbao.ws.subscribe', 'adsbao.ws.unsubscribe') AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY metric, series ORDER BY metric, events DESC",
+          "sql_query": "SELECT replaceRegexpOne(name, '^adsbao\\\\.sse\\\\.', '') AS metric, coalesce(nullIf(tags['type'], ''), coalesce(nullIf(tags['result'], ''), coalesce(nullIf(tags['direction'], ''), 'all'))) AS series, countMerge(events_count) AS events FROM {{source}} WHERE name IN ('adsbao.sse.connections', 'adsbao.sse.disconnects', 'adsbao.sse.events') AND dt BETWEEN {{start_time}} AND {{end_time}} GROUP BY metric, series ORDER BY metric, events DESC",
           "source_variable": "source",
           "name": null,
           "where_condition": null,

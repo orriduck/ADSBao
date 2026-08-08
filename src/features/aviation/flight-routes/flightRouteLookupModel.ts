@@ -64,39 +64,17 @@ type RoutesByCallsignOptions = {
   now?: number;
 };
 
-export const ROUTE_LOOKUP_TRANSPORT = Object.freeze({
-  REALTIME: "realtime",
-});
-
 const routeContextCode = (value: unknown) =>
   String(value || "")
     .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
 
-const centerContextNumber = (value: unknown) => {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return "";
-  return String(Number((Math.round(number / 0.1) * 0.1).toFixed(4)));
-};
-
-export function resolveRouteLookupTransport(routeContext: RouteContext = {}) {
-  void routeContext;
-  return ROUTE_LOOKUP_TRANSPORT.REALTIME;
-}
-
 export function buildRouteCacheKey(callsign: unknown, routeContext: RouteContext = {}) {
+  void routeContext;
   const normalizedCallsign = normalizeCallsign(callsign);
   if (!normalizedCallsign) return "";
-  const airportIcao = routeContextCode(routeContext.icao);
-  const airportIata = routeContextCode(routeContext.iata);
-  const centerLat = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lat);
-  const centerLon = airportIcao || airportIata ? "" : centerContextNumber(routeContext.lon);
-  const centerParts = centerLat && centerLon ? ["CENTER", centerLat, centerLon] : [];
-  const suffix = [airportIcao, airportIata, ...centerParts]
-    .filter(Boolean)
-    .join("|");
-  return suffix ? `${normalizedCallsign}|${suffix}` : normalizedCallsign;
+  return normalizedCallsign;
 }
 
 function getFreshRouteCacheEntry(
@@ -105,15 +83,11 @@ function getFreshRouteCacheEntry(
   now = Date.now(),
   routeContext: RouteContext = {},
 ) {
-  const cacheKeys = [buildRouteCacheKey(callsign, routeContext), buildRouteCacheKey(callsign)]
-    .filter(Boolean);
-  let firstMiss: RouteCacheEntry | null = null;
-  for (const cacheKey of [...new Set(cacheKeys)]) {
-    const cached = getFreshRouteCacheEntryByKey(cache, cacheKey, now);
-    if (cached?.route) return cached;
-    if (cached && !firstMiss) firstMiss = cached;
-  }
-  return firstMiss;
+  return getFreshRouteCacheEntryByKey(
+    cache,
+    buildRouteCacheKey(callsign, routeContext),
+    now,
+  );
 }
 
 function getFreshRouteCacheEntryByKey(
@@ -139,6 +113,7 @@ export function writeRouteCacheEntry(
   time: number,
   routeContext: RouteContext = {},
 ) {
+  void routeContext;
   const routeForContext = route;
   const cacheKeys = new Set(
     [
@@ -147,7 +122,7 @@ export function writeRouteCacheEntry(
       routeForContext?.callsignIcao,
       routeForContext?.callsignIata,
     ]
-      .flatMap((value) => [buildRouteCacheKey(value, routeContext), buildRouteCacheKey(value)])
+      .map((value) => buildRouteCacheKey(value))
       .filter(Boolean),
   );
 

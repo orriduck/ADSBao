@@ -1,7 +1,7 @@
 # ADSBao
 
 ADSBao is an open-source React frontend for airport context and live aircraft
-tracking. Browser requests use the same-origin API and WebSocket gateway; all
+tracking. Browser requests use the same-origin API and SSE nearby gateway; all
 service implementation and operational configuration live in the private
 `adsbao-service` repository.
 

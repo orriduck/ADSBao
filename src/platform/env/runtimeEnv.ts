@@ -1,5 +1,4 @@
 export type AdsbaoRuntimeEnvKey =
-  | "VITE_ADSBAO_REALTIME_URL"
   | "VITE_CLERK_PUBLISHABLE_KEY"
   | "VITE_SITE_URL"
   | "VITE_AIRCRAFT_PHOTOS_BASE"

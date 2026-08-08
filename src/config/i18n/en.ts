@@ -125,23 +125,23 @@ const en = {
     },
     items: {
       realtimeBackbone: {
-        title: "WebSocket realtime spine",
-        signal: "One connection, many channels",
+        title: "SSE nearby streams",
+        signal: "One readable stream per nearby key",
         body:
-          "The browser opens one WebSocket, subscribes to the channels each view needs, and receives normalized update payloads from the always-on data service.",
+          "The browser opens a same-origin Server-Sent Events stream for the nearby context a view needs and receives named snapshots, traffic updates, and neutral status events.",
         flow: {
           browser: "Browser",
-          socket: "WebSocket",
-          scheduler: "Channel scheduler",
+          socket: "SSE events",
+          scheduler: "Nearby source",
           payload: "Normalized payload",
         },
         details: {
           connect:
-            "Airport pages, tracking pages, and here mode all reuse the same socket instead of each screen owning a separate connection.",
+            "Airport and here pages use a two-decimal coordinate key. Flight tracking uses one callsign stream containing the focal aircraft and its nearby context.",
           share:
-            "The service keeps one polling loop per active channel, so matching airport or center subscriptions share work.",
+            "Matching nearby keys share one EventSource per browser tab, while the service shares its source work for matching keys.",
           resume:
-            "Reconnects restore subscriptions and refresh stale map state without making the user restart the page.",
+            "Native EventSource reconnects keep the Network request and named events inspectable; stale and reconnecting state stay visible without resetting the map.",
         },
       },
       parallelPipelines: {
@@ -350,6 +350,7 @@ const en = {
   aircraft: {
     noRoute: "No route",
     loadingRoute: "Loading route…",
+    retryingRoute: "Route temporarily unavailable — retrying…",
     routeUnavailable: "Route temporarily unavailable",
     airborne: "Airborne",
     ground: "Ground",

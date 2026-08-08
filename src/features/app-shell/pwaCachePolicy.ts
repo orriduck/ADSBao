@@ -18,7 +18,7 @@ export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
 ] as const;
 
 export const ADSBAO_NETWORK_ONLY_PATHS = [
-  "/ws",
+  "/events",
   "/runtime-env.js",
   "/adsbao-version.json",
 ] as const;

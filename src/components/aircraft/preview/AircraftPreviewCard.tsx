@@ -27,7 +27,7 @@ import {
 import { useAircraftTraceAsyncStatus } from "@/features/aircraft/trace/useAircraftTraceAsyncStatus";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
-import { buildAircraftDetailHref } from "@/lib/realtime/realtimeChannels";
+import { buildAircraftDetailHref } from "@/features/aircraft/tracking/aircraftDetailHref";
 import { useSwipeUpToDismiss } from "@/hooks/useSwipeUpToDismiss";
 
 const PHOTO_TONE_DARK = "dark";

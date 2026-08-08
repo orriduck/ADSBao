@@ -45,6 +45,6 @@ export const AVIATION_REQUEST_TIMEOUT_MS = {
 };
 
 export const FLIGHT_ROUTE_LOOKUP_CONFIG = {
-  hitCacheMs: 6 * 60 * 60 * 1000,
+  hitCacheMs: 30 * 60 * 1000,
   missCacheMs: 5 * 60 * 1000,
 };

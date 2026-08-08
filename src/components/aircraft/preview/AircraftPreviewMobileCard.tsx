@@ -99,6 +99,8 @@ export default function AircraftPreviewMobileCard({
               <span className="italic text-atc-faint">
                 {aircraft?.flightRouteLookupStatus === "pending"
                   ? t("aircraft.loadingRoute")
+                  : aircraft?.flightRouteLookupStatus === "retrying"
+                    ? t("aircraft.retryingRoute")
                   : aircraft?.flightRouteLookupStatus === "unavailable"
                     ? t("aircraft.routeUnavailable")
                     : t("aircraft.noRoute")}

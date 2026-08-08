@@ -1,4 +1,9 @@
-type RealtimeConnectionState = "closed" | "connecting" | "disabled" | "open";
+type RealtimeConnectionState =
+  | "disabled"
+  | "loading"
+  | "live"
+  | "stale"
+  | "reconnecting";
 
 type RealtimeFallbackInput = {
   available: boolean;
@@ -18,8 +23,10 @@ export function shouldUseRealtimeFallback({
   hasEventData,
 }: RealtimeFallbackInput) {
   if (!available || connectionState === "disabled") return true;
-  if (eventType === "channel:error" && !hasEventData) return true;
+  if (eventType === "nearby:status" && !hasEventData) return true;
   if (!hasEvent && !graceExpired) return false;
-  if (connectionState === "open" && hasEvent) return false;
-  return connectionState !== "open" || !hasEvent;
+  if ((connectionState === "live" || connectionState === "stale") && hasEvent) {
+    return false;
+  }
+  return connectionState !== "live" && connectionState !== "stale" || !hasEvent;
 }

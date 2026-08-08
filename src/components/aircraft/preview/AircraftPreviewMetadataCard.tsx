@@ -5,7 +5,7 @@ import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
 import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { buildAircraftDetailHref } from "@/lib/realtime/realtimeChannels";
+import { buildAircraftDetailHref } from "@/features/aircraft/tracking/aircraftDetailHref";
 
 export default function AircraftPreviewMetadataCard({
   aircraft,

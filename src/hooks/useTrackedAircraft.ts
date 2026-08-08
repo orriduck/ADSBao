@@ -1,18 +1,42 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   normalizeAdsbAircraft,
 } from "../features/aircraft/positions/aircraftPositionsModel";
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { resolveTrackedAircraftStatusUpdatedDate } from "../features/aircraft/tracking/trackedAircraftStatusModel";
-import {
-  getAdsbaoRealtimeClient,
-} from "../lib/realtime/adsbaoRealtimeClient";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
-import { useAircraftTrackingRealtime } from "./useRealtimeAircraftChannel";
+import { buildNearbyCallsignRequest } from "../lib/realtime/nearbySseRequests";
+import { useNearbySseChannel } from "./useNearbySseChannel";
 
-// 与 useAircraftPositions 共用同一份规整逻辑(Part D 去重)。
-const normalizeTrackedPayload = normalizeRealtimeAircraftPayload;
+// Callsign streams use a dedicated focus payload but the service may return
+// either the legacy `{ ac: [] }` shape or one aircraft record. Keep the UI
+// adapter deliberately tolerant while making the SSE envelope strict.
+function normalizeTrackedPayload(payload: unknown) {
+  const normalized = normalizeRealtimeAircraftPayload(payload);
+  if (
+    normalized.ac.length > 0 ||
+    (payload &&
+      typeof payload === "object" &&
+      Array.isArray((payload as Record<string, unknown>).ac))
+  ) {
+    return normalized;
+  }
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    return { ac: [payload] };
+  }
+  return normalized;
+}
+
+function normalizeNearbyAircraft(payload: unknown, receiveTime: number) {
+  const normalized = normalizeRealtimeAircraftPayload(payload);
+  return normalized.ac.map((entry: any) =>
+    normalizeAdsbAircraft(entry, {
+      responseNow: normalized.now,
+      receiveTime,
+    }),
+  );
+}
 
 export function useTrackedAircraft(
   callsign: unknown,
@@ -30,7 +54,12 @@ export function useTrackedAircraft(
     String(initialAircraft?.callsign || "").trim().toUpperCase() === normalizedCallsign
       ? initialAircraft
       : null;
-  const realtime = useAircraftTrackingRealtime(callsign, {
+  const nearbyRequest = useMemo(
+    () => buildNearbyCallsignRequest(normalizedCallsign),
+    [normalizedCallsign],
+  );
+  const realtime = useNearbySseChannel({
+    request: nearbyRequest,
     enabled: hasActiveQuery,
   });
   const [aircraft, setAircraft] = useState<any>(() => initialSeed);
@@ -39,10 +68,11 @@ export function useTrackedAircraft(
   const [error, setError] = useState<any>(null);
   const [settled, setSettled] = useState(Boolean(initialSeed));
   const [pollVersion, setPollVersion] = useState(0);
+  const [nearbyAircraft, setNearbyAircraft] = useState<any[]>([]);
+  const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
+  const [nearbyContextSettled, setNearbyContextSettled] = useState(false);
   const activeCallsignRef = useRef(normalizedCallsign);
-  const retry = useCallback(() => {
-    getAdsbaoRealtimeClient().connect();
-  }, []);
+  const retry = realtime.retry;
   const applyTrackedPayload = useCallback(
     (
       payloadInput: unknown,
@@ -104,6 +134,9 @@ export function useTrackedAircraft(
       setError(null);
       setSettled(false);
       setPollVersion(0);
+      setNearbyAircraft([]);
+      setNearbyAirports([]);
+      setNearbyContextSettled(false);
       activeCallsignRef.current = "";
       return;
     }
@@ -116,15 +149,39 @@ export function useTrackedAircraft(
       setError(null);
       setSettled(false);
       setPollVersion(0);
+      setNearbyAircraft([]);
+      setNearbyAirports([]);
+      setNearbyContextSettled(false);
     }
   }, [callsign, normalizedCallsign]);
 
   useEffect(() => {
     const event = realtime.event;
-    if (!callsign || !event || event.type !== "aircraft:update") return;
+    if (
+      !callsign ||
+      !event ||
+      (event.type !== "nearby:snapshot" && event.type !== "nearby:traffic")
+    ) {
+      return;
+    }
 
-    applyTrackedPayload(event.data, {
-      source: event.source,
+    const context = event.data as Record<string, any>;
+    const nearbyPayload = normalizeRealtimeAircraftPayload(context?.aircraft);
+    const fetchedAt = Date.parse(event.fetchedAt);
+    const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
+    setNearbyAircraft(normalizeNearbyAircraft(context?.aircraft, receiveTime));
+    setNearbyAirports(
+      Array.isArray(context?.nearbyAirports) ? context.nearbyAirports : [],
+    );
+    setNearbyContextSettled(true);
+
+    applyTrackedPayload(context?.focus, {
+      source:
+        typeof context?.focus?.source === "string"
+          ? context.focus.source
+          : typeof nearbyPayload.source === "string"
+            ? nearbyPayload.source
+            : "",
       fetchedAt: event.fetchedAt,
     });
   }, [
@@ -138,7 +195,7 @@ export function useTrackedAircraft(
     hasActiveQuery && (!settled || realtime.fallbackActive);
   const realtimeStatus = resolveRealtimeStatusLabel({
     available: realtime.available,
-    connectionState: realtime.connectionState,
+    connectionState: realtime.state,
     settled,
   });
 
@@ -157,6 +214,10 @@ export function useTrackedAircraft(
     visibilityRefreshVersion: 0,
     realtimeStatus,
     retry,
+    nearbyAircraft,
+    nearbyAirports,
+    nearbyContextSettled,
+    nearbyChannel: nearbyRequest?.channel || "",
   };
 }
 
