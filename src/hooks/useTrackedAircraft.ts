@@ -4,6 +4,7 @@ import {
 } from "../features/aircraft/positions/aircraftPositionsModel";
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { resolveTrackedAircraftStatusUpdatedDate } from "../features/aircraft/tracking/trackedAircraftStatusModel";
+import { shouldAcceptTrackedPositionFrame } from "../features/aircraft/tracking/freshTrackedFrameModel";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { buildNearbyCallsignRequest } from "../lib/realtime/nearbySseRequests";
@@ -47,18 +48,12 @@ export function useTrackedAircraft(
   callsign: unknown,
   {
     runStatus = "",
-    initialAircraft = null,
   }: {
     runStatus?: string;
-    initialAircraft?: any;
   } = {},
 ) {
   const hasActiveQuery = Boolean(callsign);
   const normalizedCallsign = String(callsign || "").trim().toUpperCase();
-  const initialSeed =
-    String(initialAircraft?.callsign || "").trim().toUpperCase() === normalizedCallsign
-      ? initialAircraft
-      : null;
   const nearbyRequest = useMemo(
     () => buildNearbyCallsignRequest(normalizedCallsign),
     [normalizedCallsign],
@@ -67,16 +62,20 @@ export function useTrackedAircraft(
     request: nearbyRequest,
     enabled: hasActiveQuery,
   });
-  const [aircraft, setAircraft] = useState<any>(() => initialSeed);
+  const [aircraft, setAircraft] = useState<any>(null);
   const [feedSource, setFeedSource] = useState("");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<any>(null);
-  const [settled, setSettled] = useState(Boolean(initialSeed));
+  const [settled, setSettled] = useState(false);
+  const [freshStartSettled, setFreshStartSettled] = useState(false);
+  const [freshPositionBoundaryMs, setFreshPositionBoundaryMs] = useState<number | null>(null);
   const [pollVersion, setPollVersion] = useState(0);
   const [nearbyAircraft, setNearbyAircraft] = useState<any[]>([]);
   const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
   const [nearbyContextSettled, setNearbyContextSettled] = useState(false);
   const activeCallsignRef = useRef(normalizedCallsign);
+  const acceptedPositionTimeRef = useRef<number | null>(null);
+  const freshPositionBoundaryRef = useRef<number | null>(null);
   const retry = realtime.retry;
   const applyTrackedPayload = useCallback(
     (
@@ -84,11 +83,14 @@ export function useTrackedAircraft(
       {
         source = "",
         fetchedAt = "",
+        stale = false,
       }: {
         source?: string;
         fetchedAt?: string;
+        stale?: boolean;
       } = {},
     ) => {
+      if (stale) return false;
       const payload = normalizeTrackedPayload(payloadInput);
       const matches = Array.isArray(payload.ac) ? payload.ac : [];
       const nextSource =
@@ -97,12 +99,13 @@ export function useTrackedAircraft(
           : typeof payload.source === "string"
             ? payload.source
             : "";
-      setFeedSource(nextSource);
-      setError(null);
-      setSettled(true);
-      setPollVersion((value) => value + 1);
-
-      if (matches.length === 0) return;
+      if (matches.length === 0) {
+        setFeedSource(nextSource);
+        setError(null);
+        setSettled(true);
+        setPollVersion((value) => value + 1);
+        return true;
+      }
 
       const parsedFetchedAt = Date.parse(fetchedAt);
       const receiveTime = Number.isFinite(parsedFetchedAt)
@@ -112,6 +115,26 @@ export function useTrackedAircraft(
         responseNow: payload.now,
         receiveTime,
       });
+      if (
+        !shouldAcceptTrackedPositionFrame({
+          previousPositionTime: acceptedPositionTimeRef.current,
+          incomingPositionTime: normalized.positionTime,
+        })
+      ) {
+        return false;
+      }
+      const positionTime = Number(normalized.positionTime);
+      acceptedPositionTimeRef.current = Number.isFinite(positionTime)
+        ? positionTime
+        : acceptedPositionTimeRef.current;
+      if (freshPositionBoundaryRef.current == null) {
+        freshPositionBoundaryRef.current = receiveTime;
+        setFreshPositionBoundaryMs(receiveTime);
+      }
+      setFeedSource(nextSource);
+      setError(null);
+      setSettled(true);
+      setPollVersion((value) => value + 1);
       setAircraft({
         ...normalized,
       });
@@ -127,6 +150,7 @@ export function useTrackedAircraft(
             : statusUpdatedDate,
         );
       }
+      return true;
     },
     [],
   );
@@ -142,6 +166,10 @@ export function useTrackedAircraft(
       setNearbyAircraft([]);
       setNearbyAirports([]);
       setNearbyContextSettled(false);
+      setFreshStartSettled(false);
+      acceptedPositionTimeRef.current = null;
+      freshPositionBoundaryRef.current = null;
+      setFreshPositionBoundaryMs(null);
       activeCallsignRef.current = "";
       return;
     }
@@ -157,8 +185,44 @@ export function useTrackedAircraft(
       setNearbyAircraft([]);
       setNearbyAirports([]);
       setNearbyContextSettled(false);
+      setFreshStartSettled(false);
+      acceptedPositionTimeRef.current = null;
+      freshPositionBoundaryRef.current = null;
+      setFreshPositionBoundaryMs(null);
     }
   }, [callsign, normalizedCallsign]);
+
+  // A tracked flight never adopts the airport list item's coordinate as its
+  // current position. It begins with one no-store, paid-first callsign query;
+  // only then may the ongoing SSE stream supply later fresh fixes.
+  useEffect(() => {
+    if (!normalizedCallsign) return undefined;
+    const controller = new AbortController();
+    setFreshStartSettled(false);
+    void fetch(
+      `/api/proxy/aircraft/callsign/${encodeURIComponent(normalizedCallsign)}?fresh=1`,
+      { cache: "no-store", signal: controller.signal },
+    )
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((payload) => {
+        if (controller.signal.aborted) return;
+        applyTrackedPayload(payload, {
+          source: typeof payload?.source === "string" ? payload.source : "live",
+          fetchedAt: typeof payload?.fetchedAt === "string" ? payload.fetchedAt : "",
+          stale: payload?.stale === true,
+        });
+      })
+      .catch((nextError) => {
+        if (!controller.signal.aborted) setError(nextError);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setFreshStartSettled(true);
+      });
+    return () => controller.abort();
+  }, [applyTrackedPayload, normalizedCallsign]);
 
   useEffect(() => {
     const event = realtime.event;
@@ -181,7 +245,7 @@ export function useTrackedAircraft(
       setNearbyAircraft(normalizeNearbyAircraft(context?.aircraft, receiveTime));
       setNearbyContextSettled(true);
     }
-    if (!hasNearbyFocusPayload(context)) return;
+    if (!freshStartSettled || !hasNearbyFocusPayload(context)) return;
 
     applyTrackedPayload(context?.focus, {
       source:
@@ -191,16 +255,18 @@ export function useTrackedAircraft(
             ? nearbyPayload.source
             : "",
       fetchedAt: event.fetchedAt,
+      stale: event.stale === true,
     });
   }, [
     applyTrackedPayload,
     callsign,
+    freshStartSettled,
     realtime.event,
   ]);
 
 
   const waitingForRealtime =
-    hasActiveQuery && (!settled || realtime.fallbackActive);
+    hasActiveQuery && (!settled || (!freshStartSettled && realtime.fallbackActive));
   const realtimeStatus = resolveRealtimeStatusLabel({
     available: realtime.available,
     connectionState: realtime.state,
@@ -226,6 +292,7 @@ export function useTrackedAircraft(
     nearbyAirports,
     nearbyContextSettled,
     nearbyChannel: nearbyRequest?.channel || "",
+    freshPositionBoundaryMs,
   };
 }
 

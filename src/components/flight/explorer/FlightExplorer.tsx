@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import type { CSSProperties } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {
@@ -94,7 +94,6 @@ export default function FlightExplorer({ callsign = "", onboardMode = false }) {
 
 function FlightExplorerContent({ callsign, onboardMode = false }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useI18n();
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
   // Flight → flight navigation does a HARD reload to the new URL rather than an
@@ -185,13 +184,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     nearbyAircraft: streamedNearbyAircraft,
     nearbyAirports: streamedNearbyAirports,
     nearbyContextSettled,
+    freshPositionBoundaryMs,
   } = useTrackedAircraft(callsign, {
     runStatus: trackingRun?.status,
-    initialAircraft:
-      String(location.state?.aircraft?.callsign || "").trim().toUpperCase() ===
-      String(callsign || "").trim().toUpperCase()
-        ? location.state.aircraft
-        : null,
   });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
@@ -204,15 +199,24 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   useEffect(() => {
     setCachedTrackedMetadata(readTrackedFlightMetadata(callsign));
   }, [callsign]);
+  const freshTrackingTraceHistory = useMemo(
+    () =>
+      freshPositionBoundaryMs == null
+        ? []
+        : trackingTraceHistory.filter(
+            (point) => Number(point.timestampMs) >= freshPositionBoundaryMs,
+          ),
+    [freshPositionBoundaryMs, trackingTraceHistory],
+  );
   const trackedAircraftForDisplay = useMemo(() => {
     const merged = mergeTrackedFlightMetadata({
         aircraft: trackedAircraft,
         metadata: cachedTrackedMetadata,
       });
-    return merged && trackingTraceHistory.length > 0
-      ? { ...merged, traceHistory: trackingTraceHistory }
+    return merged && freshTrackingTraceHistory.length > 0
+      ? { ...merged, traceHistory: freshTrackingTraceHistory }
       : merged;
-  }, [cachedTrackedMetadata, trackedAircraft, trackingTraceHistory]);
+  }, [cachedTrackedMetadata, freshTrackingTraceHistory, trackedAircraft]);
 
   // Switching a view suspends follow and asks the map controller to fit the
   // corresponding geometry. Re-selecting the current view repeats the fit.
