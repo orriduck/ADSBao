@@ -30,9 +30,30 @@ export function getAircraftPositionSourceBadge(quality: Record<string, any> = {}
 export function buildMapSourceStatusDisplay({
   feedSource = "",
   feedStatus = "live",
-  liveLabel = "Live feed",
-  cachedLabel = "Cached feed",
+  cachedLabel = "Cached",
 }: Record<string, any> = {}) {
-  if (!feedSource) return { feedSource: "" };
-  return { feedSource: feedStatus === "infer" ? cachedLabel : liveLabel };
+  const source = formatAircraftFeedProvider(feedSource);
+  if (!source) return { feedSource: "", cachedLabel: "" };
+  return {
+    feedSource: source,
+    cachedLabel: feedStatus === "infer" ? cachedLabel : "",
+  };
+}
+
+export function formatAircraftFeedProvider(value: unknown) {
+  switch (normalizeKey(value)) {
+    case "adsb.lol":
+      return "adsb.lol";
+    case "adsb.fi":
+      return "adsb.fi";
+    case "airplanes.live":
+      return "airplanes.live";
+    case "opensky":
+      return "OpenSky Network";
+    case "fr24":
+    case "flightradar24":
+      return "Flightradar24";
+    default:
+      return "";
+  }
 }

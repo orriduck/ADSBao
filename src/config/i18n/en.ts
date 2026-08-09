@@ -5,7 +5,7 @@
 const en = {
   app: {
     feedLive: "Live feed",
-    feedCached: "Cached feed",
+    feedCached: "Cached",
     live: "Live",
     airportExplorer: "Airports",
     aboutTitle: "About",

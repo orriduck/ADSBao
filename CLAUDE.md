@@ -25,8 +25,9 @@ local validation when the user asks to inspect the app.
   selection, fallback, or authentication path exists.
 - Position rendering keeps inferred positions visible when they are useful to
   the map, while the private service owns source selection and fallback.
-- Public copy, API responses, and bundled filenames must not reveal internal
-  service-provider details.
+- Aircraft-position responses may expose the final successful provider's
+  curated public name as provenance. Keep provider selection, fallback order,
+  credentials, request attempts, cooldowns, and errors private.
 - Do not keep compatibility layers or tests for deleted architecture. Keep
   only tests that protect active frontend behavior.
 

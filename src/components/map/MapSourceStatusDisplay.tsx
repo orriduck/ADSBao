@@ -366,6 +366,7 @@ function AnimatedStatusLines({ lines }: { lines: StatusLineInput[] }) {
 export default function MapSourceStatusDisplay({
   feedSource = "",
   feedStatus = "live",
+  cachedLabel = "",
   updatedLabel = "",
   loadingStatus = "",
   realtimeStatus = "",
@@ -458,11 +459,22 @@ export default function MapSourceStatusDisplay({
             </>
           ) : null}
           {feedSource ? (
-            <StatusSpan
-              className={cn("flex-none notranslate", isInfer && "text-atc-faint")}
-            >
-              {feedSource}
-            </StatusSpan>
+            <>
+              {cachedLabel ? (
+                <StatusSpan
+                  className="flex-none rounded-[var(--atc-radius-pill)] bg-[var(--atc-control-surface-muted)] px-1.5 py-0.5 text-[0.8em] font-bold tracking-[0.04em] text-atc-dim shadow-[var(--atc-control-inset-shadow)]"
+                  animationKey={cachedLabel}
+                >
+                  {cachedLabel}
+                </StatusSpan>
+              ) : null}
+              <StatusSpan
+                className={cn("flex-none notranslate", isInfer && "text-atc-faint")}
+                animationKey={feedSource}
+              >
+                {feedSource}
+              </StatusSpan>
+            </>
           ) : null}
           {feedSource && updatedLabel ? (
             <span
