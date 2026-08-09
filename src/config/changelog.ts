@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.10.6",
+    version: "v3.10.7",
     kind: "feat",
     title: {
-      en: "80 NM airport exploration, steady flight tracking, and clearer saved settings",
-      zh: "80 海里机场探索、平稳的航班追踪与更清晰的设置保存提示",
+      en: "80 NM airport exploration, resilient flight tracking, and clearer saved settings",
+      zh: "80 海里机场探索、更具韧性的航班追踪与更清晰的设置保存提示",
     },
     summary: {
-      en: "Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view, keeps the watched aircraft's full current-leg trail visible, and keeps its trace, aircraft marker, route-to-destination line, and centre anchored to the same inferred position for a full minute during a brief feed gap. Selected airport runway previews remain open while nearby context refreshes. Completed map-setting saves appear as full, unobstructed notices.",
-      zh: "机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，始终保留被追踪飞机当前航段的完整轨迹，并在短暂数据缺口中让航迹、飞机标记、到目的地的路径和地图中心继续锚定于同一推断位置一分钟。附近上下文刷新时，已选机场的跑道预览也会保持打开。地图设置保存完成后则以完整、不被遮挡的提示显示。",
+      en: "Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view, keeps the watched aircraft's full current-leg trail visible, and keeps its trace, aircraft marker, route-to-destination line, and centre anchored to the same inferred position for a full minute during a brief feed gap. Position-source cooldowns now isolate tracked-flight lookups from airport traffic and fall through immediately after a rate limit, so a fresh map does not blank while sources rotate. Selected airport runway previews remain open while nearby context refreshes. Completed map-setting saves appear as full, unobstructed notices.",
+      zh: "机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，始终保留被追踪飞机当前航段的完整轨迹，并在短暂数据缺口中让航迹、飞机标记、到目的地的路径和地图中心继续锚定于同一推断位置一分钟。位置源冷却现在会与航班追踪查询隔离；遇到限流会立即转向下一个可用源，因此新打开的地图不会在轮换期间变空。附近上下文刷新时，已选机场的跑道预览也会保持打开。地图设置保存完成后则以完整、不被遮挡的提示显示。",
     },
     highlights: [],
   },

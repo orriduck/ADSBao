@@ -24,6 +24,10 @@ import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel"
 import { useNearbySseChannel } from "./useNearbySseChannel";
 
 const MAX_AIRCRAFT_RANGE_NM = 250;
+// SSE subscribes immediately and normally provides the first traffic frame.
+// Give it a short head start before the HTTP seed request so a fresh airport
+// view does not duplicate the same upstream position query.
+const INITIAL_SSE_SNAPSHOT_GRACE_MS = 1_500;
 
 const normalizeAircraftRangeNm = (value: unknown) => {
   const number = Number(value);
@@ -172,9 +176,10 @@ export function useAircraftPositions(
     setSettled(true);
   }, [hasActiveQuery, nearbyRequest?.channel, realtime.event]);
 
-  // A new airport view must not wait for the first SSE frame before it can
-  // show nearby aircraft. Seed it through the ordinary private-service
-  // endpoint; SSE remains the steady-state feed.
+  // A new airport view falls back to the ordinary private-service endpoint if
+  // SSE has not supplied its first frame shortly after subscription. SSE gets
+  // priority so the two paths do not hit the same upstream position source at
+  // once during startup.
   useEffect(() => {
     if (!hasActiveQuery || settled) return undefined;
 
@@ -210,7 +215,7 @@ export function useAircraftPositions(
       } catch (error) {
         if (!cancelled) console.warn("[aircraft-positions] initial snapshot failed", error);
       }
-    }, 750);
+    }, INITIAL_SSE_SNAPSHOT_GRACE_MS);
 
     return () => {
       cancelled = true;
