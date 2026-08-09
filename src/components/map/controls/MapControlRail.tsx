@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { Check, LogIn, RefreshCw, Scan } from "lucide-react";
+import { Check, LogIn, RefreshCw } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -182,8 +182,8 @@ export default function MapControlRail({
   );
 }
 
-// 缩放控件:工具栏按钮显示「放大镜 + Nx」(当前 zoom 倍数),点击直接打开一个
-// 子菜单,内含一级一级吸附(整数)的滑条。无长按、无点击循环。
+// 地图视图控件：工具栏按钮使用地图图标，点击直接打开一个子菜单，内含
+// 一级一级吸附（整数）的缩放滑条。无长按、无点击循环。
 function ZoomSliderButton({
   activeZoom = 10,
   min = 10,
@@ -316,17 +316,7 @@ function ZoomSliderButton({
         aria-haspopup="dialog"
         onClick={() => setOpen((value) => !value)}
       >
-        {/* Viewfinder frame as anchor; current zoom is a decorative read-out
-            centered in the open frame (the real value is read by opening the
-            menu). The frame's hollow center clears the corner brackets, so the
-            glyph has room and never crowds the strokes — semantically still a
-            "map range / framing" control. */}
-        <span className="relative inline-flex items-center justify-center">
-          <Scan aria-hidden="true" />
-          <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-            {current}
-          </span>
-        </span>
+        <MapControlIcon iconKey="map" />
       </ToolbarButton>
     </div>
   );
