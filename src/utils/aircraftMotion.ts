@@ -125,6 +125,84 @@ const approxMetersBetween = (a: any, b: any) => {
   return Math.hypot(north, east)
 }
 
+const offsetMeters = (from: any, to: any) => {
+  const fromLat = toFiniteNumber(from?.lat)
+  const fromLon = toFiniteNumber(from?.lon)
+  const toLat = toFiniteNumber(to?.lat)
+  const toLon = toFiniteNumber(to?.lon)
+  if (fromLat == null || fromLon == null || toLat == null || toLon == null) {
+    return null
+  }
+  const avgLatRad = (((fromLat + toLat) / 2) * Math.PI) / 180
+  return {
+    north: (toLat - fromLat) * METERS_PER_DEGREE_LAT,
+    east: (toLon - fromLon) * METERS_PER_DEGREE_LAT * Math.cos(avgLatRad),
+  }
+}
+
+const hasSameRawPosition = (a: any, b: any) => {
+  const aLat = toFiniteNumber(a?.lat)
+  const aLon = toFiniteNumber(a?.lon)
+  const bLat = toFiniteNumber(b?.lat)
+  const bLon = toFiniteNumber(b?.lon)
+  return aLat != null && aLon != null && aLat === bLat && aLon === bLon
+}
+
+const headingDelta = (a: unknown, b: unknown) => {
+  const left = toFiniteNumber(a)
+  const right = toFiniteNumber(b)
+  if (left == null || right == null) return 180
+  return Math.abs((((left - right) % 360) + 540) % 360 - 180)
+}
+
+// A live channel may replay its most recent fix while it waits for a fresh ADS-B
+// observation. The replay's receipt time is new, but its geographic sample is
+// not. Re-anchoring the projection clock to that receipt time visibly pulls a
+// tracked aircraft backward. For steady airborne motion, also ignore a delayed
+// non-identical fix that lands materially behind the existing prediction.
+const shouldRetainPreviousPositionAnchor = (
+  incoming: any,
+  previous: any,
+  nowMs: number,
+) => {
+  const previousPositionTime = toFiniteNumber(previous?.positionTime)
+  if (previousPositionTime == null) return false
+  if (hasSameRawPosition(incoming, previous)) return true
+  if (incoming?.onGround || previous?.onGround) return false
+
+  const speedKt = Math.max(
+    0,
+    toFiniteNumber(incoming?.velocity) ?? 0,
+    toFiniteNumber(previous?.velocity) ?? 0,
+  )
+  // At slow speed, turns and position quantization are more important than a
+  // small replay regression. Let normal low-pass filtering handle those fixes.
+  if (speedKt < 80 || headingDelta(incoming?.track, previous?.track) > 35) {
+    return false
+  }
+
+  const expected = computeTargetPosition(previous, nowMs)
+  const residual = offsetMeters(expected, incoming)
+  if (!residual) return false
+  const trackRad = ((toFiniteNumber(previous?.track) ?? 0) * Math.PI) / 180
+  const alongTrackMeters =
+    residual.north * Math.cos(trackRad) + residual.east * Math.sin(trackRad)
+  // Permit normal source jitter and up to 1.5 seconds of timing disagreement.
+  const behindToleranceM = Math.max(180, speedKt * KT_TO_MPS * 1.5)
+  return alongTrackMeters < -behindToleranceM
+}
+
+const retainPreviousPositionAnchor = (incoming: any, previous: any) => ({
+  ...incoming,
+  lat: previous.lat,
+  lon: previous.lon,
+  velocity: previous.velocity,
+  track: previous.track,
+  onGround: previous.onGround,
+  positionTime: previous.positionTime,
+  receiveTime: previous.receiveTime,
+})
+
 // Extrapolation gate: 0 below LOW_KT, 1 above HIGH_KT. Ground/taxi traffic is
 // never dead-reckoned — it stops and turns unpredictably, so gs/track projection
 // would push the marker the wrong way; the target collapses to the raw fix and
@@ -150,6 +228,15 @@ const dispOf = (state: any) => {
   return { lat, lon }
 }
 
+export type MotionVisualOptions = {
+  // `null` disables the regular acquisition catch-up. Tracked focal views use
+  // this with a bounded display velocity, so a late fresh fix never teleports.
+  maxCatchupM?: number | null
+  // Limit the visible correction to a multiple of the aircraft's own speed.
+  // This keeps late, large forward corrections physically legible at high zoom.
+  maxVisualSpeedMultiplier?: number
+}
+
 // A new fix updates ONLY the anchor. The displayed position AND the easing
 // clock carry over from the previous motion state so the marker never teleports
 // and the low-pass filter stays continuous across fixes (resetting the clock per
@@ -163,16 +250,19 @@ export const beginAircraftMotionState = (
   nowMs = Date.now(),
   prev: any = null,
 ) => {
+  const motionAircraft = shouldRetainPreviousPositionAnchor(aircraft, prev, nowMs)
+    ? retainPreviousPositionAnchor(aircraft, prev)
+    : aircraft
   const prevDispLat = toFiniteNumber(prev?.dispLat ?? prev?.lat)
   const prevDispLon = toFiniteNumber(prev?.dispLon ?? prev?.lon)
   const hasPrevDisp = prevDispLat != null && prevDispLon != null
   const seed = hasPrevDisp
     ? { lat: prevDispLat, lon: prevDispLon }
-    : computeTargetPosition(aircraft, nowMs)
+    : computeTargetPosition(motionAircraft, nowMs)
   // Carry the easing clock when we have one; otherwise start it now.
   const prevStep = toFiniteNumber(prev?.lastStepMs)
   return {
-    ...aircraft,
+    ...motionAircraft,
     dispLat: seed.lat,
     dispLon: seed.lon,
     lastStepMs: prevStep ?? nowMs,
@@ -186,6 +276,7 @@ export const calculateAircraftVisualPosition = (
   state: any,
   nowMs = Date.now(),
   zoom?: unknown,
+  options?: MotionVisualOptions,
 ) => {
   if (!state) return { lat: 0, lon: 0 }
   const target = computeTargetPosition(state, nowMs)
@@ -197,18 +288,42 @@ export const calculateAircraftVisualPosition = (
   const alpha = tau > 0 ? 1 - Math.exp(-dtFrameS / tau) : 1
 
   // Catch-up clamp: pull the displayed position to within MAX_CATCHUP_M of the
-  // target before easing, so it can never lag arbitrarily far behind.
+  // target before easing, so ordinary map markers cannot lag arbitrarily far
+  // behind. A tracked focal marker opts out and limits its displayed velocity
+  // below, preserving a continuous camera motion through late source fixes.
   let baseLat = disp.lat
   let baseLon = disp.lon
   const errM = approxMetersBetween(disp, target)
-  if (errM > POSITION_SMOOTHING.MAX_CATCHUP_M) {
-    const keep = POSITION_SMOOTHING.MAX_CATCHUP_M / errM
+  const maxCatchupM =
+    options?.maxCatchupM === null
+      ? Number.POSITIVE_INFINITY
+      : Math.max(
+          0,
+          toFiniteNumber(options?.maxCatchupM) ?? POSITION_SMOOTHING.MAX_CATCHUP_M,
+        )
+  if (errM > maxCatchupM) {
+    const keep = maxCatchupM / errM
     baseLat = target.lat + (disp.lat - target.lat) * keep
     baseLon = target.lon + (disp.lon - target.lon) * keep
   }
 
-  const nextLat = baseLat + (target.lat - baseLat) * alpha
-  const nextLon = baseLon + (target.lon - baseLon) * alpha
+  let nextLat = baseLat + (target.lat - baseLat) * alpha
+  let nextLon = baseLon + (target.lon - baseLon) * alpha
+  const speedMultiplier = toFiniteNumber(options?.maxVisualSpeedMultiplier)
+  if (speedMultiplier != null && speedMultiplier > 0 && dtFrameS > 0) {
+    const start =
+      baseLat === disp.lat && baseLon === disp.lon
+        ? disp
+        : { lat: baseLat, lon: baseLon }
+    const visualStepM = approxMetersBetween(start, { lat: nextLat, lon: nextLon })
+    const speedMps = Math.max(0, toFiniteNumber(state?.velocity) ?? 0) * KT_TO_MPS
+    const maxVisualStepM = speedMps * speedMultiplier * dtFrameS
+    if (visualStepM > maxVisualStepM && maxVisualStepM > 0) {
+      const ratio = maxVisualStepM / visualStepM
+      nextLat = start.lat + (nextLat - start.lat) * ratio
+      nextLon = start.lon + (nextLon - start.lon) * ratio
+    }
+  }
 
   state.dispLat = nextLat
   state.dispLon = nextLon

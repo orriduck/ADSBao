@@ -74,6 +74,10 @@ const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 // ref directly on the shared motion frame, avoiding whole-explorer renders at
 // display cadence.
 const FOCAL_VISUAL_POSITION_PUBLISH_MS = 500;
+const FOCAL_MOTION_OPTIONS = {
+  maxCatchupM: null,
+  maxVisualSpeedMultiplier: 2.5,
+} as const;
 const TRACE_VIEW_FULL = "full";
 const TRACE_VIEW_RECORDED = "recorded";
 // Max wait for a focal position before the flight map resolves to the terminal
@@ -321,19 +325,16 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   useEffect(() => {
     if (!focalMotionAircraft) return;
     const now = Date.now();
-    const currentVisual =
-      visualFocalPositionRef.current.lat != null &&
-      visualFocalPositionRef.current.lon != null
-        ? visualFocalPositionRef.current
-        : null;
     focalMotionRef.current = beginAircraftMotionState(
       focalMotionAircraft,
       now,
-      currentVisual,
+      focalMotionRef.current,
     );
     const nextPosition = calculateAircraftVisualPosition(
       focalMotionRef.current,
       now,
+      undefined,
+      FOCAL_MOTION_OPTIONS,
     );
     updateVisualFocalPosition({
       nextPosition,
@@ -352,7 +353,12 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
         lastPublishedAt === 0 ||
         now - lastPublishedAt >= FOCAL_VISUAL_POSITION_PUBLISH_MS;
       updateVisualFocalPosition({
-        nextPosition: calculateAircraftVisualPosition(motion, now),
+        nextPosition: calculateAircraftVisualPosition(
+          motion,
+          now,
+          undefined,
+          FOCAL_MOTION_OPTIONS,
+        ),
         positionRef: visualFocalPositionRef,
         setPosition: setVisualFocalPosition,
         publish,
@@ -369,6 +375,8 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     return calculateAircraftVisualPosition(
       beginAircraftMotionState(focalMotionAircraft, now),
       now,
+      undefined,
+      FOCAL_MOTION_OPTIONS,
     );
   }, [focalMotionAircraft]);
   const focalLat =

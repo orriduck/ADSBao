@@ -99,6 +99,68 @@ const metersBetween = (a, b) => {
   )
 }
 
+// --- watched airborne replays retain a monotonic prediction anchor ------------
+{
+  const oldFix = {
+    lat: 51.115906,
+    lon: -0.454374,
+    velocity: 371,
+    track: 151.16,
+    onGround: false,
+    positionTime: 0,
+  }
+  const firstState = beginAircraftMotionState(oldFix, 0)
+  const replay = beginAircraftMotionState(
+    { ...oldFix, positionTime: 3_220 },
+    3_220,
+    firstState,
+  )
+  assert.equal(replay.positionTime, oldFix.positionTime)
+
+  const delayedBehind = beginAircraftMotionState(
+    {
+      ...oldFix,
+      lat: 51.1145,
+      lon: -0.4534,
+      positionTime: 3_220,
+    },
+    3_220,
+    firstState,
+  )
+  assert.equal(delayedBehind.lat, oldFix.lat)
+  assert.equal(delayedBehind.lon, oldFix.lon)
+}
+
+// --- watched focal corrections advance at a bounded visible speed -------------
+{
+  const oldFix = {
+    lat: 51.115906,
+    lon: -0.454374,
+    velocity: 371,
+    track: 151.16,
+    onGround: false,
+    positionTime: 0,
+  }
+  const focalOptions = { maxCatchupM: null, maxVisualSpeedMultiplier: 2.5 }
+  const oldState = beginAircraftMotionState(oldFix, 0)
+  calculateAircraftVisualPosition(oldState, 5_000, 13, focalOptions)
+  const correctedState = beginAircraftMotionState(
+    {
+      ...oldFix,
+      lat: 51.094894,
+      lon: -0.435964,
+      velocity: 375.5,
+      track: 151.18,
+      positionTime: 5_000,
+    },
+    5_000,
+    oldState,
+  )
+  const before = { lat: correctedState.dispLat, lon: correctedState.dispLon }
+  const after = calculateAircraftVisualPosition(correctedState, 5_016, 13, focalOptions)
+  assert.ok(metersBetween(before, after) <= 8)
+}
+
 // --- shouldAnimate: settles for still targets, runs for moving ones -----------
 {
   const settled = { lat: 33, lon: -118, velocity: 0, track: 0, onGround: false, positionTime: 0, dispLat: 33, dispLon: -118, lastStepMs: 0 }
