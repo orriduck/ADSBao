@@ -144,6 +144,7 @@ export default function AirportMap({
   flightTerminalReason = "",
   userLocation = null,
   onMapInstanceChange = null,
+  onMainContentLoadingChange = null,
   mapInteractionMode = AirportMapInteractionMode.AirportExploration,
   children = null,
 }: Record<string, any>) {
@@ -746,6 +747,17 @@ export default function AirportMap({
   });
   const loadingPresentation =
     resolveMapLoadingPresentation(loadingOverlayState as any);
+  // The shell owns the sidebar, while this component owns the visual map gate.
+  // Surface the blocking map state so the shell can show a structural sidebar
+  // placeholder rather than a completed-looking sidebar beside a covered map.
+  const mainContentLoading = Boolean(
+    loadingOverlayState.mode === "map" &&
+      loadingOverlayPlayback.visible &&
+      !loadingOverlayPlayback.exiting,
+  );
+  useEffect(() => {
+    onMainContentLoadingChange?.(mainContentLoading);
+  }, [mainContentLoading, onMainContentLoadingChange]);
   const { mapVisible } = resolveMapSurfaceVisibility({
     loadingOverlayVisible: loadingOverlayPlayback.visible,
     loadingOverlayExiting: loadingOverlayPlayback.exiting,
@@ -924,7 +936,6 @@ export default function AirportMap({
 
       <MapLoadingOverlay
         active={loadingPresentation.overlayActive}
-        sidebarAware={floatingSidebarAware}
         variant={loadingOverlayVariant}
         onVisibleChange={handleLoadingOverlayVisibleChange}
         {...loadingOverlayCopy}

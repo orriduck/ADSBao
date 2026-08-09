@@ -8,7 +8,6 @@ import {
   shouldReplayLoadingOverlayOnPageVisible,
 } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { SymmetricWave } from "@/components/loading-ui/symmetric-wave";
 
 // reason → i18n key stem for the terminal (no live position) card.
 const TERMINAL_COPY_KEY: Record<string, string> = {
@@ -82,7 +81,6 @@ export function MapLoadingFallback({ variant = "airport", callsign = "" }) {
 export default function MapLoadingOverlay({
   active,
   variant = "airport",
-  sidebarAware = false,
   ariaLabel,
   onVisibleChange,
   mode = "feed",
@@ -204,9 +202,7 @@ export default function MapLoadingOverlay({
     <div
       className={`adsb-loading-overlay adsb-loading-overlay--${variant} ${
         exiting ? "is-exiting" : ""
-      } ${sidebarAware ? "adsb-loading-overlay--sidebar-aware" : ""} ${
-        onboardMode ? "adsb-loading-overlay--onboard" : ""
-      }`}
+      } ${onboardMode ? "adsb-loading-overlay--onboard" : ""}`}
       aria-label={ariaLabel}
       aria-hidden={!visible}
       onAnimationEnd={(event) => {
@@ -227,39 +223,22 @@ export default function MapLoadingOverlay({
         </div>
       ) : (
         <>
-          <div
-            key={playbackCycle}
-            className="adsb-loading-grid"
-            aria-hidden="true"
-          >
-            <span className="adsb-loading-grid__matrix" />
-            {variant === "airport" ? (
-              <div className="airport-symmetric-wave">
-                <div className="airport-symmetric-wave__content">
-                  <SymmetricWave
-                    aria-hidden="true"
-                    className={
-                      prefersReducedMotion
-                        ? "airport-symmetric-wave__indicator airport-symmetric-wave__indicator--static"
-                        : "airport-symmetric-wave__indicator"
-                    }
-                  />
-                  {loadingLabel ? (
-                    <span className="airport-symmetric-wave__status">
-                      {loadingLabel}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
+          <div key={playbackCycle} className="aviation-loading-signal" aria-hidden="true">
+            <span className="aviation-loading-signal__route" />
+            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--origin" />
+            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--mid" />
+            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--destination" />
+            <Plane
+              className={`aviation-loading-signal__aircraft ${
+                prefersReducedMotion ? "aviation-loading-signal__aircraft--static" : ""
+              }`}
+              size={18}
+              strokeWidth={1.65}
+            />
           </div>
-          {loadingLabel && variant !== "airport" ? (
+          {loadingLabel ? (
             <>
               <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
-                <span
-                  className="h-1.5 w-1.5 animate-pulse rounded-full bg-current"
-                  aria-hidden="true"
-                />
                 <span>{loadingLabel}</span>
               </div>
               {onboardMode ? (
@@ -270,7 +249,7 @@ export default function MapLoadingOverlay({
                   </div>
                   <div className="flex items-center gap-2 text-[14px] font-medium leading-snug text-atc-text">
                     <span
-                      className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-atc-accent"
+                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-atc-accent"
                       aria-hidden="true"
                     />
                     <span>{loadingLabel}</span>

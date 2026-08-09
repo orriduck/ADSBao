@@ -8,6 +8,8 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import { Plane } from "lucide-react";
+import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay";
+import SidebarLoadingSkeleton from "@/components/sidebar/SidebarLoadingSkeleton";
 import { normalizeCallsign } from "@/utils/callsign";
 import { isOnboardMode } from "@/features/aircraft/onboard/onboardModeModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -66,6 +68,25 @@ class RouteErrorBoundary extends Component<
 
 function RouteLoadingState({ failed = false }: { failed?: boolean }) {
   const { t } = useI18n();
+  const location = useLocation();
+  const workspaceVariant = location.pathname.startsWith("/aircraft/")
+    ? "flight"
+    : location.pathname.startsWith("/airport/")
+      ? "airport"
+      : null;
+
+  if (!failed && workspaceVariant) {
+    return (
+      <main className="app-route-loading-workspace bg-atc-bg text-atc-text" role="status">
+        <aside className="app-route-loading-workspace__sidebar hidden md:block">
+          <SidebarLoadingSkeleton variant={workspaceVariant} />
+        </aside>
+        <section className="app-route-loading-workspace__main">
+          <MapLoadingFallback variant={workspaceVariant} />
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main

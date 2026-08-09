@@ -92,6 +92,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useI18n();
+  const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
   // Flight → flight navigation does a HARD reload to the new URL rather than an
   // in-place SPA swap. Each tracking page is then a guaranteed clean slate
   // (fresh map + fresh realtime socket; the previous socket is torn down by the
@@ -952,6 +953,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     onCollapse: collapseSidebar,
     onExpand: expandSidebar,
     fillAircraftList: true,
+    loading: flightTrackingLoadingActive || mapMainContentLoading,
   };
 
   return (
@@ -1080,6 +1082,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               loadingOverlaySources={loadingOverlaySources}
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
+              onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.FlightTracking}
             >
               <FlightRouteArc

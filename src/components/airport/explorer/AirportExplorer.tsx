@@ -138,6 +138,7 @@ function AirportExplorerContent({
   onNearbyAirportsChange = null,
 }) {
   const nearMe = mode === "nearMe";
+  const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
   // Airport → airport navigation does a HARD reload to the new URL (same policy
   // as flight → flight): a reused map across an airport switch can get stuck not
   // reloading tiles, so a clean mount per page is simpler and stable. Only the
@@ -580,6 +581,7 @@ function AirportExplorerContent({
     onCollapse: collapseSidebar,
     onExpand: expandSidebar,
     fillAircraftList: true,
+    loading: loadingOverlayActive || mapMainContentLoading,
   };
 
   return (
@@ -708,6 +710,7 @@ function AirportExplorerContent({
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
               onMapInstanceChange={setAirportMapInstance}
+              onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.AirportExploration}
             />
           </Suspense>

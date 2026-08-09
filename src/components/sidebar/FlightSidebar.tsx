@@ -3,6 +3,10 @@ import NumberFlow from "@number-flow/react";
 import AircraftTable from "./AircraftTable";
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import SidebarShell from "./SidebarShell";
+import {
+  SidebarLoadingContent,
+  SidebarLoadingHeader,
+} from "./SidebarLoadingSkeleton";
 import StatTile from "@/components/ui/StatTile";
 import {
   formatFlightRouteLabel,
@@ -52,6 +56,7 @@ export default function FlightSidebar({
   onboardMode = false,
   journeyProgress = null,
   trackingRunStatus = "",
+  loading = false,
 }) {
   const { t } = useI18n();
   const isMobileOverlay = Boolean(onClose);
@@ -72,7 +77,9 @@ export default function FlightSidebar({
     aircraft?.positionQuality,
   );
 
-  const header = (
+  const header = loading ? (
+    <SidebarLoadingHeader variant="flight" />
+  ) : (
     <>
       <FlightIdentity
         callsign={displayCallsign}
@@ -112,7 +119,9 @@ export default function FlightSidebar({
       header={header}
       mobileToolbar={mobileToolbar}
     >
-      {showNearbyList ? (
+      {loading ? (
+        <SidebarLoadingContent />
+      ) : showNearbyList ? (
         <AircraftTable
           aircraft={nearbyAircraft}
           airports={nearbyAirports}

@@ -4,6 +4,10 @@ import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
+import {
+  SidebarLoadingContent,
+  SidebarLoadingHeader,
+} from "./SidebarLoadingSkeleton";
 import WeatherBriefingStack from "./WeatherBriefingStack";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
@@ -57,6 +61,7 @@ export default function AirportSidebar({
   onExpand = null,
   mobileToolbar = null,
   fillAircraftList = true,
+  loading = false,
 }) {
   const { t, locale } = useI18n();
   const [activeView, setActiveView] = useState("traffic");
@@ -85,7 +90,9 @@ export default function AirportSidebar({
     onOpenSpotting?.(previousView);
   };
 
-  const header = (
+  const header = loading ? (
+    <SidebarLoadingHeader variant="airport" />
+  ) : (
     <>
       <AirportIdentity
         icao={icao}
@@ -181,7 +188,7 @@ export default function AirportSidebar({
           "airport-sidebar-content app-panel-transition flex min-h-0 flex-1 flex-col overflow-visible"
         }
       >
-        {activeViewContent}
+        {loading ? <SidebarLoadingContent /> : activeViewContent}
       </div>
     </SidebarShell>
   );
