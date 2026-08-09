@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.10.16",
+    version: "v3.10.17",
     kind: "feat",
     title: {
       en: "80 NM airport exploration, stable flight tracking, and clearer saved settings",
       zh: "80 海里机场探索、更稳定的航班追踪与更清晰的设置保存提示",
     },
     summary: {
-      en: "Tracked flights now begin from one dedicated, no-store current-position query instead of reusing an airport-list coordinate. Realtime coordinate frames are never replayed from cache: reconnects remain pending until a new frame arrives, stale/error frames cannot enter the recorded trace, and older fixes cannot pull a tracked marker backward. The tracked callsign then remains on one healthy free source until that source fails, while regional traffic uses its own recovery gate. Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view, keeps the watched aircraft's full current-leg trail visible, and keeps its trace, aircraft marker, route-to-destination line, and centre anchored to the same inferred position for a full minute during a brief feed gap. Selected airport runway previews remain open while nearby context refreshes. Completed map-setting saves appear as full, unobstructed notices. Blocking map loading now stays in the main content area, with matching sidebar skeletons and a restrained aircraft-in-transit signal in place of the former wave animation.",
-      zh: "航班追踪页现在会用一次专属、无缓存的当前定位查询开始，不再复用机场列表中带来的坐标。实时坐标不会再从缓存回放：重连会保持等待直到收到新帧，过期或错误帧不会写入记录航迹，较早的 fix 也不能把被追踪的飞机标记拉回去。随后该航班会固定使用一个健康的免费来源，直至它不可用；区域流量则使用独立的兜底闸门。机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，始终保留被追踪飞机当前航段的完整轨迹，并在短暂数据缺口中让航迹、飞机标记、到目的地的路径和地图中心继续锚定于同一推断位置一分钟。附近上下文刷新时，已选机场的跑道预览也会保持打开。地图设置保存完成后则以完整、不被遮挡的提示显示。阻塞地图加载现在仅留在主内容区，侧栏会显示对应骨架，旧的波形动画改为克制的飞机航线通行信号。",
+      en: "Tracked flights now begin from one dedicated, no-store current-position query instead of reusing an airport-list coordinate. Realtime coordinate frames are never replayed from cache: reconnects remain pending until a new frame arrives, stale/error frames cannot enter the recorded trace, and older fixes cannot pull a tracked marker backward. The tracked callsign then remains on one healthy free source until that source fails, while regional traffic uses its own recovery gate. Airport maps retain aircraft and nearby airports within an 80 NM airport-centred area, where you can pan within the boundary and recenter from Map range. Flight tracking locks its live map view, keeps the watched aircraft's full current-leg trail visible, and keeps its trace, aircraft marker, route-to-destination line, and centre anchored to the same inferred position for a full minute during a brief feed gap. Selected airport runway previews remain open while nearby context refreshes. Completed map-setting saves appear as full, unobstructed notices. Blocking map loading stays in the visible map plane with matching sidebar skeletons; its centred line glyph now cycles aircraft, tower, and runway instead of the former wave animation.",
+      zh: "航班追踪页现在会用一次专属、无缓存的当前定位查询开始，不再复用机场列表中带来的坐标。实时坐标不会再从缓存回放：重连会保持等待直到收到新帧，过期或错误帧不会写入记录航迹，较早的 fix 也不能把被追踪的飞机标记拉回去。随后该航班会固定使用一个健康的免费来源，直至它不可用；区域流量则使用独立的兜底闸门。机场地图会保留以机场为中心、80 海里范围内的飞机与附近机场；你可以在该范围内移动视野，并从地图范围菜单回到机场中心。航班追踪页锁定实时地图视图，始终保留被追踪飞机当前航段的完整轨迹，并在短暂数据缺口中让航迹、飞机标记、到目的地的路径和地图中心继续锚定于同一推断位置一分钟。附近上下文刷新时，已选机场的跑道预览也会保持打开。地图设置保存完成后则以完整、不被遮挡的提示显示。阻塞地图加载会留在可见地图区，侧栏显示对应骨架；居中的线稿图标会在飞机、塔台和跑道之间循环，取代旧的波形动画。",
     },
     highlights: [],
   },

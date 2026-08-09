@@ -609,6 +609,7 @@
     .mobile-trace-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay,
+    .aviation-loading-glyph__frame,
     .adsb-loading-overlay.is-exiting {
         animation: none;
         transition: none;
@@ -2439,61 +2440,61 @@ body:has(.dither-page-shell) {
     text-align: center;
 }
 
-.aviation-loading-signal {
-    align-items: center;
-    display: flex;
-    height: 28px;
-    justify-content: center;
-    margin-bottom: 11px;
-    overflow: hidden;
+.aviation-loading-glyph {
+    height: 34px;
+    margin-bottom: 12px;
     position: relative;
-    width: 172px;
+    width: 34px;
     z-index: 1;
 }
 
-.aviation-loading-signal__route {
-    background: color-mix(in oklab, var(--atc-line) 88%, transparent);
-    height: 1px;
-    left: 14px;
+.aviation-loading-glyph__frame {
+    align-items: center;
+    color: var(--atc-text);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    opacity: 0;
     position: absolute;
-    right: 14px;
-}
-
-.aviation-loading-signal__waypoint {
-    background: var(--atc-control-surface);
-    border: 1px solid color-mix(in oklab, var(--atc-text) 38%, transparent);
-    border-radius: 999px;
-    height: 6px;
-    position: absolute;
-    top: 11px;
-    width: 6px;
-}
-
-.aviation-loading-signal__waypoint--origin { left: 12px; }
-.aviation-loading-signal__waypoint--mid { left: calc(50% - 3px); }
-.aviation-loading-signal__waypoint--destination { right: 12px; }
-
-.aviation-loading-signal__aircraft {
-    color: var(--atc-signal-accent);
-    filter: drop-shadow(0 2px 5px color-mix(in oklab, var(--atc-signal-accent) 28%, transparent));
-    position: absolute;
-    transform: translateX(-64px) rotate(90deg);
-    will-change: transform;
+    transform: scale(0.82);
+    will-change: opacity, transform;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .aviation-loading-signal__aircraft:not(.aviation-loading-signal__aircraft--static) {
-        animation: aviation-loading-transit 1.8s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+    .aviation-loading-glyph__frame--plane {
+        animation: aviation-loading-glyph-plane 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .aviation-loading-glyph__frame--tower {
+        animation: aviation-loading-glyph-tower 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .aviation-loading-glyph__frame--runway {
+        animation: aviation-loading-glyph-runway 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
     }
 }
 
-.aviation-loading-signal__aircraft--static {
-    transform: translateX(0) rotate(90deg);
+.aviation-loading-glyph--static .aviation-loading-glyph__frame--plane {
+    opacity: 1;
+    transform: scale(1);
 }
 
-@keyframes aviation-loading-transit {
-    from { transform: translateX(-64px) rotate(90deg); }
-    to { transform: translateX(64px) rotate(90deg); }
+@keyframes aviation-loading-glyph-plane {
+    0%, 4%, 100% { opacity: 0; transform: scale(0.82); }
+    11%, 27% { opacity: 1; transform: scale(1); }
+    34% { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes aviation-loading-glyph-tower {
+    0%, 29% { opacity: 0; transform: scale(0.82); }
+    38%, 60% { opacity: 1; transform: scale(1); }
+    67%, 100% { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes aviation-loading-glyph-runway {
+    0%, 62% { opacity: 0; transform: scale(0.82); }
+    71%, 93% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.9); }
 }
 
 @keyframes adsb-loading-fade-out {
@@ -5400,7 +5401,7 @@ body {
     }
 
     .adsb-loading-overlay.is-exiting,
-    .aviation-loading-signal__aircraft,
+    .aviation-loading-glyph__frame,
     .orb-container canvas {
         animation: none;
     }
@@ -7869,6 +7870,21 @@ body {
     position: absolute;
     width: auto;
     z-index: 0;
+}
+
+/* The map intentionally runs under the translucent desktop rail, but loading
+   belongs to the usable map plane. Keep the overlay itself full-bleed so its
+   backdrop remains continuous; reserve the rail inside its flex content box
+   so the glyph and status sit at the visible map's true centre. */
+@media (min-width: 640px) {
+    .airport-map-kit:has(
+            .airport-desktop-sidebar[data-open="true"]:not([data-collapsed="true"])
+        )
+        .adsb-loading-overlay {
+        padding-left: calc(
+            var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
+        );
+    }
 }
 
 .airport-map-kit .airport-map-stage::before,

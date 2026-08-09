@@ -223,19 +223,10 @@ export default function MapLoadingOverlay({
         </div>
       ) : (
         <>
-          <div key={playbackCycle} className="aviation-loading-signal" aria-hidden="true">
-            <span className="aviation-loading-signal__route" />
-            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--origin" />
-            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--mid" />
-            <span className="aviation-loading-signal__waypoint aviation-loading-signal__waypoint--destination" />
-            <Plane
-              className={`aviation-loading-signal__aircraft ${
-                prefersReducedMotion ? "aviation-loading-signal__aircraft--static" : ""
-              }`}
-              size={18}
-              strokeWidth={1.65}
-            />
-          </div>
+          <AviationLoadingGlyph
+            key={playbackCycle}
+            reducedMotion={prefersReducedMotion}
+          />
           {loadingLabel ? (
             <>
               <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
@@ -264,6 +255,43 @@ export default function MapLoadingOverlay({
         </>
       )}
     </div>
+  );
+}
+
+function AviationLoadingGlyph({ reducedMotion }: { reducedMotion: boolean }) {
+  return (
+    <div
+      className={`aviation-loading-glyph ${
+        reducedMotion ? "aviation-loading-glyph--static" : ""
+      }`}
+      aria-hidden="true"
+    >
+      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--plane">
+        <Plane size={30} strokeWidth={1.55} />
+      </span>
+      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--tower">
+        <RadioTower size={29} strokeWidth={1.5} />
+      </span>
+      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--runway">
+        <RunwayGlyph />
+      </span>
+    </div>
+  );
+}
+
+function RunwayGlyph() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-[30px] w-[30px]"
+      fill="none"
+      viewBox="0 0 32 32"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M7 28 13 4h6l6 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
+      <path d="M16 8v3M16 15v3M16 22v3" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+      <path d="M5 28h22" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
+    </svg>
   );
 }
 
