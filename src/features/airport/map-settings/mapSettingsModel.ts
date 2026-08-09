@@ -220,7 +220,7 @@ export function resolveMapSettingsHydration({
   if (signedIn && normalizedUserSettings) {
     return { source: "user", settings: normalizedUserSettings };
   }
-  if (normalizedCachedSettings) {
+  if (!signedIn && normalizedCachedSettings) {
     return { source: "cache", settings: normalizedCachedSettings };
   }
   return { source: "empty", settings: null };
@@ -230,11 +230,19 @@ export function resolveMapSettingsPersistenceTargets({
   authLoaded = false,
   signedIn = false,
 }: MapSettingsOptions = {}) {
-  const hasSignedInUser = authLoaded === true && signedIn === true;
+  if (authLoaded !== true) {
+    return {
+      readCache: false,
+      readDatabase: false,
+      writeCache: false,
+      writeDatabase: false,
+    };
+  }
+  const hasSignedInUser = signedIn === true;
   return {
-    readCache: true,
+    readCache: !hasSignedInUser,
     readDatabase: hasSignedInUser,
-    writeCache: true,
+    writeCache: !hasSignedInUser,
     writeDatabase: hasSignedInUser,
   };
 }

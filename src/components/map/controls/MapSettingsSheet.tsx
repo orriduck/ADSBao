@@ -1,9 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
+  buildCustomMapSettings,
+  buildMapSettingsWithBaseLayer,
   getMapBaseLayerOptions,
+  mapSettingsToExplorerLayers,
   normalizeMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
@@ -279,6 +282,7 @@ export default function MapSettingsSheet({
   id,
   open,
   onOpenChange,
+  onSaveMapSettings = null,
   mapSettings,
   showMapLabels,
   showBeams,
@@ -295,15 +299,6 @@ export default function MapSettingsSheet({
   onRequestUserLocationPermission = null,
   userLocationPositionReady = false,
   userLocationCompassHeadingDeg = null,
-  onSelectBaseLayer,
-  onToggleMapLabels,
-  onToggleBeams,
-  onToggleNavaidMarkers,
-  onToggleReportingPoints,
-  onToggleAirspaces,
-  onToggleCandidateWatchingSpots,
-  onToggleShowCallsigns,
-  onToggleUserLocation = null,
   mapSettingsSaveStatus = "idle",
   mapSettingsSaveCycle = 0,
 }) {
@@ -339,24 +334,56 @@ export default function MapSettingsSheet({
       requestNotificationPermission();
     }
   };
-  const settings = normalizeMapSettings(mapSettings);
+  const [draftSettings, setDraftSettings] = useState(() =>
+    normalizeMapSettings(mapSettings),
+  );
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (open) setDraftSettings(normalizeMapSettings(mapSettings));
+  }, [mapSettings, open]);
+
+  const settings = normalizeMapSettings(draftSettings);
+  const draftLayers = mapSettingsToExplorerLayers(settings);
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
   const state = {
-    showMapLabels,
-    showBeams,
-    showNavaidMarkers,
-    showReportingPoints,
-    showAirspaces,
-    showCandidateWatchingSpots,
-    showCallsigns,
-    onToggleMapLabels,
-    onToggleBeams,
-    onToggleNavaidMarkers,
-    onToggleReportingPoints,
-    onToggleAirspaces,
-    onToggleCandidateWatchingSpots,
-    onToggleShowCallsigns,
+    showMapLabels: draftLayers.showMapLabels,
+    showBeams: draftLayers.showRunwayBeams,
+    showNavaidMarkers: draftLayers.showNavaidMarkers,
+    showReportingPoints: draftLayers.showReportingPoints,
+    showAirspaces: draftLayers.showAirspaces,
+    showCandidateWatchingSpots: draftLayers.showCandidateWatchingSpots,
+    showCallsigns: draftLayers.showCallsigns,
+  };
+  const updateLayerDraft = (layerKey) => {
+    const layerValues = {
+      [MAP_LAYER_KEYS.MAP_LABELS]: state.showMapLabels,
+      [MAP_LAYER_KEYS.APPROACH_BEAMS]: state.showBeams,
+      [MAP_LAYER_KEYS.NAVAID_MARKERS]: state.showNavaidMarkers,
+      [MAP_LAYER_KEYS.REPORTING_POINTS]: state.showReportingPoints,
+      [MAP_LAYER_KEYS.AIRSPACES]: state.showAirspaces,
+      [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: state.showCandidateWatchingSpots,
+      [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: state.showCallsigns,
+      [MAP_LAYER_KEYS.USER_LOCATION]: settings.layerOverrides?.[MAP_LAYER_KEYS.USER_LOCATION] === true,
+    };
+    setDraftSettings((current) =>
+      buildCustomMapSettings({
+        settings: current,
+        layerKey,
+        value: !layerValues[layerKey],
+      }),
+    );
+  };
+  const handleOpenChange = (nextOpen) => {
+    if (!nextOpen) setDraftSettings(normalizeMapSettings(mapSettings));
+    onOpenChange?.(nextOpen);
+  };
+  const saveDraft = async () => {
+    if (!onSaveMapSettings || saving) return;
+    setSaving(true);
+    const saved = await onSaveMapSettings(settings);
+    setSaving(false);
+    if (saved) onOpenChange?.(false);
   };
   const userLocationTitle = userLocationPending
     ? t("mapLayers.locatingUser")
@@ -409,7 +436,7 @@ export default function MapSettingsSheet({
       };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent
         id={id}
         side={mobileSheet ? "bottom" : "right"}
@@ -465,7 +492,14 @@ export default function MapSettingsSheet({
                       iconKey={option.iconKey}
                       title={t(option.labelKey)}
                       description={t(option.descriptionKey)}
-                      onClick={() => onSelectBaseLayer?.(option.id)}
+                      onClick={() =>
+                        setDraftSettings((current) =>
+                          buildMapSettingsWithBaseLayer({
+                            settings: current,
+                            baseLayer: option.id,
+                          }),
+                        )
+                      }
                     />
                   );
                 })}
@@ -496,22 +530,20 @@ export default function MapSettingsSheet({
                       iconKey={control.iconKey}
                       label={t(control.labelKey)}
                       subtitle={title}
-                      onClick={state[control.handler]}
+                      onClick={() => updateLayerDraft(control.layerKey)}
                     />
                   );
                 })}
 
-                {onToggleUserLocation && (
-                  <LayerToggleRow
-                    active={userLocationActive}
-                    ariaLabel={userLocationTitle}
-                    disabled={userLocationPending}
-                    iconKey="locateFixed"
-                    label={t("mapLayers.userLocation")}
-                    subtitle={userLocationTitle}
-                    onClick={onToggleUserLocation}
-                  />
-                )}
+                <LayerToggleRow
+                  active={settings.layerOverrides?.[MAP_LAYER_KEYS.USER_LOCATION] === true}
+                  ariaLabel={userLocationTitle}
+                  disabled={userLocationPending}
+                  iconKey="locateFixed"
+                  label={t("mapLayers.userLocation")}
+                  subtitle={userLocationTitle}
+                  onClick={() => updateLayerDraft(MAP_LAYER_KEYS.USER_LOCATION)}
+                />
               </div>
               <div className="mt-1 space-y-1">
                 {userLocationActive ? (
@@ -722,6 +754,25 @@ export default function MapSettingsSheet({
                 ) : null}
               </div>
             </section>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 border-t border-[var(--app-frost-border)] px-5 py-3">
+            <button
+              type="button"
+              className="rounded-[var(--atc-radius-card)] px-3 py-2 text-[12px] font-semibold text-atc-muted transition-colors hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text"
+              disabled={saving}
+              onClick={() => handleOpenChange(false)}
+            >
+              {t("mapSettings.cancel")}
+            </button>
+            <button
+              type="button"
+              className="rounded-[var(--atc-radius-card)] bg-[var(--atc-accent)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-accent-foreground)] transition-opacity disabled:cursor-wait disabled:opacity-60"
+              disabled={saving || !onSaveMapSettings}
+              onClick={saveDraft}
+            >
+              {saving ? t("mapSettings.savingSettings") : t("mapSettings.save")}
+            </button>
           </div>
 
         </div>

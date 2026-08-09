@@ -718,6 +718,8 @@ const zhCN = {
     savedSettingsAvailable: "已保存到你的账户。",
     savingSettings: "保存中...",
     savedSettings: "已保存",
+    save: "保存",
+    cancel: "取消",
     saveError: "保存失败,请重试。",
     devices: {
       desktop: "桌面端",

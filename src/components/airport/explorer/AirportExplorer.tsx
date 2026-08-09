@@ -47,6 +47,7 @@ import { useNotificationPreferences } from "@/features/notifications/Notificatio
 import { useNotificationPermission } from "@/features/notifications/useNotificationPermission";
 import { useAirportProximityNotifier } from "@/features/notifications/useAirportProximityNotifier";
 import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
+import { mapSettingsToExplorerLayers } from "@/features/airport/map-settings/mapSettingsModel";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
@@ -660,8 +661,9 @@ function AirportExplorerContent({
             />
           )}
 
-          <Suspense fallback={<MapLoadingFallback />}>
-            <AirportMap
+          {mapSettingsReadyForUserLocation ? (
+            <Suspense fallback={<MapLoadingFallback />}>
+              <AirportMap
               icao={airportProfile.icao}
               lat={airportProfile.lat}
               lon={airportProfile.lon}
@@ -682,7 +684,7 @@ function AirportExplorerContent({
               showRunwayBeams={showRunwayBeams}
               showNavaidMarkers={showNavaidMarkers}
               showReportingPoints={showReportingPoints}
-              showAirspaces={showAirspaces}
+              showAirspaces={mapSettingsToExplorerLayers(mapSettings).showAirspaces}
               showCandidateWatchingSpots={showCandidateWatchingSpots}
               showCallsigns={showCallsigns}
               baseLayer={mapSettings?.baseLayer}
@@ -712,8 +714,11 @@ function AirportExplorerContent({
               onMapInstanceChange={setAirportMapInstance}
               onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.AirportExploration}
-            />
-          </Suspense>
+              />
+            </Suspense>
+          ) : (
+            <MapLoadingFallback />
+          )}
 
           {isMobile && sidebarOpen && (
             <div className="sidebar-layout-overlay absolute inset-0 z-map-panel overscroll-none overflow-y-auto">

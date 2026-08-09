@@ -728,6 +728,8 @@ const en = {
     savedSettingsAvailable: "Saved to your account.",
     savingSettings: "Saving...",
     savedSettings: "Saved",
+    save: "Save",
+    cancel: "Cancel",
     saveError: "Could not save changes.",
     devices: {
       desktop: "Desktop",

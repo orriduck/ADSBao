@@ -82,12 +82,12 @@ export function useAviationContextTiles({
   const [waypoints, setWaypoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const lastTileSignatureRef = useRef("");
+  const lastTileSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!map || !enabled) {
       setTiles([]);
-      lastTileSignatureRef.current = "";
+      lastTileSignatureRef.current = null;
       return undefined;
     }
 
@@ -108,10 +108,18 @@ export function useAviationContextTiles({
     };
 
     const frame = window.requestAnimationFrame(updateTiles);
+    // The first animation frame can run before Leaflet has committed its
+    // initial bounds. Re-run once its view is actually ready so a stationary
+    // first load still requests its viewport context (including airspace).
+    map.whenReady?.(updateTiles);
+    const readyRetry = window.setTimeout(updateTiles, 350);
+    map.on?.("load", updateTiles);
     map.on?.("moveend", updateTiles);
     map.on?.("zoomend", updateTiles);
     return () => {
       window.cancelAnimationFrame(frame);
+      window.clearTimeout(readyRetry);
+      map.off?.("load", updateTiles);
       map.off?.("moveend", updateTiles);
       map.off?.("zoomend", updateTiles);
     };
@@ -151,9 +159,17 @@ export function useAviationContextTiles({
     setLoading(true);
     setError(null);
 
-    void Promise.all(requestUrls.map(fetchTile))
-      .then((payloads) => {
+    void Promise.allSettled(requestUrls.map(fetchTile))
+      .then((results) => {
         if (cancelled) return;
+        const payloads = results.flatMap((result) =>
+          result.status === "fulfilled" ? [result.value] : [],
+        );
+        const rejected = results.find(
+          (result) => result.status === "rejected",
+        );
+        if (rejected) setError(rejected.reason);
+        if (payloads.length === 0 && rejected) throw rejected.reason;
         const next = collectContextTileRecords(payloads);
         setAirspaces(next.airspaces);
         setNavaids(next.navaids);

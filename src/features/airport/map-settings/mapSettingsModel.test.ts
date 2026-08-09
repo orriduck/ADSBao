@@ -248,10 +248,10 @@ import {
 
   assert.equal(
     hydrated.source,
-    "cache",
-    "signed-in hydration should only fall back to cache when no user settings exist",
+    "empty",
+    "signed-in hydration must never fall back to a browser cache",
   );
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CUSTOM);
+  assert.equal(hydrated.settings, null);
 }
 
 {
@@ -280,12 +280,12 @@ import {
       signedIn: false,
     }),
     {
-      readCache: true,
+      readCache: false,
       readDatabase: false,
-      writeCache: true,
+      writeCache: false,
       writeDatabase: false,
     },
-    "pending auth should still rely on the local cache",
+    "settings must wait for the account state before choosing a storage boundary",
   );
   assert.deepEqual(
     resolveMapSettingsPersistenceTargets({
@@ -293,9 +293,9 @@ import {
       signedIn: true,
     }),
     {
-      readCache: true,
+      readCache: false,
       readDatabase: true,
-      writeCache: true,
+      writeCache: false,
       writeDatabase: true,
     },
     "signed-in settings should use both cache and database",

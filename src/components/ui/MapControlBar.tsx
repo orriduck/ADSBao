@@ -30,6 +30,7 @@ export default function MapControlBar({
   mapSettingsDevice = "desktop",
   mapSettingsSaveStatus = "idle",
   mapSettingsSaveCycle = 0,
+  onSaveMapSettings = null,
   userLocationActive = false,
   userLocationPending = false,
   userLocationNotice = "",
@@ -97,6 +98,7 @@ export default function MapControlBar({
         id={MAP_SETTINGS_SHEET_ID}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
+        onSaveMapSettings={onSaveMapSettings}
         mapSettings={mapSettings}
         showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
@@ -115,15 +117,6 @@ export default function MapControlBar({
         onRequestUserLocationPermission={onRequestUserLocationPermission}
         userLocationPositionReady={userLocationPositionReady}
         userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
-        onSelectBaseLayer={onSelectBaseLayer}
-        onToggleMapLabels={onToggleMapLabels}
-        onToggleBeams={onToggleRunwayBeams}
-        onToggleNavaidMarkers={onToggleNavaidMarkers}
-        onToggleReportingPoints={onToggleReportingPoints}
-        onToggleAirspaces={onToggleAirspaces}
-        onToggleCandidateWatchingSpots={onToggleCandidateWatchingSpots}
-        onToggleShowCallsigns={onToggleShowCallsigns}
-        onToggleUserLocation={onToggleUserLocation}
         />
       )}
 

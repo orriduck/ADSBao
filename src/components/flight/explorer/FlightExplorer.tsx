@@ -64,6 +64,7 @@ import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/position
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
 import { resolveFlightJourneyProgress } from "@/features/aircraft/onboard/flightJourneyProgressModel";
+import { mapSettingsToExplorerLayers } from "@/features/airport/map-settings/mapSettingsModel";
 
 const FlightRouteArc = lazy(() => import("@/components/map/FlightRouteArc"));
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
@@ -142,7 +143,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     clearAllPreviewSelections,
     collapseSidebar,
     expandSidebar,
-    toggleMapLabels,
     setUserLocationPreferences,
     fitToTrace,
     resumeMapFollow,
@@ -155,19 +155,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   // run began. Provider history is deliberately not part of either view.
   const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_FULL);
   const pendingTraceFitRef = useRef(false);
-
-  // Default-on location labels for the flight page: when tracking a
-  // specific aircraft cross-country the place names give the moving map
-  // useful context, so the labels start visible (user can still toggle
-  // off via the map control). Effect fires once via the ref guard so
-  // subsequent toggles aren't clobbered.
-  const labelsInitializedRef = useRef(false);
-  useEffect(() => {
-    if (labelsInitializedRef.current) return;
-    labelsInitializedRef.current = true;
-    if (!showMapLabels) toggleMapLabels();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const {
     run: trackingRun,
@@ -1046,8 +1033,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               {...toolbarContextProps}
             />
           )}
-          <Suspense fallback={<MapLoadingFallback variant="flight" />}>
-            <AirportMap
+          {mapSettingsReadyForUserLocation ? (
+            <Suspense fallback={<MapLoadingFallback variant="flight" />}>
+              <AirportMap
               icao=""
               lat={focalLat}
               lon={focalLon}
@@ -1060,7 +1048,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               showMapLabels={showMapLabels}
               showRunwayBeams={false}
               showNavaidMarkers={showNavaidMarkers}
-              showAirspaces={showAirspaces}
+              showAirspaces={mapSettingsToExplorerLayers(mapSettings).showAirspaces}
               baseLayer={mapSettings?.baseLayer}
               trafficFilter={trafficFilter}
               typeFilter={typeFilter}
@@ -1096,7 +1084,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               userLocation={userLocationLayer.userLocation}
               onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.FlightTracking}
-            >
+              >
               <FlightRouteArc
                 path={remainingRoutePath}
                 destination={enrichedTrackedAircraft?.flightRoute?.destination}
@@ -1115,8 +1103,11 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
                 fitOptions={flightDisplayContext.mapFitOptions}
                 onAutoFit={undefined}
               />
-            </AirportMap>
-          </Suspense>
+              </AirportMap>
+            </Suspense>
+          ) : (
+            <MapLoadingFallback variant="flight" />
+          )}
 
           {isMobile && sidebarOpen && (
             <div className="sidebar-layout-overlay absolute inset-0 z-map-panel overscroll-none overflow-y-auto">
