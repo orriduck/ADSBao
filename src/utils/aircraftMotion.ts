@@ -41,8 +41,10 @@ export const POSITION_SMOOTHING = {
   TAU_FAR_S: 0.15, // zoom < ZOOM_MID
   ZOOM_MID: 9,
   ZOOM_HIGH: 13,
-  // Cap on anchor extrapolation age — bounds how far a stale fix is projected.
-  MAX_EXTRAP_S: 30,
+  // The map may bridge one paid-fallback window from its last confirmed ADS-B
+  // fix. Backend fallback is also one minute, so marker, route, and preview
+  // context share the same stale-position horizon.
+  MAX_EXTRAP_S: 60,
   // Catch-up clamp: if displayed lags the target by more than this (genuine
   // maneuver / big jump / first acquisition), snap to within this distance
   // before easing so the marker can't lag arbitrarily far behind.

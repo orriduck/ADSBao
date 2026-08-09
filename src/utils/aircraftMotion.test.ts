@@ -116,8 +116,8 @@ const metersBetween = (a, b) => {
     { lat: 33, lon: -118, velocity: 200, track: 90, onGround: false, positionTime: 0 },
     0,
   )
-  for (let t = 0; t <= 40_000; t += 100) calculateAircraftVisualPosition(stale, t, 14)
-  assert.equal(shouldAnimateAircraftVisualPosition(stale, 40_000), false)
+  for (let t = 0; t <= 70_000; t += 100) calculateAircraftVisualPosition(stale, t, 14)
+  assert.equal(shouldAnimateAircraftVisualPosition(stale, 70_000), false)
 }
 
 // --- zoom-adaptive tau --------------------------------------------------------

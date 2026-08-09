@@ -677,13 +677,32 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     [nearbyAirports, routeEndpointAirports, routeEndpointAirportsOnly],
   );
 
-  const selectedAirport = useMemo(
+  const selectedAirportFromLiveContext = useMemo(
     () =>
       sidebarNearbyAirports.find(
         (airport) => airport?.icao === selectedAirportIcao,
       ) || null,
     [sidebarNearbyAirports, selectedAirportIcao],
   );
+  // The callsign stream clears its airport context while it crosses into the
+  // next 0.01° grid cell, then fills it asynchronously. Keep a selected
+  // airport preview anchored to its last complete record through that handoff;
+  // an explicit dismiss or a different ICAO still removes it immediately.
+  const [selectedAirportSnapshot, setSelectedAirportSnapshot] = useState<Record<string, any> | null>(null);
+  useEffect(() => {
+    if (!selectedAirportIcao) {
+      setSelectedAirportSnapshot(null);
+      return;
+    }
+    if (selectedAirportFromLiveContext) {
+      setSelectedAirportSnapshot(selectedAirportFromLiveContext);
+    }
+  }, [selectedAirportFromLiveContext, selectedAirportIcao]);
+  const selectedAirport =
+    selectedAirportFromLiveContext ||
+    (selectedAirportSnapshot?.icao === selectedAirportIcao
+      ? selectedAirportSnapshot
+      : null);
 
   const mapAircraft = useMemo(() => {
     if (!mapFollowsAircraft) {
