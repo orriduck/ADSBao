@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { useMapInstance } from "./MapContext";
 import { AIRPORT_MAP_PANES } from "@/config/airportMap";
@@ -9,6 +9,9 @@ import {
   safeRemoveFromMap,
 } from "@/features/airport/map/leafletLayerSafety";
 import { ensureAirportMapPane } from "@/features/airport/map/mapPane";
+import { buildGreatCirclePath } from "@/features/aviation/flight-routes/greatCircleRouteModel";
+import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
+import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
 
 const getCurrentTheme = () =>
   typeof document !== "undefined"
@@ -30,6 +33,12 @@ function toUsablePath(path = []) {
     : [];
 }
 
+function toUsablePoint(point) {
+  const lat = Number(point?.lat);
+  const lon = Number(point?.lon);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
+
 function addRouteLayer(layer, map, layers) {
   const added = safeAddToMap(layer, map, { label: "FlightRouteArc" });
   if (added) layers.push(added);
@@ -38,12 +47,35 @@ function addRouteLayer(layer, map, layers) {
 
 export default function FlightRouteArc({
   path = [],
+  destination = null,
+  followPositionRef = null,
+  motionRef = null,
   theme = null,
   opacity = 1,
 }) {
   const map = useMapInstance();
   const layersRef = useRef([]);
+  const lastFollowPositionRef = useRef(null);
   const [documentTheme, setDocumentTheme] = useState(() => getCurrentTheme());
+  const destinationPoint = toUsablePoint(destination);
+  const destinationKey = destinationPoint
+    ? `${destinationPoint.lat}:${destinationPoint.lon}`
+    : "";
+  const staticPathKey = useMemo(
+    () => toUsablePath(path).map((point) => `${point[0]}:${point[1]}`).join("|"),
+    [path],
+  );
+  // When tracking a focal aircraft, marker, camera, and route must all read
+  // the same inferred head. `path` remains a fallback for static consumers.
+  const followsAircraft = Boolean(destinationPoint && followPositionRef);
+  const routeGeometryKey = followsAircraft ? destinationKey : staticPathKey;
+
+  const resolvePathFromFollowPosition = () => {
+    const from = toUsablePoint(followPositionRef?.current);
+    return from && destinationPoint
+      ? buildGreatCirclePath({ from, to: destinationPoint })
+      : toUsablePath(path);
+  };
 
   useEffect(() => {
     if (theme) return undefined;
@@ -63,7 +95,9 @@ export default function FlightRouteArc({
     removeLayers(layersRef.current, map);
     layersRef.current = [];
 
-    const usablePath = toUsablePath(path);
+    const usablePath = followsAircraft
+      ? resolvePathFromFollowPosition()
+      : toUsablePath(path);
     if (!map || usablePath.length < 2) {
       return undefined;
     }
@@ -105,7 +139,30 @@ export default function FlightRouteArc({
       removeLayers(layersRef.current, map);
       layersRef.current = [];
     };
-  }, [map, path, theme, documentTheme, opacity]);
+  }, [map, routeGeometryKey, theme, documentTheme, opacity]);
+
+  useEffect(() => {
+    if (!map || !followsAircraft) return undefined;
+    return subscribeAircraftMotionFrame((now) => {
+      const position = toUsablePoint(followPositionRef?.current);
+      if (position && destinationPoint) {
+        const previous = lastFollowPositionRef.current;
+        if (
+          !previous ||
+          Math.abs(previous.lat - position.lat) >= 0.00000001 ||
+          Math.abs(previous.lon - position.lon) >= 0.00000001
+        ) {
+          const nextPath = buildGreatCirclePath({
+            from: position,
+            to: destinationPoint,
+          });
+          layersRef.current.forEach((layer) => layer.setLatLngs?.(nextPath));
+          lastFollowPositionRef.current = position;
+        }
+      }
+      return shouldAnimateAircraftVisualPosition(motionRef?.current, now);
+    });
+  }, [destinationKey, followsAircraft, map, motionRef, followPositionRef]);
 
   return null;
 }

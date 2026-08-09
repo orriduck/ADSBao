@@ -758,10 +758,15 @@ export default function AirportMap({
     onboardMode: loadingOverlayOnboardMode,
   });
   const handleLoadingOverlayVisibleChange = useCallback((nextVisible, state) => {
-    setLoadingOverlayPlayback({
+    const next = {
       visible: Boolean(nextVisible),
       exiting: Boolean(state?.exiting),
-    });
+    };
+    setLoadingOverlayPlayback((current) =>
+      current.visible === next.visible && current.exiting === next.exiting
+        ? current
+        : next,
+    );
   }, []);
   const handleMapTileReadinessChange = useCallback((state) => {
     setMapTilesReady(Boolean(state?.ready));

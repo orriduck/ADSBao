@@ -146,6 +146,19 @@ function makeLabelKey(labelPoints) {
     .join("·");
 }
 
+// The provider can rebuild an equivalent array while it publishes a new
+// inferred focal position. Commit by point geometry rather than array identity
+// so the trace effect cannot keep scheduling equivalent state updates.
+function makeTraceCommitKey(aircraftHex, tracePoints) {
+  if (!aircraftHex || !Array.isArray(tracePoints)) return "";
+  return `${aircraftHex}:${tracePoints
+    .map(
+      (point) =>
+        `${Number(point?.timestampMs) || 0}|${Number(point?.lat).toFixed(6)}|${Number(point?.lon).toFixed(6)}|${Number(point?.altitude) || 0}`,
+    )
+    .join("·")}`;
+}
+
 // Default export reads the trace context and renders one or two trace
 // instances (e.g. focal + selected on the flight detail page). Each
 // SingleAircraftTrace manages its own animation/layer state, so two
@@ -210,16 +223,26 @@ function SingleAircraftTrace({
   const [committedTrace, setCommittedTrace] = useState({
     aircraftHex: aircraftHex || "",
     tracePoints: [],
+    commitKey: "",
   });
+  const traceCommitKey = useMemo(
+    () => makeTraceCommitKey(aircraftHex, tracePoints),
+    [aircraftHex, tracePoints],
+  );
 
   useEffect(() => {
     const nextTrace = {
       aircraftHex: aircraftHex || "",
       tracePoints,
+      commitKey: traceCommitKey,
     };
+    const commit = () =>
+      setCommittedTrace((current) =>
+        current.commitKey === nextTrace.commitKey ? current : nextTrace,
+      );
     if (!aircraftHex) {
       pendingTraceRef.current = null;
-      setCommittedTrace(nextTrace);
+      commit();
       return;
     }
     if (isAnimatingRef.current) {
@@ -227,8 +250,8 @@ function SingleAircraftTrace({
       return;
     }
     pendingTraceRef.current = null;
-    setCommittedTrace(nextTrace);
-  }, [aircraftHex, tracePoints]);
+    commit();
+  }, [aircraftHex, traceCommitKey, tracePoints]);
 
   const geometry = useMemo(() => {
     if (

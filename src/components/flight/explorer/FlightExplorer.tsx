@@ -793,9 +793,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   );
   const fullRouteViewActive =
     !mapFollowsAircraft && traceViewMode === TRACE_VIEW_FULL;
-  const displayedRoutePath = fullRouteViewActive
-    ? fullRoutePath
-    : remainingRoutePath;
   const traceFitRoutePath =
     traceViewMode === TRACE_VIEW_FULL ? fullRoutePath : [];
 
@@ -1066,7 +1063,12 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               userLocation={userLocationLayer.userLocation}
               mapInteractionMode={AirportMapInteractionMode.FlightTracking}
             >
-              <FlightRouteArc path={displayedRoutePath} />
+              <FlightRouteArc
+                path={remainingRoutePath}
+                destination={enrichedTrackedAircraft?.flightRoute?.destination}
+                followPositionRef={visualFocalPositionRef}
+                motionRef={focalMotionRef}
+              />
               <MapFitToTraceController
                 routePath={traceFitRoutePath}
                 fitTraceAircraftId={focalKey}

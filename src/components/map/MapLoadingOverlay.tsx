@@ -92,10 +92,13 @@ export default function MapLoadingOverlay({
   terminalReason = "",
   onboardMode = false,
 }: Record<string, any>) {
-  const [visible, setVisible] = useState(true);
+  // A mounted-but-idle overlay must not paint once before its dismissal
+  // effect: that is the flight-page loading flash after a focal position is
+  // already available.
+  const [visible, setVisible] = useState(() => Boolean(active));
   const [exiting, setExiting] = useState(false);
   const [playbackCycle, setPlaybackCycle] = useState(0);
-  const shownAtRef = useRef(Date.now());
+  const shownAtRef = useRef(active ? Date.now() : 0);
   const hiddenSinceRef = useRef(0);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { t } = useI18n();
@@ -113,6 +116,9 @@ export default function MapLoadingOverlay({
 
   useEffect(() => {
     const maybeReplayAfterVisible = (event?: PageTransitionEvent) => {
+      // Tiles repair themselves on resume. Replaying a passive overlay after
+      // a live flight has resolved hides valid content as a stale-state flash.
+      if (!active) return;
       const hiddenSince = hiddenSinceRef.current;
       const shouldReplay = shouldReplayLoadingOverlayOnPageVisible({
         documentHidden:
@@ -150,7 +156,7 @@ export default function MapLoadingOverlay({
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pageshow", handlePageShow);
     };
-  }, [replay]);
+  }, [active, replay]);
 
   useEffect(() => {
     if (typeof onVisibleChange === "function") {

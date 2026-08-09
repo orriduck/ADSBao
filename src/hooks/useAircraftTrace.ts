@@ -178,7 +178,19 @@ export function useAircraftTrace(
   const hex = selectedAircraft?.icao24 || "";
   const fullTrace = Boolean(options?.fullTrace);
   const clipToLeg = Boolean(options?.clipToLeg);
-  const externalVisualPosition = resolveLatLonPosition(options?.visualPosition);
+  // `resolveLatLonPosition` creates an object. Memoize it from primitives so
+  // the visual-head effect does not see a new dependency after its own state
+  // update and recursively publish the same inferred point forever.
+  const externalVisualLat = options?.visualPosition?.lat;
+  const externalVisualLon = options?.visualPosition?.lon;
+  const externalVisualPosition = useMemo(
+    () =>
+      resolveLatLonPosition({
+        lat: externalVisualLat,
+        lon: externalVisualLon,
+      }),
+    [externalVisualLat, externalVisualLon],
+  );
   const traceRefreshKey =
     typeof options?.traceRefreshKey === "string"
       ? options.traceRefreshKey
@@ -400,6 +412,14 @@ export function useAircraftTrace(
         inferred: true,
       });
       if (point) {
+        const previous = latestVisualTracePointRef.current;
+        if (
+          previous &&
+          Math.abs(previous.lat - point.lat) < 0.00000001 &&
+          Math.abs(previous.lon - point.lon) < 0.00000001
+        ) {
+          return undefined;
+        }
         latestVisualTracePointRef.current = point;
         setVisualHeadPoint(point);
       }
