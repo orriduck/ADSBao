@@ -585,6 +585,33 @@ import {
 }
 
 {
+  // A smoothing-lagged visual head must replace, rather than fold back from,
+  // the newest raw live fix. The raw fix is retained in the source buffer but
+  // is not yet a drawable trail point until the displayed aircraft reaches it.
+  const composed = composeAircraftTrace({
+    mode: "focus",
+    sources: {
+      live: [
+        { lat: 42.0, lon: -71.0, timestampMs: 60_000, track: 90, velocity: 220 },
+        { lat: 42.0, lon: -70.98, timestampMs: 75_000, track: 90, velocity: 220 },
+      ],
+      visualHead: [
+        { lat: 42.0, lon: -70.998, timestampMs: 90_000, inferred: true },
+      ],
+    },
+  });
+
+  assert.deepEqual(
+    composed.points.map((point) => [point.timestampMs, point.lon, Boolean(point.inferred)]),
+    [
+      [60_000, -71.0, false],
+      [90_000, -70.998, true],
+    ],
+    "a visual head behind the newest live fix must not create a forward-then-backward hook",
+  );
+}
+
+{
   // The visual head rides along as display-only leading edge: it must
   // not suppress the real same-minute samples the way live fixes do.
   const composed = composeAircraftTrace({

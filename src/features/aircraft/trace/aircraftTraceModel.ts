@@ -13,6 +13,8 @@ const DEFAULT_TRACE_CONNECTOR_MAX_GAP_MS = 10 * 60 * 1000;
 const TRACE_MAX_GROUND_SPEED_KNOTS = 1500;
 const TRACE_MINUTE_BUCKET_MS = 60 * 1000;
 const TRACE_LIVE_BUCKET_MS = 15 * 1000;
+const METERS_PER_DEGREE_LAT = 111_320;
+const TRACE_VISUAL_HEAD_TOLERANCE_M = 120;
 
 type TraceRecord = Record<string, any>;
 
@@ -396,6 +398,59 @@ function mergeTracesByPriority({ sources = [] } = {}) {
     .sort((a, b) => a.timestampMs - b.timestampMs);
 }
 
+function isVisualHeadBehindTracePoint(
+  tracePoint: TraceRecord | null | undefined,
+  visualHead: TraceRecord | null | undefined,
+) {
+  const track = Number(tracePoint?.track);
+  const pointLat = Number(tracePoint?.lat);
+  const pointLon = Number(tracePoint?.lon);
+  const visualLat = Number(visualHead?.lat);
+  const visualLon = Number(visualHead?.lon);
+  if (
+    !Number.isFinite(track) ||
+    !Number.isFinite(pointLat) ||
+    !Number.isFinite(pointLon) ||
+    !Number.isFinite(visualLat) ||
+    !Number.isFinite(visualLon)
+  ) {
+    return false;
+  }
+
+  const averageLatRad = (((pointLat + visualLat) / 2) * Math.PI) / 180;
+  const north = (visualLat - pointLat) * METERS_PER_DEGREE_LAT;
+  const east =
+    (visualLon - pointLon) * METERS_PER_DEGREE_LAT * Math.cos(averageLatRad);
+  const trackRad = (track * Math.PI) / 180;
+  const alongTrackMeters = north * Math.cos(trackRad) + east * Math.sin(trackRad);
+  return alongTrackMeters < -TRACE_VISUAL_HEAD_TOLERANCE_M;
+}
+
+// A focal marker can deliberately trail a newly received raw fix while it
+// smooths a large correction. Keep that raw observation in its source buffer,
+// but do not draw a line from it back to the display-only visual head: that
+// would turn a single forward correction into a false V-shaped flight path.
+function trimTraceTailAheadOfVisualHead(points: TraceRecord[]) {
+  const visualHeadIndex = points.findLastIndex((point) => point?.inferred === true);
+  if (visualHeadIndex <= 0) return points;
+
+  const visualHead = points[visualHeadIndex];
+  let keptTailIndex = visualHeadIndex - 1;
+  while (
+    keptTailIndex >= 0 &&
+    isVisualHeadBehindTracePoint(points[keptTailIndex], visualHead)
+  ) {
+    keptTailIndex -= 1;
+  }
+
+  if (keptTailIndex === visualHeadIndex - 1) return points;
+  return [
+    ...points.slice(0, keptTailIndex + 1),
+    visualHead,
+    ...points.slice(visualHeadIndex + 1),
+  ];
+}
+
 function getTraceGroundSpeedKnots(
   previousPoint: TraceRecord,
   nextPoint: TraceRecord,
@@ -542,9 +597,10 @@ export function composeAircraftTrace({
   const merged = mergeTracesByPriority({
     sources: modeSources,
   });
+  const displayPoints = trimTraceTailAheadOfVisualHead(merged);
   return {
-    points: merged,
-    loading: recentLoading && merged.length === 0,
+    points: displayPoints,
+    loading: recentLoading && displayPoints.length === 0,
     fullLoading: isFocusMode ? Boolean(fullLoading) : false,
     recentLoading: Boolean(recentLoading),
   };
