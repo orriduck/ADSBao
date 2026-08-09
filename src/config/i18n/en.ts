@@ -125,23 +125,23 @@ const en = {
     },
     items: {
       realtimeBackbone: {
-        title: "SSE nearby streams",
-        signal: "One readable stream per nearby key",
+        title: "Fresh positions + SSE context",
+        signal: "A new coordinate is never replayed from cache",
         body:
-          "The browser opens a same-origin Server-Sent Events stream for the nearby context a view needs and receives named snapshots, traffic updates, and neutral status events.",
+          "A tracked flight begins with one same-origin, no-store position lookup. Its nearby Server-Sent Events stream then carries the focal aircraft, nearby traffic, and neutral status events as separate normalized updates.",
         flow: {
-          browser: "Browser",
-          socket: "SSE events",
-          scheduler: "Nearby source",
+          browser: "Open flight",
+          socket: "Fresh first fix",
+          scheduler: "SSE nearby context",
           payload: "Normalized payload",
         },
         details: {
           connect:
-            "Airport and here pages use a two-decimal coordinate key. Flight tracking uses one callsign stream containing the focal aircraft and its nearby context.",
+            "Airport and here pages use a two-decimal coordinate key. Flight tracking first resolves a new callsign fix, then opens one callsign stream for its nearby context.",
           share:
             "Matching nearby keys share one EventSource per browser tab, while the service shares its source work for matching keys.",
           resume:
-            "Native EventSource reconnects keep the Network request and named events inspectable; stale and reconnecting state stay visible without resetting the map.",
+            "A pending or reconnecting stream has no position to replay: it wakes a real source poll. Named SSE events remain inspectable while the map keeps its last valid visual state.",
         },
       },
       parallelPipelines: {
@@ -177,7 +177,7 @@ const en = {
         },
         details: {
           aircraft:
-            "Aircraft tracking keeps a focused object for the map, sidebar, preview card, and trace head so list refreshes do not steal selection.",
+            "Aircraft tracking accepts a fresh, time-monotonic focal fix for the map, sidebar, preview card, and trace head. A nearby-list refresh cannot replace it with an older coordinate.",
           airport:
             "Airport tracking uses the airport center as the stable anchor for traffic, nearby airports, navaids, airspaces, and weather context.",
           fit:
@@ -246,22 +246,22 @@ const en = {
       },
       flightTrackingLifecycle: {
         title: "Flight tracking lifecycle",
-        signal: "Fresh page, three states",
+        signal: "Fresh first fix, then continuous context",
         body:
-          "Opening a flight loads a fresh page — its own map and realtime socket, with the previous one torn down — so navigating between flights never carries over stale map state. The map then settles into one of three states: acquiring a signal, the live position, or a card when there's no live position.",
+          "Opening a flight creates a clean page and requests one new, no-store focal fix before the live stream can update it. The map then settles into acquiring, live position, or a clear no-signal/ended card — never an older cached coordinate.",
         flow: {
           open: "Open a flight",
-          reload: "Fresh page load",
-          acquire: "Acquire signal",
-          resolve: "Position or card",
+          reload: "Clean page state",
+          acquire: "Fresh first fix",
+          resolve: "Live context or card",
         },
         details: {
           reload:
-            "Navigating between detail pages does a full reload to the new URL, so each flight/airport page is a clean slate with no carried-over map and the previous realtime connection closed.",
+            "Navigating between detail pages loads the new URL cleanly. The prior map state and realtime connection are discarded, then the new flight establishes its own fresh focal position.",
           states:
-            "The flight map is loading (acquiring), position (centered on the aircraft), or terminal — a static 'no live position / signal lost / flight ended' card, including a trans-oceanic leg with no coverage — instead of an endless spinner or an unrelated fallback map.",
+            "The flight map is acquiring, positioned, or terminal. While a source is pending, the UI never substitutes a prior coordinate; after a real no-position result it shows a static 'no live position / signal lost / flight ended' card instead of an unrelated fallback map.",
           trace:
-            "The page flight always keeps the samples captured since active tracking began, even when another aircraft is selected. Full trace frames the complete origin→destination route; All recorded points frames only that active run. Both views keep a dashed remaining path to the destination, and long trails are reduced to a bounded render set. A clicked aircraft shows only its recent trail.",
+            "The page flight keeps fresh samples captured since active tracking began, even when another aircraft is selected. Historical trace may be retained separately, but live coordinates are not reused as trace heads. Full trace frames the complete origin→destination route; All recorded points frames only that active run. Both views keep a dashed remaining path to the destination, and long trails are reduced to a bounded render set.",
         },
       },
     },
