@@ -55,7 +55,9 @@ import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 import {
   beginAircraftMotionState,
   calculateAircraftVisualPosition,
+  shouldAnimateAircraftVisualPosition,
 } from "@/utils/aircraftMotion";
+import { subscribeAircraftMotionFrame } from "@/components/map/aircraftMotionFrameLoop";
 import { SelectedAircraftTraceProvider } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCard";
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
@@ -67,7 +69,11 @@ const FlightRouteArc = lazy(() => import("@/components/map/FlightRouteArc"));
 const MapFitToTraceController = lazy(() => import("@/components/map/MapFitToTraceController"));
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 
-const FOCAL_VISUAL_POSITION_TICK_MS = 500;
+// Keep React's position consumers (route copy, context queries, trace labels)
+// intentionally low-frequency. The map and focal canvas marker read the same
+// ref directly on the shared motion frame, avoiding whole-explorer renders at
+// display cadence.
+const FOCAL_VISUAL_POSITION_PUBLISH_MS = 500;
 const TRACE_VIEW_FULL = "full";
 const TRACE_VIEW_RECORDED = "recorded";
 // Max wait for a focal position before the flight map resolves to the terminal
@@ -267,6 +273,38 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   });
   const trackedLat = toFiniteCoordinate(trackedAircraftForDisplay?.lat);
   const trackedLon = toFiniteCoordinate(trackedAircraftForDisplay?.lon);
+  // `trackedAircraftForDisplay` is enriched/merged during normal renders and
+  // therefore does not have stable identity. Motion only needs these primitive
+  // fields; isolate them so publishing a visual position cannot restart the
+  // focal motion effect and create a render loop.
+  const focalMotionAircraft = useMemo(() => {
+    if (trackedLat == null || trackedLon == null) return null;
+    return {
+      lat: trackedLat,
+      lon: trackedLon,
+      velocity: trackedAircraftForDisplay?.velocity,
+      track: trackedAircraftForDisplay?.track,
+      positionTime: trackedAircraftForDisplay?.positionTime,
+      onGround: trackedAircraftForDisplay?.onGround,
+    };
+  }, [
+    trackedLat,
+    trackedLon,
+    trackedAircraftForDisplay?.velocity,
+    trackedAircraftForDisplay?.track,
+    trackedAircraftForDisplay?.positionTime,
+    trackedAircraftForDisplay?.onGround,
+  ]);
+  const focalMotionKey = focalMotionAircraft
+    ? [
+        focalMotionAircraft.lat,
+        focalMotionAircraft.lon,
+        focalMotionAircraft.velocity,
+        focalMotionAircraft.track,
+        focalMotionAircraft.positionTime,
+        focalMotionAircraft.onGround ? 1 : 0,
+      ].join(":")
+    : "";
   useEffect(() => {
     // Clear the carried-over focal position on flight switch. Without resetting
     // lastKnownRef the new flight's focalLat would inherit the PREVIOUS flight's
@@ -280,9 +318,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     setVisualFocalPosition({ lat: null, lon: null });
   }, [callsign]);
   useEffect(() => {
-    if (!trackedAircraftForDisplay || trackedLat == null || trackedLon == null) {
-      return;
-    }
+    if (!focalMotionAircraft) return;
     const now = Date.now();
     const currentVisual =
       visualFocalPositionRef.current.lat != null &&
@@ -290,7 +326,7 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
         ? visualFocalPositionRef.current
         : null;
     focalMotionRef.current = beginAircraftMotionState(
-      trackedAircraftForDisplay,
+      focalMotionAircraft,
       now,
       currentVisual,
     );
@@ -302,34 +338,38 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
       nextPosition,
       positionRef: visualFocalPositionRef,
       setPosition: setVisualFocalPosition,
+      publish: true,
     });
-  }, [trackedAircraftForDisplay, trackedLat, trackedLon]);
+  }, [focalMotionAircraft]);
   useEffect(() => {
-    const tick = () => {
+    if (!focalMotionRef.current) return undefined;
+    let lastPublishedAt = 0;
+    return subscribeAircraftMotionFrame((now) => {
       const motion = focalMotionRef.current;
-      if (!motion) return;
+      if (!motion) return false;
+      const publish =
+        lastPublishedAt === 0 ||
+        now - lastPublishedAt >= FOCAL_VISUAL_POSITION_PUBLISH_MS;
       updateVisualFocalPosition({
-        nextPosition: calculateAircraftVisualPosition(motion),
+        nextPosition: calculateAircraftVisualPosition(motion, now),
         positionRef: visualFocalPositionRef,
         setPosition: setVisualFocalPosition,
+        publish,
       });
-    };
-    tick();
-    const timer = window.setInterval(tick, FOCAL_VISUAL_POSITION_TICK_MS);
-    return () => window.clearInterval(timer);
-  }, []);
+      if (publish) lastPublishedAt = now;
+      return shouldAnimateAircraftVisualPosition(motion, now);
+    });
+  }, [focalMotionAircraft]);
   const visualFocalLat = toFiniteCoordinate(visualFocalPosition.lat);
   const visualFocalLon = toFiniteCoordinate(visualFocalPosition.lon);
   const initialVisualFocalPosition = useMemo(() => {
-    if (!trackedAircraftForDisplay || trackedLat == null || trackedLon == null) {
-      return null;
-    }
+    if (!focalMotionAircraft) return null;
     const now = Date.now();
     return calculateAircraftVisualPosition(
-      beginAircraftMotionState(trackedAircraftForDisplay, now),
+      beginAircraftMotionState(focalMotionAircraft, now),
       now,
     );
-  }, [trackedAircraftForDisplay, trackedLat, trackedLon]);
+  }, [focalMotionAircraft]);
   const focalLat =
     visualFocalLat ??
     toFiniteCoordinate(initialVisualFocalPosition?.lat) ??
@@ -1001,6 +1041,9 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               selectedAirspaceId={selectedAirspaceId}
               focalAircraftId={focalKey}
               focalVisualPosition={focalVisualPosition}
+              focalVisualPositionRef={visualFocalPositionRef}
+              focalMotionRef={focalMotionRef}
+              focalMotionKey={focalMotionKey}
               followsCenter={mapFollowsAircraft}
               floatingSidebarAware={!isMobile && sidebarOpen}
               onSelectAircraft={selectAircraft}
@@ -1121,12 +1164,17 @@ function positionsNear(a, b) {
   );
 }
 
-function updateVisualFocalPosition({ nextPosition, positionRef, setPosition }) {
+function updateVisualFocalPosition({
+  nextPosition,
+  positionRef,
+  setPosition,
+  publish = false,
+}) {
   const nextLat = toFiniteCoordinate(nextPosition?.lat);
   const nextLon = toFiniteCoordinate(nextPosition?.lon);
   if (nextLat == null || nextLon == null) return;
   const next = { lat: nextLat, lon: nextLon };
   if (positionsNear(positionRef.current, next)) return;
   positionRef.current = next;
-  setPosition(next);
+  if (publish) setPosition(next);
 }

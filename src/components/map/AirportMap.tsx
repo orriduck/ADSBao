@@ -70,6 +70,8 @@ import {
   AirportMapInteractionMode,
   resolveAirportMapInteraction,
 } from "@/features/airport/map/mapInteractionMode";
+import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
+import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -118,6 +120,9 @@ export default function AirportMap({
   candidateWatchingSpots = [],
   focalAircraftId = "",
   focalVisualPosition = null,
+  focalVisualPositionRef = null,
+  focalMotionRef = null,
+  focalMotionKey = "",
   followsCenter = true,
   floatingSidebarAware = false,
   onSelectAircraft,
@@ -358,18 +363,29 @@ export default function AirportMap({
     t,
   ]);
 
-  // followsCenter controls whether the map re-centers on every poll.
-  // After "fit to trace" the caller flips this to false so the map
-  // stays anchored to the trace bounds even though the aircraft keeps
-  // moving; clicking a preset zoom flips it back to true upstream.
+  // followsCenter controls whether the map follows the focal position.
+  // The tracked-flight page supplies a high-frequency inferred-position ref,
+  // so the camera pans with the marker between low-frequency React publishes.
+  // Other map modes retain the regular prop-driven setView behavior.
   useEffect(() => {
     if (!mapRef.current || !focalCenter || !followsCenter) return undefined;
 
     const map = mapRef.current;
-    const setOffsetAwareView = () => {
+    const resolveOffsetAwareView = (position = focalCenter) => {
       const targetCenter = floatingSidebarAware
-        ? getOffsetMapCenter(map, focalCenter, zoom)
-        : ([focalCenter.lat, focalCenter.lon] as any);
+        ? getOffsetMapCenter(map, position, zoom)
+        : ([position.lat, position.lon] as any);
+      return targetCenter;
+    };
+    const resolveCurrentFocalPosition = () => {
+      const lat = Number(focalVisualPositionRef?.current?.lat);
+      const lon = Number(focalVisualPositionRef?.current?.lon);
+      return Number.isFinite(lat) && Number.isFinite(lon)
+        ? { lat, lon }
+        : focalCenter;
+    };
+    const setOffsetAwareView = () => {
+      const targetCenter = resolveOffsetAwareView(resolveCurrentFocalPosition());
       map.invalidateSize();
       map.setView(targetCenter, zoom, {
         animate: false,
@@ -395,15 +411,53 @@ export default function AirportMap({
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) setOffsetAwareView();
     };
+    let lastVisualPosition: { lat: number; lon: number } | null = null;
+    const unsubscribeMotion = focalVisualPositionRef
+      ? subscribeAircraftMotionFrame((now) => {
+          const keepsAnimating = () =>
+            shouldAnimateAircraftVisualPosition(focalMotionRef?.current, now);
+          const visualPosition = focalVisualPositionRef.current;
+          const lat = Number(visualPosition?.lat);
+          const lon = Number(visualPosition?.lon);
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+            return keepsAnimating();
+          }
+          if (
+            lastVisualPosition &&
+            Math.abs(lastVisualPosition.lat - lat) < 0.00000001 &&
+            Math.abs(lastVisualPosition.lon - lon) < 0.00000001
+          ) {
+            return keepsAnimating();
+          }
+          lastVisualPosition = { lat, lon };
+          const targetCenter = resolveOffsetAwareView({ lat, lon });
+          const targetPoint = map.latLngToContainerPoint(targetCenter);
+          const centerPoint = map.getSize().divideBy(2);
+          const offset = targetPoint.subtract(centerPoint);
+          if (offset.x || offset.y) {
+            map.panBy(offset, { animate: false, noMoveStart: true });
+          }
+          return keepsAnimating();
+        })
+      : null;
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       window.clearTimeout(transitionSettleTimer);
+      unsubscribeMotion?.();
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pageshow", handlePageShow);
     };
-  }, [floatingSidebarAware, focalCenter, followsCenter, zoom]);
+  }, [
+    floatingSidebarAware,
+    focalMotionRef,
+    focalMotionKey,
+    focalVisualPositionRef,
+    focalVisualPositionRef ? null : focalCenter,
+    followsCenter,
+    zoom,
+  ]);
 
   // Clicks on the map background (not on an aircraft marker) clear the
   // preview selection. On a flight page the URL-tracked focal trace remains
@@ -845,6 +899,7 @@ export default function AirportMap({
             selectedAircraftId={selectedAircraftId}
             focalAircraftId={focalAircraftId}
             focalVisualPosition={focalVisualPosition}
+            focalVisualPositionRef={focalVisualPositionRef}
             selectionActive={selectionActive}
             traceActive={renderSelectedAircraftTrace}
             showCallsigns={showCallsigns}

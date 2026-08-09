@@ -52,12 +52,10 @@ export default function MapRangeLegend() {
 
     const frame = window.requestAnimationFrame(update);
     map.on("zoomend", update);
-    map.on("moveend", update);
     map.on("resize", update);
     return () => {
       window.cancelAnimationFrame(frame);
       map.off("zoomend", update);
-      map.off("moveend", update);
       map.off("resize", update);
     };
   }, [map]);
