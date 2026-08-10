@@ -20,23 +20,29 @@ export function SidebarLoadingHeader({
       </div>
       {variant === "flight" ? (
         <div className="sidebar-loading-skeleton__flight-metrics">
-          <Placeholder className="h-14 w-full" />
-          <div className="grid grid-cols-2 gap-px">
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
+          <div className="sidebar-loading-skeleton__metric-card">
+            <Placeholder className="h-14 w-full" />
+            <div className="grid grid-cols-2 gap-px">
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+            </div>
           </div>
+          <Placeholder className="sidebar-loading-skeleton__metric-footer h-10 w-full" />
         </div>
       ) : (
         <div className="sidebar-loading-skeleton__airport-metrics">
-          <Placeholder className="h-24 w-full" />
-          <div className="grid grid-cols-2 gap-px">
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
-            <Placeholder className="h-12 w-full" />
+          <div className="sidebar-loading-skeleton__metric-card">
+            <Placeholder className="h-24 w-full" />
+            <div className="grid grid-cols-2 gap-px">
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+              <Placeholder className="h-12 w-full" />
+            </div>
           </div>
+          <Placeholder className="sidebar-loading-skeleton__metric-footer h-10 w-full" />
         </div>
       )}
     </div>

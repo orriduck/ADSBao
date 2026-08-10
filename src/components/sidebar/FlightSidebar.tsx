@@ -308,66 +308,68 @@ function FlightTelemetryGrid({
   // their underlying representation.
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className="sidebar-hero-stats overflow-hidden">
-        <div className="grid grid-cols-2">
-          <StatTile
-            size="hero"
-            className="col-span-2"
-            label={t("metrics.speed")}
-            active={focusedMetric === "speed"}
-            onClick={() => setFocusedMetric("speed")}
-            value={
-              speedDisplay ? (
-                <MetricNumberFlow
-                  value={speedDisplay.value}
-                  suffix={speedDisplay.suffix}
-                />
-              ) : (
-                "—"
-              )
-            }
-          />
+      <div className={footer ? "sidebar-hero-stats-stack" : undefined}>
+        <div className="sidebar-hero-stats overflow-hidden">
+          <div className="grid grid-cols-2">
+            <StatTile
+              size="hero"
+              className="col-span-2"
+              label={t("metrics.speed")}
+              active={focusedMetric === "speed"}
+              onClick={() => setFocusedMetric("speed")}
+              value={
+                speedDisplay ? (
+                  <MetricNumberFlow
+                    value={speedDisplay.value}
+                    suffix={speedDisplay.suffix}
+                  />
+                ) : (
+                  "—"
+                )
+              }
+            />
+          </div>
+          <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
+            <StatTile
+              label={t("metrics.altitude")}
+              active={focusedMetric === "altitude"}
+              onClick={() => setFocusedMetric("altitude")}
+              value={altitudeValue}
+            />
+            <StatTile
+              label={t("metrics.verticalSpeed")}
+              active={focusedMetric === "vs"}
+              onClick={() => setFocusedMetric("vs")}
+              value={
+                verticalSpeedDisplay ? (
+                  <MetricNumberFlow
+                    value={verticalSpeedDisplay.value}
+                    format={verticalSpeedDisplay.format}
+                    suffix={verticalSpeedDisplay.suffix}
+                  />
+                ) : (
+                  "—"
+                )
+              }
+            />
+          </div>
+          <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
+            <StatTile
+              label={t("metrics.track")}
+              active={focusedMetric === "track"}
+              onClick={() => setFocusedMetric("track")}
+              value={trackValue}
+            />
+            <StatTile
+              label={t("metrics.flightPhase")}
+              active={focusedMetric === "status"}
+              onClick={() => setFocusedMetric("status")}
+              value={phaseValue}
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
-          <StatTile
-            label={t("metrics.altitude")}
-            active={focusedMetric === "altitude"}
-            onClick={() => setFocusedMetric("altitude")}
-            value={altitudeValue}
-          />
-          <StatTile
-            label={t("metrics.verticalSpeed")}
-            active={focusedMetric === "vs"}
-            onClick={() => setFocusedMetric("vs")}
-            value={
-              verticalSpeedDisplay ? (
-                <MetricNumberFlow
-                  value={verticalSpeedDisplay.value}
-                  format={verticalSpeedDisplay.format}
-                  suffix={verticalSpeedDisplay.suffix}
-                />
-              ) : (
-                "—"
-              )
-            }
-          />
-        </div>
-        <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
-          <StatTile
-            label={t("metrics.track")}
-            active={focusedMetric === "track"}
-            onClick={() => setFocusedMetric("track")}
-            value={trackValue}
-          />
-          <StatTile
-            label={t("metrics.flightPhase")}
-            active={focusedMetric === "status"}
-            onClick={() => setFocusedMetric("status")}
-            value={phaseValue}
-          />
-        </div>
+        {footer ? <div className="sidebar-hero-stats-footer">{footer}</div> : null}
       </div>
-      {footer ? <div className="mt-2">{footer}</div> : null}
     </div>
   );
 }

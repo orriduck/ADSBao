@@ -126,50 +126,52 @@ export default function SidebarViewSwitch({
 
   return (
     <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className="sidebar-hero-stats overflow-hidden">
-        {nearMe ? (
-          // Here mode: nearby-count and speed are both a primary read (same
-          // lg StatTile treatment as the tracked-flight sidebar's speed/
-          // altitude pair) — two equally-weighted tiles, not one hero over a
-          // demoted footer metric.
-          <div className="grid grid-cols-2">
-            <StatTile
-              size="lg"
-              label={t("sidebar.nearby")}
-              active={isTraffic}
-              onClick={() => onViewChange?.("traffic")}
-              value={<NumberFlow value={aircraft.length} />}
-            />
-            {selfSpeedStat ? renderStat(selfSpeedStat, "lg") : null}
-          </div>
-        ) : (
-          <div className="flex">
-            <StatTile
-              size="hero"
-              label={t("sidebar.flights")}
-              active={isTraffic}
-              onClick={() => onViewChange?.("traffic")}
-              value={<NumberFlow value={aircraft.length} />}
-            />
-          </div>
-        )}
-        {nearMe ? (
-          <div className="flex border-t border-[var(--app-frost-border)]">
-            {selfAltitudeStat ? renderStat(selfAltitudeStat) : null}
-            {stats.contextRow.map((stat) => renderStat(stat))}
-          </div>
-        ) : (
-          <>
-            <div className="flex border-t border-[var(--app-frost-border)]">
-              {stats.contextRow.slice(0, 2).map((stat) => renderStat(stat))}
+      <div className={footer ? "sidebar-hero-stats-stack" : undefined}>
+        <div className="sidebar-hero-stats overflow-hidden">
+          {nearMe ? (
+            // Here mode: nearby-count and speed are both a primary read (same
+            // lg StatTile treatment as the tracked-flight sidebar's speed/
+            // altitude pair) — two equally-weighted tiles, not one hero over a
+            // demoted footer metric.
+            <div className="grid grid-cols-2">
+              <StatTile
+                size="lg"
+                label={t("sidebar.nearby")}
+                active={isTraffic}
+                onClick={() => onViewChange?.("traffic")}
+                value={<NumberFlow value={aircraft.length} />}
+              />
+              {selfSpeedStat ? renderStat(selfSpeedStat, "lg") : null}
             </div>
-            <div className="flex border-t border-[var(--app-frost-border)]">
-              {stats.contextRow.slice(2, 4).map((stat) => renderStat(stat))}
+          ) : (
+            <div className="flex">
+              <StatTile
+                size="hero"
+                label={t("sidebar.flights")}
+                active={isTraffic}
+                onClick={() => onViewChange?.("traffic")}
+                value={<NumberFlow value={aircraft.length} />}
+              />
             </div>
-          </>
-        )}
+          )}
+          {nearMe ? (
+            <div className="flex border-t border-[var(--app-frost-border)]">
+              {selfAltitudeStat ? renderStat(selfAltitudeStat) : null}
+              {stats.contextRow.map((stat) => renderStat(stat))}
+            </div>
+          ) : (
+            <>
+              <div className="flex border-t border-[var(--app-frost-border)]">
+                {stats.contextRow.slice(0, 2).map((stat) => renderStat(stat))}
+              </div>
+              <div className="flex border-t border-[var(--app-frost-border)]">
+                {stats.contextRow.slice(2, 4).map((stat) => renderStat(stat))}
+              </div>
+            </>
+          )}
+        </div>
+        {footer ? <div className="sidebar-hero-stats-footer">{footer}</div> : null}
       </div>
-      {footer ? <div className="mt-2">{footer}</div> : null}
     </div>
   );
 }

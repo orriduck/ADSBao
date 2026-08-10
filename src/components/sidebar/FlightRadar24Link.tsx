@@ -18,7 +18,7 @@ export default function FlightRadar24Link({
       href={destination}
       target="_blank"
       rel="noopener noreferrer nofollow"
-      className="flex h-8 w-full items-center justify-between gap-3 rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-muted)] px-3 text-[calc(10px*var(--sb-body-scale))] font-semibold text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)] transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+      className="flex h-10 w-full items-center justify-between gap-3 px-3 pt-3 text-[calc(10px*var(--sb-body-scale))] font-semibold text-atc-dim [background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-muted)_14px,var(--atc-control-surface-muted)_44%,color-mix(in_oklab,var(--atc-mint)_58%,var(--atc-control-surface-muted))_100%)] transition-[background,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:[background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-hover)_14px,var(--atc-control-surface-hover)_44%,color-mix(in_oklab,var(--atc-mint)_68%,var(--atc-control-surface-hover))_100%)] hover:text-atc-text active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
       aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
     >
       <span className="min-w-0 truncate">{t("sidebar.openOnFlightRadar24", { identifier: label })}</span>

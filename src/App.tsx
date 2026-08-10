@@ -9,7 +9,11 @@ import {
 } from "react-router-dom";
 import { Plane } from "lucide-react";
 import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay";
-import SidebarLoadingSkeleton from "@/components/sidebar/SidebarLoadingSkeleton";
+import SidebarShell from "@/components/sidebar/SidebarShell";
+import {
+  SidebarLoadingContent,
+  SidebarLoadingHeader,
+} from "@/components/sidebar/SidebarLoadingSkeleton";
 import { normalizeCallsign } from "@/utils/callsign";
 import { isOnboardMode } from "@/features/aircraft/onboard/onboardModeModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -21,6 +25,7 @@ const MechanismPanel = lazy(() => import("@/components/mechanism/MechanismPanel"
 const FlightScreen = lazy(() => import("@/components/screens/FlightScreen"));
 const HomeScreen = lazy(() => import("@/components/screens/HomeScreen"));
 const NearMeScreen = lazy(() => import("@/components/screens/NearMeScreen"));
+const ignoreRouteLoadingNavigation = () => undefined;
 
 function FlightRoute() {
   const { callsign = "" } = useParams();
@@ -79,7 +84,13 @@ function RouteLoadingState({ failed = false }: { failed?: boolean }) {
     return (
       <main className="app-route-loading-workspace bg-atc-bg text-atc-text" role="status">
         <aside className="app-route-loading-workspace__sidebar hidden md:block">
-          <SidebarLoadingSkeleton variant={workspaceVariant} />
+          <SidebarShell
+            variant={workspaceVariant}
+            onBack={ignoreRouteLoadingNavigation}
+            header={<SidebarLoadingHeader variant={workspaceVariant} />}
+          >
+            <SidebarLoadingContent />
+          </SidebarShell>
         </aside>
         <section className="app-route-loading-workspace__main">
           <MapLoadingFallback variant={workspaceVariant} />

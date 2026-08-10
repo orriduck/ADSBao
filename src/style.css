@@ -5468,26 +5468,52 @@ body {
 
 .sidebar-loading-skeleton__airport-metrics,
 .sidebar-loading-skeleton__flight-metrics {
+    background: transparent;
+    border: 1px solid var(--atc-control-border);
+    border-radius: var(--atc-radius-card);
+    box-shadow: var(--atc-control-inset-shadow);
+    display: flex;
+    flex-direction: column;
+    margin: 0 var(--airport-sidebar-inset);
+    overflow: hidden;
+    position: relative;
+}
+
+.sidebar-loading-skeleton__metric-card {
+    border-radius: 0;
+    box-shadow: 0 1px 0 var(--atc-control-border);
     display: flex;
     flex-direction: column;
     gap: 1px;
-    margin: 0 var(--airport-sidebar-inset);
     overflow: hidden;
+    position: relative;
+    z-index: 2;
 }
 
-.sidebar-loading-skeleton__airport-metrics > .sidebar-loading-skeleton__bar,
-.sidebar-loading-skeleton__flight-metrics > .sidebar-loading-skeleton__bar {
+.sidebar-loading-skeleton__metric-card > .sidebar-loading-skeleton__bar {
     border-radius: var(--atc-radius-card) var(--atc-radius-card) 0 0;
 }
 
-.sidebar-loading-skeleton__airport-metrics > div,
-.sidebar-loading-skeleton__flight-metrics > div {
-    overflow: hidden;
+.sidebar-loading-skeleton__metric-card > div .sidebar-loading-skeleton__bar {
+    border-radius: 0;
 }
 
-.sidebar-loading-skeleton__airport-metrics > div .sidebar-loading-skeleton__bar,
-.sidebar-loading-skeleton__flight-metrics > div .sidebar-loading-skeleton__bar {
+.sidebar-loading-skeleton__metric-footer {
+    background: linear-gradient(
+        180deg,
+        transparent 0,
+        transparent 14px,
+        color-mix(in oklab, var(--atc-text) 9%, transparent) 14px,
+        color-mix(in oklab, var(--atc-text) 9%, transparent) 100%
+    );
     border-radius: 0;
+    margin-top: -14px;
+    position: relative;
+    z-index: 0;
+}
+
+.sidebar-loading-skeleton__metric-footer::after {
+    inset: 14px 0 0;
 }
 
 .sidebar-loading-skeleton--content {
@@ -8858,6 +8884,69 @@ body {
     box-shadow: var(--atc-control-inset-shadow);
     -webkit-backdrop-filter: var(--app-frost);
     backdrop-filter: var(--app-frost);
+}
+
+.sidebar-hero-stats-stack {
+    background: transparent;
+    border: 1px solid var(--atc-control-border);
+    border-radius: var(--atc-radius-panel);
+    box-shadow: var(--atc-control-inset-shadow);
+    overflow: hidden;
+    position: relative;
+}
+
+.sidebar-hero-stats-stack > .sidebar-hero-stats {
+    border: 0;
+    border-radius: 0 0 var(--atc-radius-panel) var(--atc-radius-panel);
+    box-shadow: 0 1px 0 var(--atc-control-border), var(--atc-control-inset-shadow);
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-hero-stats-footer {
+    --sidebar-footer-corner-radius: var(--atc-radius-panel);
+    margin-top: -14px;
+    position: relative;
+    z-index: 0;
+}
+
+.sidebar-hero-stats-footer::before {
+    background: var(--atc-control-surface-muted);
+    content: "";
+    height: 14px;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    -webkit-mask:
+        radial-gradient(
+                circle at var(--sidebar-footer-corner-radius)
+                    calc(14px - var(--sidebar-footer-corner-radius)),
+                transparent calc(var(--sidebar-footer-corner-radius) - 0.75px),
+                #000 var(--sidebar-footer-corner-radius)
+            )
+            left top / var(--sidebar-footer-corner-radius) 14px no-repeat,
+        radial-gradient(
+                circle at 0 calc(14px - var(--sidebar-footer-corner-radius)),
+                transparent calc(var(--sidebar-footer-corner-radius) - 0.75px),
+                #000 var(--sidebar-footer-corner-radius)
+            )
+            right top / var(--sidebar-footer-corner-radius) 14px no-repeat;
+    mask:
+        radial-gradient(
+                circle at var(--sidebar-footer-corner-radius)
+                    calc(14px - var(--sidebar-footer-corner-radius)),
+                transparent calc(var(--sidebar-footer-corner-radius) - 0.75px),
+                #000 var(--sidebar-footer-corner-radius)
+            )
+            left top / var(--sidebar-footer-corner-radius) 14px no-repeat,
+        radial-gradient(
+                circle at 0 calc(14px - var(--sidebar-footer-corner-radius)),
+                transparent calc(var(--sidebar-footer-corner-radius) - 0.75px),
+                #000 var(--sidebar-footer-corner-radius)
+            )
+            right top / var(--sidebar-footer-corner-radius) 14px no-repeat;
 }
 
 .page-motion-grid {
