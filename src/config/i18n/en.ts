@@ -295,6 +295,8 @@ const en = {
     routed: "Routed",
     flightTelemetry: "Flight telemetry",
     openOnFlightRadar24: "Open {identifier} on FlightRadar24",
+    openOnFlightRadar24LogoPrefix: "Open {identifier} on",
+    openOnFlightRadar24LogoSuffix: "",
     airportViews: "Views",
     weatherViews: "Weather views",
     unknownAirport: "Unknown airport",

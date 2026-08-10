@@ -289,6 +289,8 @@ const zhCN = {
     routed: "仅有航路",
     flightTelemetry: "飞行参数",
     openOnFlightRadar24: "在 FlightRadar24 查看 {identifier}",
+    openOnFlightRadar24LogoPrefix: "在",
+    openOnFlightRadar24LogoSuffix: "查看 {identifier}",
     airportViews: "视图",
     weatherViews: "天气视图",
     unknownAirport: "未知机场",
