@@ -3,6 +3,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const FLIGHTRADAR24_LOGO_URL =
   "https://wp.logos-download.com/wp-content/uploads/2022/12/Flightradar24_Logo.svg?dl";
+const FLIGHTRADAR24_DARK_LOGO_URL = "/flightradar24-dark.svg";
 
 export default function FlightRadar24Link({
   identifier,
@@ -26,12 +27,19 @@ export default function FlightRadar24Link({
     >
       <span className="flex min-w-0 items-center gap-1.5 truncate whitespace-nowrap">
         <span className="truncate">{t("sidebar.openOnFlightRadar24LogoPrefix", { identifier: label })}</span>
-        <span className="flex h-[15px] w-[60px] shrink-0 items-center justify-center rounded-[2px] bg-[#f7f7f1]/95 px-[2px]">
+        <span className="relative h-[22px] w-[94px] shrink-0">
           <img
             src={FLIGHTRADAR24_LOGO_URL}
             alt=""
             aria-hidden="true"
-            className="h-[13px] w-[56px]"
+            className="size-full dark:hidden"
+            decoding="async"
+          />
+          <img
+            src={FLIGHTRADAR24_DARK_LOGO_URL}
+            alt=""
+            aria-hidden="true"
+            className="hidden size-full dark:block"
             decoding="async"
           />
         </span>
