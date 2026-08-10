@@ -2443,11 +2443,19 @@ body:has(.dither-page-shell) {
 }
 
 .aviation-loading-glyph {
+    display: block;
+    flex: none;
     height: 34px;
     margin-bottom: 12px;
     position: relative;
     width: 34px;
     z-index: 1;
+}
+
+.aviation-loading-glyph--compact {
+    height: 16px;
+    margin-bottom: 0;
+    width: 16px;
 }
 
 .aviation-loading-glyph__frame {

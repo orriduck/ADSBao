@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.11.0",
+    version: "v3.11.1",
     kind: "feat",
     title: {
       en: "Local map preferences",
       zh: "本机地图偏好",
     },
     summary: {
-      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off.",
-      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。",
+      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off. Route opening now uses the same animated aircraft, tower, and runway indicator as live tracking.",
+      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。路由打开时现与实时追踪共用飞机、塔台和跑道的循环加载动画。",
     },
     highlights: [],
   },

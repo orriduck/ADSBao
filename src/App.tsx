@@ -13,6 +13,7 @@ import {
   SidebarLoadingContent,
   SidebarLoadingHeader,
 } from "@/components/sidebar/SidebarLoadingSkeleton";
+import { AviationLoadingState } from "@/components/loading/AviationLoadingState";
 import { normalizeCallsign } from "@/utils/callsign";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
@@ -90,10 +91,25 @@ function RouteLoadingState({ failed = false }: { failed?: boolean }) {
     );
   }
 
+  if (!failed) {
+    return (
+      <main
+        className="flex min-h-dvh items-center justify-center bg-atc-bg px-6 text-atc-text"
+        role="status"
+      >
+        <AviationLoadingState
+          eyebrow={t("map.routeLoadingEyebrow")}
+          title={t("map.routeLoadingTitle")}
+          hint={t("map.routeLoadingHint")}
+        />
+      </main>
+    );
+  }
+
   return (
     <main
       className="flex min-h-dvh items-center justify-center bg-atc-bg px-6 text-atc-text"
-      role={failed ? "alert" : "status"}
+      role="alert"
     >
       <div className="flex w-full max-w-[286px] flex-col items-start gap-3 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] px-4 py-4 shadow-[var(--atc-control-inset-shadow)] [backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]">
         <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-dim">
@@ -101,20 +117,18 @@ function RouteLoadingState({ failed = false }: { failed?: boolean }) {
           <span>{t("map.routeLoadingEyebrow")}</span>
         </div>
         <div className="text-[15px] font-medium leading-snug text-atc-text">
-          {t(failed ? "map.routeLoadFailedTitle" : "map.routeLoadingTitle")}
+          {t("map.routeLoadFailedTitle")}
         </div>
         <div className="text-[12px] leading-snug text-atc-dim">
-          {t(failed ? "map.routeLoadFailedHint" : "map.routeLoadingHint")}
+          {t("map.routeLoadFailedHint")}
         </div>
-        {failed ? (
-          <button
-            className="mt-1 h-9 rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-3 text-[12px] font-semibold text-atc-text shadow-[var(--atc-control-inset-shadow-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)]"
-            onClick={() => window.location.reload()}
-            type="button"
-          >
-            {t("map.routeLoadRetry")}
-          </button>
-        ) : null}
+        <button
+          className="mt-1 h-9 rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-3 text-[12px] font-semibold text-atc-text shadow-[var(--atc-control-inset-shadow-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)]"
+          onClick={() => window.location.reload()}
+          type="button"
+        >
+          {t("map.routeLoadRetry")}
+        </button>
       </div>
     </main>
   );

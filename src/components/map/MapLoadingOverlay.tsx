@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Plane, PlaneLanding, RadioTower } from "lucide-react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion";
+import { AviationLoadingGlyph } from "@/components/loading/AviationLoadingState";
 import {
   getLoadingOverlayExitDelay,
   resolveAircraftLoadingOverlayState,
@@ -217,10 +218,7 @@ export default function MapLoadingOverlay({
         </div>
       ) : (
         <>
-          <AviationLoadingGlyph
-            key={playbackCycle}
-            reducedMotion={prefersReducedMotion}
-          />
+          <AviationLoadingGlyph key={playbackCycle} />
           {loadingLabel ? (
             <>
               <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
@@ -231,43 +229,6 @@ export default function MapLoadingOverlay({
         </>
       )}
     </div>
-  );
-}
-
-function AviationLoadingGlyph({ reducedMotion }: { reducedMotion: boolean }) {
-  return (
-    <div
-      className={`aviation-loading-glyph ${
-        reducedMotion ? "aviation-loading-glyph--static" : ""
-      }`}
-      aria-hidden="true"
-    >
-      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--plane">
-        <Plane size={30} strokeWidth={1.55} />
-      </span>
-      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--tower">
-        <RadioTower size={29} strokeWidth={1.5} />
-      </span>
-      <span className="aviation-loading-glyph__frame aviation-loading-glyph__frame--runway">
-        <RunwayGlyph />
-      </span>
-    </div>
-  );
-}
-
-function RunwayGlyph() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[30px] w-[30px]"
-      fill="none"
-      viewBox="0 0 32 32"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M7 28 13 4h6l6 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.7" />
-      <path d="M16 8v3M16 15v3M16 22v3" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
-      <path d="M5 28h22" stroke="currentColor" strokeLinecap="round" strokeWidth="1.7" />
-    </svg>
   );
 }
 
