@@ -22,22 +22,16 @@ const shouldShowAirportSurfaceForZoom = (zoom: unknown) => {
 const shouldRenderAirportSurfaceFeature = (
   feature: Record<string, any>,
   nightLighting: boolean,
-  detailZoom: boolean,
 ) => {
   const kind = String(feature?.properties?.kind || "");
   // At night, taxiways are drawn as lit green/blue lines by
   // AirportGroundLightingLayer — suppress the generic pavement line here.
   if (nightLighting && (kind === "taxiway" || kind === "taxilane")) return false;
-  // Buildings/terminals are detail-zoom only — at wider zoom they're clutter,
-  // and the aerodrome-filtered set can be large.
-  if ((kind === "building" || kind === "terminal") && !detailZoom) return false;
   return (
     kind === "runway" ||
     kind === "taxiway" ||
     kind === "taxilane" ||
-    kind === "apron" ||
-    kind === "terminal" ||
-    kind === "building"
+    kind === "apron"
   );
 };
 
@@ -80,16 +74,12 @@ const airportSurfaceStyle = (
     };
   }
 
-  // Filled airport structures. Terminals get a distinct accent; other
-  // buildings a muted fill; aprons a subtle pavement tone. Colors resolve from
-  // theme tokens so both light and dark stay in the design system.
-  if (kind === "terminal" || kind === "building" || kind === "apron") {
-    const variant = kind === "apron" ? "apron" : kind === "terminal" ? "terminal" : "building";
+  if (kind === "apron") {
     return {
       className: airportSurfaceClassName(kind),
-      color: `var(--airport-surface-${variant}-stroke)`,
+      color: "var(--airport-surface-apron-stroke)",
       fill: true,
-      fillColor: `var(--airport-surface-${variant}-fill)`,
+      fillColor: "var(--airport-surface-apron-fill)",
       fillOpacity: isLight ? 0.42 : 0.5,
       lineCap: "round",
       lineJoin: "round",
@@ -166,7 +156,6 @@ export default function AirportSurfaceLayer({
         return shouldRenderAirportSurfaceFeature(
           feature as Record<string, any>,
           nightLighting,
-          detailZoom,
         );
       },
       style(feature) {
