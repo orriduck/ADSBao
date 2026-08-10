@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  NEARBY_EXPLORER_DRAG_HALF_SIDE_NM,
   NEARBY_EXPLORER_RADIUS_NM,
-  clampMapCenterToNearbyRadius,
+  clampMapCenterToNearbySquare,
   getMapDistanceNm,
-  resolveViewportSafeCenterRadiusNm,
 } from "./nearbyExplorerRadiusModel";
 
-test("nearby explorer keeps in-range map centers unchanged", () => {
-  const next = clampMapCenterToNearbyRadius({
+test("nearby explorer keeps map centers inside its 120 NM square unchanged", () => {
+  const next = clampMapCenterToNearbySquare({
     anchor: { lat: 42.36, lng: -71.01 },
     center: { lat: 42.5, lng: -71.01 },
   });
@@ -18,29 +18,28 @@ test("nearby explorer keeps in-range map centers unchanged", () => {
   assert.equal(next?.lng, -71.01);
 });
 
-test("nearby explorer clamps a moved map center onto the 80 NM boundary", () => {
+test("nearby explorer clamps each axis to the 120 NM square edge", () => {
   const anchor = { lat: 0, lng: 0 };
-  const next = clampMapCenterToNearbyRadius({
+  const next = clampMapCenterToNearbySquare({
     anchor,
-    center: { lat: 0, lng: 2 },
+    center: { lat: 3, lng: 3 },
   });
 
   assert.equal(next?.corrected, true);
-  assert.ok((next?.distanceNm || 0) > NEARBY_EXPLORER_RADIUS_NM);
-  const actualDistance = getMapDistanceNm(anchor, next || {});
-  assert.ok(Math.abs((actualDistance || 0) - NEARBY_EXPLORER_RADIUS_NM) < 0.01);
+  assert.equal(next?.lat, 2);
+  assert.equal(next?.lng, 2);
+  assert.equal(next?.northNm, 180);
+  assert.equal(next?.eastNm, 180);
 });
 
-test("nearby explorer reserves room for the full viewport inside its data circle", () => {
-  const safeCenterRadius = resolveViewportSafeCenterRadiusNm({
-    center: { lat: 0, lng: 0 },
-    corners: [
-      { lat: 0, lng: -0.5 },
-      { lat: 0, lng: 0.5 },
-      { lat: 0.5, lng: 0 },
-      { lat: -0.5, lng: 0 },
-    ],
+test("nearby explorer permits a diagonal corner of the square", () => {
+  const next = clampMapCenterToNearbySquare({
+    anchor: { lat: 0, lng: 0 },
+    center: { lat: 1.9, lng: 1.9 },
   });
 
-  assert.ok(safeCenterRadius > 49 && safeCenterRadius < 50.1);
+  assert.equal(NEARBY_EXPLORER_RADIUS_NM, 80);
+  assert.equal(NEARBY_EXPLORER_DRAG_HALF_SIDE_NM, 120);
+  assert.equal(next?.corrected, false);
+  assert.ok((getMapDistanceNm({ lat: 0, lng: 0 }, next || {}) || 0) > 120);
 });

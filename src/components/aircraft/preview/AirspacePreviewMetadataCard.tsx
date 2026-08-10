@@ -1,8 +1,6 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
-import AirspacePreviewSelector, {
-  useAirspaceCarouselSwipe,
-} from "./AirspacePreviewSelector";
+import AirspacePreviewSelector from "./AirspacePreviewSelector";
 import { PreviewCardHeader, PreviewMetaRows } from "./previewCardChrome";
 
 type AirspacePreviewMetadataCardProps = {
@@ -23,12 +21,6 @@ export default function AirspacePreviewMetadataCard({
   const display = resolveAirspacePreviewDisplay(airspace, locale);
   const source =
     airspace?.source === "openaip" ? "OpenAIP" : String(airspace?.source || "");
-  const carouselSwipeHandlers = useAirspaceCarouselSwipe({
-    airspaces,
-    selectedAirspaceId,
-    onSelectAirspace,
-  });
-
   const rows = [
     { label: t("preview.airspaceAccess"), value: display.access },
     { label: t("preview.airspaceClass"), value: display.classLabel },
@@ -38,10 +30,7 @@ export default function AirspacePreviewMetadataCard({
   ].filter((row) => row.value);
 
   return (
-    <div
-      className="aircraft-preview-metadata-card pointer-events-auto touch-pan-y"
-      {...carouselSwipeHandlers}
-    >
+    <div className="aircraft-preview-metadata-card pointer-events-auto">
       <PreviewCardHeader
         primary={name}
         primaryMono={false}

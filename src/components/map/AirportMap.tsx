@@ -62,9 +62,9 @@ import { useAviationContextTiles } from "../../features/airport/context/useAviat
 import { shouldUseNavaidCountTiles } from "../../features/airport/context/aviationContextDisplayModel";
 import { getOffsetMapCenter } from "./mapViewportOffset";
 import {
-  clampMapCenterToNearbyRadius,
+  clampMapCenterToNearbySquare,
+  NEARBY_EXPLORER_DRAG_HALF_SIDE_NM,
   NEARBY_EXPLORER_RADIUS_NM,
-  resolveViewportSafeCenterRadiusNm,
 } from "@/features/airport/map/nearbyExplorerRadiusModel";
 import {
   AirportMapInteractionMode,
@@ -321,23 +321,9 @@ export default function AirportMap({
       if (!mapDragRef.current) return;
       mapDragRef.current = false;
       const center = mapInstance.getCenter?.();
-      const size = mapInstance.getSize?.();
-      const corners =
-        center && size && mapInstance.containerPointToLatLng
-          ? [
-              [0, 0],
-              [size.x, 0],
-              [size.x, size.y],
-              [0, size.y],
-            ].map((point) => mapInstance.containerPointToLatLng(point))
-          : [];
-      const next = clampMapCenterToNearbyRadius({
+      const next = clampMapCenterToNearbySquare({
         anchor: focalCenter,
         center,
-        radiusNm: resolveViewportSafeCenterRadiusNm({
-          center,
-          corners,
-        }),
       });
       if (!next?.corrected) return;
       mapInstance.setView([next.lat, next.lng], mapInstance.getZoom(), {
@@ -346,7 +332,7 @@ export default function AirportMap({
       toast.info(t("map.nearbyBoundaryTitle"), {
         id: "airport-nearby-boundary",
         description: t("map.nearbyBoundaryDescription", {
-          radius: NEARBY_EXPLORER_RADIUS_NM,
+          radius: NEARBY_EXPLORER_DRAG_HALF_SIDE_NM,
         }),
       });
     };

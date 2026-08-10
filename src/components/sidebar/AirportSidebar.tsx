@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
+import FlightRadar24Link from "./FlightRadar24Link";
 import SidebarShell from "./SidebarShell";
 import SidebarViewSwitch from "./SidebarViewSwitch";
 import {
@@ -83,6 +84,7 @@ export default function AirportSidebar({
     localWeatherCoords.lat,
     localWeatherCoords.lon,
   );
+  const flightRadarIcao = String(icao || "").trim().toLowerCase();
 
   const handleSpottingView = () => {
     const previousView = activeView;
@@ -123,6 +125,14 @@ export default function AirportSidebar({
         nearMeSelfSpeedMps={nearMeSelfSpeedMps}
         nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
         nearMeSelfHeadingDeg={nearMeSelfHeadingDeg}
+      />
+      <FlightRadar24Link
+        identifier={flightRadarIcao.toUpperCase()}
+        href={
+          flightRadarIcao
+            ? `https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`
+            : ""
+        }
       />
     </>
   );

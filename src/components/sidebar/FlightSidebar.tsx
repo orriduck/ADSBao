@@ -1,6 +1,7 @@
 import { useState } from "react";
 import NumberFlow from "@number-flow/react";
 import AircraftTable from "./AircraftTable";
+import FlightRadar24Link from "./FlightRadar24Link";
 import SidebarIdentityHero from "./SidebarIdentityHero";
 import SidebarShell from "./SidebarShell";
 import {
@@ -62,6 +63,9 @@ export default function FlightSidebar({
   const isMobileOverlay = Boolean(onClose);
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
+  const flightRadarCallsign = String(aircraft?.callsign || callsign || "")
+    .trim()
+    .toUpperCase();
   const typeDisplay = resolveAircraftDisplayModel(aircraft || {});
   const route = formatFlightRouteLabel(aircraft?.flightRoute) || "";
   const airlineIconUrl = getFlightRouteAirlineIconUrl(aircraft?.flightRoute);
@@ -99,6 +103,14 @@ export default function FlightSidebar({
         track={track}
         onGround={onGround}
         trackingActive={trackingActive}
+      />
+      <FlightRadar24Link
+        identifier={flightRadarCallsign}
+        href={
+          flightRadarCallsign
+            ? `https://www.flightradar24.com/${encodeURIComponent(flightRadarCallsign)}`
+            : ""
+        }
       />
     </>
   );

@@ -1,4 +1,9 @@
 export const NEARBY_EXPLORER_RADIUS_NM = 80;
+// Traffic polling and the visible boundary stay at 80 NM. The map itself has
+// a little more room to inspect the surrounding area, constrained as a square
+// whose sides extend 1.5× that radius from the focal airport.
+export const NEARBY_EXPLORER_DRAG_HALF_SIDE_NM =
+  NEARBY_EXPLORER_RADIUS_NM * 1.5;
 
 const EARTH_RADIUS_NM = 3440.065;
 
@@ -15,10 +20,6 @@ function finiteCoordinate(value: unknown) {
 
 function radians(value: number) {
   return (value * Math.PI) / 180;
-}
-
-function degrees(value: number) {
-  return (value * 180) / Math.PI;
 }
 
 function normalizeLongitude(value: number) {
@@ -46,83 +47,44 @@ export function getMapDistanceNm(from: MapCoordinate, to: MapCoordinate) {
   return 2 * EARTH_RADIUS_NM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function resolveViewportSafeCenterRadiusNm({
-  center,
-  corners = [],
-  radiusNm = NEARBY_EXPLORER_RADIUS_NM,
-}: {
-  center: MapCoordinate;
-  corners?: MapCoordinate[];
-  radiusNm?: unknown;
-}) {
-  const mapCenter = coordinate(center);
-  const radius = Number(radiusNm);
-  if (!mapCenter || !Number.isFinite(radius) || radius <= 0) return 0;
-
-  const viewportRadiusNm = corners.reduce((furthest, corner) => {
-    const distance = getMapDistanceNm(mapCenter, corner);
-    return distance == null ? furthest : Math.max(furthest, distance);
-  }, 0);
-  return Math.max(0, radius - viewportRadiusNm);
-}
-
-function initialBearingDeg(from: { lat: number; lng: number }, to: { lat: number; lng: number }) {
-  const deltaLng = radians(to.lng - from.lng);
-  const y = Math.sin(deltaLng) * Math.cos(radians(to.lat));
-  const x =
-    Math.cos(radians(from.lat)) * Math.sin(radians(to.lat)) -
-    Math.sin(radians(from.lat)) *
-      Math.cos(radians(to.lat)) *
-      Math.cos(deltaLng);
-  return (degrees(Math.atan2(y, x)) + 360) % 360;
-}
-
-function destinationPoint(
-  from: { lat: number; lng: number },
-  bearingDeg: number,
-  distanceNm: number,
-) {
-  const angularDistance = distanceNm / EARTH_RADIUS_NM;
-  const bearing = radians(bearingDeg);
-  const startLat = radians(from.lat);
-  const startLng = radians(from.lng);
-  const endLat = Math.asin(
-    Math.sin(startLat) * Math.cos(angularDistance) +
-      Math.cos(startLat) * Math.sin(angularDistance) * Math.cos(bearing),
-  );
-  const endLng =
-    startLng +
-    Math.atan2(
-      Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(startLat),
-      Math.cos(angularDistance) - Math.sin(startLat) * Math.sin(endLat),
-    );
-  return { lat: degrees(endLat), lng: normalizeLongitude(degrees(endLng)) };
-}
-
-export function clampMapCenterToNearbyRadius({
+export function clampMapCenterToNearbySquare({
   anchor,
   center,
-  radiusNm = NEARBY_EXPLORER_RADIUS_NM,
+  halfSideNm = NEARBY_EXPLORER_DRAG_HALF_SIDE_NM,
 }: {
   anchor: MapCoordinate;
   center: MapCoordinate;
-  radiusNm?: unknown;
+  halfSideNm?: unknown;
 }) {
   const focalPoint = coordinate(anchor);
   const requestedCenter = coordinate(center);
-  const radius = Number(radiusNm);
-  if (!focalPoint || !requestedCenter || !Number.isFinite(radius) || radius <= 0) {
+  const halfSide = Number(halfSideNm);
+  if (!focalPoint || !requestedCenter || !Number.isFinite(halfSide) || halfSide <= 0) {
     return null;
   }
 
-  const distanceNm = getMapDistanceNm(focalPoint, requestedCenter);
-  if (distanceNm == null || distanceNm <= radius) {
-    return { ...requestedCenter, corrected: false, distanceNm };
+  // At this local scale, a north/east nautical-mile grid gives an intuitive
+  // square constraint while retaining correct longitude wrapping at ±180°.
+  const latitudeCosine = Math.cos(radians(focalPoint.lat));
+  if (Math.abs(latitudeCosine) < 0.000001) return null;
+  const northNm = (requestedCenter.lat - focalPoint.lat) * 60;
+  const eastNm =
+    normalizeLongitude(requestedCenter.lng - focalPoint.lng) * 60 * latitudeCosine;
+  const clampedNorthNm = Math.max(-halfSide, Math.min(halfSide, northNm));
+  const clampedEastNm = Math.max(-halfSide, Math.min(halfSide, eastNm));
+  const corrected = clampedNorthNm !== northNm || clampedEastNm !== eastNm;
+
+  if (!corrected) {
+    return { ...requestedCenter, corrected, northNm, eastNm };
   }
 
   return {
-    ...destinationPoint(focalPoint, initialBearingDeg(focalPoint, requestedCenter), radius),
-    corrected: true,
-    distanceNm,
+    lat: focalPoint.lat + clampedNorthNm / 60,
+    lng: normalizeLongitude(
+      focalPoint.lng + clampedEastNm / (60 * latitudeCosine),
+    ),
+    corrected,
+    northNm,
+    eastNm,
   };
 }
