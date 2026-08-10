@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.11.3",
+    version: "v3.11.4",
     kind: "feat",
     title: {
       en: "Local map preferences",
       zh: "本机地图偏好",
     },
     summary: {
-      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off. Route opening now uses the same full-screen animated aircraft, tower, and runway loading state as live tracking. At airport detail zoom, terminal footprints now come only from the basemap's building rendering instead of a duplicate colored Leaflet layer.",
-      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。路由打开时现与实时追踪共用同一套全屏飞机、塔台和跑道循环加载动画。机场高倍率下的航站楼轮廓现仅由底图建筑渲染提供，不再叠加重复着色的 Leaflet 图层。",
+      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off. Route opening now uses the same full-screen animated aircraft, tower, and runway loading state as live tracking. At airport detail zoom, terminal footprints now come only from the basemap's building rendering instead of a duplicate colored Leaflet layer. Here metrics no longer inherit the airport-only linked-card wrapper, preventing the mobile card from being clipped or sized as though it had an empty footer.",
+      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。路由打开时现与实时追踪共用同一套全屏飞机、塔台和跑道循环加载动画。机场高倍率下的航站楼轮廓现仅由底图建筑渲染提供，不再叠加重复着色的 Leaflet 图层。Here 的指标卡不再继承仅供机场外链使用的拼接容器，避免移动端在空 footer 情况下被裁切或按错误高度呈现。",
     },
     highlights: [],
   },

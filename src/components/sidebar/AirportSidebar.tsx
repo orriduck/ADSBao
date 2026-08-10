@@ -85,6 +85,16 @@ export default function AirportSidebar({
     localWeatherCoords.lon,
   );
   const flightRadarIcao = String(icao || "").trim().toLowerCase();
+  // Here has no airport ICAO, and therefore no provider link. Do not pass an
+  // empty React element as a footer: SidebarViewSwitch uses footer presence to
+  // select its joined-card layout, which would otherwise add an unnecessary
+  // clipping wrapper around Here's metrics.
+  const flightRadarFooter = flightRadarIcao ? (
+    <FlightRadar24Link
+      identifier={flightRadarIcao.toUpperCase()}
+      href={`https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`}
+    />
+  ) : null;
 
   const handleSpottingView = () => {
     const previousView = activeView;
@@ -125,16 +135,7 @@ export default function AirportSidebar({
         nearMeSelfSpeedMps={nearMeSelfSpeedMps}
         nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
         nearMeSelfHeadingDeg={nearMeSelfHeadingDeg}
-        footer={
-          <FlightRadar24Link
-            identifier={flightRadarIcao.toUpperCase()}
-            href={
-              flightRadarIcao
-                ? `https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`
-                : ""
-            }
-          />
-        }
+        footer={flightRadarFooter}
       />
     </>
   );
