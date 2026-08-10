@@ -25,9 +25,9 @@ export default function FlightRadar24Link({
       className="flex h-10 w-full items-center justify-between gap-3 px-3 pt-3 text-[calc(10px*var(--sb-body-scale))] font-semibold text-atc-dim [background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-muted)_14px,var(--atc-control-surface-muted)_44%,color-mix(in_oklab,var(--atc-mint)_58%,var(--atc-control-surface-muted))_100%)] transition-[background,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:[background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-hover)_14px,var(--atc-control-surface-hover)_44%,color-mix(in_oklab,var(--atc-mint)_68%,var(--atc-control-surface-hover))_100%)] hover:text-atc-text active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
       aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
     >
-      <span className="flex min-w-0 items-center gap-1.5 truncate whitespace-nowrap">
+      <span className="flex min-w-0 items-center gap-1 truncate whitespace-nowrap">
         <span className="truncate">{t("sidebar.openOnFlightRadar24LogoPrefix", { identifier: label })}</span>
-        <span className="relative h-[22px] w-[94px] shrink-0">
+        <span className="relative h-[18px] w-[75px] shrink-0">
           <img
             src={FLIGHTRADAR24_LOGO_URL}
             alt=""
