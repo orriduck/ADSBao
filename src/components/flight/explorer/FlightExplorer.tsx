@@ -3,7 +3,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -88,7 +87,11 @@ const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 export default function FlightExplorer({ callsign = "", onboardMode = false }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent callsign={callsign} onboardMode={onboardMode} />
+      <FlightExplorerContent
+        key={`${callsign}:${onboardMode ? "onboard" : "tracking"}`}
+        callsign={callsign}
+        onboardMode={onboardMode}
+      />
     </ExplorerUiProvider>
   );
 }
@@ -97,20 +100,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
-  // Flight → flight navigation does a HARD reload to the new URL rather than an
-  // in-place SPA swap. Each tracking page is then a guaranteed clean slate
-  // (fresh map + fresh realtime socket; the previous socket is torn down by the
-  // page unload), which is far simpler and more stable than reconciling a reused
-  // map/tracking lifecycle across navigations. The layout effect runs before
-  // paint so the stale (previous-flight) frame never shows. Covers links AND
-  // browser back/forward.
-  const mountFlightKeyRef = useRef(`${callsign}:${onboardMode ? "onboard" : "tracking"}`);
-  useLayoutEffect(() => {
-    const flightKey = `${callsign}:${onboardMode ? "onboard" : "tracking"}`;
-    if (mountFlightKeyRef.current !== flightKey) {
-      window.location.reload();
-    }
-  }, [callsign, onboardMode]);
   const {
     desktopSidebarWidth,
     clientDeviceProfile,
