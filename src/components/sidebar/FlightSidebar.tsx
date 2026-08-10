@@ -103,13 +103,15 @@ export default function FlightSidebar({
         track={track}
         onGround={onGround}
         trackingActive={trackingActive}
-      />
-      <FlightRadar24Link
-        identifier={flightRadarCallsign}
-        href={
-          flightRadarCallsign
-            ? `https://www.flightradar24.com/${encodeURIComponent(flightRadarCallsign)}`
-            : ""
+        footer={
+          <FlightRadar24Link
+            identifier={flightRadarCallsign}
+            href={
+              flightRadarCallsign
+                ? `https://www.flightradar24.com/${encodeURIComponent(flightRadarCallsign)}`
+                : ""
+            }
+          />
         }
       />
     </>
@@ -256,6 +258,7 @@ function FlightTelemetryGrid({
   track,
   onGround,
   trackingActive,
+  footer = null,
 }) {
   const { t } = useI18n();
   // Focus only marks the metric the user is reading. It does not alter a
@@ -364,6 +367,7 @@ function FlightTelemetryGrid({
           />
         </div>
       </div>
+      {footer ? <div className="mt-2">{footer}</div> : null}
     </div>
   );
 }

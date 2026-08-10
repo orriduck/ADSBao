@@ -125,13 +125,15 @@ export default function AirportSidebar({
         nearMeSelfSpeedMps={nearMeSelfSpeedMps}
         nearMeSelfAltitudeMeters={nearMeSelfAltitudeMeters}
         nearMeSelfHeadingDeg={nearMeSelfHeadingDeg}
-      />
-      <FlightRadar24Link
-        identifier={flightRadarIcao.toUpperCase()}
-        href={
-          flightRadarIcao
-            ? `https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`
-            : ""
+        footer={
+          <FlightRadar24Link
+            identifier={flightRadarIcao.toUpperCase()}
+            href={
+              flightRadarIcao
+                ? `https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`
+                : ""
+            }
+          />
         }
       />
     </>

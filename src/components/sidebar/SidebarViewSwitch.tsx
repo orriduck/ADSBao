@@ -32,6 +32,7 @@ export default function SidebarViewSwitch({
   nearMeSelfSpeedMps = null,
   nearMeSelfAltitudeMeters = null,
   nearMeSelfHeadingDeg = null,
+  footer = null,
 }) {
   const { t } = useI18n();
   const { preferences: units } = useUnitPreferences();
@@ -168,6 +169,7 @@ export default function SidebarViewSwitch({
           </>
         )}
       </div>
+      {footer ? <div className="mt-2">{footer}</div> : null}
     </div>
   );
 }

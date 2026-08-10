@@ -7811,21 +7811,6 @@ body {
     z-index: 0;
 }
 
-/* The map intentionally runs under the translucent desktop rail, but loading
-   belongs to the usable map plane. Keep the overlay itself full-bleed so its
-   backdrop remains continuous; reserve the rail inside its flex content box
-   so the glyph and status sit at the visible map's true centre. */
-@media (min-width: 640px) {
-    .airport-map-kit:has(
-            .airport-desktop-sidebar[data-open="true"]:not([data-collapsed="true"])
-        )
-        .adsb-loading-overlay {
-        padding-left: calc(
-            var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
-        );
-    }
-}
-
 .airport-map-kit .airport-map-stage::before,
 .airport-map-kit .airport-map-stage::after {
     content: "";
