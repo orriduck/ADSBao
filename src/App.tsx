@@ -93,16 +93,10 @@ function RouteLoadingState({ failed = false }: { failed?: boolean }) {
 
   if (!failed) {
     return (
-      <main
-        className="flex min-h-dvh items-center justify-center bg-atc-bg px-6 text-atc-text"
-        role="status"
-      >
-        <AviationLoadingState
-          eyebrow={t("map.routeLoadingEyebrow")}
-          title={t("map.routeLoadingTitle")}
-          hint={t("map.routeLoadingHint")}
-        />
-      </main>
+      <AviationLoadingState
+        ariaLabel={t("map.loadingTrackedAircraftAria")}
+        label={t("map.routeLoadingTitle")}
+      />
     );
   }
 

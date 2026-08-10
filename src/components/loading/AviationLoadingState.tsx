@@ -2,13 +2,17 @@ import { Plane, RadioTower } from "lucide-react";
 import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion";
 
 type AviationLoadingStateProps = {
-  eyebrow?: string;
-  title: string;
-  hint?: string;
+  ariaLabel: string;
+  label?: string;
 };
 
 type AviationLoadingGlyphProps = {
   compact?: boolean;
+};
+
+type AviationLoadingIndicatorProps = {
+  label?: string;
+  playbackKey?: number;
 };
 
 export function AviationLoadingGlyph({
@@ -36,26 +40,33 @@ export function AviationLoadingGlyph({
   );
 }
 
-export function AviationLoadingState({
-  eyebrow,
-  title,
-  hint,
-}: AviationLoadingStateProps) {
+export function AviationLoadingIndicator({
+  label,
+  playbackKey,
+}: AviationLoadingIndicatorProps) {
   return (
-    <div className="flex w-full max-w-[286px] flex-col items-start gap-3 rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] px-4 py-4 shadow-[var(--atc-control-inset-shadow)] [backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]">
-      {eyebrow ? (
-        <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-dim">
-          <AviationLoadingGlyph compact />
-          <span>{eyebrow}</span>
+    <>
+      <AviationLoadingGlyph key={playbackKey} />
+      {label ? (
+        <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
+          <span>{label}</span>
         </div>
       ) : null}
-      <div className="text-[15px] font-medium leading-snug text-atc-text">
-        {title}
+    </>
+  );
+}
+
+export function AviationLoadingState({ ariaLabel, label }: AviationLoadingStateProps) {
+  return (
+    <main
+      className="relative flex min-h-dvh bg-atc-bg text-atc-text"
+      role="status"
+      aria-label={ariaLabel}
+    >
+      <div className="adsb-loading-overlay adsb-loading-overlay--flight">
+        <AviationLoadingIndicator label={label} />
       </div>
-      {hint ? (
-        <div className="text-[12px] leading-snug text-atc-dim">{hint}</div>
-      ) : null}
-    </div>
+    </main>
   );
 }
 

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Plane, PlaneLanding, RadioTower } from "lucide-react";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion";
-import { AviationLoadingGlyph } from "@/components/loading/AviationLoadingState";
+import { AviationLoadingIndicator } from "@/components/loading/AviationLoadingState";
 import {
   getLoadingOverlayExitDelay,
   resolveAircraftLoadingOverlayState,
@@ -218,14 +218,10 @@ export default function MapLoadingOverlay({
         </div>
       ) : (
         <>
-          <AviationLoadingGlyph key={playbackCycle} />
-          {loadingLabel ? (
-            <>
-              <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
-                <span>{loadingLabel}</span>
-              </div>
-            </>
-          ) : null}
+          <AviationLoadingIndicator
+            label={loadingLabel}
+            playbackKey={playbackCycle}
+          />
         </>
       )}
     </div>
