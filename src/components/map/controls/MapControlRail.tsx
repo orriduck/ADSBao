@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { Check, LogIn, RefreshCw } from "lucide-react";
+import { Check, RefreshCw } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/MenuPanel";
 import {
   Toolbar,
-  ToolbarAccountSlot,
   ToolbarButton,
   ToolbarSeparator,
   toolbarButtonVariants,
@@ -51,8 +49,6 @@ export default function MapControlRail({
   onToggleWakeLock = null,
 }) {
   const { t } = useI18n();
-  const { isLoaded, isSignedIn } = useUser();
-  const showSignedIn = isLoaded && isSignedIn;
   return (
     <Toolbar className="isolate">
       {showSidebarToggle ? (
@@ -148,36 +144,6 @@ export default function MapControlRail({
         menuAlign="center"
       />
 
-      {/* Clerk auth — signed-in users get the UserButton avatar /
-          dropdown, signed-out users get a Sign-in CTA styled like the
-          other rail buttons. Uses useUser() (same shared ClerkProvider
-          context every other page reads from) so the state is global,
-          not page-local. While Clerk is still hydrating the session
-          we render a reserved slot so the toolbar doesn't reflow and a
-          signed-in user doesn't see the sign-in icon flicker first. */}
-      {!isLoaded ? (
-        <ToolbarAccountSlot aria-hidden="true" />
-      ) : showSignedIn ? (
-        <ToolbarAccountSlot aria-label={t("auth.account")}>
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "h-7 w-7 rounded-[2px]",
-              },
-            }}
-          />
-        </ToolbarAccountSlot>
-      ) : (
-        <SignInButton mode="modal">
-          <ToolbarButton
-            tone="rail"
-            title={t("auth.signIn")}
-            aria-label={t("auth.signIn")}
-          >
-            <LogIn aria-hidden="true" />
-          </ToolbarButton>
-        </SignInButton>
-      )}
     </Toolbar>
   );
 }

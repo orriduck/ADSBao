@@ -62,7 +62,6 @@ import AircraftPreviewCard from "@/components/aircraft/preview/AircraftPreviewCa
 import { resolveAircraftLoadingOverlayState } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUserLocationLayer } from "@/hooks/useUserLocationLayer";
-import { resolveFlightJourneyProgress } from "@/features/aircraft/onboard/flightJourneyProgressModel";
 import { mapSettingsToExplorerLayers } from "@/features/airport/map-settings/mapSettingsModel";
 
 const FlightRouteArc = lazy(() => import("@/components/map/FlightRouteArc"));
@@ -84,19 +83,15 @@ const TRACE_VIEW_RECORDED = "recorded";
 // "no live position" card when the live feed has no plottable aircraft.
 const FLIGHT_NO_POSITION_GRACE_MS = 9000;
 
-export default function FlightExplorer({ callsign = "", onboardMode = false }) {
+export default function FlightExplorer({ callsign = "" }) {
   return (
     <ExplorerUiProvider>
-      <FlightExplorerContent
-        key={`${callsign}:${onboardMode ? "onboard" : "tracking"}`}
-        callsign={callsign}
-        onboardMode={onboardMode}
-      />
+      <FlightExplorerContent key={callsign} callsign={callsign} />
     </ExplorerUiProvider>
   );
 }
 
-function FlightExplorerContent({ callsign, onboardMode = false }) {
+function FlightExplorerContent({ callsign }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
@@ -876,21 +871,10 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     reason: sourceLoadingState.reason,
     variant: "flight",
     callsign,
-    onboardMode,
   });
   const sourceLoadingStatus = sourceLoadingState.active
     ? sourceLoadingCopy.status
     : "";
-  const journeyProgress = useMemo(
-    () =>
-      onboardMode
-        ? resolveFlightJourneyProgress({
-            route: enrichedTrackedAircraft?.flightRoute,
-            aircraft: enrichedTrackedAircraft,
-          })
-        : null,
-    [enrichedTrackedAircraft, onboardMode],
-  );
   const toolbarContextProps = {
     traceViewItems,
     wakeLockState,
@@ -930,8 +914,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
     feedSource,
     lastUpdated,
     loadingStatus: sourceLoadingStatus,
-    onboardMode,
-    journeyProgress,
     trackingRunStatus: trackingRun?.status || "",
     onBack: handleBack,
     onMap: closeSidebar,
@@ -1067,7 +1049,6 @@ function FlightExplorerContent({ callsign, onboardMode = false }) {
               loadingOverlayActive={flightTrackingLoadingActive}
               loadingOverlayVariant="flight"
               loadingOverlayCallsign={callsign}
-              loadingOverlayOnboardMode={onboardMode}
               loadingOverlaySources={loadingOverlaySources}
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}

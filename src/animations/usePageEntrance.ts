@@ -4,7 +4,7 @@
  * The reveal is driven by CSS animations (see `.page-entrance-*` in style.css),
  * NOT a JS rAF tween. opacity + transform composite off the main thread, so the
  * fade plays at the correct speed even while the boot thread is saturated
- * (Clerk, map, data hydration) — the earlier GSAP version got starved into a
+ * (map and data hydration) — the earlier GSAP version got starved into a
  * 0→1 crawl over ~0.5–1s on a cold first screen.
  *
  * Content is never hidden ahead of time: the elements paint as soon as React

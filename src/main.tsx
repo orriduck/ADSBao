@@ -1,7 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ClerkProvider } from "@/platform/auth/clerkClient";
 import AppUpdateToast from "@/components/app-shell/AppUpdateToast";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import QueryProvider from "@/features/app-shell/queryProvider";
@@ -61,29 +60,27 @@ registerAdsbaoServiceWorker();
 createRoot(root).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ClerkProvider>
-        <I18nProvider initialLocale={resolveInitialLocale()}>
-          <QueryProvider>
-            <UnitPreferencesProvider>
-              <NotificationPreferencesProvider>
-                <WebMcpProvider />
-                <AppUpdateToast />
-                <div className="min-h-dvh bg-atc-bg text-atc-text">
-                  <App />
-                </div>
-              </NotificationPreferencesProvider>
-            </UnitPreferencesProvider>
-          </QueryProvider>
-        </I18nProvider>
-        <ThemedToaster
-          initialTheme={initialTheme}
-          className="atc-toaster"
-          position="top-right"
-          offset={{ top: 64 }}
-          mobileOffset={{ top: 64 }}
-          toastOptions={{ className: "atc-toast" }}
-        />
-      </ClerkProvider>
+      <I18nProvider initialLocale={resolveInitialLocale()}>
+        <QueryProvider>
+          <UnitPreferencesProvider>
+            <NotificationPreferencesProvider>
+              <WebMcpProvider />
+              <AppUpdateToast />
+              <div className="min-h-dvh bg-atc-bg text-atc-text">
+                <App />
+              </div>
+            </NotificationPreferencesProvider>
+          </UnitPreferencesProvider>
+        </QueryProvider>
+      </I18nProvider>
+      <ThemedToaster
+        initialTheme={initialTheme}
+        className="atc-toaster"
+        position="top-right"
+        offset={{ top: 64 }}
+        mobileOffset={{ top: 64 }}
+        toastOptions={{ className: "atc-toast" }}
+      />
     </BrowserRouter>
   </React.StrictMode>,
 );

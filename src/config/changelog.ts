@@ -44,11 +44,24 @@ export function resolveChangelogText(
   return locale === "zh-CN" ? value.zh : value.en;
 }
 
-export const CHANGELOG_INITIAL_LIMIT = 1;
+export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
 export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.11.0",
+    kind: "feat",
+    title: {
+      en: "Local map preferences",
+      zh: "本机地图偏好",
+    },
+    summary: {
+      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off.",
+      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.10.28",
     kind: "feat",

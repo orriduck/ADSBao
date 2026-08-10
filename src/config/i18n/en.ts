@@ -32,12 +32,6 @@ const en = {
     mechanism: "Mechanism & Architecture",
     changelog: "Changelog",
   },
-  auth: {
-    account: "Account",
-    signIn: "Sign in",
-    signUp: "Register",
-    signedIn: "Signed in",
-  },
   about: {
     meta: {
       version: "Version",
@@ -520,24 +514,6 @@ const en = {
     lastUpdated: "Last updated {time}",
     relocate: "Relocate",
   },
-  onboard: {
-    promptTitle: "Flying today?",
-    promptDescription: "You appear to be at {airport}. Enter your flight callsign and ADSBao will wait for its signal.",
-    dismiss: "Dismiss flight prompt",
-    callsignLabel: "Flight callsign",
-    callsignPlaceholder: "e.g. DAL58",
-    invalidCallsign: "Enter a valid callsign (2–8 letters or numbers).",
-    noFlight: "Not today",
-    trackFlight: "Track my flight",
-    modeLabel: "Onboard mode",
-    progressAria: "Flight progress: {percent}%",
-    phase: {
-      boarding: "Waiting to board",
-      ground: "At the airport",
-      airborne: "In flight",
-      arrived: "Arrived",
-    },
-  },
   search: {
     placeholder: "Search airport, city, or flight callsign",
     enter: "enter",
@@ -640,9 +616,6 @@ const en = {
     loadingTrackedAircraftAria: "Loading aircraft tracking data",
     loadingAircraftLabel: "Loading aircraft…",
     loadingTrackedAircraftLabel: "Acquiring {callsign} signal…",
-    loadingOnboardFlightLabel: "Waiting for {callsign} to come online…",
-    onboardWaitingEyebrow: "Onboard tracking",
-    onboardWaitingHint: "Tracking starts automatically when the signal appears.",
     routeLoadingEyebrow: "Flight tracking",
     routeLoadingTitle: "Opening flight tracking…",
     routeLoadingHint: "Getting the map and live tracking ready.",

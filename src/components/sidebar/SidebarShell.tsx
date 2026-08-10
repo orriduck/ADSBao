@@ -1,6 +1,5 @@
 import type React from "react";
-import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { Home, LogIn, Map } from "lucide-react";
+import { Home, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -12,7 +11,6 @@ import {
 import { SidebarScrollContext } from "./SidebarScrollContext";
 import {
   Toolbar,
-  ToolbarAccountSlot,
   ToolbarButton,
   ToolbarSeparator,
   toolbarButtonVariants,
@@ -66,10 +64,8 @@ export default function SidebarShell({
     cycleTheme,
     selectTheme,
   } = useThemePreference();
-  const { isLoaded, isSignedIn } = useUser();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
-  const showSignedIn = isLoaded && isSignedIn;
   const {
     shellRef,
     brandCompact,
@@ -152,28 +148,6 @@ export default function SidebarShell({
                     menuPlacement="bottom"
                     menuAlign="center"
                   />
-                  {!isLoaded ? (
-                    <ToolbarAccountSlot aria-hidden="true" />
-                  ) : showSignedIn ? (
-                    <ToolbarAccountSlot aria-label={t("auth.account")}>
-                      <UserButton
-                        appearance={{
-                          elements: {
-                            avatarBox: "h-7 w-7 rounded-[2px]",
-                          },
-                        }}
-                      />
-                    </ToolbarAccountSlot>
-                  ) : (
-                    <SignInButton mode="modal">
-                      <ToolbarButton
-                        title={t("auth.signIn")}
-                        aria-label={t("auth.signIn")}
-                      >
-                        <LogIn aria-hidden="true" />
-                      </ToolbarButton>
-                    </SignInButton>
-                  )}
                 </Toolbar>
               )}
             </div>

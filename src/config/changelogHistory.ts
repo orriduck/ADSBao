@@ -189,19 +189,6 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
     highlights: [],
   },
   {
-    version: "v3.4.3",
-    kind: "feat",
-    title: {
-      en: "Onboard mode",
-      zh: "机上模式",
-    },
-    summary: {
-      en: "Flight tracking now persists after the page closes, with a clear stop control.",
-      zh: "航班追踪在关闭页面后仍会持续，并提供明确的停止控制。",
-    },
-    highlights: [],
-  },
-  {
     version: "v3.3.8",
     kind: "feat",
     title: {

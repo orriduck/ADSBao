@@ -197,7 +197,7 @@
 }
 
 /* Page-shell entrance — compositor-driven so it can't be starved into a crawl
-   by a busy boot thread (Clerk, map, data hydration). opacity + transform
+   by a busy boot thread (map and data hydration). opacity + transform
    animate off the main thread; usePageEntrance only adds/removes these classes
    and sets per-item animation-delay for the stagger. Content is NOT hidden
    ahead of time — it paints as soon as React commits and fades in from there,
@@ -2360,25 +2360,6 @@ body:has(.dither-page-shell) {
     transition:
         opacity 160ms ease,
         transform 160ms ease;
-}
-
-.adsb-loading-overlay__onboard-status {
-    background: color-mix(in oklab, var(--atc-control-surface) 90%, transparent);
-    border: 1px solid var(--app-frost-border);
-    box-shadow: var(--atc-control-inset-shadow);
-    display: flex;
-    -webkit-backdrop-filter: var(--app-frost);
-    backdrop-filter: var(--app-frost);
-}
-
-.adsb-loading-overlay--onboard .adsb-loading-overlay__label {
-    display: none;
-}
-
-@media (max-width: 767px) {
-    .adsb-loading-overlay--onboard .adsb-loading-overlay__onboard-status {
-        margin-bottom: var(--map-toolbar-mobile-clearance);
-    }
 }
 
 .adsb-loading-overlay.is-exiting .adsb-loading-overlay__label {

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 
 import {
-  DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
   MAP_MODE_IDS,
   buildCustomMapSettings,
@@ -12,11 +11,8 @@ import {
   normalizeMapSettings,
   normalizeMapSettingsDevice,
   resolveMapSettingsDeviceForClientDeviceProfile,
-  resolveMapSettingsHydrationCommit,
-  resolveMapSettingsHydration,
-  resolveMapSettingsPersistenceTargets,
+  resolveStoredMapSettings,
   serializeMapSettingsPersistenceSignature,
-  shouldCommitMapSettingsHydration,
 } from "./mapSettingsModel";
 
 {
@@ -25,34 +21,6 @@ import {
   assert.equal(normalizeMapSettingsDevice("tablet"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("mobile"), "desktop");
   assert.equal(getAlternateMapSettingsDevice("desktop"), "mobile");
-}
-
-{
-  assert.equal(
-    shouldCommitMapSettingsHydration({
-      requestVersion: 4,
-      currentVersion: 4,
-    }),
-    true,
-    "an unchanged settings request may hydrate its response",
-  );
-  assert.equal(
-    shouldCommitMapSettingsHydration({
-      requestVersion: 4,
-      currentVersion: 5,
-    }),
-    false,
-    "a late account response must not overwrite a setting selected after the request started",
-  );
-  assert.equal(
-    shouldCommitMapSettingsHydration({
-      requestVersion: 5,
-      currentVersion: 5,
-      hasUserMutation: true,
-    }),
-    false,
-    "an account request that starts after a user choice must not overwrite that choice either",
-  );
 }
 
 {
@@ -92,7 +60,7 @@ import {
 
   assert.equal(settings.selectedMode, "spotting");
   assert.equal(settings.baseMode, MAP_MODE_IDS.CUSTOM);
-  // With no preset, layers come from defaults + overrides
+  // Explicit stored overrides preserve a prior local setup.
   assert.deepEqual(mapSettingsToExplorerLayers(settings), {
     showMapLabels: true,
     showRunwayBeams: false,
@@ -186,7 +154,7 @@ import {
     [MAP_LAYER_KEYS.REPORTING_POINTS]: true,
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
-    [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: true,
+    [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: false,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
   });
 }
@@ -201,156 +169,38 @@ import {
   assert.deepEqual(
     mapSettingsToExplorerLayers(normalized),
     {
-      showMapLabels: true,
-      showRunwayBeams: false,
+      showMapLabels: false,
+      showRunwayBeams: true,
       showNavaidMarkers: false,
       showReportingPoints: false,
       showAirspaces: false,
-      showCandidateWatchingSpots: false,
-      showCallsigns: true,
+      showCandidateWatchingSpots: true,
+      showCallsigns: false,
     },
   );
 }
 
 {
-  const hydrated = resolveMapSettingsHydration({
-    signedIn: true,
-    userSettings: {
-      selectedMode: MAP_MODE_IDS.RADIO,
-      baseMode: MAP_MODE_IDS.RADIO,
-      hasSelectedMode: true,
-    },
-    cachedSettings: {
-      selectedMode: "immersive",
-      baseMode: "immersive",
-      hasSelectedMode: true,
+  const stored = resolveStoredMapSettings({
+    selectedMode: MAP_MODE_IDS.CUSTOM,
+    layerOverrides: {
+      [MAP_LAYER_KEYS.AIRSPACES]: true,
     },
   });
+  assert.equal(stored.source, "local");
+  assert.equal(stored.settings.layerOverrides[MAP_LAYER_KEYS.AIRSPACES], true);
 
-  assert.equal(
-    hydrated.source,
-    "user",
-    "signed-in hydration should prefer the account-backed settings",
-  );
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.RADIO);
-}
-
-{
-  const hydrated = resolveMapSettingsHydration({
-    signedIn: true,
-    userSettings: null,
-    cachedSettings: {
-      selectedMode: "immersive",
-      baseMode: "immersive",
-      hasSelectedMode: true,
-    },
+  const defaults = resolveStoredMapSettings();
+  assert.equal(defaults.source, "default");
+  assert.deepEqual(mapSettingsToExplorerLayers(defaults.settings), {
+    showMapLabels: false,
+    showRunwayBeams: true,
+    showNavaidMarkers: false,
+    showReportingPoints: false,
+    showAirspaces: false,
+    showCandidateWatchingSpots: true,
+    showCallsigns: false,
   });
-
-  assert.equal(
-    hydrated.source,
-    "empty",
-    "signed-in hydration must never fall back to a browser cache",
-  );
-  assert.equal(hydrated.settings, null);
-}
-
-{
-  const hydrated = resolveMapSettingsHydration({
-    signedIn: false,
-    userSettings: {
-      selectedMode: MAP_MODE_IDS.RADIO,
-      baseMode: MAP_MODE_IDS.RADIO,
-      hasSelectedMode: true,
-    },
-    cachedSettings: {
-      selectedMode: MAP_MODE_IDS.CUSTOM,
-      baseMode: MAP_MODE_IDS.CUSTOM,
-      hasSelectedMode: true,
-    },
-  });
-
-  assert.equal(hydrated.source, "cache");
-  assert.equal(hydrated.settings.selectedMode, MAP_MODE_IDS.CUSTOM);
-}
-
-{
-  assert.deepEqual(
-    resolveMapSettingsPersistenceTargets({
-      authLoaded: false,
-      signedIn: false,
-    }),
-    {
-      readCache: false,
-      readDatabase: false,
-      writeCache: false,
-      writeDatabase: false,
-    },
-    "settings must wait for the account state before choosing a storage boundary",
-  );
-  assert.deepEqual(
-    resolveMapSettingsPersistenceTargets({
-      authLoaded: true,
-      signedIn: true,
-    }),
-    {
-      readCache: false,
-      readDatabase: true,
-      writeCache: false,
-      writeDatabase: true,
-    },
-    "signed-in settings should use both cache and database",
-  );
-  assert.deepEqual(
-    resolveMapSettingsPersistenceTargets({
-      authLoaded: true,
-      signedIn: false,
-    }),
-    {
-      readCache: true,
-      readDatabase: false,
-      writeCache: true,
-      writeDatabase: false,
-    },
-    "guest settings should only use the local cache",
-  );
-}
-
-{
-  const pending = resolveMapSettingsHydrationCommit({
-    pendingSettings: {
-      selectedMode: MAP_MODE_IDS.RADIO,
-      baseMode: MAP_MODE_IDS.RADIO,
-      hasSelectedMode: true,
-    },
-    currentSettings: DEFAULT_MAP_SETTINGS,
-  });
-
-  assert.equal(
-    pending.pending,
-    true,
-    "settings persistence should pause while cache hydration is still pending in state",
-  );
-  assert.equal(pending.committed, false);
-
-  const committed = resolveMapSettingsHydrationCommit({
-    pendingSettings: {
-      selectedMode: MAP_MODE_IDS.RADIO,
-      baseMode: MAP_MODE_IDS.RADIO,
-      hasSelectedMode: true,
-    },
-    currentSettings: {
-      selectedMode: MAP_MODE_IDS.RADIO,
-      baseMode: MAP_MODE_IDS.RADIO,
-      hasSelectedMode: true,
-    },
-  });
-
-  assert.equal(committed.pending, false);
-  assert.equal(
-    committed.committed,
-    true,
-    "settings hydration should commit once state matches the pending settings",
-  );
 }
 
 {

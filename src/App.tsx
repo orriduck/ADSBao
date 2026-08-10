@@ -5,7 +5,6 @@ import {
   Routes,
   useLocation,
   useParams,
-  useSearchParams,
 } from "react-router-dom";
 import { Plane } from "lucide-react";
 import { MapLoadingFallback } from "@/components/map/MapLoadingOverlay";
@@ -15,7 +14,6 @@ import {
   SidebarLoadingHeader,
 } from "@/components/sidebar/SidebarLoadingSkeleton";
 import { normalizeCallsign } from "@/utils/callsign";
-import { isOnboardMode } from "@/features/aircraft/onboard/onboardModeModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const DitherPageShell = lazy(() => import("@/components/app-shell/DitherPageShell"));
@@ -29,14 +27,7 @@ const ignoreRouteLoadingNavigation = () => undefined;
 
 function FlightRoute() {
   const { callsign = "" } = useParams();
-  const [searchParams] = useSearchParams();
-  const onboardMode = isOnboardMode(searchParams.get("mode"));
-  return (
-    <FlightScreen
-      callsign={normalizeCallsign(callsign)}
-      onboardMode={onboardMode}
-    />
-  );
+  return <FlightScreen callsign={normalizeCallsign(callsign)} />;
 }
 
 type RouteErrorBoundaryProps = {

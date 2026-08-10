@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
-import { SignInButton, UserButton, useUser } from "@/platform/auth/clerkClient";
-import { GitBranch, History, Home, Info, LogIn } from "lucide-react";
+import { GitBranch, History, Home, Info } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import { buildPageNavigationHref } from "@/features/app-shell/navigationModel";
@@ -10,7 +9,6 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThemePreference } from "@/features/app-shell/useThemePreference";
 import {
   Toolbar,
-  ToolbarAccountSlot,
   ToolbarButton,
   ToolbarSeparator,
   toolbarButtonVariants,
@@ -47,8 +45,6 @@ export default function PageNavigationDock() {
     cycleTheme,
     selectTheme,
   } = useThemePreference();
-  const { isLoaded, isSignedIn } = useUser();
-  const showSignedIn = isLoaded && isSignedIn;
   // Mobile pins the dock to the bottom of the viewport, so the language
   // and theme menus need to flip upward to stay on-screen. Desktop keeps
   // the dock at the top and opens menus downward as before.
@@ -116,25 +112,6 @@ export default function PageNavigationDock() {
           menuAlign="right"
         />
 
-        {!isLoaded ? (
-          <ToolbarAccountSlot aria-hidden="true" />
-        ) : showSignedIn ? (
-          <ToolbarAccountSlot aria-label={t("auth.account")}>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-7 w-7 rounded-[2px]",
-                },
-              }}
-            />
-          </ToolbarAccountSlot>
-        ) : (
-          <SignInButton mode="modal">
-            <ToolbarButton tone="rail" title={t("auth.signIn")} aria-label={t("auth.signIn")}>
-              <LogIn aria-hidden="true" />
-            </ToolbarButton>
-          </SignInButton>
-        )}
       </Toolbar>
     </nav>
   );

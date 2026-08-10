@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useAuth, useUser } from "@/platform/auth/clerkClient";
 import { AIRPORT_EXPLORER_UI_CONFIG } from "@/config/aviation";
 import {
   resolveClientDeviceLayoutProfile,
@@ -27,7 +26,6 @@ import { normalizeAltitudeLevelSelection } from "@/features/aircraft/filters/air
 import {
   DEFAULT_MAP_SETTINGS,
   MAP_LAYER_KEYS,
-  PRE_HYDRATION_VISUAL_LAYERS,
   buildCustomMapSettings,
   buildMapSettingsWithBaseLayer,
   isKnownMapBaseLayer,
@@ -35,11 +33,8 @@ import {
   mapSettingsToUserLocationPreferences,
   normalizeMapSettings,
   resolveMapSettingsDeviceForClientDeviceProfile,
-  resolveMapSettingsHydrationCommit,
-  resolveMapSettingsHydration,
-  resolveMapSettingsPersistenceTargets,
   serializeMapSettingsPersistenceSignature,
-  shouldCommitMapSettingsHydration,
+  resolveStoredMapSettings,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   readStoredMapSettings,
@@ -58,12 +53,7 @@ const DEFAULT_USER_LOCATION_PREFERENCES =
 
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
-  // Pre-hydration visual defaults — map labels and overlays are OFF
-  // until saved/cached settings are applied. This prevents the
-  // ON→OFF flicker when the user's saved settings (or the mode
-  // preset) turn out to differ from the DEFAULT_MAP_SETTINGS
-  // Controller preset.
-  ...PRE_HYDRATION_VISUAL_LAYERS,
+  ...mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS),
   ...DEFAULT_USER_LOCATION_PREFERENCES,
   mapSettings: DEFAULT_MAP_SETTINGS,
   sidebarMode: "desktop",
@@ -471,17 +461,7 @@ function airportExplorerUiReducer(state, action) {
 }
 
 export function ExplorerUiProvider({ children }) {
-  const { isLoaded, isSignedIn } = useUser();
-  const { getToken } = useAuth();
-  const hasHydratedMapSettingsRef = useRef(false);
-  const pendingMapSettingsHydrationRef = useRef(null);
-  const pendingAccountMapSettingsHydrationRef = useRef(false);
-  const persistedMapSettingsSignatureRef = useRef("");
-  const mapSettingsMutationVersionRef = useRef(0);
-  const hasUserMutatedMapSettingsRef = useRef(false);
   const [mapSettingsHydrated, setMapSettingsHydrated] = useState(false);
-  const [accountMapSettingsHydrated, setAccountMapSettingsHydrated] =
-    useState(false);
   const [mapSettingsSaveStatus, setMapSettingsSaveStatus] = useState("idle");
   const [mapSettingsSaveCycle, setMapSettingsSaveCycle] = useState(0);
   const clientDeviceProfile = useClientDeviceProfile({
@@ -537,28 +517,13 @@ export function ExplorerUiProvider({ children }) {
   const isMobile = clientDeviceLayout.isMobileLayout;
   const mapSettingsDevice =
     resolveMapSettingsDeviceForClientDeviceProfile(clientDeviceProfile);
-  const queueMapSettingsHydration = useCallback(
-    (settings, options: { accountHydration?: boolean } = {}) => {
-      const normalizedSettings = normalizeMapSettings(settings);
-      pendingMapSettingsHydrationRef.current = normalizedSettings;
-      pendingAccountMapSettingsHydrationRef.current =
-        options?.accountHydration === true;
-      if (options?.accountHydration !== true) {
-        setAccountMapSettingsHydrated(false);
-      }
-      hasHydratedMapSettingsRef.current = false;
-      setMapSettingsHydrated(false);
-      dispatch({
-        type: "hydrateMapSettings",
-        settings: normalizedSettings,
-      });
-    },
-    [],
-  );
-  const buildClerkAuthHeaders = useCallback(async () => {
-    const token = await getToken?.().catch(() => "");
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }, [getToken]);
+  const hydrateLocalMapSettings = useCallback((settings) => {
+    setMapSettingsHydrated(false);
+    dispatch({
+      type: "hydrateMapSettings",
+      settings: normalizeMapSettings(settings),
+    });
+  }, []);
 
   useEffect(() => {
     dispatch({
@@ -591,128 +556,17 @@ export function ExplorerUiProvider({ children }) {
   ]);
 
   useEffect(() => {
-    if (!isLoaded) return undefined;
     setMapSettingsSaveStatus("idle");
-    const targets = resolveMapSettingsPersistenceTargets({
-      authLoaded: isLoaded,
-      signedIn: isSignedIn,
-    });
-    if (!targets.readCache) return undefined;
-    const cachedSettings = readStoredMapSettings(mapSettingsDevice);
-    const hydratedSettings = resolveMapSettingsHydration({
-      signedIn: false,
-      userSettings: null,
-      cachedSettings,
-    });
-
-    if (hydratedSettings.settings) {
-      queueMapSettingsHydration(hydratedSettings.settings);
-      return;
-    }
-
-    const effectiveSettings = hydratedSettings.settings
-      ? hydratedSettings.settings
-      : normalizeMapSettings(DEFAULT_MAP_SETTINGS);
-    persistedMapSettingsSignatureRef.current =
-      serializeMapSettingsPersistenceSignature(effectiveSettings);
-    hasHydratedMapSettingsRef.current = true;
-    setMapSettingsHydrated(true);
+    const storedSettings = resolveStoredMapSettings(
+      readStoredMapSettings(mapSettingsDevice),
+    );
+    hydrateLocalMapSettings(storedSettings.settings);
   }, [
-    isLoaded,
-    isSignedIn,
     mapSettingsDevice,
-    queueMapSettingsHydration,
+    hydrateLocalMapSettings,
   ]);
 
   useEffect(() => {
-    if (!isLoaded) return undefined;
-    const targets = resolveMapSettingsPersistenceTargets({
-      authLoaded: isLoaded,
-      signedIn: isSignedIn,
-    });
-    if (!targets.readDatabase) {
-      setAccountMapSettingsHydrated(false);
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    const hydrateUserMapSettings = async () => {
-      const requestVersion = mapSettingsMutationVersionRef.current;
-      hasHydratedMapSettingsRef.current = false;
-      setAccountMapSettingsHydrated(false);
-      setMapSettingsSaveStatus("idle");
-      let userSettings = null;
-
-      try {
-        const response = await fetch(`/api/map-settings?device=${mapSettingsDevice}`, {
-          cache: "no-store",
-          headers: await buildClerkAuthHeaders(),
-        });
-        if (response.ok) {
-          const payload = await response.json();
-          userSettings = payload?.settings
-            ? normalizeMapSettings(payload.settings)
-            : null;
-        }
-      } catch {
-        userSettings = null;
-      }
-
-      if (cancelled) return;
-      if (!shouldCommitMapSettingsHydration({
-        requestVersion,
-        currentVersion: mapSettingsMutationVersionRef.current,
-        hasUserMutation: hasUserMutatedMapSettingsRef.current,
-      })) {
-        hasHydratedMapSettingsRef.current = true;
-        setMapSettingsHydrated(true);
-        setAccountMapSettingsHydrated(true);
-        return;
-      }
-      const hydratedSettings = resolveMapSettingsHydration({
-        signedIn: true,
-        userSettings,
-        cachedSettings: null,
-      });
-      if (hydratedSettings.settings) {
-        queueMapSettingsHydration(hydratedSettings.settings, {
-          accountHydration: true,
-        });
-        return;
-      }
-
-      queueMapSettingsHydration(DEFAULT_MAP_SETTINGS, {
-        accountHydration: true,
-      });
-    };
-
-    hydrateUserMapSettings();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    isLoaded,
-    isSignedIn,
-    buildClerkAuthHeaders,
-    mapSettingsDevice,
-    queueMapSettingsHydration,
-  ]);
-
-  useEffect(() => {
-    const hydrationCommit = resolveMapSettingsHydrationCommit({
-      pendingSettings: pendingMapSettingsHydrationRef.current,
-      currentSettings: mapSettings,
-    });
-    if (!hydrationCommit.committed) return;
-    const accountHydrationCommitted =
-      pendingAccountMapSettingsHydrationRef.current;
-    pendingMapSettingsHydrationRef.current = null;
-    pendingAccountMapSettingsHydrationRef.current = false;
-    persistedMapSettingsSignatureRef.current = hydrationCommit.serialized;
-    hasHydratedMapSettingsRef.current = true;
-    if (accountHydrationCommitted) setAccountMapSettingsHydrated(true);
     setMapSettingsHydrated(true);
   }, [mapSettings]);
 
@@ -736,126 +590,65 @@ export function ExplorerUiProvider({ children }) {
     dispatch({ type: "setMapZoom", mapZoom });
   }, []);
 
-  const recordMapSettingsMutation = useCallback(() => {
-    mapSettingsMutationVersionRef.current += 1;
-    hasUserMutatedMapSettingsRef.current = true;
-  }, []);
-
   const saveMapSettings = useCallback(
     async (settings) => {
-      if (!isLoaded) return false;
       const nextSettings = normalizeMapSettings(settings);
-      const previousSettings = mapSettings;
       const nextSignature =
         serializeMapSettingsPersistenceSignature(nextSettings);
       const previousSignature =
-        serializeMapSettingsPersistenceSignature(previousSettings);
+        serializeMapSettingsPersistenceSignature(mapSettings);
       if (nextSignature === previousSignature) return true;
 
-      const targets = resolveMapSettingsPersistenceTargets({
-        authLoaded: isLoaded,
-        signedIn: isSignedIn,
-      });
-      if (!targets.writeCache && !targets.writeDatabase) return false;
-
-      recordMapSettingsMutation();
       dispatch({ type: "hydrateMapSettings", settings: nextSettings });
       setMapSettingsSaveStatus("saving");
       setMapSettingsSaveCycle((cycle) => cycle + 1);
-
-      if (targets.writeCache) {
-        writeStoredMapSettings(nextSettings, mapSettingsDevice);
-        persistedMapSettingsSignatureRef.current = nextSignature;
-        setMapSettingsSaveStatus("saved");
-        return true;
-      }
-
-      try {
-        const response = await fetch("/api/map-settings", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...(await buildClerkAuthHeaders()),
-          },
-          body: JSON.stringify({ settings: nextSettings, device: mapSettingsDevice }),
-        });
-        if (!response.ok) throw new Error("save failed");
-        const payload = await response.json();
-        const savedSettings = payload?.settings
-          ? normalizeMapSettings(payload.settings)
-          : nextSettings;
-        persistedMapSettingsSignatureRef.current =
-          serializeMapSettingsPersistenceSignature(savedSettings);
-        dispatch({ type: "hydrateMapSettings", settings: savedSettings });
-        setMapSettingsSaveStatus("saved");
-        return true;
-      } catch {
-        // A signed-in setting is only effective after its database write
-        // succeeds. Restore the prior account-backed value on failure.
-        dispatch({ type: "hydrateMapSettings", settings: previousSettings });
-        setMapSettingsSaveStatus("error");
-        return false;
-      }
+      writeStoredMapSettings(nextSettings, mapSettingsDevice);
+      setMapSettingsSaveStatus("saved");
+      return true;
     },
-    [
-      buildClerkAuthHeaders,
-      isLoaded,
-      isSignedIn,
-      mapSettings,
-      mapSettingsDevice,
-      recordMapSettingsMutation,
-    ],
+    [mapSettings, mapSettingsDevice],
   );
 
   const toggleMapLabels = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleMapLabels" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleRunwayBeams = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleRunwayBeams" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleNavaidMarkers = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleNavaidMarkers" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleReportingPoints = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleReportingPoints" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleAirspaces = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleAirspaces" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleCandidateWatchingSpots = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleCandidateWatchingSpots" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const toggleShowCallsigns = useCallback(() => {
-    recordMapSettingsMutation();
     dispatch({ type: "toggleShowCallsigns" });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const setMapBaseLayer = useCallback((baseLayer) => {
-    recordMapSettingsMutation();
     dispatch({ type: "setMapBaseLayer", baseLayer });
-  }, [recordMapSettingsMutation]);
+  }, []);
 
   const setUserLocationPreferences = useCallback(
     ({ userLocationEnabled }) => {
-      recordMapSettingsMutation();
       dispatch({
         type: "setUserLocationPreferences",
         userLocationEnabled,
       });
     },
-    [recordMapSettingsMutation],
+    [],
   );
 
   const setTrafficFilter = useCallback((trafficFilter) => {
@@ -936,10 +729,7 @@ export function ExplorerUiProvider({ children }) {
 
   const fitToTraceSignal = state.fitToTraceSignal;
   const mapFollowsAircraft = state.mapFollowsAircraft;
-  const mapSettingsReadyForUserLocation =
-    mapSettingsHydrated &&
-    isLoaded &&
-    (isSignedIn ? accountMapSettingsHydrated : true);
+  const mapSettingsReadyForUserLocation = mapSettingsHydrated;
   const value = useMemo(
     () => ({
       desktopSidebarWidth: AIRPORT_EXPLORER_UI_CONFIG.desktopSidebarWidth,

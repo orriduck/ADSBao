@@ -29,12 +29,6 @@ const zhCN = {
     mechanism: "机制与架构",
     changelog: "更新日志",
   },
-  auth: {
-    account: "账户",
-    signIn: "登录",
-    signUp: "注册",
-    signedIn: "已登录",
-  },
   about: {
     meta: {
       version: "版本",
@@ -511,24 +505,6 @@ const zhCN = {
     lastUpdated: "最后更新 {time}",
     relocate: "重新定位",
   },
-  onboard: {
-    promptTitle: "今天要坐飞机吗？",
-    promptDescription: "你好像已经到达 {airport}。输入航班 callsign，ADSBao 会一直等它上线。",
-    dismiss: "关闭航班询问",
-    callsignLabel: "航班 callsign",
-    callsignPlaceholder: "例如 DAL58",
-    invalidCallsign: "请输入有效的 callsign（2–8 个字母或数字）。",
-    noFlight: "今天不坐",
-    trackFlight: "追踪我的航班",
-    modeLabel: "机上模式",
-    progressAria: "航班进度：{percent}%",
-    phase: {
-      boarding: "等待登机",
-      ground: "机场地面",
-      airborne: "飞行中",
-      arrived: "已到达",
-    },
-  },
   search: {
     placeholder: "搜索机场、城市或航班 callsign",
     enter: "回车",
@@ -631,9 +607,6 @@ const zhCN = {
     loadingTrackedAircraftAria: "正在加载航迹追踪数据",
     loadingAircraftLabel: "正在加载飞机…",
     loadingTrackedAircraftLabel: "正在获取 {callsign} 信号…",
-    loadingOnboardFlightLabel: "正在等待 {callsign} 上线…",
-    onboardWaitingEyebrow: "机上追踪",
-    onboardWaitingHint: "信号出现后将自动开始追踪。",
     routeLoadingEyebrow: "航班追踪",
     routeLoadingTitle: "正在打开航班追踪…",
     routeLoadingHint: "正在准备地图和实时追踪。",

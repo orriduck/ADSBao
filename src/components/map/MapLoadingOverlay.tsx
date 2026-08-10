@@ -23,7 +23,6 @@ export function useMapLoadingOverlayText({
   reason = "",
   variant = "airport",
   callsign = "",
-  onboardMode = false,
 }: Record<string, any> = {}): Record<string, any> {
   const { t } = useI18n();
   const isFlight = variant === "flight";
@@ -40,9 +39,7 @@ export function useMapLoadingOverlayText({
   }
 
   const loadingLabel = isFlight
-    ? onboardMode
-      ? t("map.loadingOnboardFlightLabel", { callsign })
-      : t("map.loadingTrackedAircraftLabel", { callsign })
+    ? t("map.loadingTrackedAircraftLabel", { callsign })
     : t("map.loadingAircraftLabel");
 
   if (mode === "map") {
@@ -50,7 +47,6 @@ export function useMapLoadingOverlayText({
       mode,
       ariaLabel: t("map.loadingMapAria"),
       loadingLabel,
-      onboardMode: isFlight && onboardMode,
     };
   }
 
@@ -60,7 +56,6 @@ export function useMapLoadingOverlayText({
       ? t("map.loadingTrackedAircraftAria")
       : t("map.loadingAircraftAria"),
     loadingLabel,
-    onboardMode: isFlight && onboardMode,
   };
 }
 
@@ -88,7 +83,6 @@ export default function MapLoadingOverlay({
   subtext = "",
   loadingLabel = "",
   terminalReason = "",
-  onboardMode = false,
 }: Record<string, any>) {
   // A mounted-but-idle overlay must not paint once before its dismissal
   // effect: that is the flight-page loading flash after a focal position is
@@ -202,7 +196,7 @@ export default function MapLoadingOverlay({
     <div
       className={`adsb-loading-overlay adsb-loading-overlay--${variant} ${
         exiting ? "is-exiting" : ""
-      } ${onboardMode ? "adsb-loading-overlay--onboard" : ""}`}
+      }`}
       aria-label={ariaLabel}
       aria-hidden={!visible}
       onAnimationEnd={(event) => {
@@ -232,24 +226,6 @@ export default function MapLoadingOverlay({
               <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
                 <span>{loadingLabel}</span>
               </div>
-              {onboardMode ? (
-                <div className="adsb-loading-overlay__onboard-status relative z-[1] max-w-[min(286px,calc(100vw-48px))] flex-col gap-2 rounded-[var(--atc-radius-card)] px-4 py-3 text-left">
-                  <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atc-dim">
-                    <Plane className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{t("map.onboardWaitingEyebrow")}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[14px] font-medium leading-snug text-atc-text">
-                    <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-atc-accent"
-                      aria-hidden="true"
-                    />
-                    <span>{loadingLabel}</span>
-                  </div>
-                  <div className="text-[11px] leading-snug text-atc-dim">
-                    {t("map.onboardWaitingHint")}
-                  </div>
-                </div>
-              ) : null}
             </>
           ) : null}
         </>

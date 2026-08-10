@@ -84,27 +84,16 @@ export function getMapBaseLayerOptions() {
 export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   selectedMode: MAP_MODE_IDS.CUSTOM,
   baseMode: MAP_MODE_IDS.CUSTOM,
-  layerOverrides: Object.freeze({}),
+  layerOverrides: Object.freeze({
+    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
+    [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
+    [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: false,
+  }),
   baseLayer: DEFAULT_MAP_BASE_LAYER,
   audioEnabled: false,
   hasSelectedMode: false,
   updatedAt: "",
-});
-
-// Pre-hydration visual defaults — what the map renders before
-// Clerk / map-settings hydration completes. Labels are OFF and
-// other overlays are minimised to reduce visual noise and avoid
-// ON→OFF flicker when saved settings turn out to differ.
-// Once mapSettingsHydrated flips to true, the real saved/cached
-// settings replace these temporarily-safe visual fallbacks.
-export const PRE_HYDRATION_VISUAL_LAYERS = Object.freeze({
-  showMapLabels: false,
-  showRunwayBeams: false,
-  showNavaidMarkers: false,
-  showReportingPoints: false,
-  showAirspaces: false,
-  showCandidateWatchingSpots: false,
-  showCallsigns: false,
 });
 
 const MAP_SETTINGS_DEVICE_TYPES = Object.freeze({
@@ -188,7 +177,9 @@ export function normalizeMapSettings(
   return {
     selectedMode,
     baseMode,
-    layerOverrides: normalizeMapLayerOverrides(settings?.layerOverrides),
+    layerOverrides: normalizeMapLayerOverrides(
+      settings?.layerOverrides ?? DEFAULT_MAP_SETTINGS.layerOverrides,
+    ),
     baseLayer: normalizeMapBaseLayer(settings?.baseLayer ?? settings?.base_layer),
     audioEnabled: settings?.audioEnabled === true,
     hasSelectedMode:
@@ -205,76 +196,14 @@ export function serializeMapSettingsPersistenceSignature(
   return JSON.stringify(semanticSettings);
 }
 
-export function resolveMapSettingsHydration({
-  signedIn = false,
-  userSettings = null,
-  cachedSettings = null,
-}: MapSettingsOptions = {}) {
-  const normalizedUserSettings = userSettings
-    ? normalizeMapSettings(userSettings)
-    : null;
+export function resolveStoredMapSettings(cachedSettings: unknown = null) {
   const normalizedCachedSettings = cachedSettings
     ? normalizeMapSettings(cachedSettings)
     : null;
-
-  if (signedIn && normalizedUserSettings) {
-    return { source: "user", settings: normalizedUserSettings };
-  }
-  if (!signedIn && normalizedCachedSettings) {
-    return { source: "cache", settings: normalizedCachedSettings };
-  }
-  return { source: "empty", settings: null };
-}
-
-export function resolveMapSettingsPersistenceTargets({
-  authLoaded = false,
-  signedIn = false,
-}: MapSettingsOptions = {}) {
-  if (authLoaded !== true) {
-    return {
-      readCache: false,
-      readDatabase: false,
-      writeCache: false,
-      writeDatabase: false,
-    };
-  }
-  const hasSignedInUser = signedIn === true;
   return {
-    readCache: !hasSignedInUser,
-    readDatabase: hasSignedInUser,
-    writeCache: !hasSignedInUser,
-    writeDatabase: hasSignedInUser,
+    source: normalizedCachedSettings ? "local" : "default",
+    settings: normalizedCachedSettings || normalizeMapSettings(DEFAULT_MAP_SETTINGS),
   };
-}
-
-export function resolveMapSettingsHydrationCommit({
-  pendingSettings = null,
-  currentSettings = DEFAULT_MAP_SETTINGS,
-}: MapSettingsOptions = {}) {
-  if (!pendingSettings) {
-    return { pending: false, committed: false, serialized: "" };
-  }
-
-  const pendingSerialized = JSON.stringify(normalizeMapSettings(pendingSettings));
-  const currentSerialized = JSON.stringify(normalizeMapSettings(currentSettings));
-  const committed = pendingSerialized === currentSerialized;
-
-  return {
-    pending: !committed,
-    committed,
-    serialized: pendingSerialized,
-  };
-}
-
-// Account-backed settings hydrate asynchronously. If the user changes a
-// setting while that request is in flight, its older response must not replace
-// the newer in-memory choice.
-export function shouldCommitMapSettingsHydration({
-  requestVersion = 0,
-  currentVersion = 0,
-  hasUserMutation = false,
-}: MapSettingsOptions = {}) {
-  return hasUserMutation !== true && requestVersion === currentVersion;
 }
 
 function hasOwnSetting(settings: MapSettingsRecord, key: string) {

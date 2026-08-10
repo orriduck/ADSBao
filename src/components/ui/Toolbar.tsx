@@ -289,22 +289,4 @@ export const ToolbarButton = forwardRef(function ToolbarButton(
   );
 });
 
-// Account cell — same footprint as ToolbarButton but renders
-// arbitrary children (Clerk's <UserButton /> or a placeholder div
-// before Clerk boots).
-export function ToolbarAccountSlot({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      className={cn(
-        "flex-none inline-flex items-center justify-center size-[var(--atc-toolbar-cell-size)]",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
 export { toolbarButtonVariants };

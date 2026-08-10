@@ -3,7 +3,6 @@ packages:
   - "services/*"
 
 allowBuilds:
-  '@clerk/shared': true
   '@sentry/cli': true
   esbuild: true
   sharp: true

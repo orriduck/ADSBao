@@ -139,7 +139,6 @@ export default function AirportMap({
   loadingOverlayActive = false,
   loadingOverlayVariant = "airport",
   loadingOverlayCallsign = "",
-  loadingOverlayOnboardMode = false,
   loadingOverlaySources = {},
   flightTerminalReason = "",
   userLocation = null,
@@ -753,7 +752,6 @@ export default function AirportMap({
     reason: loadingOverlayState.reason,
     variant: loadingOverlayVariant,
     callsign: loadingOverlayCallsign,
-    onboardMode: loadingOverlayOnboardMode,
   });
   const handleLoadingOverlayVisibleChange = useCallback((nextVisible, state) => {
     const next = {
