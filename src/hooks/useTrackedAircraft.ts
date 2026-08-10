@@ -5,6 +5,7 @@ import {
 import { shouldShowAircraftLoadingOverlay } from "../features/aircraft/positions/aircraftLoadingOverlayModel";
 import { resolveTrackedAircraftStatusUpdatedDate } from "../features/aircraft/tracking/trackedAircraftStatusModel";
 import { shouldAcceptTrackedPositionFrame } from "../features/aircraft/tracking/freshTrackedFrameModel";
+import { fetchFreshTrackedAircraftPayload } from "../features/aircraft/tracking/freshTrackedAircraftRequest";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
 import { buildNearbyCallsignRequest } from "../lib/realtime/nearbySseRequests";
@@ -197,18 +198,11 @@ export function useTrackedAircraft(
   // only then may the ongoing SSE stream supply later fresh fixes.
   useEffect(() => {
     if (!normalizedCallsign) return undefined;
-    const controller = new AbortController();
+    let active = true;
     setFreshStartSettled(false);
-    void fetch(
-      `/api/proxy/aircraft/callsign/${encodeURIComponent(normalizedCallsign)}?fresh=1`,
-      { cache: "no-store", signal: controller.signal },
-    )
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
+    void fetchFreshTrackedAircraftPayload(normalizedCallsign)
       .then((payload) => {
-        if (controller.signal.aborted) return;
+        if (!active) return;
         applyTrackedPayload(payload, {
           source: typeof payload?.source === "string" ? payload.source : "live",
           fetchedAt: typeof payload?.fetchedAt === "string" ? payload.fetchedAt : "",
@@ -216,12 +210,14 @@ export function useTrackedAircraft(
         });
       })
       .catch((nextError) => {
-        if (!controller.signal.aborted) setError(nextError);
+        if (active) setError(nextError);
       })
       .finally(() => {
-        if (!controller.signal.aborted) setFreshStartSettled(true);
+        if (active) setFreshStartSettled(true);
       });
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, [applyTrackedPayload, normalizedCallsign]);
 
   useEffect(() => {

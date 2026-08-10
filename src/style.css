@@ -2335,6 +2335,27 @@ body:has(.dither-page-shell) {
     backdrop-filter: brightness(1) saturate(1);
 }
 
+/* Desktop explorer maps are full-bleed behind a floating sidebar. Centre the
+   flight loading/terminal copy in the unobstructed map area, matching the
+   offset-aware camera rather than the full viewport behind the sidebar. */
+@media (min-width: 768px) {
+    .airport-map-kit--sidebar-open:has(
+            .airport-desktop-sidebar:not([data-collapsed="true"])
+        )
+        .adsb-loading-overlay--flight {
+        padding-left: var(--app-sidebar-width);
+    }
+}
+
+.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"].airport-map-kit--sidebar-open:has(
+        .airport-desktop-sidebar:not([data-collapsed="true"])
+    )
+    .adsb-loading-overlay--flight {
+    padding-left: calc(
+        var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
+    );
+}
+
 .adsb-loading-overlay__label {
     transition:
         opacity 160ms ease,
