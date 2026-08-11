@@ -50,7 +50,7 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.11.8",
+    version: "v3.11.9",
     kind: "feat",
     title: {
       en: "Local map preferences",

@@ -25,15 +25,15 @@ export default function FlightRadar24Link({
   const prompt = t(subject === "airport" ? "sidebar.openThisAirportOn" : "sidebar.openThisAircraftOn");
 
   return (
-    <div className="flex h-10 w-full items-center justify-between gap-3 px-3 pt-3 text-atc-dim [background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-muted)_14px,var(--atc-control-surface-muted)_44%,color-mix(in_oklab,var(--atc-mint)_58%,var(--atc-control-surface-muted))_100%)]">
+    <div className="flex h-10 w-full items-center justify-between gap-3 pb-0 pl-3 pr-1 pt-3 text-atc-dim [background:linear-gradient(180deg,transparent_0,transparent_14px,var(--atc-control-surface-muted)_14px,var(--atc-control-surface-muted)_44%,color-mix(in_oklab,var(--atc-mint)_58%,var(--atc-control-surface-muted))_100%)]">
       <span className="min-w-0 truncate text-[calc(9px*var(--sb-body-scale))] font-semibold tracking-[0.01em]">{prompt}</span>
-      <span className="flex shrink-0 items-center gap-3">
+      <span className="flex shrink-0 items-center gap-1">
       {flightAwareDestination ? (
         <a
           href={flightAwareDestination}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-1 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-0.5 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={t("sidebar.openOnFlightAware", { identifier: label })}
         >
           <img
@@ -50,7 +50,7 @@ export default function FlightRadar24Link({
           href={flightRadarDestination}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-1 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-0.5 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
         >
           <span className="relative h-[18px] w-[75px] shrink-0">
