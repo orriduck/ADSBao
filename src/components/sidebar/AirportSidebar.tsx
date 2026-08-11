@@ -92,6 +92,7 @@ export default function AirportSidebar({
   const flightRadarFooter = flightRadarIcao ? (
     <FlightRadar24Link
       identifier={flightRadarIcao.toUpperCase()}
+      subject="airport"
       flightAwareHref={`https://www.flightaware.com/live/airport/${encodeURIComponent(flightRadarIcao.toUpperCase())}`}
       flightRadarHref={`https://www.flightradar24.com/airport/${encodeURIComponent(flightRadarIcao)}`}
     />

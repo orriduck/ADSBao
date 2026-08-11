@@ -282,6 +282,8 @@ const zhCN = {
     any: "不限",
     routed: "仅有航路",
     flightTelemetry: "飞行参数",
+    openThisAirportOn: "在以下网站打开此机场",
+    openThisAircraftOn: "在以下网站打开此飞机",
     openOnFlightAware: "在 FlightAware 查看 {identifier}",
     openOnFlightRadar24: "在 FlightRadar24 查看 {identifier}",
     airportViews: "视图",

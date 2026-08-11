@@ -288,6 +288,8 @@ const en = {
     any: "Any",
     routed: "Routed",
     flightTelemetry: "Flight telemetry",
+    openThisAirportOn: "Open this airport on",
+    openThisAircraftOn: "Open this aircraft on",
     openOnFlightAware: "Open {identifier} on FlightAware",
     openOnFlightRadar24: "Open {identifier} on FlightRadar24",
     airportViews: "Views",
