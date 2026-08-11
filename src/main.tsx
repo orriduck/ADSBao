@@ -1,3 +1,4 @@
+import { installNewRelicClickTracking } from "@/platform/observability/newRelicBrowser";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -56,6 +57,7 @@ if (!root) {
 const { initialTheme } = applyDocumentShell();
 startDocumentThemeColorSync();
 registerAdsbaoServiceWorker();
+installNewRelicClickTracking();
 
 createRoot(root).render(
   <React.StrictMode>
