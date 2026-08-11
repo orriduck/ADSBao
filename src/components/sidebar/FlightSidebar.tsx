@@ -100,7 +100,12 @@ export default function FlightSidebar({
         footer={
           <FlightRadar24Link
             identifier={flightRadarCallsign}
-            href={
+            flightAwareHref={
+              flightRadarCallsign
+                ? `https://www.flightaware.com/live/flight/${encodeURIComponent(flightRadarCallsign)}`
+                : ""
+            }
+            flightRadarHref={
               flightRadarCallsign
                 ? `https://www.flightradar24.com/${encodeURIComponent(flightRadarCallsign)}`
                 : ""
