@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.11.9",
+    version: "v3.11.10",
     kind: "feat",
     title: {
       en: "Local map preferences",
       zh: "本机地图偏好",
     },
     summary: {
-      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off. Route opening now uses the same full-screen animated aircraft, tower, and runway loading state as live tracking. Airport and flight footers now place a contextual prompt on the left and clickable FlightAware and Flightradar24 wordmarks on the right. At airport detail zoom, terminal footprints now come only from the basemap's building rendering instead of a duplicate colored Leaflet layer. Here metrics no longer inherit the airport-only linked-card wrapper, preventing the mobile card from being clipped or sized as though it had an empty footer. Here now keeps a completed sidebar visible while driving across nearby-data refresh cells, so the live map can update in the background without replaying the loading skeleton. Here alone now smoothly follows the device’s reported location; it eases only between real GPS fixes and never projects the phone ahead from speed or heading.",
-      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。路由打开时现与实时追踪共用同一套全屏飞机、塔台和跑道循环加载动画。机场与航班页脚现左侧显示对应提示，右侧显示可直接点击的 FlightAware 和 Flightradar24 字标。机场高倍率下的航站楼轮廓现仅由底图建筑渲染提供，不再叠加重复着色的 Leaflet 图层。Here 的指标卡不再继承仅供机场外链使用的拼接容器，避免移动端在空 footer 情况下被裁切或按错误高度呈现。Here 现在会在车辆跨过附近数据刷新格时保持已经完成的侧栏可见，地图与数据会在后台更新，不再反复播放加载骨架。Here 现会独立平滑跟随设备上报的位置：只在真实 GPS fix 之间缓动，绝不根据手机速度或航向向前推算。",
+      en: "ADSBao is now a direct map and flight-tracking experience without accounts. Map preferences stay on this device; new installations use the standard map with approach beams and aircraft-watching spots enabled, while airspace stays off. Route opening now uses the same full-screen animated aircraft, tower, and runway loading state as live tracking. Airport and flight footers now place a contextual prompt on the left and clickable FlightAware and Flightradar24 wordmarks on the right. The wordmarks are now plain marks with invisible hit areas rather than button chrome, sit closer together, and FlightAware has a black light-theme variant. At airport detail zoom, terminal footprints now come only from the basemap's building rendering instead of a duplicate colored Leaflet layer. Here metrics no longer inherit the airport-only linked-card wrapper, preventing the mobile card from being clipped or sized as though it had an empty footer. Here now keeps a completed sidebar visible while driving across nearby-data refresh cells, so the live map can update in the background without replaying the loading skeleton. Here alone now smoothly follows the device’s reported location; it eases only between real GPS fixes and never projects the phone ahead from speed or heading. The map-settings save action also keeps its text legible in light mode.",
+      zh: "ADSBao 现为不含账户的直接地图与航班追踪体验。地图偏好保存在本机；新安装默认使用标准地图，开启进近引导线和拍机点，空域保持关闭。路由打开时现与实时追踪共用同一套全屏飞机、塔台和跑道循环加载动画。机场与航班页脚现左侧显示对应提示，右侧显示可直接点击的 FlightAware 和 Flightradar24 字标。字标现不再带按钮外观，仅保留无形点击区；两者距离收紧，FlightAware 也补上亮色模式的黑字变体。机场高倍率下的航站楼轮廓现仅由底图建筑渲染提供，不再叠加重复着色的 Leaflet 图层。Here 的指标卡不再继承仅供机场外链使用的拼接容器，避免移动端在空 footer 情况下被裁切或按错误高度呈现。Here 现在会在车辆跨过附近数据刷新格时保持已经完成的侧栏可见，地图与数据会在后台更新，不再反复播放加载骨架。Here 现会独立平滑跟随设备上报的位置：只在真实 GPS fix 之间缓动，绝不根据手机速度或航向向前推算。地图设置的保存按钮在亮色模式下也会保持文字清晰。",
     },
     highlights: [],
   },

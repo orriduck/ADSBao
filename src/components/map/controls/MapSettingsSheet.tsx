@@ -767,7 +767,7 @@ export default function MapSettingsSheet({
             </button>
             <button
               type="button"
-              className="rounded-[var(--atc-radius-card)] bg-[var(--atc-accent)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-accent-foreground)] transition-opacity disabled:cursor-wait disabled:opacity-60"
+              className="rounded-[var(--atc-radius-card)] bg-[var(--atc-accent)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-click-fg)] transition-opacity disabled:cursor-wait disabled:opacity-60"
               disabled={saving || !onSaveMapSettings}
               onClick={saveDraft}
             >

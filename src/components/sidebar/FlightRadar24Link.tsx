@@ -33,14 +33,14 @@ export default function FlightRadar24Link({
           href={flightAwareDestination}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-0.5 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="relative flex h-6 shrink-0 items-center text-atc-dim before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={t("sidebar.openOnFlightAware", { identifier: label })}
         >
           <img
             src={FLIGHTAWARE_LOGO_URL}
             alt=""
             aria-hidden="true"
-            className="h-[15px] w-[55px] object-contain dark:brightness-0 dark:invert"
+            className="h-[15px] w-[42px] object-contain brightness-0 dark:invert"
             decoding="async"
           />
         </a>
@@ -50,10 +50,10 @@ export default function FlightRadar24Link({
           href={flightRadarDestination}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="flex h-6 shrink-0 items-center rounded-[var(--atc-radius-pill)] px-0.5 text-atc-dim transition-[background,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
+          className="relative flex h-6 shrink-0 items-center text-atc-dim before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-2"
           aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
         >
-          <span className="relative h-[18px] w-[75px] shrink-0">
+          <span className="relative h-[18px] w-[71px] shrink-0">
             <img
               src={FLIGHTRADAR24_LOGO_URL}
               alt=""
