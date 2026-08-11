@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LocateFixed } from "lucide-react";
 import AirportExplorer from "@/components/airport/explorer/AirportExplorer";
+import HereDebugPanel from "@/components/airport/nearby/HereDebugPanel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -14,12 +15,26 @@ import {
   type NearMeLocation,
 } from "@/features/airport/nearby/nearMeLocationModel";
 
+const HERE_DEBUG_START: NearMeLocation = {
+  lat: 42.3656,
+  lon: -71.0096,
+  accuracyMeters: 8,
+  headingDeg: 90,
+  speedMps: 0,
+  altitudeMeters: 0,
+  updatedAt: 0,
+};
+
 // `/here` — explorer view centered on the user's current position.
 export default function NearMeScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { locale, t } = useI18n();
   const clientDeviceProfile = useClientDeviceProfile();
   const useOneShotLocation = clientDeviceProfile.deviceClass === "desktop";
+  const hereDebugEnabled =
+    import.meta.env.DEV &&
+    new URLSearchParams(location.search).get("debug") === "here";
   const [coords, setCoords] = useState<NearMeLocation | null>(null);
   const [sidebarCoords, setSidebarCoords] = useState<NearMeLocation | null>(null);
   const [status, setStatus] = useState<
@@ -83,9 +98,35 @@ export default function NearMeScreen() {
     });
   }, [startCompassHeading]);
 
+  const applyNearMeLocation = useCallback(
+    (nextLocation: NearMeLocation, { updateLastTime = false } = {}) => {
+      setStatus("granted");
+      setRefreshing(false);
+      if (updateLastTime && useOneShotLocation) {
+        setLastTime(
+          new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(new Date()),
+        );
+      }
+      setCoords((previous) =>
+        shouldUpdateNearMeLocation(previous, nextLocation) ? nextLocation : previous,
+      );
+      setSidebarCoords((previous) =>
+        shouldRefreshNearMeSidebarLocation(previous, nextLocation)
+          ? nextLocation
+          : previous,
+      );
+    },
+    [useOneShotLocation],
+  );
+
   // Desktop: one-shot getCurrentPosition + manual refresh.
   // Mobile: continuous watchPosition with position filtering and live heading updates.
   const requestLocation = useCallback(() => {
+    if (hereDebugEnabled) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setStatus("unavailable");
       setErrorMessage(t("nearMe.unsupported"));
@@ -119,27 +160,7 @@ export default function NearMeScreen() {
               ...rawLocation,
               headingDeg: compassHeadingRef.current,
             };
-      setStatus("granted");
-      setRefreshing(false);
-      if (useOneShotLocation) {
-        setLastTime(
-          new Intl.DateTimeFormat("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }).format(new Date()),
-        );
-      }
-      setCoords((previous) => {
-        if (shouldUpdateNearMeLocation(previous, nextLocation)) return nextLocation;
-        return previous;
-      });
-      setSidebarCoords((previous) => {
-        if (shouldRefreshNearMeSidebarLocation(previous, nextLocation)) {
-          return nextLocation;
-        }
-        return previous;
-      });
+      applyNearMeLocation(nextLocation, { updateLastTime: true });
     };
 
     const handleError = (error: GeolocationPositionError) => {
@@ -168,7 +189,7 @@ export default function NearMeScreen() {
         options,
       );
     }
-  }, [t, useOneShotLocation]);
+  }, [applyNearMeLocation, hereDebugEnabled, t, useOneShotLocation]);
 
   const handleRequestLocation = useCallback(() => {
     requestCompassHeading();
@@ -186,6 +207,10 @@ export default function NearMeScreen() {
   }, [requestCompassHeading, requestLocation]);
 
   useEffect(() => {
+    if (hereDebugEnabled) {
+      applyNearMeLocation({ ...HERE_DEBUG_START, updatedAt: Date.now() });
+      return undefined;
+    }
     requestCompassHeading();
     requestLocation();
     return () => {
@@ -195,7 +220,7 @@ export default function NearMeScreen() {
       }
       compassCleanupRef.current?.();
     };
-  }, [requestCompassHeading, requestLocation]);
+  }, [applyNearMeLocation, hereDebugEnabled, requestCompassHeading, requestLocation]);
 
   const handleBack = useCallback(() => {
     navigate(setLocaleSearchParam("/", "", locale));
@@ -241,11 +266,14 @@ export default function NearMeScreen() {
           nearMeSidebarLocation={sidebarCoords || coords}
           onBack={handleBack}
           nearMeRefresh={
-            useOneShotLocation && coords
+            !hereDebugEnabled && useOneShotLocation && coords
               ? { lastTime, refreshing, onRefresh: handleRefresh }
               : undefined
           }
         />
+        {hereDebugEnabled ? (
+          <HereDebugPanel location={coords} onChange={applyNearMeLocation} />
+        ) : null}
       </>
     </div>
   );

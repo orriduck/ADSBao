@@ -8,7 +8,11 @@ import { enrichAircraftWithRoutes } from "./airportExplorerModel";
 
 export function useAirportExplorerData(
   airportProfile,
-  options: { metarIcao?: string; selectedAircraftId?: string } = {},
+  options: {
+    metarIcao?: string;
+    selectedAircraftId?: string;
+    retainPreviousOnRefresh?: boolean;
+  } = {},
 ) {
   // `metarIcao` overrides which station the weather card pulls from
   // when the explorer isn't anchored to a real airport (e.g. the
@@ -21,7 +25,9 @@ export function useAirportExplorerData(
     parsed: metar,
     loading: metarLoading,
     settled: metarSettled,
-  } = useMetar(metarLookupIcao);
+  } = useMetar(metarLookupIcao, {
+    retainPreviousOnRefresh: options.retainPreviousOnRefresh,
+  });
   const {
     aircraft,
     initialLoading: aircraftInitialLoading,
@@ -35,6 +41,7 @@ export function useAirportExplorerData(
     airportProfile.icao,
     airportProfile.lat,
     airportProfile.lon,
+    { retainPreviousOnChannelChange: options.retainPreviousOnRefresh },
   );
   // A route lookup is intentional work for the aircraft the user selected;
   // the nearby-traffic list itself must never fan out into route subscriptions.

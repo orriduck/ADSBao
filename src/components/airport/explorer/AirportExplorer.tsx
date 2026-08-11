@@ -28,6 +28,7 @@ import {
 import { useAirportExplorerData } from "@/features/airport/explorer/useAirportExplorerData";
 import { AirportMapInteractionMode } from "@/features/airport/map/mapInteractionMode";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
+import { shouldShowNearMeSidebarLoading } from "@/features/airport/nearby/nearMeRefreshModel";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
 import {
   areCriticalLoadingRequestsSettled,
@@ -140,6 +141,7 @@ function AirportExplorerContent({
 }) {
   const nearMe = mode === "nearMe";
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
+  const [nearMeSidebarHydrated, setNearMeSidebarHydrated] = useState(false);
   // Airport → airport navigation does a HARD reload to the new URL (same policy
   // as flight → flight): a reused map across an airport switch can get stuck not
   // reloading tiles, so a clean mount per page is simpler and stable. Only the
@@ -253,6 +255,7 @@ function AirportExplorerContent({
     icao: airportProfile.icao,
     lat: nearbyAirportsFocus.lat,
     lon: nearbyAirportsFocus.lon,
+    retainPreviousOnRefresh: nearMe,
   });
   useEffect(() => {
     if (!nearMe || typeof onNearbyAirportsChange !== "function") return;
@@ -264,6 +267,7 @@ function AirportExplorerContent({
   const { weather, traffic } = useAirportExplorerData(airportProfile, {
     metarIcao,
     selectedAircraftId,
+    retainPreviousOnRefresh: nearMe,
   });
   // Proximity alerts: airport alert is here-mode only and fires once per
   // enabled session; aircraft alert runs in every mode (here + airport
@@ -469,6 +473,13 @@ function AirportExplorerContent({
   });
   const loadingOverlayActive =
     !criticalLoadingSettled || traffic.aircraftLoadingOverlayActive;
+  useEffect(() => {
+    if (!nearMe) {
+      setNearMeSidebarHydrated(false);
+      return;
+    }
+    if (criticalLoadingSettled) setNearMeSidebarHydrated(true);
+  }, [criticalLoadingSettled, nearMe]);
   const loadingOverlaySources = {
     trafficLoading:
       traffic.aircraftLoadingOverlayActive || !traffic.aircraftPositionsSettled,
@@ -582,7 +593,11 @@ function AirportExplorerContent({
     onCollapse: collapseSidebar,
     onExpand: expandSidebar,
     fillAircraftList: true,
-    loading: loadingOverlayActive || mapMainContentLoading,
+    loading: shouldShowNearMeSidebarLoading({
+      nearMe,
+      hasHydratedSidebar: nearMeSidebarHydrated,
+      shellLoading: loadingOverlayActive || mapMainContentLoading,
+    }),
   };
 
   return (

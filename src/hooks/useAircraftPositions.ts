@@ -14,6 +14,7 @@ import {
 import { createAircraftPositionClient } from "../features/aircraft/positions/aircraftPositionClient";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveNextPollDelayMs } from "../features/aircraft/positions/pollBackoffModel";
+import { shouldResetNearMeRefreshContent } from "../features/airport/nearby/nearMeRefreshModel";
 import { buildNearbyCoordinateRequest } from "../lib/realtime/nearbySseRequests";
 import {
   hasAircraftPayload,
@@ -53,6 +54,8 @@ export function useAircraftPositions(
   options: Record<string, any> = {},
 ) {
   const realtimeEnabled = options?.realtime !== false;
+  const retainPreviousOnChannelChange =
+    options?.retainPreviousOnChannelChange === true;
   const distNm = normalizeAircraftRangeNm(options?.distNm);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
@@ -63,13 +66,19 @@ export function useAircraftPositions(
   const [feedStatus, setFeedStatus] = useState("live");
   const [feedSource, setFeedSource] = useState("");
   const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
+  const [channelRefreshPending, setChannelRefreshPending] = useState(false);
   const traceTrackerRef = useRef(createAircraftTraceTracker());
   const channelKeyRef = useRef("");
+  const settledRef = useRef(false);
   const realtimeFrameRef = useRef({
     channel: "",
     sequence: 0,
     revision: 0,
   });
+
+  useEffect(() => {
+    settledRef.current = settled;
+  }, [settled]);
 
   const nearbyRequest = useMemo(() => {
     if (!hasActiveQuery) return null;
@@ -100,23 +109,31 @@ export function useAircraftPositions(
       setFeedStatus("live");
       setFeedSource("");
       setNearbyAirports([]);
+      setChannelRefreshPending(false);
       return;
     }
 
     if (channelKeyRef.current !== channelKey) {
+      const resetContent = shouldResetNearMeRefreshContent({
+        preservePrevious: retainPreviousOnChannelChange,
+        hasSettledContent: settledRef.current,
+      });
       channelKeyRef.current = channelKey;
       realtimeFrameRef.current = {
         channel: nearbyRequest?.channel || "",
         sequence: 0,
         revision: realtimeFrameRef.current.revision + 1,
       };
-      traceTrackerRef.current.clear();
-      setAircraft([]);
-      setSettled(false);
-      setLastUpdated(null);
-      setFeedStatus("live");
-      setFeedSource("");
-      setNearbyAirports([]);
+      setChannelRefreshPending(true);
+      if (resetContent) {
+        traceTrackerRef.current.clear();
+        setAircraft([]);
+        setSettled(false);
+        setLastUpdated(null);
+        setFeedStatus("live");
+        setFeedSource("");
+        setNearbyAirports([]);
+      }
     }
   }, [channelKey, hasActiveQuery]);
 
@@ -173,6 +190,7 @@ export function useAircraftPositions(
           : statusUpdatedDate,
       );
     }
+    setChannelRefreshPending(false);
     setSettled(true);
   }, [hasActiveQuery, nearbyRequest?.channel, realtime.event]);
 
@@ -181,7 +199,7 @@ export function useAircraftPositions(
   // priority so the two paths do not hit the same upstream position source at
   // once during startup.
   useEffect(() => {
-    if (!hasActiveQuery || settled) return undefined;
+    if (!hasActiveQuery || !channelRefreshPending) return undefined;
 
     let cancelled = false;
     const timer = window.setTimeout(async () => {
@@ -211,6 +229,7 @@ export function useAircraftPositions(
         setFeedSource(sourceFromAircraftPayload(payload));
         const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
         if (statusUpdatedDate) setLastUpdated(statusUpdatedDate);
+        setChannelRefreshPending(false);
         setSettled(true);
       } catch (error) {
         if (!cancelled) console.warn("[aircraft-positions] initial snapshot failed", error);
@@ -221,7 +240,14 @@ export function useAircraftPositions(
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [channelKey, distNm, hasActiveQuery, queryLat, queryLon, settled]);
+  }, [
+    channelKey,
+    channelRefreshPending,
+    distNm,
+    hasActiveQuery,
+    queryLat,
+    queryLon,
+  ]);
 
   useEffect(() => {
     if (!hasActiveQuery || !realtime.fallbackActive) return undefined;
@@ -269,6 +295,7 @@ export function useAircraftPositions(
         if (!cancelled) {
           consecutiveFailures += 1;
           setFeedStatus("error");
+          setChannelRefreshPending(false);
           setSettled(true);
           console.warn("[aircraft-positions] realtime fallback failed", error);
         }
@@ -303,8 +330,13 @@ export function useAircraftPositions(
     realtime.fallbackActive,
   ]);
 
-  const waitingForRealtime =
-    hasActiveQuery && (!settled || realtime.fallbackActive);
+  const waitingForRealtime = hasActiveQuery && channelRefreshPending;
+  const initialLoading =
+    waitingForRealtime &&
+    shouldResetNearMeRefreshContent({
+      preservePrevious: retainPreviousOnChannelChange,
+      hasSettledContent: settled,
+    });
   const realtimeStatus = resolveRealtimeStatusLabel({
     available: realtime.available,
     connectionState: realtime.state,
@@ -314,9 +346,9 @@ export function useAircraftPositions(
   return {
     aircraft,
     loading: waitingForRealtime,
-    initialLoading: waitingForRealtime,
+    initialLoading,
     loadingOverlayActive: shouldShowAircraftLoadingOverlay({
-      initialLoading: waitingForRealtime,
+      initialLoading,
     }),
     settled,
     lastUpdated,

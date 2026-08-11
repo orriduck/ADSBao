@@ -8,6 +8,7 @@ import {
 const NEAR_ME_POSITION_REFRESH_THRESHOLD_NM = 0.05;
 const NEAR_ME_SIDEBAR_REFRESH_THRESHOLD_NM =
   NEAR_ME_POSITION_REFRESH_THRESHOLD_NM;
+const EARTH_RADIUS_METERS = 6_371_000;
 
 export type NearMeLocation = {
   lat: number;
@@ -135,4 +136,50 @@ export function shouldRefreshNearMeSidebarLocation(
   if (distance == null) return true;
 
   return distance >= Math.max(0, positionThresholdNm);
+}
+
+export function advanceNearMeDebugLocation(
+  location: NearMeLocation,
+  {
+    headingDeg = location.headingDeg ?? 90,
+    speedKph = 60,
+    elapsedMs = 1_000,
+  }: {
+    headingDeg?: number;
+    speedKph?: number;
+    elapsedMs?: number;
+  } = {},
+): NearMeLocation {
+  const safeSpeedKph = Math.max(0, Number(speedKph) || 0);
+  const safeElapsedMs = Math.max(0, Number(elapsedMs) || 0);
+  const normalizedHeading = normalizeNearMeHeadingDeg(headingDeg) ?? 0;
+  const distanceMeters = (safeSpeedKph / 3.6) * (safeElapsedMs / 1_000);
+  const angularDistance = distanceMeters / EARTH_RADIUS_METERS;
+  const bearingRadians = (normalizedHeading * Math.PI) / 180;
+  const latitudeRadians = (location.lat * Math.PI) / 180;
+  const longitudeRadians = (location.lon * Math.PI) / 180;
+  const nextLatitudeRadians = Math.asin(
+    Math.sin(latitudeRadians) * Math.cos(angularDistance) +
+      Math.cos(latitudeRadians) *
+        Math.sin(angularDistance) *
+        Math.cos(bearingRadians),
+  );
+  const nextLongitudeRadians =
+    longitudeRadians +
+    Math.atan2(
+      Math.sin(bearingRadians) *
+        Math.sin(angularDistance) *
+        Math.cos(latitudeRadians),
+      Math.cos(angularDistance) -
+        Math.sin(latitudeRadians) * Math.sin(nextLatitudeRadians),
+    );
+
+  return {
+    ...location,
+    lat: (nextLatitudeRadians * 180) / Math.PI,
+    lon: normalizeDegrees((nextLongitudeRadians * 180) / Math.PI + 180) - 180,
+    headingDeg: normalizedHeading,
+    speedMps: safeSpeedKph / 3.6,
+    updatedAt: location.updatedAt + safeElapsedMs,
+  };
 }

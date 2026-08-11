@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nearbyAirportClient } from "../features/airport/nearby/nearbyAirportClient";
+import { shouldResetNearMeRefreshContent } from "../features/airport/nearby/nearMeRefreshModel";
 import {
   NEARBY_AIRPORT_DEFAULTS,
   NEARBY_AIRPORT_LIMITS,
@@ -15,11 +16,13 @@ export function useNearbyAirports({
   lon = 0,
   radiusNm = NEARBY_AIRPORT_DEFAULTS.radiusNm,
   limit = NEARBY_AIRPORT_LIMITS.maxLimit,
+  retainPreviousOnRefresh = false,
 } = {}) {
   const [airports, setAirports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
+  const hasSettledContentRef = useRef(false);
   const queryLat = normalizeLatitude(lat);
   const queryLon = normalizeLongitude(lon);
 
@@ -32,11 +35,19 @@ export function useNearbyAirports({
         setError(null);
         setLoading(false);
         setSettled(false);
+        hasSettledContentRef.current = false;
         return;
       }
 
       setLoading(true);
-      setSettled(false);
+      if (
+        shouldResetNearMeRefreshContent({
+          preservePrevious: retainPreviousOnRefresh,
+          hasSettledContent: hasSettledContentRef.current,
+        })
+      ) {
+        setSettled(false);
+      }
       setError(null);
       try {
         const payload = await nearbyAirportClient.fetchNearbyAirports({
@@ -55,6 +66,7 @@ export function useNearbyAirports({
         console.warn("[nearby-airports] load failed", nextError);
       } finally {
         if (!disposed) {
+          hasSettledContentRef.current = true;
           setSettled(true);
           setLoading(false);
         }
@@ -66,7 +78,7 @@ export function useNearbyAirports({
     return () => {
       disposed = true;
     };
-  }, [icao, queryLat, queryLon, radiusNm, limit]);
+  }, [icao, limit, queryLat, queryLon, radiusNm, retainPreviousOnRefresh]);
 
   return {
     airports,

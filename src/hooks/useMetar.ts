@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createMetarClient } from "../features/weather/metar/metarClient";
 import { normalizeMetarPayload } from "../features/weather/metar/metarModel";
+import { shouldResetNearMeRefreshContent } from "../features/airport/nearby/nearMeRefreshModel";
 import {
   readErrorStatus,
   readResponseStatus,
@@ -8,13 +9,14 @@ import {
 
 const metarClient = createMetarClient();
 
-export function useMetar(icao) {
+export function useMetar(icao, { retainPreviousOnRefresh = false } = {}) {
   const [raw, setRaw] = useState("");
   const [parsed, setParsed] = useState(null);
   const [loading, setLoading] = useState(false);
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
+  const hasSettledContentRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,12 +26,20 @@ export function useMetar(icao) {
         setParsed(null);
         setLoading(false);
         setSettled(false);
+        hasSettledContentRef.current = false;
         setError(null);
         setStatusCode(null);
         return;
       }
       setLoading(true);
-      setSettled(false);
+      if (
+        shouldResetNearMeRefreshContent({
+          preservePrevious: retainPreviousOnRefresh,
+          hasSettledContent: hasSettledContentRef.current,
+        })
+      ) {
+        setSettled(false);
+      }
       setError(null);
       setStatusCode(null);
       try {
@@ -47,6 +57,7 @@ export function useMetar(icao) {
         }
       } finally {
         if (!cancelled) {
+          hasSettledContentRef.current = true;
           setSettled(true);
           setLoading(false);
         }
@@ -57,7 +68,7 @@ export function useMetar(icao) {
     return () => {
       cancelled = true;
     };
-  }, [icao]);
+  }, [icao, retainPreviousOnRefresh]);
 
   return { raw, parsed, loading, settled, error, statusCode };
 }

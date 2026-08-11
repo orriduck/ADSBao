@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   buildNearMeLocationFromCoords,
+  advanceNearMeDebugLocation,
   normalizeNearMeHeadingDeg,
   resolveNearMeDeviceHeading,
   shouldRefreshNearMeSidebarLocation,
@@ -45,6 +46,19 @@ assert.equal(resolveNearMeDeviceHeading({ absolute: true, alpha: null }), null);
   };
 
   assert.equal(shouldUpdateNearMeLocation(baseLocation, next), false);
+}
+
+{
+  const next = advanceNearMeDebugLocation(baseLocation, {
+    headingDeg: 90,
+    speedKph: 72,
+    elapsedMs: 1_000,
+  });
+  assert.equal(next.headingDeg, 90);
+  assert.equal(next.speedMps, 20);
+  assert.equal(next.updatedAt, 2_000);
+  assert.equal(next.lat > baseLocation.lat - 0.00001, true);
+  assert.equal(next.lon > baseLocation.lon, true);
 }
 
 {
