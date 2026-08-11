@@ -138,6 +138,20 @@ export function shouldRefreshNearMeSidebarLocation(
   return distance >= Math.max(0, positionThresholdNm);
 }
 
+export function createNearMeMapMotionAnchor(location: NearMeLocation) {
+  // A phone's own GPS is a raw observation, not an aircraft trajectory. Keep
+  // its speed and heading out of the motion anchor so the shared smoother only
+  // eases toward reported fixes and never dead-reckons the device forward.
+  return {
+    lat: location.lat,
+    lon: location.lon,
+    velocity: 0,
+    track: location.headingDeg ?? 0,
+    positionTime: location.updatedAt,
+    onGround: true,
+  };
+}
+
 export function advanceNearMeDebugLocation(
   location: NearMeLocation,
   {

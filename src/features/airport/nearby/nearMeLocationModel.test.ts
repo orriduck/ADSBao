@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { computeTargetPosition } from "@/utils/aircraftMotion";
 import {
   buildNearMeLocationFromCoords,
   advanceNearMeDebugLocation,
+  createNearMeMapMotionAnchor,
   normalizeNearMeHeadingDeg,
   resolveNearMeDeviceHeading,
   shouldRefreshNearMeSidebarLocation,
@@ -22,6 +24,25 @@ const baseLocation: NearMeLocation = {
 assert.equal(
   buildNearMeLocationFromCoords({ latitude: Number.NaN, longitude: -71.01 }),
   null,
+);
+
+assert.deepEqual(createNearMeMapMotionAnchor(baseLocation), {
+  lat: baseLocation.lat,
+  lon: baseLocation.lon,
+  velocity: 0,
+  track: 10,
+  positionTime: 1_000,
+  onGround: true,
+});
+
+// Device speed is display-only in Here mode. The map target must stay on the
+// latest GPS fix until another fix arrives instead of projecting a car forward.
+assert.deepEqual(
+  computeTargetPosition(
+    createNearMeMapMotionAnchor({ ...baseLocation, speedMps: 35 }),
+    60_000,
+  ),
+  { lat: baseLocation.lat, lon: baseLocation.lon },
 );
 
 assert.equal(normalizeNearMeHeadingDeg(725), 5);

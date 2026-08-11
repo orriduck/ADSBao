@@ -29,6 +29,13 @@ import { useAirportExplorerData } from "@/features/airport/explorer/useAirportEx
 import { AirportMapInteractionMode } from "@/features/airport/map/mapInteractionMode";
 import { useNearbyAirports } from "@/hooks/useNearbyAirports";
 import { shouldShowNearMeSidebarLoading } from "@/features/airport/nearby/nearMeRefreshModel";
+import { createNearMeMapMotionAnchor } from "@/features/airport/nearby/nearMeLocationModel";
+import {
+  beginAircraftMotionState,
+  calculateAircraftVisualPosition,
+  shouldAnimateAircraftVisualPosition,
+} from "@/utils/aircraftMotion";
+import { subscribeAircraftMotionFrame } from "@/components/map/aircraftMotionFrameLoop";
 import { SelectedAircraftTraceProvider } from "../../aircraft/trace/SelectedAircraftTraceContext";
 import {
   areCriticalLoadingRequestsSettled,
@@ -52,6 +59,7 @@ import { mapSettingsToExplorerLayers } from "@/features/airport/map-settings/map
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
+const HERE_FOCAL_MOTION_KEY = "here-device-location";
 
 export default function AirportExplorer(props) {
   return (
@@ -247,6 +255,67 @@ function AirportExplorerContent({
     () => (nearMe ? normalizeNearMeLocation(nearMeUserLocation) : null),
     [nearMe, nearMeUserLocation],
   );
+  const nearMeFocalMotionRef = useRef(null);
+  const nearMeVisualPositionRef = useRef({ lat: null, lon: null });
+  const nearMeMotionLat = nearMeSelfLocation?.lat ?? null;
+  const nearMeMotionLon = nearMeSelfLocation?.lon ?? null;
+  const nearMeMotionHeading = nearMeSelfLocation?.headingDeg ?? null;
+  const nearMeMotionUpdatedAt = nearMeSelfLocation?.updatedAt ?? null;
+  useEffect(() => {
+    if (
+      !nearMe ||
+      nearMeMotionLat == null ||
+      nearMeMotionLon == null ||
+      nearMeMotionUpdatedAt == null
+    ) {
+      nearMeFocalMotionRef.current = null;
+      nearMeVisualPositionRef.current = { lat: null, lon: null };
+      return;
+    }
+
+    const now = Date.now();
+    nearMeFocalMotionRef.current = beginAircraftMotionState(
+      createNearMeMapMotionAnchor({
+        lat: nearMeMotionLat,
+        lon: nearMeMotionLon,
+        headingDeg: nearMeMotionHeading,
+        updatedAt: nearMeMotionUpdatedAt,
+        accuracyMeters: null,
+        speedMps: null,
+        altitudeMeters: null,
+      }),
+      now,
+      nearMeFocalMotionRef.current,
+    );
+    nearMeVisualPositionRef.current = calculateAircraftVisualPosition(
+      nearMeFocalMotionRef.current,
+      now,
+      mapZoom,
+      { maxCatchupM: null },
+    );
+  }, [
+    mapZoom,
+    nearMe,
+    nearMeMotionHeading,
+    nearMeMotionLat,
+    nearMeMotionLon,
+    nearMeMotionUpdatedAt,
+  ]);
+  useEffect(() => {
+    if (!nearMe) return undefined;
+
+    return subscribeAircraftMotionFrame((now) => {
+      const motion = nearMeFocalMotionRef.current;
+      if (!motion) return false;
+      nearMeVisualPositionRef.current = calculateAircraftVisualPosition(
+        motion,
+        now,
+        mapZoom,
+        { maxCatchupM: null },
+      );
+      return shouldAnimateAircraftVisualPosition(motion, now);
+    });
+  }, [mapZoom, nearMe]);
   const nearbyAirportsFocus = nearMeSidebarUserLocation || airportProfile;
   // Nearby-airports list runs first in near-me mode so we can borrow
   // the closest airport's ICAO for the METAR temperature fetch — the
@@ -713,7 +782,12 @@ function AirportExplorerContent({
               selectedAirspaceId={selectedAirspaceId}
               selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
               candidateWatchingSpots={candidateWatchingSpots.spots}
-              followsCenter={mapFollowsAircraft}
+              focalVisualPositionRef={
+                nearMe ? nearMeVisualPositionRef : undefined
+              }
+              focalMotionRef={nearMe ? nearMeFocalMotionRef : undefined}
+              focalMotionKey={nearMe ? HERE_FOCAL_MOTION_KEY : undefined}
+              followsCenter={nearMe || mapFollowsAircraft}
               floatingSidebarAware={!isMobile && sidebarOpen}
               onSelectAircraft={selectAircraft}
               onSelectAirport={selectAirport}
