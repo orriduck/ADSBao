@@ -92,7 +92,7 @@ export default function AircraftPreviewMobileCard({
                   style={style}
                 >
                   {originLabel}
-                  <span aria-hidden="true" className="text-[var(--atc-signal-accent)]">
+                  <span aria-hidden="true" className="text-atc-dim">
                     →
                   </span>
                   {destinationLabel}
@@ -137,7 +137,7 @@ export default function AircraftPreviewMobileCard({
         {vs != null ? (
           <>
             <Separator />
-            <span className="inline-flex items-baseline gap-[3px] tabular-nums text-[var(--atc-signal-accent)]">
+            <span className="inline-flex items-baseline gap-[3px] tabular-nums text-atc-text">
               {vsArrow ? <span aria-hidden="true">{vsArrow}</span> : null}
               {Math.abs(Math.round(vs)).toLocaleString()}
             </span>

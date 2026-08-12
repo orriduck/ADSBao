@@ -5,13 +5,13 @@ import { useRouteEndpointPlaces } from "@/hooks/useRouteEndpointPlaces";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
 
 // Visual route line: ORIGIN ——•—— DESTINATION. A hairline on each side of the
-// accent dot marks the current route position without competing with the
-// aircraft silhouette on the map.
+// neutral dot marks the current route position without competing with the
+// aircraft identity or primary tracking action.
 // Falls back to a quiet "no route" so the header height stays stable.
 //
 // When the route carries city data the endpoints
 // crossfade-carousel between the IATA codes and "🇺🇸 City" place labels; the
-// accent dot shares their crossfade so the whole changing route identity reads
+// route marker shares their crossfade so the whole changing route identity reads
 // as one transition.
 export default function AircraftPreviewRouteLine({ aircraft }) {
   const { t } = useI18n();
@@ -62,7 +62,7 @@ export default function AircraftPreviewRouteLine({ aircraft }) {
       />
       <span
         aria-hidden="true"
-        className={`size-[7px] flex-none rounded-full bg-[var(--atc-signal-accent)] ${fadeClass}`}
+        className={`size-[7px] flex-none rounded-full bg-[var(--atc-dim)] ${fadeClass}`}
         style={style}
       />
       <span

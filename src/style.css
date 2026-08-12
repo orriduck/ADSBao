@@ -6595,8 +6595,8 @@ body {
     padding: 8px 10px;
 }
 
-/* Vertical speed is the one accent in the telemetry row — the value reads
-   orange so climb/descent is the live signal; speed and altitude stay ink. */
+/* Telemetry stays neutral. Direction is carried by the signed value itself;
+   orange remains reserved for the tracked identity and its primary action. */
 .aircraft-preview-stat__label {
     font-family: var(--font-mono);
     font-size: 9px;
