@@ -4,7 +4,12 @@ import {
   formatCandidateWatchingSpotDistance,
   formatCandidateWatchingSpotName,
 } from "./candidateWatchingSpotPreviewFormat";
-import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
+import {
+  MobilePreviewHeader,
+  MobilePreviewIdentityBand,
+  MobilePreviewMetaLine,
+} from "./previewCardChrome";
+import { Binoculars } from "lucide-react";
 
 type CandidateWatchingSpotPreviewMobileCardProps = {
   spot?: Record<string, any> | null;
@@ -34,12 +39,14 @@ export default function CandidateWatchingSpotPreviewMobileCard({
   ].filter(Boolean);
 
   return (
-    <div className="candidate-watching-spot-preview-motion flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
-      <MobilePreviewHeader
-        primary={name}
-        primaryMono={false}
-        secondary={category || undefined}
-      />
+    <div className="candidate-watching-spot-preview-motion mobile-preview-sign">
+      <MobilePreviewIdentityBand icon={<Binoculars />}>
+        <MobilePreviewHeader
+          primary={name}
+          primaryMono={false}
+          secondary={category || undefined}
+        />
+      </MobilePreviewIdentityBand>
       <MobilePreviewMetaLine items={items} />
     </div>
   );

@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.3",
+    version: "v3.13.4",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Airport, flight, and first-screen views share one continuous 36px-rail wayfinding system; airport and aircraft map previews keep identity, metrics, and actions compact and unobstructed.",
-      zh: "机场、航班与首屏统一采用连续的 36px 导视边；机场与飞机的地图预览以紧凑且无遮挡的方式呈现身份、数据与操作。",
+      en: "Airport, flight, and first-screen views share one continuous 36px-rail wayfinding system; compact map signs now keep identity, live data, and actions clear across desktop and mobile.",
+      zh: "机场、航班与首屏统一采用连续的 36px 导视边；紧凑地图标牌现在可在桌面与移动端清晰呈现身份、实时数据和操作。",
     },
     highlights: [],
   },

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
 import { getFlightRouteEndpoints } from "@/utils/flightRouteDisplay";
@@ -9,6 +10,7 @@ import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPre
 import { getAircraftPreviewTypeDisplay } from "@/features/aircraft/preview/aircraftPreviewTypeModel";
 import { formatAltitude } from "@/utils/units";
 import type { AsyncStatusState } from "@/hooks/useAsyncStatus";
+import { MobilePreviewIdentityBand } from "./previewCardChrome";
 
 type AircraftPreviewMobileCardProps = {
   aircraft?: Record<string, any> | null;
@@ -16,9 +18,8 @@ type AircraftPreviewMobileCardProps = {
   traceStatusState?: AsyncStatusState | null;
 };
 
-// Compact mobile card: a small photo on the left, then callsign + type over the
-// route. The right edge stays clear for the shared close control; telemetry and
-// actions continue at the card's full width below.
+// Compact aircraft sign: callsign and route lead from the fixed identity axis,
+// the thumbnail stays secondary, and telemetry/actions span the full card.
 export default function AircraftPreviewMobileCard({
   aircraft,
   photo,
@@ -54,72 +55,74 @@ export default function AircraftPreviewMobileCard({
   const vsArrow = vs == null || vs === 0 ? "" : vs > 0 ? "↑" : "↓";
 
   return (
-    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
-      <div className="flex items-start gap-3">
-        {showPhoto ? (
-          <img
-            src={photoSrc}
-            alt=""
-            draggable="false"
-            className="size-[46px] flex-none rounded-[11px] object-cover"
-            onError={() => setFailedPhotoSrc(photoSrc)}
-          />
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-baseline gap-2">
-            <span
-              className="notranslate inline-flex min-w-0 items-center gap-1.5 truncate font-mono text-[19px] leading-none text-atc-text"
-              translate="no"
-              title={callsign}
-            >
-              {callsign}
-              <TraceStatusDot
-                state={traceStatusState}
-                labels={{
-                  pending: t("preview.loadingTrace"),
-                  success: t("preview.loadedTrace"),
-                  error: t("preview.traceLoadError"),
-                }}
-              />
-            </span>
-            {typeLabel ? (
+    <div className="mobile-preview-sign">
+      <MobilePreviewIdentityBand icon={<Plane />}>
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-baseline gap-2">
               <span
-                className="notranslate flex-none whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+                className="notranslate inline-flex min-w-0 items-center gap-1.5 truncate font-mono text-[19px] leading-none text-atc-text"
                 translate="no"
+                title={callsign}
               >
-                {typeLabel}
+                {callsign}
+                <TraceStatusDot
+                  state={traceStatusState}
+                  labels={{
+                    pending: t("preview.loadingTrace"),
+                    success: t("preview.loadedTrace"),
+                    error: t("preview.traceLoadError"),
+                  }}
+                />
               </span>
-            ) : null}
-          </div>
-          <div className="mt-[5px] font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
-            {origin && destination ? (
-              <span
-                className={`notranslate inline-flex items-center gap-1.5 ${fadeClass}`}
-                translate="no"
-                style={style}
-              >
-                {originLabel}
-                <span aria-hidden="true" className="text-[var(--atc-signal-accent)]">
-                  →
+              {typeLabel ? (
+                <span
+                  className="notranslate flex-none whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-atc-dim"
+                  translate="no"
+                >
+                  {typeLabel}
                 </span>
-                {destinationLabel}
-              </span>
-            ) : (
-              <span className="italic text-atc-faint">
-                {aircraft?.flightRouteLookupStatus === "pending"
-                  ? t("aircraft.loadingRoute")
-                  : aircraft?.flightRouteLookupStatus === "retrying"
-                    ? t("aircraft.retryingRoute")
-                  : aircraft?.flightRouteLookupStatus === "unavailable"
-                    ? t("aircraft.routeUnavailable")
-                    : t("aircraft.noRoute")}
-              </span>
-            )}
+              ) : null}
+            </div>
+            <div className="mt-[5px] min-w-0 truncate font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
+              {origin && destination ? (
+                <span
+                  className={`notranslate inline-flex min-w-0 items-center gap-1.5 ${fadeClass}`}
+                  translate="no"
+                  style={style}
+                >
+                  {originLabel}
+                  <span aria-hidden="true" className="text-[var(--atc-signal-accent)]">
+                    →
+                  </span>
+                  {destinationLabel}
+                </span>
+              ) : (
+                <span className="italic text-atc-faint">
+                  {aircraft?.flightRouteLookupStatus === "pending"
+                    ? t("aircraft.loadingRoute")
+                    : aircraft?.flightRouteLookupStatus === "retrying"
+                      ? t("aircraft.retryingRoute")
+                      : aircraft?.flightRouteLookupStatus === "unavailable"
+                        ? t("aircraft.routeUnavailable")
+                        : t("aircraft.noRoute")}
+                </span>
+              )}
+            </div>
           </div>
+          {showPhoto ? (
+            <img
+              src={photoSrc}
+              alt=""
+              draggable="false"
+              className="size-9 flex-none rounded-[2px] object-cover"
+              onError={() => setFailedPhotoSrc(photoSrc)}
+            />
+          ) : null}
         </div>
-      </div>
+      </MobilePreviewIdentityBand>
 
-      <div className="flex flex-wrap items-baseline gap-x-[7px] gap-y-1 border-t border-atc-line pt-[7px] font-mono text-[13px] tabular-nums text-atc-text">
+      <div className="mobile-preview-meta-line flex flex-wrap items-baseline gap-x-[7px] gap-y-1 font-mono text-[13px] tabular-nums text-atc-text">
         <Metric value={speed != null ? Math.round(speed).toLocaleString() : "—"} unit="kt" />
         <Separator />
         {onGround ? (

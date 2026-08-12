@@ -345,7 +345,7 @@ export default function AircraftPreviewCard({
               showMobileSpotNavigationTrigger ||
               showMobilePlaneHunterTrigger) ? (
               <MobilePreviewActions>
-                <div className="flex items-stretch gap-1.5">
+                <div className="flex items-stretch gap-0">
                   {showMobileTrackButton && (
                     <MobilePreviewTrackButton
                       className="flex-1"

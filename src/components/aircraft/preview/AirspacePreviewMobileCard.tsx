@@ -1,7 +1,12 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
 import AirspacePreviewSelector from "./AirspacePreviewSelector";
-import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
+import {
+  MobilePreviewHeader,
+  MobilePreviewIdentityBand,
+  MobilePreviewMetaLine,
+} from "./previewCardChrome";
+import { Layers3 } from "lucide-react";
 
 type AirspacePreviewMobileCardProps = {
   airspace?: Record<string, any> | null;
@@ -28,19 +33,23 @@ export default function AirspacePreviewMobileCard({
   ].filter(Boolean);
 
   return (
-    <div className="pointer-events-auto flex flex-col gap-[6px] px-[12px] pb-[5px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
-      <MobilePreviewHeader
-        primary={name}
-        primaryMono={false}
-        secondary={typeAndClass || undefined}
-      />
+    <div className="mobile-preview-sign pointer-events-auto">
+      <MobilePreviewIdentityBand icon={<Layers3 />}>
+        <MobilePreviewHeader
+          primary={name}
+          primaryMono={false}
+          secondary={typeAndClass || undefined}
+        />
+      </MobilePreviewIdentityBand>
       <MobilePreviewMetaLine items={items} />
-      <AirspacePreviewSelector
-        airspaces={airspaces}
-        selectedAirspaceId={selectedAirspaceId}
-        onSelectAirspace={onSelectAirspace}
-        compact
-      />
+      <div className="mobile-preview-selector-row">
+        <AirspacePreviewSelector
+          airspaces={airspaces}
+          selectedAirspaceId={selectedAirspaceId}
+          onSelectAirspace={onSelectAirspace}
+          compact
+        />
+      </div>
     </div>
   );
 }

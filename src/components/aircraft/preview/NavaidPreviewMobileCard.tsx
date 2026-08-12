@@ -1,7 +1,12 @@
 import { toFiniteNumber } from "@/utils/math";
 import { formatNavaidFrequency } from "./navaidPreviewFormat";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
+import {
+  MobilePreviewHeader,
+  MobilePreviewIdentityBand,
+  MobilePreviewMetaLine,
+} from "./previewCardChrome";
+import { RadioTower } from "lucide-react";
 
 type NavaidPreviewMobileCardProps = {
   navaid?: Record<string, any> | null;
@@ -32,12 +37,14 @@ export default function NavaidPreviewMobileCard({
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
-      <MobilePreviewHeader
-        primary={ident}
-        secondary={type || undefined}
-        subline={name || undefined}
-      />
+    <div className="mobile-preview-sign">
+      <MobilePreviewIdentityBand icon={<RadioTower />}>
+        <MobilePreviewHeader
+          primary={ident}
+          secondary={type || undefined}
+          subline={name || undefined}
+        />
+      </MobilePreviewIdentityBand>
       <MobilePreviewMetaLine items={items} />
     </div>
   );

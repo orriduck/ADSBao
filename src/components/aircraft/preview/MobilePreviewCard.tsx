@@ -2,14 +2,8 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Shared shell for the bottom-of-screen mobile preview card. Both the
-// aircraft and airport variants render through this so the outer
-// chrome — position, dark card surface + warm 135deg gradient, border,
-// shadow, action slot — lives in one place. Variant
-// content goes in `children`; action buttons (Track / Suggest) go in
-// `actions` so they stay below the content with the right pointer
-// behaviour. Adjust card size / radius / gradient here and every
-// preview reflects.
+// Shared shell for compact map signs. Identity, data and actions remain joined
+// edge-to-edge so the card uses mobile space without introducing inner cards.
 //
 // `pointer-events-none` on the card surface lets map taps flow through
 // the empty edges of the card; the Track button / suggest link
@@ -113,18 +107,10 @@ export default function MobilePreviewCard({
         "isolate overflow-hidden select-none pointer-events-none",
         "app-preview-transition mobile-preview-card-enter",
         "rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] text-atc-text",
-        // Same frosted preview surface as the desktop card: one
-        // semi-opaque material plus strong backdrop blur over the map.
-        "[background:var(--atc-surface-preview-card)]",
-        "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
         "shadow-[var(--preview-card-shadow),var(--atc-preview-card-inset)]",
-        // Bottom padding matches the 14px horizontal inset on the
-        // actions row so the gap around the Track button reads as
-        // equal on the left, right, and bottom.
-        "flex flex-col gap-[2px] pb-[12px]",
+        "flex flex-col gap-0",
         compact && placement !== "bottomRight" &&
-          "top-[calc(9px+env(safe-area-inset-top))] w-[min(316px,calc(100vw-18px))] max-w-[calc(100vw-18px)] gap-0 pb-[9px]",
-        compact && placement === "bottomRight" && "gap-0 pb-[9px]",
+          "top-[calc(9px+env(safe-area-inset-top))] w-[min(316px,calc(100vw-18px))] max-w-[calc(100vw-18px)]",
       )}
     >
       {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
@@ -158,7 +144,7 @@ export default function MobilePreviewCard({
 // inside become tappable inside the otherwise pass-through card.
 export function MobilePreviewActions({ children }: Record<string, any>) {
   return (
-    <div className="pointer-events-auto mx-[12px] flex flex-col items-stretch gap-1 [[data-density=compact]_&]:mx-[10px] [[data-density=compact]_&]:gap-0.5">
+    <div className="mobile-preview-actions pointer-events-auto flex flex-col items-stretch">
       {children}
     </div>
   );
@@ -175,9 +161,9 @@ export const MobilePreviewTrackButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "min-h-[34px] w-full px-[10px] cursor-pointer [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:px-2",
-          "border border-[var(--atc-action-primary-border)]",
-          "rounded-[calc(var(--atc-radius-card)-3px)]",
+          "min-h-9 w-full cursor-pointer px-[10px]",
+          "border-0 border-t border-[var(--atc-action-primary-border)]",
+          "rounded-none",
           "bg-[var(--atc-signal-accent)] text-[var(--atc-signal-accent-fg)]",
           "shadow-[var(--atc-action-primary-shadow)]",
           "font-[var(--font-sans)] text-[11px] font-semibold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
@@ -206,8 +192,8 @@ export const MobilePreviewIconButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "grid min-h-[34px] w-[38px] flex-none cursor-pointer place-items-center [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:w-[34px]",
-          "rounded-[calc(var(--atc-radius-card)-3px)] border border-[var(--atc-control-border)]",
+          "grid min-h-9 w-9 flex-none cursor-pointer place-items-center",
+          "rounded-none border-0 border-l border-t border-[var(--atc-control-border)]",
           "bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",

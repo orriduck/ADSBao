@@ -3,6 +3,25 @@ import { cn } from "@/lib/utils";
 
 type MetaRow = { label: ReactNode; value: ReactNode };
 
+export function MobilePreviewIdentityBand({
+  icon,
+  children,
+  className,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("mobile-preview-identity-band", className)}>
+      <span className="mobile-preview-identity-rail" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="mobile-preview-identity-content">{children}</div>
+    </div>
+  );
+}
+
 export function PreviewWayfindingRail({ icon }: { icon: ReactNode }) {
   return (
     <span className="aircraft-preview-wayfinding-rail" aria-hidden="true">
@@ -136,7 +155,7 @@ export function MobilePreviewMetaLine({ items }: { items: ReactNode[] }) {
   const shown = items.filter(Boolean);
   if (!shown.length) return null;
   return (
-    <div className="flex flex-wrap items-baseline gap-x-[7px] gap-y-1 border-t border-atc-line pt-[7px] font-mono text-[12.5px] tabular-nums text-atc-text">
+    <div className="mobile-preview-meta-line flex flex-wrap items-baseline gap-x-[7px] gap-y-1 font-mono text-[12.5px] tabular-nums text-atc-text">
       {shown.map((item, index) => (
         <span key={index} className="inline-flex items-baseline gap-[7px]">
           {index > 0 ? (

@@ -1,5 +1,10 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import { MobilePreviewHeader, MobilePreviewMetaLine } from "./previewCardChrome";
+import {
+  MobilePreviewHeader,
+  MobilePreviewIdentityBand,
+  MobilePreviewMetaLine,
+} from "./previewCardChrome";
+import { MapPin } from "lucide-react";
 
 type ReportingPointPreviewMobileCardProps = {
   point?: Record<string, any> | null;
@@ -23,8 +28,10 @@ export default function ReportingPointPreviewMobileCard({
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-col gap-[7px] px-[12px] pb-[6px] pt-[10px] [[data-density=compact]_&]:px-[10px]">
-      <MobilePreviewHeader primary={name} primaryMono={false} secondary={kind} />
+    <div className="mobile-preview-sign">
+      <MobilePreviewIdentityBand icon={<MapPin />}>
+        <MobilePreviewHeader primary={name} primaryMono={false} secondary={kind} />
+      </MobilePreviewIdentityBand>
       <MobilePreviewMetaLine items={items} />
     </div>
   );

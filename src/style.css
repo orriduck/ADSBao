@@ -6872,8 +6872,65 @@ body {
     padding-right: 34px;
 }
 
-[data-ui="mobile-preview-card"][data-dismissible="true"] > [data-preview-content] > :first-child > :first-child {
-    padding-right: 34px;
+/* Mobile previews are compact joined signs. The 36px signal rail is limited
+   to identity; data, selectors and actions span the entire card below. */
+[data-ui="mobile-preview-card"] {
+    background: #fff !important;
+    overflow: hidden;
+}
+
+:root[data-theme="dark"] [data-ui="mobile-preview-card"] {
+    background: #000 !important;
+}
+
+.mobile-preview-sign {
+    background: #fff;
+    min-width: 0;
+}
+
+:root[data-theme="dark"] .mobile-preview-sign {
+    background: #000;
+}
+
+.mobile-preview-identity-band {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    min-width: 0;
+}
+
+.mobile-preview-identity-rail {
+    align-items: flex-start;
+    background: var(--atc-signal-accent);
+    color: var(--atc-signal-accent-fg);
+    display: flex;
+    justify-content: center;
+    padding-top: 11px;
+}
+
+.mobile-preview-identity-rail > svg {
+    height: 16px;
+    stroke-width: 1.8;
+    width: 16px;
+}
+
+.mobile-preview-identity-content {
+    min-width: 0;
+    padding: 10px 38px 9px 12px;
+}
+
+.mobile-preview-meta-line {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    min-height: 34px;
+    padding: 8px 12px 7px;
+}
+
+.mobile-preview-selector-row {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    padding: 7px 12px;
+}
+
+.mobile-preview-actions {
+    background: color-mix(in oklab, var(--atc-text) 14%, transparent);
 }
 
 /* Primary CTA inside the preview card. Orange is reserved for this action,
@@ -7529,12 +7586,10 @@ body {
     border-radius: var(--atc-radius-pill) !important;
 }
 
-/* Shared preview-card material. Desktop metadata cards, desktop media cards,
-   and the mobile preview shell all use the same frosted glass background so
-   entity previews do not switch surface language across breakpoints. */
+/* Desktop preview media may remain frosted over the map. Mobile previews use
+   the joined-sign surface above so their identity and data stay fully opaque. */
 .aircraft-preview-metadata-card,
-.aircraft-preview-media-card,
-[data-ui="mobile-preview-card"] {
+.aircraft-preview-media-card {
     -webkit-backdrop-filter: var(--app-frost-strong);
     backdrop-filter: var(--app-frost-strong);
     background: var(--atc-surface-preview-card) !important;
@@ -7546,8 +7601,7 @@ body {
 }
 
 :root[data-theme="dark"] .aircraft-preview-metadata-card,
-:root[data-theme="dark"] .aircraft-preview-media-card,
-:root[data-theme="dark"] [data-ui="mobile-preview-card"] {
+:root[data-theme="dark"] .aircraft-preview-media-card {
     background: var(--atc-surface-preview-card) !important;
     background-image: none !important;
 }
