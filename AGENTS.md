@@ -49,7 +49,12 @@ The user uses Chinese labels for semver:
 | 不 bump | — | — | Docs-only, refactor-only, no product-visible change. |
 
 When bumping: always update **both** `package.json` ("version") and
-`src/config/changelog.ts` (prepend entry with `version: "vX.Y.Z"`) in the
-same commit. They must stay in sync or the update toast breaks.
+`src/config/changelog.ts` in the same commit. They must stay in sync or the
+update toast breaks.
+
+- **Patch (小版本)** — fold into the current minor's single rolling entry:
+  update its `version` and `summary`, do **not** add a new entry.
+- **Minor or major (中/大版本)** — prepend a **new** entry (version, kind,
+  title, summary) at the top of `CHANGELOG_RECENT`.
 
 ## Imported Claude Cowork project instructions
