@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass, Gauge, MoveUp, Plane, Ruler } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp, Compass, Gauge, Minus, Plane, Ruler } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import FlightRadar24Link from "./FlightRadar24Link";
 import SidebarShell from "./SidebarShell";
@@ -268,12 +268,34 @@ function FlightTelemetryGrid({
     alternate: activeMetric === "verticalSpeed",
   });
   const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
-  const verticalDirection =
-    verticalSpeedDisplay?.value > 0
-      ? "+"
-      : verticalSpeedDisplay?.value < 0
-        ? "−"
-        : undefined;
+  const verticalState =
+    verticalSpeedDisplay == null
+      ? "unknown"
+      : verticalSpeedDisplay.value > 0
+        ? "climbing"
+        : verticalSpeedDisplay.value < 0
+          ? "descending"
+          : "level";
+  const verticalIcon =
+    verticalState === "climbing" ? (
+      <ArrowUp />
+    ) : verticalState === "descending" ? (
+      <ArrowDown />
+    ) : verticalState === "level" ? (
+      <ArrowRight />
+    ) : (
+      <Minus />
+    );
+  // A blue rail still identifies the alternate unit when this metric is
+  // selected. Otherwise the rail is the live vertical-state sign itself.
+  const verticalTone =
+    activeMetric === "verticalSpeed"
+      ? "secondary"
+      : verticalState === "climbing"
+        ? "primary"
+        : verticalState === "descending"
+          ? "secondary"
+          : "neutral";
 
   return (
     <div className="flight-wayfinding-summary">
@@ -299,16 +321,15 @@ function FlightTelemetryGrid({
           onClick={() => toggleMetric("altitude")}
         />
         <WayfindingMetric
-          icon={<MoveUp />}
+          icon={verticalIcon}
           title={t("metrics.verticalSpeed")}
-          prefix={verticalDirection}
           value={
             verticalSpeedDisplay ? Math.abs(verticalSpeedDisplay.value) : "—"
           }
           unit={verticalSpeedDisplay?.suffix}
           animateValue={Boolean(verticalSpeedDisplay)}
           active={activeMetric === "verticalSpeed"}
-          tone={activeMetric === "verticalSpeed" ? "secondary" : "neutral"}
+          tone={verticalTone}
           onClick={() => toggleMetric("verticalSpeed")}
         />
         <WayfindingMetric
