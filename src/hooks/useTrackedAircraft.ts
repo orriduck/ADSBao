@@ -225,7 +225,9 @@ export function useTrackedAircraft(
     if (
       !callsign ||
       !event ||
-      (event.type !== "nearby:snapshot" && event.type !== "nearby:traffic")
+      (event.type !== "nearby:snapshot" &&
+        event.type !== "nearby:traffic" &&
+        event.type !== "nearby:status")
     ) {
       return;
     }

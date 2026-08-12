@@ -87,4 +87,21 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
   );
 }
 
+{
+  const fallback = shouldUseRealtimeFallback({
+    available: true,
+    connectionState: "stale",
+    hasEvent: true,
+    graceExpired: false,
+    eventType: "nearby:status",
+    hasEventData: true,
+  });
+
+  assert.equal(
+    fallback,
+    false,
+    "cached traffic in a status frame remains a valid source while retry waits",
+  );
+}
+
 console.log("realtimeFallbackModel.test.ts ok");

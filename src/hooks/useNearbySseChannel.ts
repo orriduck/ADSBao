@@ -62,11 +62,14 @@ export function useNearbySseChannel({
       listener: (nextEvent) => {
         if (nextEvent.type === "nearby:status") {
           setStatusEvent(nextEvent);
-          return;
         }
+        if (!hasNearbyStreamPayload(nextEvent.data)) return;
+        // A retry-status frame may include a usable cached traffic snapshot.
+        // Surface it through the data path while retaining status metadata for
+        // the cached-feed indicator and next-retry UI.
         receivedForThisChannel = true;
         setEvent(nextEvent);
-        if (hasNearbyStreamPayload(nextEvent.data)) setGraceExpired(false);
+        setGraceExpired(false);
       },
       onState: setState,
     });

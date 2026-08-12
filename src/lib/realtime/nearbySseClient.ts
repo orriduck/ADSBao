@@ -236,12 +236,13 @@ export class NearbySseClient {
         }
         const event = parseEvent(type, message.data);
         if (!event || event.channel !== stored.request.channel) return;
-        if (type !== "nearby:status") {
-          if (hasNearbyStreamPayload(event.data)) {
-            stored.hasDataFrame = true;
-            this.setState(stored, event.stale ? "stale" : "live");
-          }
-        } else if (event.stale && stored.hasDataFrame) {
+        if (hasNearbyStreamPayload(event.data)) {
+          // A status frame may carry the last usable cached snapshot while
+          // the scheduler waits to retry an upstream source. It is data, not
+          // merely decoration: retain it and label the stream stale.
+          stored.hasDataFrame = true;
+          this.setState(stored, event.stale ? "stale" : "live");
+        } else if (type === "nearby:status" && event.stale && stored.hasDataFrame) {
           this.setState(stored, "stale");
         }
         for (const listener of stored.listeners) listener(event);

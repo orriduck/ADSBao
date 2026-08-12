@@ -88,6 +88,19 @@ assert.deepEqual(received, [
 ]);
 assert.ok(states.includes("live"), "snapshot moves a source to live");
 
+source.emit("nearby:status", {
+  protocolVersion: "1",
+  channel: request.channel,
+  eventId: "cached-status-1",
+  sequence: 3,
+  emittedAt: "2026-08-08T00:00:01Z",
+  stale: true,
+  statusCode: "UPSTREAM_UNAVAILABLE",
+  data: { aircraft: { ac: [{ hex: "abc123" }] } },
+});
+assert.equal(received.length, 6, "cached traffic in a status frame reaches every consumer");
+assert.ok(states.includes("stale"), "cached status moves the source to stale");
+
 client.restart(request.key);
 const restartedSource = FakeEventSource.instances[1];
 assert.ok(restartedSource, "restart creates a replacement EventSource");
@@ -102,7 +115,7 @@ source.emit("nearby:traffic", {
 });
 assert.equal(
   received.length,
-  4,
+  6,
   "a frame from the closed source must not overwrite the replacement stream",
 );
 restartedSource.emit("nearby:traffic", {
@@ -114,7 +127,7 @@ restartedSource.emit("nearby:traffic", {
   stale: false,
   data: { aircraft: { ac: [] } },
 });
-assert.equal(received.length, 6, "the replacement source remains active");
+assert.equal(received.length, 8, "the replacement source remains active");
 
 unsubscribeA();
 assert.equal(

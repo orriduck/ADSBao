@@ -142,7 +142,9 @@ export function useAircraftPositions(
     if (
       !hasActiveQuery ||
       !event ||
-      (event.type !== "nearby:snapshot" && event.type !== "nearby:traffic")
+      (event.type !== "nearby:snapshot" &&
+        event.type !== "nearby:traffic" &&
+        event.type !== "nearby:status")
     ) {
       return;
     }
