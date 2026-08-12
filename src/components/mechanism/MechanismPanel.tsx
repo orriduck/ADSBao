@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 type MechanismItemId = (typeof MECHANISM_ITEMS)[number]["id"];
 
-// Page content sits on the same horizontal inset as the page title.
-const INSET = "px-[var(--airport-sidebar-inset,20px)]";
+// Unrailed copy follows the shared 14px optical inset.
+const INSET = "px-[var(--home-wayfinding-content-inset,14px)]";
 // Detail content aligns under the row title: index rail (34px) + grid gap (10px).
 const DETAIL_INDENT = "pl-[44px]";
 

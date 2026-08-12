@@ -1,7 +1,12 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { Layers3 } from "lucide-react";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
 import AirspacePreviewSelector from "./AirspacePreviewSelector";
-import { PreviewCardHeader, PreviewMetaRows } from "./previewCardChrome";
+import {
+  PreviewCardHeader,
+  PreviewMetaRows,
+  PreviewWayfindingRail,
+} from "./previewCardChrome";
 
 type AirspacePreviewMetadataCardProps = {
   airspace?: Record<string, any> | null;
@@ -31,6 +36,7 @@ export default function AirspacePreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card pointer-events-auto">
+      <PreviewWayfindingRail icon={<Layers3 />} />
       <PreviewCardHeader
         primary={name}
         primaryMono={false}

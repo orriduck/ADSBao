@@ -7,10 +7,15 @@ import {
   CloudRain,
   CloudSnow,
   CloudSun,
+  Droplets,
   Eye,
+  Gauge,
   Moon,
   Sun,
+  Thermometer,
+  Wind,
 } from "lucide-react";
+import WayfindingMetric from "@/components/ui/WayfindingMetric";
 import FlightRuleGlyph, { type FlightRule } from "@/components/weather/FlightRuleGlyph";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -29,9 +34,7 @@ import {
 import {
   FLIGHT_RULE_SEQUENCE,
   ceilingCode,
-  flightRuleColor,
   relativeHumidity,
-  temperatureColor,
   temperatureRangePct,
   temperatureTrendKey,
   upcomingPrecip,
@@ -70,8 +73,8 @@ export default function WeatherBriefingStack({
   const { preferences: units } = useUnitPreferences();
 
   return (
-    <div className="px-[var(--airport-sidebar-inset)] pb-7 pt-3.5">
-      <div key={view} className="app-panel-transition flex flex-col gap-5">
+    <div className="pb-7">
+      <div key={view} className="app-panel-transition flex flex-col">
         {view === "metar" ? (
           <MetarView
             metar={metar}
@@ -95,37 +98,32 @@ export default function WeatherBriefingStack({
 
 // Shared hero card: a left rail + soft tinted background, both keyed to one
 // data-driven colour. Children own the value / caption / interpretation.
-function HeroCard({ color, children }) {
+function HeroCard({ icon, children }) {
   return (
-    <div
-      className="relative overflow-hidden rounded-[var(--atc-radius-card)] py-4 pl-[18px] pr-4"
-      style={{ background: `color-mix(in oklab, ${color} 8%, transparent)` }}
-    >
+    <div className="weather-wayfinding-hero flex min-h-[132px] overflow-hidden border-b border-[var(--airport-wayfinding-divider)]">
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-[3px] rounded-r"
-        style={{ background: color }}
-      />
-      {children}
+        className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-4"
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1 bg-[var(--airport-wayfinding-content)] px-4 py-5">
+        {children}
+      </div>
     </div>
   );
 }
 
-function MetricCell({ label, value }) {
-  return (
-    <div className="min-w-0">
-      <div className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
-        {up(label)}
-      </div>
-      <div className="notranslate mt-1 font-mono text-[calc(15.5px*var(--sb-body-scale))] tabular-nums text-atc-text">
-        {value}
-      </div>
-    </div>
-  );
+function MetricCell({ icon, label, value }) {
+  return <WayfindingMetric icon={icon} title={label} value={value} readOnly />;
 }
 
 function MetricGrid({ children }) {
-  return <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">{children}</div>;
+  return (
+    <div className="weather-wayfinding-grid grid grid-cols-2 gap-px bg-[var(--airport-wayfinding-divider)]">
+      {children}
+    </div>
+  );
 }
 
 function WeatherGlyph({ glyph, ...props }) {
@@ -137,7 +135,6 @@ function WeatherGlyph({ glyph, ...props }) {
 function MetarView({ metar, metarRaw, metarLoading, t, units }) {
   const category = metar?.flightCategory || null;
   const rules = category ? FLIGHT_RULES[category] : null;
-  const color = flightRuleColor(category);
   // Index of the current category in the VFR→LIFR scale; -1 when unknown.
   // Drives how far the progress bar fills.
   const level = FLIGHT_RULE_SEQUENCE.findIndex((item) => item === category);
@@ -187,28 +184,29 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
 
   return (
     <>
-      <HeroCard color={color}>
+      <HeroCard
+        icon={
+          category && level >= 0 ? (
+            <FlightRuleGlyph key={category} rule={category as FlightRule} />
+          ) : (
+            <Cloud />
+          )
+        }
+      >
         {/* Abbreviation + subtitle, with the category glyph drawing on to the right */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div
-              className="text-[calc(40px*var(--sb-body-scale))] font-light leading-none"
-              style={{ color }}
+              className="text-[calc(40px*var(--sb-body-scale))] font-semibold leading-none tracking-[-0.025em] text-atc-text"
             >
               {category || "—"}
             </div>
             <div
-              className="mt-2 text-[calc(13px*var(--sb-body-scale))] lowercase leading-snug"
-              style={{ color }}
+              className="mt-2 text-[calc(13px*var(--sb-body-scale))] leading-snug text-atc-dim"
             >
               {label}
             </div>
           </div>
-          {category && level >= 0 ? (
-            <span className="shrink-0" style={{ color }}>
-              <FlightRuleGlyph key={category} rule={category as FlightRule} />
-            </span>
-          ) : null}
         </div>
         {/* Progress bar — fills to the current category's level after the glyph draws */}
         <div className="mt-3.5 flex gap-1.5" aria-hidden="true">
@@ -218,7 +216,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
               <span
                 key={item}
                 className={`frule-seg${on ? " frule-seg--on" : ""}`}
-                style={on ? { "--c": color, "--dl": `${0.5 + i * 0.08}s` } : undefined}
+                style={on ? { "--c": "var(--atc-text)", "--dl": `${0.5 + i * 0.08}s` } : undefined}
               />
             );
           })}
@@ -232,8 +230,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
             return (
               <span
                 key={item}
-                className={active ? "" : "opacity-30"}
-                style={active ? { color } : undefined}
+                className={active ? "text-atc-text" : "opacity-30"}
               >
                 {item}
               </span>
@@ -248,18 +245,19 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
       </HeroCard>
 
       <MetricGrid>
-        <MetricCell label={t("weather.wind")} value={windValue} />
-        <MetricCell label={t("weather.visibility")} value={visValue} />
-        <MetricCell label={t("weather.ceiling")} value={ceil} />
+        <MetricCell icon={<Wind />} label={t("weather.wind")} value={windValue} />
+        <MetricCell icon={<Eye />} label={t("weather.visibility")} value={visValue} />
+        <MetricCell icon={<Cloud />} label={t("weather.ceiling")} value={ceil} />
         <MetricCell
+          icon={<Thermometer />}
           label={`${t("weather.temp")} / ${t("weather.dew")}`}
           value={tempDew}
         />
-        <MetricCell label={t("weather.altimeter")} value={altValue} />
-        <MetricCell label={t("weather.humidity")} value={humidityValue} />
+        <MetricCell icon={<Gauge />} label={t("weather.altimeter")} value={altValue} />
+        <MetricCell icon={<Droplets />} label={t("weather.humidity")} value={humidityValue} />
       </MetricGrid>
 
-      <div>
+      <div className="border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
         <div className="flex items-baseline justify-between">
           <span className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.rawReport"))}
@@ -275,7 +273,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
         </code>
       </div>
 
-      <div className="border-t border-[var(--atc-line)] pt-4">
+      <div className="bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
         <div className="flex gap-7">
           <IconStat
             icon={<Cloud size={14} strokeWidth={1.8} />}
@@ -319,7 +317,6 @@ function IconStat({ icon, label, value }) {
 // ── Local view ──────────────────────────────────────────────────────────────
 function LocalView({ local, loading, t, units }) {
   const tempC = local?.temperatureC;
-  const color = temperatureColor(tempC);
   const tempValue =
     tempC == null
       ? loading
@@ -367,31 +364,28 @@ function LocalView({ local, loading, t, units }) {
 
   return (
     <>
-      <HeroCard color={color}>
+      <HeroCard
+        icon={
+          <WeatherGlyph glyph={glyph} size={16} strokeWidth={1.7} />
+        }
+      >
         <div className="flex items-start justify-between">
           <div className="flex items-baseline gap-1.5">
             <span
-              className="notranslate text-[calc(44px*var(--sb-body-scale))] font-light leading-none"
-              style={{ color }}
+              className="notranslate text-[calc(44px*var(--sb-body-scale))] font-semibold leading-none tracking-[-0.025em] text-atc-text"
             >
               {tempValue}
             </span>
-            <span className="text-[calc(14px*var(--sb-body-scale))]" style={{ color }}>
+            <span className="text-[calc(14px*var(--sb-body-scale))] text-atc-dim">
               {unitLabel}
             </span>
           </div>
-          <WeatherGlyph
-            glyph={glyph}
-            size={32}
-            strokeWidth={1.6}
-            style={{ color }}
-          />
         </div>
         <div className="mt-3.5 h-1 overflow-hidden rounded-full bg-[var(--atc-line)]">
           {rangePct != null ? (
             <div
               className="h-full rounded-full"
-              style={{ width: `${rangePct * 100}%`, background: color }}
+              style={{ width: `${rangePct * 100}%`, background: "var(--atc-text)" }}
             />
           ) : null}
         </div>
@@ -402,16 +396,16 @@ function LocalView({ local, loading, t, units }) {
       </HeroCard>
 
       <MetricGrid>
-        <MetricCell label={t("weather.wind")} value={windMph} />
-        <MetricCell label={t("weather.humidity")} value={humidity} />
-        <MetricCell label={t("weather.uvIndex")} value={uvValue} />
-        <MetricCell label={t("weather.precip")} value={precipValue} />
-        <MetricCell label={t("weather.pressure")} value={pressure} />
-        <MetricCell label={t("weather.visibility")} value={visKm} />
+        <MetricCell icon={<Wind />} label={t("weather.wind")} value={windMph} />
+        <MetricCell icon={<Droplets />} label={t("weather.humidity")} value={humidity} />
+        <MetricCell icon={<Sun />} label={t("weather.uvIndex")} value={uvValue} />
+        <MetricCell icon={<CloudRain />} label={t("weather.precip")} value={precipValue} />
+        <MetricCell icon={<Gauge />} label={t("weather.pressure")} value={pressure} />
+        <MetricCell icon={<Eye />} label={t("weather.visibility")} value={visKm} />
       </MetricGrid>
 
       {hours.length > 0 ? (
-        <div>
+        <div className="border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
           <div className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.nextHours"))}
           </div>
@@ -442,7 +436,7 @@ function LocalView({ local, loading, t, units }) {
       ) : null}
 
       {summary ? (
-        <p className="border-t border-[var(--atc-line)] pt-4 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
+        <p className="bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
           {summary}
         </p>
       ) : null}

@@ -1,11 +1,10 @@
 import { useEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import { Building2, ChevronRight, Globe2, LocateFixed, PackageSearch, Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AirportListRow } from "./AirportListRow";
 import {
-  airportDisplayCode,
+  airportDirectoryCode,
   airportDisplayName,
-  airportSubtitle,
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -97,11 +96,12 @@ function NearMeDiscoverySection() {
 
   return (
     <section
-      className="dither-section-flow min-w-0"
+      className="airport-discovery-topic airport-discovery-topic--nearby dither-section-flow min-w-0"
       aria-labelledby="airport-discovery-nearby"
     >
       <DiscoverySectionHeader
         id="airport-discovery-nearby"
+        icon={<LocateFixed />}
         title={t("search.discovery.nearby.title")}
       />
       <ul className="dither-list mt-2 flex flex-col gap-1">
@@ -116,11 +116,12 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
 
   return (
     <section
-      className="dither-section-flow min-w-0"
+      className={`airport-discovery-topic airport-discovery-topic--${topic.id} dither-section-flow min-w-0`}
       aria-labelledby={`airport-discovery-${topic.id}`}
     >
       <DiscoverySectionHeader
         id={`airport-discovery-${topic.id}`}
+        icon={topicIcon(topic.id)}
         title={t(topic.titleKey)}
       />
 
@@ -140,21 +141,34 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
 
 function DiscoverySectionHeader({
   id,
+  icon,
   title,
 }) {
   // The directory is supporting context for the command-first home screen.
   // Keep group labels quiet: orange is reserved for live tracking signals,
   // not for every visual subdivision of the home rail.
   return (
-    <header className="min-w-0">
-      <h2
-        id={id}
-        className="min-w-0 text-[calc(12px*var(--sb-title-scale))] font-semibold leading-snug text-atc-dim"
-      >
-        {title}
-      </h2>
+    <header className="airport-discovery-section-header min-w-0">
+      <span aria-hidden="true" className="airport-discovery-section-icon">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <h2
+          id={id}
+          className="min-w-0 text-[calc(13px*var(--sb-title-scale))] font-medium uppercase leading-snug tracking-[0.045em] text-atc-text"
+        >
+          {title}
+        </h2>
+      </div>
     </header>
   );
+}
+
+function topicIcon(topicId: string) {
+  if (topicId === "cargo-hubs") return <PackageSearch />;
+  if (topicId === "major-international-hubs") return <Globe2 />;
+  if (topicId === "world-of-airports") return <Building2 />;
+  return <Plane />;
 }
 
 function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
@@ -177,9 +191,8 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
 }
 
 function AirportDiscoveryAirportRow({ airport, onOpen, onPrefetch }) {
-  const { locale, t } = useI18n();
-  const code = airportDisplayCode(airport);
-  const label = airport.discoveryLabelKey ? t(airport.discoveryLabelKey) : "";
+  const { locale } = useI18n();
+  const code = airportDirectoryCode(airport);
   const prefetchTimerRef = useRef<number | null>(null);
 
   const cancelPrefetch = () => {
@@ -209,9 +222,8 @@ function AirportDiscoveryAirportRow({ airport, onOpen, onPrefetch }) {
       <AirportListRow
         as="button"
         onClick={() => onOpen(airport)}
-        pill={code}
-        title={airportDisplayName(airport, locale)}
-        subtitle={label || airportSubtitle(airport, locale)}
+        title={code}
+        subtitle={airportDisplayName(airport, locale)}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
       />
     </li>

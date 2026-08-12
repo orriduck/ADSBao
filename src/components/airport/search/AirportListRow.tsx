@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type AirportListRowProps = {
-  /** Left code chip — an ICAO (mono) or the "HERE" near-me marker. */
-  pill: ReactNode;
+  /** Optional left code chip. Airport directory rows intentionally omit it. */
+  pill?: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   /** Trailing slot, e.g. a chevron on tappable rows. */
@@ -42,7 +42,7 @@ export function AirportListRow({
 
   // Chip typeface / size / shape stays IDENTICAL across states — only the
   // color (ink, hairline, fill) changes between resting and selected.
-  const chip = (
+  const chip = pill ? (
     <span
       className={cn(
         "mt-[2px] inline-flex w-[var(--lr-chip-col,46px)] items-center justify-center self-start rounded-[6px] py-[3px]",
@@ -60,7 +60,7 @@ export function AirportListRow({
     >
       {pill}
     </span>
-  );
+  ) : null;
 
   const text = (
     <span className="flex min-w-0 flex-col gap-0.5 self-center">
@@ -91,7 +91,10 @@ export function AirportListRow({
   );
 
   const classes = cn(
-    "group grid w-full grid-cols-[var(--lr-chip-col,46px)_minmax(0,1fr)_16px] items-center gap-x-3",
+    "group grid w-full items-center gap-x-3",
+    pill
+      ? "grid-cols-[var(--lr-chip-col,46px)_minmax(0,1fr)_16px]"
+      : "grid-cols-[minmax(0,1fr)_16px] pl-12",
     "rounded-[10px] px-2.5 py-[9px] text-left",
     "transition-[background-color,box-shadow] duration-150",
     active
@@ -108,6 +111,7 @@ export function AirportListRow({
     <Comp
       {...(as === "button" ? { type: "button" } : {})}
       data-active={active ? "true" : undefined}
+      data-has-pill={pill ? "true" : "false"}
       onClick={onClick}
       className={classes}
       {...rest}

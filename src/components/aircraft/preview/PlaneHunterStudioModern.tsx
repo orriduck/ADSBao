@@ -726,7 +726,7 @@ function useLongPress({
 }
 
 const PLANE_HUNTER_CHIP =
-  "inline-flex size-11 shrink-0 select-none items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.16)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:active:scale-100";
+  "plane-hunter-wayfinding-control inline-flex size-11 shrink-0 select-none items-start justify-center border-r border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.14)] pt-[11px] text-[rgba(242,243,238,0.9)] transition hover:bg-[rgba(242,243,238,0.2)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
 
 // Floating control dock: switch / zoom / help chips in one row, plus the
 // library + shutter capture row. Sits at the bottom in portrait and on the
@@ -800,8 +800,8 @@ function PlaneHunterControlDock({
     "overflow-hidden rounded-[24px] border border-[rgba(242,243,238,0.12)] bg-[rgba(8,8,8,0.92)] text-[rgb(242,243,238)] shadow-[0_20px_44px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl";
 
   return (
-    <div className="pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
-      <div className="flex items-center justify-center gap-2.5 landscape:flex-col">
+    <div className="plane-hunter-wayfinding-dock pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[rgba(242,243,238,0.16)] bg-black px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
+      <div className="flex items-center justify-center overflow-hidden border border-[rgba(242,243,238,0.12)] landscape:flex-col">
         {/* Template — tap to cycle the preset; the live overlay updates. */}
         <button
           type="button"

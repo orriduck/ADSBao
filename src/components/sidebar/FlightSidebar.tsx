@@ -1,14 +1,13 @@
 import { useState } from "react";
-import NumberFlow from "@number-flow/react";
+import { Compass, Gauge, MoveUp, Plane, Ruler } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import FlightRadar24Link from "./FlightRadar24Link";
-import SidebarIdentityHero from "./SidebarIdentityHero";
 import SidebarShell from "./SidebarShell";
 import {
   SidebarLoadingContent,
   SidebarLoadingHeader,
 } from "./SidebarLoadingSkeleton";
-import StatTile from "@/components/ui/StatTile";
+import WayfindingMetric from "@/components/ui/WayfindingMetric";
 import {
   formatFlightRouteLabel,
   getFlightRouteAccuracyNotice,
@@ -18,16 +17,13 @@ import { getAircraftPositionSourceBadge } from "@/features/aviation/sourceDispla
 import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
   formatFlightTelemetryMetric,
+  resolveTrackDirectionTranslationKey,
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
 
-type FlightSidebarRecord = Record<string, any>;
-
-// Sidebar for /aircraft/[callsign]. Shares chrome (SidebarShell), identity
-// hero (SidebarIdentityHero), and the stat-card layout (SidebarMetricGrid)
-// with the airport sidebar. The only flight-specific piece is the
-// FlightIdentity content slot.
+// Sidebar for /aircraft/[callsign]. It shares the airport page's wayfinding
+// grammar while keeping aircraft-specific identity and telemetry content.
 export default function FlightSidebar({
   callsign = "",
   aircraft = null,
@@ -57,7 +53,6 @@ export default function FlightSidebar({
   loading = false,
 }) {
   const { t } = useI18n();
-  const isMobileOverlay = Boolean(onClose);
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
   const flightRadarCallsign = String(aircraft?.callsign || callsign || "")
@@ -85,10 +80,19 @@ export default function FlightSidebar({
       <FlightIdentity
         callsign={displayCallsign}
         typeDisplay={typeDisplay}
+        registration={aircraft?.registration}
+        icao24={aircraft?.icao24}
         route={route}
         airlineIconUrl={airlineIconUrl}
         routeAccuracyNotice={routeAccuracyNotice}
         positionSourceBadge={positionSourceBadge}
+        phase={
+          onGround
+            ? t("aircraft.ground")
+            : altitude != null || trackingActive
+              ? t("aircraft.airborne")
+              : ""
+        }
       />
       <FlightTelemetryGrid
         speed={speed}
@@ -96,7 +100,6 @@ export default function FlightSidebar({
         vs={vs}
         track={track}
         onGround={onGround}
-        trackingActive={trackingActive}
         footer={
           <FlightRadar24Link
             identifier={flightRadarCallsign}
@@ -157,63 +160,83 @@ export default function FlightSidebar({
 function FlightIdentity({
   callsign,
   typeDisplay,
+  registration,
+  icao24,
   route,
   airlineIconUrl,
   routeAccuracyNotice,
   positionSourceBadge,
+  phase,
 }) {
-  const { t } = useI18n();
   const hasTypeDisplay =
     typeDisplay?.displayName && typeDisplay.displayName !== "N/A";
-  const secondary = [typeDisplay?.icaoType, typeDisplay?.category]
+  const normalizedCallsign = String(callsign || "").trim().toUpperCase();
+  const normalizedRegistration = String(registration || "")
+    .trim()
+    .toUpperCase();
+  const secondary = [
+    normalizedRegistration && normalizedRegistration !== normalizedCallsign
+      ? normalizedRegistration
+      : "",
+    typeDisplay?.icaoType,
+    typeDisplay?.category,
+    String(icao24 || "").trim().toUpperCase(),
+  ]
     .filter(Boolean)
     .join(" / ");
+
   return (
-    <SidebarIdentityHero label={t("sidebar.tracking")} code={callsign}>
-      {hasTypeDisplay && (
-        <div className="mt-2 flex min-w-0 items-baseline gap-2">
-          <span
-            className="notranslate min-w-0 truncate font-mono text-[calc(13px*var(--sb-body-scale))] font-semibold italic text-atc-text"
-            translate="no"
+    <div className="flight-wayfinding-identity flex min-h-[142px] overflow-hidden">
+      <div className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--atc-signal-accent)] pt-10 text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]">
+        <Plane aria-hidden="true" />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-3 pb-4 pt-9">
+        <h1
+          className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text"
+          translate="no"
+          title={callsign}
+        >
+          {callsign}
+        </h1>
+        {hasTypeDisplay ? (
+          <div
+            className="mt-3 truncate text-[calc(13px*var(--sb-title-scale))] font-medium leading-snug text-atc-text"
             title={typeDisplay.displayName}
           >
             {typeDisplay.displayName}
-          </span>
-          {secondary && (
+          </div>
+        ) : null}
+        {secondary ? (
+          <div
+            className="notranslate mt-1 truncate text-[calc(10px*var(--sb-body-scale))] leading-snug text-atc-dim"
+            translate="no"
+            title={secondary}
+          >
+            {secondary}
+          </div>
+        ) : null}
+        {route || phase || positionSourceBadge ? (
+          <div className="mt-2 flex min-w-0 items-center gap-2 text-[calc(10px*var(--sb-body-scale))] leading-snug text-atc-dim">
+            {airlineIconUrl ? (
+              <img
+                src={airlineIconUrl}
+                alt=""
+                className="aircraft-table-airline-logo"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : null}
             <span
-              className="notranslate atc-chip flex-none"
+              className="notranslate min-w-0 truncate"
               translate="no"
-              title={secondary}
+              title={routeAccuracyNotice || route || undefined}
             >
-              <span>{secondary}</span>
+              {[route, phase, positionSourceBadge].filter(Boolean).join("  ·  ")}
             </span>
-          )}
-        </div>
-      )}
-      {route ? (
-        <div
-          className="notranslate mt-2 flex items-center gap-2 font-mono text-[calc(12px*var(--sb-body-scale))] tracking-[0.04em] text-atc-dim"
-          translate="no"
-          title={routeAccuracyNotice || route}
-        >
-          {airlineIconUrl && (
-            <img
-              src={airlineIconUrl}
-              alt=""
-              className="aircraft-table-airline-logo"
-              loading="lazy"
-              decoding="async"
-            />
-          )}
-          <span>{route}</span>
-        </div>
-      ) : null}
-      {positionSourceBadge ? (
-        <div className="notranslate mt-2 inline-flex items-center rounded-[3px] border border-atc-line px-1.5 py-0.5 font-mono text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-normal text-atc-dim" translate="no">
-          {positionSourceBadge}
-        </div>
-      ) : null}
-    </SidebarIdentityHero>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -223,136 +246,89 @@ function FlightTelemetryGrid({
   vs,
   track,
   onGround,
-  trackingActive,
   footer = null,
 }) {
   const { t } = useI18n();
-  // Focus only marks the metric the user is reading. It does not alter a
-  // value's units or representation, and one metric is always focused.
-  const [focusedMetric, setFocusedMetric] = useState("speed");
+  const [activeMetric, setActiveMetric] = useState<string | null>(null);
+  const toggleMetric = (metric: string) =>
+    setActiveMetric((current) => (current === metric ? null : metric));
   const speedDisplay = formatFlightTelemetryMetric({
     metric: "speed",
     value: speed,
+    alternate: activeMetric === "speed",
   });
   const altitudeDisplay = formatFlightTelemetryMetric({
     metric: "altitude",
     value: altitude,
+    alternate: activeMetric === "altitude",
   });
   const verticalSpeedDisplay = formatFlightTelemetryMetric({
     metric: "verticalSpeed",
     value: vs,
+    alternate: activeMetric === "verticalSpeed",
   });
+  const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
+  const verticalDirection =
+    verticalSpeedDisplay?.value > 0
+      ? "+"
+      : verticalSpeedDisplay?.value < 0
+        ? "−"
+        : undefined;
 
-  const altitudeValue = onGround
-    ? t("aircraft.gnd")
-    : altitudeDisplay
-      ? (
-          <MetricNumberFlow
-            value={altitudeDisplay.value}
-            suffix={altitudeDisplay.suffix}
-          />
-        )
-      : "—";
-  const trackValue =
-    track == null
-      ? "—"
-      : (
-          <MetricNumberFlow
-            value={Math.round(track)}
-            suffix="°"
-            suffixPosition="sup"
-          />
-        );
-  const phaseValue = onGround
-    ? t("aircraft.ground")
-    : altitude != null || trackingActive
-      ? t("aircraft.airborne")
-      : "—";
-
-  // Speed occupies the opening row; the remaining four equally sized metrics
-  // form two pairs. The orange focus moves between metrics without changing
-  // their underlying representation.
   return (
-    <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className={footer ? "sidebar-hero-stats-stack" : undefined}>
-        <div className="sidebar-hero-stats overflow-hidden">
-          <div className="grid grid-cols-2">
-            <StatTile
-              size="hero"
-              className="col-span-2"
-              label={t("metrics.speed")}
-              active={focusedMetric === "speed"}
-              onClick={() => setFocusedMetric("speed")}
-              value={
-                speedDisplay ? (
-                  <MetricNumberFlow
-                    value={speedDisplay.value}
-                    suffix={speedDisplay.suffix}
-                  />
-                ) : (
-                  "—"
-                )
-              }
-            />
-          </div>
-          <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
-            <StatTile
-              label={t("metrics.altitude")}
-              active={focusedMetric === "altitude"}
-              onClick={() => setFocusedMetric("altitude")}
-              value={altitudeValue}
-            />
-            <StatTile
-              label={t("metrics.verticalSpeed")}
-              active={focusedMetric === "vs"}
-              onClick={() => setFocusedMetric("vs")}
-              value={
-                verticalSpeedDisplay ? (
-                  <MetricNumberFlow
-                    value={verticalSpeedDisplay.value}
-                    format={verticalSpeedDisplay.format}
-                    suffix={verticalSpeedDisplay.suffix}
-                  />
-                ) : (
-                  "—"
-                )
-              }
-            />
-          </div>
-          <div className="grid grid-cols-2 border-t border-[var(--app-frost-border)]">
-            <StatTile
-              label={t("metrics.track")}
-              active={focusedMetric === "track"}
-              onClick={() => setFocusedMetric("track")}
-              value={trackValue}
-            />
-            <StatTile
-              label={t("metrics.flightPhase")}
-              active={focusedMetric === "status"}
-              onClick={() => setFocusedMetric("status")}
-              value={phaseValue}
-            />
-          </div>
-        </div>
-        {footer ? <div className="sidebar-hero-stats-footer">{footer}</div> : null}
+    <div className="flight-wayfinding-summary">
+      <div className="flight-wayfinding-metrics grid grid-cols-2">
+        <WayfindingMetric
+          icon={<Gauge />}
+          title={t("metrics.speed")}
+          value={speedDisplay?.value ?? "—"}
+          unit={speedDisplay?.suffix}
+          animateValue={Boolean(speedDisplay)}
+          active={activeMetric === "speed"}
+          tone={activeMetric === "speed" ? "secondary" : "neutral"}
+          onClick={() => toggleMetric("speed")}
+        />
+        <WayfindingMetric
+          icon={<Ruler />}
+          title={t("metrics.altitude")}
+          value={onGround ? t("aircraft.gnd") : altitudeDisplay?.value ?? "—"}
+          unit={onGround ? undefined : altitudeDisplay?.suffix}
+          animateValue={Boolean(!onGround && altitudeDisplay)}
+          active={activeMetric === "altitude"}
+          tone={activeMetric === "altitude" ? "secondary" : "neutral"}
+          onClick={() => toggleMetric("altitude")}
+        />
+        <WayfindingMetric
+          icon={<MoveUp />}
+          title={t("metrics.verticalSpeed")}
+          prefix={verticalDirection}
+          value={
+            verticalSpeedDisplay ? Math.abs(verticalSpeedDisplay.value) : "—"
+          }
+          unit={verticalSpeedDisplay?.suffix}
+          animateValue={Boolean(verticalSpeedDisplay)}
+          active={activeMetric === "verticalSpeed"}
+          tone={activeMetric === "verticalSpeed" ? "secondary" : "neutral"}
+          onClick={() => toggleMetric("verticalSpeed")}
+        />
+        <WayfindingMetric
+          icon={<Compass />}
+          title={t("metrics.track")}
+          value={
+            activeMetric === "track" && trackDirectionKey
+              ? t(trackDirectionKey)
+              : track == null
+                ? "—"
+                : Math.round(track)
+          }
+          unit={activeMetric === "track" || track == null ? undefined : "°"}
+          animateValue={track != null && activeMetric !== "track"}
+          active={activeMetric === "track"}
+          tone={activeMetric === "track" ? "secondary" : "neutral"}
+          onClick={() => toggleMetric("track")}
+        />
       </div>
+      {footer}
     </div>
-  );
-}
-
-function MetricNumberFlow({
-  value,
-  suffix,
-  format,
-  suffixPosition = "sub",
-}: FlightSidebarRecord) {
-  return (
-    <NumberFlow
-      value={value}
-      suffix={suffix}
-      format={format}
-      className="sidebar-metric-number-flow"
-      data-suffix-position={suffixPosition}
-    />
   );
 }

@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { Camera } from "lucide-react";
+import { Camera, Plane } from "lucide-react";
 import AircraftPreviewIdentity from "./AircraftPreviewIdentity";
 import AircraftPreviewMetadata from "./AircraftPreviewMetadata";
 import AircraftPreviewTelemetry from "./AircraftPreviewTelemetry";
+import { PreviewWayfindingRail } from "./previewCardChrome";
 import { AsyncStatusLineDisplay } from "@/components/ui/AsyncStatusLine";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { buildAircraftDetailHref } from "@/features/aircraft/tracking/aircraftDetailHref";
@@ -26,6 +27,7 @@ export default function AircraftPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
+      <PreviewWayfindingRail icon={<Plane />} />
       <AircraftPreviewIdentity aircraft={aircraft} />
       <AircraftPreviewTelemetry aircraft={aircraft} />
       <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />

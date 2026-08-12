@@ -58,18 +58,22 @@ export default function AirportSearchPanel({
     <>
       <form
         onSubmit={doSearch}
-        className="search-input mx-5 mb-3 flex-none flex items-center gap-2 px-3 py-1.5"
+        className="search-input home-wayfinding-search mb-3 flex min-h-11 flex-none items-stretch gap-0 p-0"
       >
-        <Search className="h-3.5 w-3.5 shrink-0 text-atc-dim" />
-        <Input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          className="h-6 min-w-0 flex-1 p-0 text-[calc(11px*var(--sb-body-scale))] font-semibold tracking-normal text-atc-text"
-          placeholder={t("search.placeholder")}
-        />
-        <kbd className="atc-chip hidden shrink-0 sm:inline-flex">
-          <span>{loading ? "..." : t("search.enter")}</span>
-        </kbd>
+        <span className="flex w-9 shrink-0 items-center justify-center bg-[var(--home-wayfinding-neutral-rail)] text-[var(--home-wayfinding-neutral-rail-fg)]">
+          <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
+        </span>
+        <span className="flex min-w-0 flex-1 items-center bg-[var(--home-wayfinding-content)] px-3">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            className="h-7 min-w-0 flex-1 p-0 text-[calc(11px*var(--sb-body-scale))] font-semibold tracking-normal text-atc-text"
+            placeholder={t("search.placeholder")}
+          />
+          <kbd className="hidden shrink-0 font-code text-[calc(8px*var(--sb-body-scale))] text-atc-faint sm:inline-flex">
+            <span>{loading ? "..." : t("search.enter")}</span>
+          </kbd>
+        </span>
       </form>
 
       <div className="flex flex-none flex-col">

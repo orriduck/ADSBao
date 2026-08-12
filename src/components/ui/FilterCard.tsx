@@ -107,6 +107,8 @@ export const FilterCard = forwardRef(function FilterCard(
     contentLayout = "stack",
     asChild = false,
     active,
+    icon = null,
+    children,
     type,
     onMouseEnter: externalMouseEnter,
     onMouseLeave: externalMouseLeave,
@@ -154,9 +156,10 @@ export const FilterCard = forwardRef(function FilterCard(
     <Comp
       ref={setRefs}
       data-active={active ? "true" : undefined}
+      data-wayfinding={icon ? "true" : undefined}
       data-layout={contentLayout}
       data-ui="filter-card"
-      className={cn(filterCardVariants({ shape }), className)}
+      className={cn(filterCardVariants({ shape }), icon && "gap-0", className)}
       {...extraProps}
       {...props}
       onMouseEnter={composeEventHandlers(onMouseEnter, externalMouseEnter)}
@@ -168,7 +171,23 @@ export const FilterCard = forwardRef(function FilterCard(
       onKeyDown={composeEventHandlers(onKeyDown, externalKeyDown)}
       onKeyUp={composeEventHandlers(onKeyUp, externalKeyUp)}
       onBlur={composeEventHandlers(onBlur, externalBlur)}
-    />
+    >
+      {icon ? (
+        <>
+          <span
+            aria-hidden="true"
+            className="filter-card__rail flex w-[var(--airport-wayfinding-rail-width)] shrink-0 self-stretch items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-[11px] text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+          >
+            {icon}
+          </span>
+          <span className="filter-card__content grid min-w-0 flex-1 content-center justify-items-start gap-1 bg-[var(--airport-wayfinding-content)] px-3 py-2 text-left">
+            {children}
+          </span>
+        </>
+      ) : (
+        children
+      )}
+    </Comp>
   );
 });
 

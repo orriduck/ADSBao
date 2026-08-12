@@ -81,6 +81,12 @@ export const airportDisplayCode = (airport: Record<string, any> = {}) =>
   cleanAirportCode(airport?.code) ||
   cleanAirportCode(airport?.iata);
 
+// Directory rows lead with the public-facing IATA code when one exists.
+// Operational detail views continue to use airportDisplayCodeLine so their
+// ICAO identity is never lost.
+export const airportDirectoryCode = (airport: Record<string, any> = {}) =>
+  cleanAirportCode(airport?.iata) || airportDisplayCode(airport);
+
 export const airportDisplayCodeLine = (airport: Record<string, any> = {}) => {
   const icao = cleanAirportCode(airport?.icao || airport?.code);
   const iata = cleanAirportCode(airport?.iata);

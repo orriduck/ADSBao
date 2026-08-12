@@ -1,9 +1,8 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { ChevronRight } from "lucide-react";
 import {
-  airportDisplayCode,
+  airportDirectoryCode,
   airportDisplayName,
-  airportSubtitle,
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { AirportListRow } from "./AirportListRow";
@@ -53,9 +52,8 @@ export default function AirportRow({
         as="button"
         active={featured}
         onClick={() => onOpen(airport)}
-        pill={airportDisplayCode(airport)}
-        title={airportDisplayName(airport, locale)}
-        subtitle={airportSubtitle(airport, locale)}
+        title={airportDirectoryCode(airport)}
+        subtitle={airportDisplayName(airport, locale)}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
       />
     </li>

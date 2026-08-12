@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useLocation } from "react-router-dom";
+import { GitBranch, History, Info, Plane } from "lucide-react";
 import PageNavigationDock from "@/components/navigation/PageNavigationDock";
 import {
   SidebarBrandDock,
@@ -89,6 +90,9 @@ export default function DitherPageShell({
     typeof resolvedDescription === "string"
       ? resolvedDescription.trim().length > 0
       : Boolean(resolvedDescription);
+  const RouteIcon = routeChrome.Icon;
+  const showCompactBrand =
+    brandCompact && (shellRef.current?.scrollTop ?? 0) > 18;
 
   return (
     <div
@@ -117,7 +121,7 @@ export default function DitherPageShell({
         onTouchCancel={handleTouchEnd}
       >
         <SidebarBrandDock
-          compact={isCollapsed || brandCompact}
+          compact={isCollapsed || showCompactBrand}
           collapsed={isCollapsed}
           expandLabel={t("map.expandDetails")}
           onExpand={expandSidebar}
@@ -125,10 +129,20 @@ export default function DitherPageShell({
 
         {isCollapsed ? null : (
           <>
-            <div className="dither-page-header dither-page-header--copy-only flex-none px-5 pb-4 pt-1">
-              <div className="dither-page-copy">
+            <div className="dither-page-header dither-page-header--copy-only flex-none">
+              <div className="dither-page-copy dither-wayfinding-identity relative grid min-h-[136px] grid-cols-[36px_minmax(0,1fr)] content-center gap-y-2 overflow-hidden">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-y-0 left-0 w-9 bg-[var(--atc-signal-accent)]"
+                />
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-[11px] z-[1] flex w-9 items-center justify-center text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+                >
+                  <RouteIcon />
+                </span>
                 <h1
-                  className="atc-page-title mt-4 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"
+                  className="atc-page-title col-start-2 row-start-1 min-w-0 px-3 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"
                   style={{
                     fontFamily: "var(--font-display)",
                     letterSpacing: "normal",
@@ -137,7 +151,7 @@ export default function DitherPageShell({
                   <span className="block break-words">{resolvedTitle}</span>
                 </h1>
                 {hasDescription ? (
-                  <p className="dither-page-description fs-desc mt-2.5">
+                  <p className="dither-page-description fs-desc col-start-2 row-start-2 min-w-0 px-3">
                     {resolvedDescription}
                   </p>
                 ) : null}
@@ -168,6 +182,7 @@ function resolveRouteChrome(pathname, t) {
     return {
       key: "about",
       className: "about-screen",
+      Icon: Info,
       title: t("app.aboutTitle"),
       description: t("app.aboutSubtitle"),
     };
@@ -177,6 +192,7 @@ function resolveRouteChrome(pathname, t) {
     return {
       key: "mechanism",
       className: "mechanism-screen",
+      Icon: GitBranch,
       title: t("app.mechanismTitle"),
       description: t("app.mechanismSubtitle"),
     };
@@ -187,6 +203,7 @@ function resolveRouteChrome(pathname, t) {
     return {
       key: "changelog",
       className: "changelog-screen",
+      Icon: History,
       title: t("changelog.title"),
       description: current
         ? t("changelog.description", { version: current })
@@ -197,6 +214,7 @@ function resolveRouteChrome(pathname, t) {
   return {
     key: "home",
     className: "search-screen",
+    Icon: Plane,
     title: t("search.discovery.pageTitle"),
     description: t("search.discovery.pageDescription"),
   };

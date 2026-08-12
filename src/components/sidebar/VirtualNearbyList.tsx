@@ -16,7 +16,7 @@ import { useSidebarScrollRef } from "./SidebarScrollContext";
 // Rows are a fixed 42px (single-line, see AircraftRow / AirportRow), so this
 // estimate matches the measured height and the list never jitters before
 // measurement settles.
-const ROW_HEIGHT_ESTIMATE_PX = 42;
+const ROW_HEIGHT_ESTIMATE_PX = 44;
 const OVERSCAN_ROWS = 6;
 const ENTER_ANIMATION_MS = 300;
 

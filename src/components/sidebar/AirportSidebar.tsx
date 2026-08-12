@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { Camera, ExternalLink, RadioTower } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import FlightRadar24Link from "./FlightRadar24Link";
@@ -130,6 +130,7 @@ export default function AirportSidebar({
         localWeather={localWeather}
         localWeatherLoading={localWeatherLoading}
         aircraft={aircraft}
+        nearbyAirportCount={airports.length}
         frequencies={atcFrequencies}
         candidateSpotCount={spottingSpots.length}
         onOpenSpotting={handleSpottingView}
@@ -263,8 +264,8 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
     });
 
   return (
-    <div className="flex flex-col gap-3 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
-      <div className="flex items-baseline justify-between pb-0.5">
+    <div className="atc-wayfinding-panel flex flex-col pb-5">
+      <div className="flex items-baseline justify-between border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-3">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
@@ -277,24 +278,27 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           href={liveAtcHref}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="inline-flex items-center justify-between gap-2 text-[calc(9.5px*var(--sb-body-scale))] uppercase tracking-normal text-atc-dim transition-colors hover:text-atc-text"
+          className="inline-flex min-h-11 items-center justify-between gap-2 bg-[var(--airport-wayfinding-secondary)] px-[var(--airport-sidebar-inset)] text-[calc(10px*var(--sb-body-scale))] text-[var(--airport-wayfinding-secondary-fg)] transition-opacity hover:opacity-90"
         >
           <span>Search {normalizedIcao} on LiveATC</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2} />
         </a>
       ) : null}
       {rows.length === 0 ? (
-        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">
-          No published frequencies for this airport.
-        </p>
+        <div className="flex min-h-20 border-b border-[var(--airport-wayfinding-divider)]">
+          <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><RadioTower className="size-4" /></span>
+          <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">No published frequencies for this airport.</p>
+        </div>
       ) : (
         <div className="app-list-motion atc-freq-table flex flex-col">
           {rows.map((row, index) => (
             <div
               key={row.id || `${row.inferredRole}-${row.frequencyMhz}-${index}`}
-              className="flex items-baseline justify-between gap-3 border-b border-[color-mix(in_oklab,var(--atc-line)_55%,transparent)] py-2 last:border-b-0"
+              className="flex min-h-[66px] border-b border-[var(--airport-wayfinding-divider)]"
             >
-              <div className="min-w-0">
+              <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><RadioTower className="size-4" strokeWidth={1.8} /></span>
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-3 bg-[var(--airport-wayfinding-content)] px-3">
+                <div className="min-w-0">
                 <div className="truncate text-[calc(11.5px*var(--sb-body-scale))] text-atc-text">{row.role}</div>
                 {row.detail ? (
                   <div className="truncate text-[calc(9px*var(--sb-body-scale))] uppercase tracking-[0.06em] text-atc-faint">
@@ -308,6 +312,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
               >
                 {formatFrequencyBadge(row.frequencyMhz)}
               </span>
+              </div>
             </div>
           ))}
         </div>
@@ -325,8 +330,8 @@ function SpottingPanel({
   const countKey =
     spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
-    <div className="flex flex-col gap-2 px-[var(--airport-sidebar-inset)] pb-5 pt-1">
-      <div className="flex items-baseline justify-between pb-0.5">
+    <div className="spotting-wayfinding-panel flex flex-col pb-5">
+      <div className="flex items-baseline justify-between border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-3">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] font-bold uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
@@ -335,11 +340,12 @@ function SpottingPanel({
         </span>
       </div>
       {spots.length === 0 ? (
-        <p className="app-panel-transition rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--app-frost-tint)_22%,transparent)] px-3 py-5 text-center text-[calc(11px*var(--sb-body-scale))] font-medium leading-snug text-atc-dim">
-          {t("watcherMode.empty")}
-        </p>
+        <div className="flex min-h-20 border-b border-[var(--airport-wayfinding-divider)]">
+          <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><Camera className="size-4" /></span>
+          <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">{t("watcherMode.empty")}</p>
+        </div>
       ) : null}
-      <div className="app-list-motion grid grid-cols-1 gap-1">
+      <div className="app-list-motion grid grid-cols-1 gap-0">
         {spots.map((spot) => {
           const active = Boolean(selectedSpotId && selectedSpotId === spot.id);
           return (
@@ -348,8 +354,10 @@ function SpottingPanel({
               key={spot.id}
               data-active={active ? "true" : undefined}
               onClick={() => onSelectSpot?.(spot.id)}
-              className="group rounded-[calc(var(--atc-radius-card)_-_2px)] px-2 py-1.5 text-left transition-[background,box-shadow,color] hover:bg-[var(--atc-control-hover-bg)] data-[active=true]:[background:var(--atc-glass-active-bg)] data-[active=true]:text-[var(--atc-click-fg)] data-[active=true]:shadow-[var(--atc-glass-rim-shadow)]"
+              className="group flex min-h-[72px] border-b border-[var(--airport-wayfinding-divider)] text-left"
             >
+              <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)] transition-colors group-data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_27%,var(--app-frost-tint))]"><Camera className="size-4" strokeWidth={1.8} /></span>
+              <div className="flex min-w-0 flex-1 flex-col justify-center bg-[var(--airport-wayfinding-content)] px-3 py-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="truncate text-[calc(10px*var(--sb-body-scale))] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
@@ -370,6 +378,7 @@ function SpottingPanel({
                   {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}
+              </div>
             </button>
           );
         })}

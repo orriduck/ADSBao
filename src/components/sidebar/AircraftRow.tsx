@@ -66,7 +66,7 @@ function AircraftRow({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
-      className={`aircraft-table-card aircraft-table-row-shell flex w-full items-center gap-2.5 px-[var(--airport-sidebar-inset)] text-left transition-[background,color,box-shadow] hover:bg-[color-mix(in_oklab,var(--atc-elev)_55%,transparent)] data-[selected=true]:bg-[color-mix(in_oklab,var(--atc-signal-accent)_12%,transparent)] data-[selected=true]:shadow-[inset_2px_0_0_var(--atc-signal-accent)] data-[selected=true]:hover:bg-[color-mix(in_oklab,var(--atc-signal-accent)_15%,transparent)] data-[selected=true]:[&_.aircraft-table-row-glyph]:text-[var(--atc-signal-accent)] ${
+      className={`aircraft-table-card aircraft-table-row-shell flex w-full items-center text-left transition-[background,color] ${
         selected ? "aircraft-table-row--selected aircraft-table-row--active" : ""
       }`}
       aria-pressed={selected}
@@ -76,7 +76,7 @@ function AircraftRow({
         <Plane size={13} strokeWidth={2.4} />
       </span>
 
-      <div className="flex min-w-0 flex-1 items-baseline">
+      <div className="aircraft-table-row-main flex min-w-0 flex-1 items-baseline">
         <span
           className="aircraft-table-callsign airport-sidebar-display-mono notranslate shrink-0 text-[calc(12.5px*var(--sb-body-scale))] text-atc-text"
           translate="no"
@@ -85,7 +85,7 @@ function AircraftRow({
         </span>
       </div>
 
-      <div className="flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
+      <div className="aircraft-table-row-values flex flex-none items-baseline gap-2.5 font-mono tabular-nums">
         <span className="text-[calc(11px*var(--sb-body-scale))] text-atc-faint">
           {distanceMain}
           {distanceUnit ? (

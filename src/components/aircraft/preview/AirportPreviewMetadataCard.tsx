@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import NumberFlow from "@number-flow/react";
+import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";
 import {
   airportCityName,
@@ -16,6 +17,7 @@ import {
   distanceUnitLabel,
   formatAltitude,
 } from "@/utils/units";
+import { PreviewWayfindingRail } from "./previewCardChrome";
 
 // Airport variant of the preview card. Mirrors the aircraft card's chrome and
 // typography: a mono identity (ICAO + IATA) over name / place, the shared
@@ -48,6 +50,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
 
   return (
     <div className="aircraft-preview-metadata-card">
+      <PreviewWayfindingRail icon={<TowerControl />} />
       <div className="mb-2.5 flex flex-col gap-[7px]">
         <div className="flex min-w-0 items-baseline justify-between gap-3">
           <span

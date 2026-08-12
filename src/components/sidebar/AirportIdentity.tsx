@@ -8,6 +8,7 @@ import {
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import DecodeText from "@/components/ui/DecodeText";
+import { MapPin, TowerControl } from "lucide-react";
 
 export default function AirportIdentity({
   icao = "",
@@ -59,7 +60,10 @@ export default function AirportIdentity({
   const displayIata = cleanAirportCode(iata);
   const codeLine = nearMe
     ? nearMeBadge
-    : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata });
+    : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata }).replace(
+        " · ",
+        " / ",
+      );
   const countryLabel = nearMe ? "" : countryName(country, locale) || country;
   const cityLabel = nearMe ? "" : airportCityName(city, locale);
   const displayName = nearMe
@@ -84,45 +88,47 @@ export default function AirportIdentity({
       : "";
 
   return (
-    <div className="airport-sidebar-identity">
-      <span className="atc-kicker airport-sidebar-identity__kicker">
-        {(nearMe ? t("sidebar.nearMeLabel") : t("sidebar.airport")).toUpperCase()}
-      </span>
-      <h1 className="mt-3 text-[calc(22px*var(--sb-title-scale))] font-normal leading-[1.08] text-atc-text">
-        <span className="airport-sidebar-display-mono notranslate" translate="no">
-          {nearMe ? (
-            <DecodeText text={codeLine || t("sidebar.unknownAirport")} />
-          ) : (
-            codeLine || t("sidebar.unknownAirport")
-          )}
-        </span>
-      </h1>
-      {nameLine ? (
-        <div className="mt-2 text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-dim">
-          {nearMe ? <DecodeText text={nameLine} /> : nameLine}
-        </div>
-      ) : null}
-      {metaLine ? (
-        <div className="mt-1.5 font-mono text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-faint">
-          {metaLine}
-        </div>
-      ) : null}
-      {nearMeRefresh && (
-        <div className="mt-1.5 text-[calc(11px*var(--sb-body-scale))] text-atc-faint">
-          {nearMeRefresh.lastTime
-            ? t("nearMe.lastUpdated", { time: nearMeRefresh.lastTime })
-            : ""}
-          {" "}
-          <button
-            type="button"
-            onClick={nearMeRefresh.onRefresh}
-            disabled={nearMeRefresh.refreshing}
-            className="near-me-refresh__link"
-          >
-            {t("nearMe.relocate")}
-          </button>
-        </div>
-      )}
+    <div className="airport-wayfinding-identity flex min-h-[150px] overflow-hidden">
+      <div className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--atc-signal-accent)] pt-11 text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]">
+        {nearMe ? <MapPin aria-hidden="true" /> : <TowerControl aria-hidden="true" />}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-3 pb-5 pt-10">
+        <h1 className="text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text">
+          <span className="notranslate" translate="no">
+            {nearMe ? (
+              <DecodeText text={codeLine || t("sidebar.unknownAirport")} />
+            ) : (
+              codeLine || t("sidebar.unknownAirport")
+            )}
+          </span>
+        </h1>
+        {nameLine ? (
+          <div className="mt-3 text-[calc(13px*var(--sb-title-scale))] font-medium leading-snug text-atc-text">
+            {nearMe ? <DecodeText text={nameLine} /> : nameLine}
+          </div>
+        ) : null}
+        {metaLine ? (
+          <div className="mt-1.5 text-[calc(10px*var(--sb-body-scale))] leading-snug text-atc-dim">
+            {metaLine}
+          </div>
+        ) : null}
+        {nearMeRefresh && (
+          <div className="mt-1.5 text-[calc(10px*var(--sb-body-scale))] text-atc-dim">
+            {nearMeRefresh.lastTime
+              ? t("nearMe.lastUpdated", { time: nearMeRefresh.lastTime })
+              : ""}
+            {" "}
+            <button
+              type="button"
+              onClick={nearMeRefresh.onRefresh}
+              disabled={nearMeRefresh.refreshing}
+              className="near-me-refresh__link"
+            >
+              {t("nearMe.relocate")}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

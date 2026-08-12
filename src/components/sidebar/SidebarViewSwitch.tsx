@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import NumberFlow from "@number-flow/react";
-import StatTile from "@/components/ui/StatTile";
+import { CloudSun, MapPin, Plane, Route } from "lucide-react";
+import WayfindingMetric from "@/components/ui/WayfindingMetric";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import {
@@ -25,6 +25,7 @@ export default function SidebarViewSwitch({
   localWeather = null,
   localWeatherLoading = false,
   aircraft = [],
+  nearbyAirportCount = 0,
   frequencies = [],
   candidateSpotCount = 0,
   onOpenSpotting,
@@ -78,7 +79,7 @@ export default function SidebarViewSwitch({
     ],
   );
 
-  const renderStat = (stat: SidebarStat, size: "md" | "lg" = "md") => {
+  const renderStat = (stat: SidebarStat, icon, className = "") => {
     const { id, labelKey, value, display, unit, prefix, interaction } = stat;
     let active: boolean | undefined;
     let onClick: (() => void) | undefined;
@@ -95,83 +96,51 @@ export default function SidebarViewSwitch({
     } else {
       readOnly = true;
     }
-    const rendered =
-      value == null ? (
-        "—"
-      ) : display === "numberFlow" ? (
-        <NumberFlow value={value as number} />
-      ) : (
-        value
-      );
     return (
-      <StatTile
+      <WayfindingMetric
         key={id}
-        size={size}
-        label={t(labelKey)}
-        value={rendered}
+        icon={icon}
+        title={t(labelKey)}
+        value={value ?? "—"}
+        animateValue={display === "numberFlow"}
         unit={unit || undefined}
         prefix={prefix}
         active={active}
         onClick={onClick}
         readOnly={readOnly}
+        className={className}
       />
     );
   };
 
   const isTraffic = activeView === "traffic";
-  const selfSpeedStat = stats.movementRow.find((stat) => stat.id === "selfSpeed");
-  const selfAltitudeStat = stats.movementRow.find(
-    (stat) => stat.id === "selfAltitude",
+  const weatherStat = stats.contextRow.find((stat) => stat.id === "weather");
+  const flightRulesStat = stats.contextRow.find(
+    (stat) => stat.id === "flightRules",
   );
 
   return (
-    <div className="px-[var(--airport-sidebar-inset)] pt-3.5">
-      <div className={footer ? "sidebar-hero-stats-stack" : undefined}>
-        <div className="sidebar-hero-stats overflow-hidden">
-          {nearMe ? (
-            // Here mode: nearby-count and speed are both a primary read (same
-            // lg StatTile treatment as the tracked-flight sidebar's speed/
-            // altitude pair) — two equally-weighted tiles, not one hero over a
-            // demoted footer metric.
-            <div className="grid grid-cols-2">
-              <StatTile
-                size="lg"
-                label={t("sidebar.nearby")}
-                active={isTraffic}
-                onClick={() => onViewChange?.("traffic")}
-                value={<NumberFlow value={aircraft.length} />}
-              />
-              {selfSpeedStat ? renderStat(selfSpeedStat, "lg") : null}
-            </div>
-          ) : (
-            <div className="flex">
-              <StatTile
-                size="hero"
-                label={t("sidebar.flights")}
-                active={isTraffic}
-                onClick={() => onViewChange?.("traffic")}
-                value={<NumberFlow value={aircraft.length} />}
-              />
-            </div>
-          )}
-          {nearMe ? (
-            <div className="flex border-t border-[var(--app-frost-border)]">
-              {selfAltitudeStat ? renderStat(selfAltitudeStat) : null}
-              {stats.contextRow.map((stat) => renderStat(stat))}
-            </div>
-          ) : (
-            <>
-              <div className="flex border-t border-[var(--app-frost-border)]">
-                {stats.contextRow.slice(0, 2).map((stat) => renderStat(stat))}
-              </div>
-              <div className="flex border-t border-[var(--app-frost-border)]">
-                {stats.contextRow.slice(2, 4).map((stat) => renderStat(stat))}
-              </div>
-            </>
-          )}
-        </div>
-        {footer ? <div className="sidebar-hero-stats-footer">{footer}</div> : null}
+    <div className="airport-wayfinding-summary">
+      <div className="wayfinding-metrics-grid grid grid-cols-2 gap-px bg-[var(--airport-wayfinding-divider)]">
+        <WayfindingMetric
+          icon={<Plane />}
+          title={nearMe ? t("sidebar.nearby") : t("sidebar.flights")}
+          value={aircraft.length}
+          animateValue
+          active={isTraffic}
+          onClick={() => onViewChange?.("traffic")}
+        />
+        {weatherStat ? renderStat(weatherStat, <CloudSun />) : null}
+        {flightRulesStat ? renderStat(flightRulesStat, <Route />) : null}
+        <WayfindingMetric
+          icon={<MapPin />}
+          title={t("sidebar.nearby")}
+          value={Number(nearbyAirportCount) || 0}
+          animateValue
+          readOnly
+        />
       </div>
+      {footer ? <div className="sidebar-wayfinding-provider">{footer}</div> : null}
     </div>
   );
 }

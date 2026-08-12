@@ -46,26 +46,34 @@ export function AirportSearchResults({
   return (
     <div className="dither-content-stack flex flex-col">
       <section
-        className="dither-section-flow min-w-0"
+        className="airport-search-results dither-section-flow min-w-0"
         aria-labelledby="airport-search-results-heading"
       >
-        <div className="atc-section-head">
-          <span id="airport-search-results-heading" className="atc-kicker">
-            {t("search.searchResults")}
+        <div className="home-wayfinding-results-head">
+          <span aria-hidden="true" className="home-wayfinding-results-icon">
+            <Radar />
           </span>
-          <span className="flex items-center gap-2">
-            <AsyncStatusLine
-              loading={Boolean(loading)}
-              error={error || null}
-              statusCode={statusCode}
-              cycleKey={`search:${searchCycle}`}
-              pendingLabel={t("search.searchingAirports")}
-              successLabel={t("search.searchedAirports")}
-              errorLabel={t("search.searchAirportsError")}
-              className="text-[calc(9px*var(--sb-body-scale))]"
-            />
-            <span className="atc-section-head__count">{countLabel}</span>
-          </span>
+          <div className="atc-section-head min-w-0">
+            <span id="airport-search-results-heading" className="atc-kicker">
+              {t("search.searchResults")}
+            </span>
+            <span className="flex items-center gap-2">
+              {loading || error ? (
+                <AsyncStatusLine
+                  loading={Boolean(loading)}
+                  error={error || null}
+                  statusCode={statusCode}
+                  cycleKey={`search:${searchCycle}`}
+                  pendingLabel={t("search.searchingAirports")}
+                  successLabel={t("search.searchedAirports")}
+                  errorLabel={t("search.searchAirportsError")}
+                  className="text-[calc(9px*var(--sb-body-scale))]"
+                />
+              ) : (
+                <span className="atc-section-head__count">{countLabel}</span>
+              )}
+            </span>
+          </div>
         </div>
 
         {loading && !hasResults ? (
@@ -87,7 +95,7 @@ export function AirportSearchResults({
             detail={t("search.discovery.pageDescription")}
           />
         ) : (
-          <ul className="app-list-motion dither-list mt-3 flex flex-col gap-1">
+          <ul className="app-list-motion dither-list flex flex-col gap-0">
             {trackingCallsign ? (
               <li>
                 <AirportListRow

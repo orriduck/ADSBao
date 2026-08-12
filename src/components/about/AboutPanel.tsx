@@ -6,10 +6,7 @@ import {
   ABOUT_DATA_SOURCES,
   ABOUT_REPOSITORY,
 } from "../../config/about";
-import {
-  getDataSourceCountLabel,
-  getExternalLinkOpenTarget,
-} from "@/features/about/aboutModel";
+import { getExternalLinkOpenTarget } from "@/features/about/aboutModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
 const resolveCopy = (entry, t) => {
@@ -50,8 +47,9 @@ const SOURCE_CHIP_STYLE = {
   "--lr-chip-fs": "9.5px",
 } as CSSProperties;
 
-// Page content sits on the same horizontal inset as the page title.
-const INSET = "px-[var(--airport-sidebar-inset,20px)]";
+// Unrailed copy uses the same 14px optical inset as the tracking sidebars.
+// Raived identity content stays on the separate 36px + 12px = 48px axis.
+const INSET = "px-[var(--home-wayfinding-content-inset,14px)]";
 
 export default function AboutPanel() {
   const { locale, t } = useI18n();
@@ -94,11 +92,11 @@ export default function AboutPanel() {
       </div>
 
       {/* Hairline divider between the meta block and Data sources. */}
-      <div className="mx-[var(--airport-sidebar-inset,20px)] mt-5 mb-4 h-px bg-[color-mix(in_oklab,var(--atc-text)_11%,transparent)]" />
+      <div className="mx-[var(--home-wayfinding-content-inset,14px)] mt-5 mb-4 h-px bg-[color-mix(in_oklab,var(--atc-text)_11%,transparent)]" />
 
       {/* Section header: serif + accent tick (the one accent here besides the
           title tick) with a mono source count right-aligned. */}
-      <div className={`flex items-center justify-between gap-3 ${INSET}`}>
+      <div className={`flex items-center gap-3 ${INSET}`}>
         <h2
           className={
             "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
@@ -108,9 +106,6 @@ export default function AboutPanel() {
         >
           {t("about.dataSources")}
         </h2>
-        <span className="shrink-0 font-code text-[calc(10px*var(--sb-body-scale))] [letter-spacing:0.4px] text-atc-faint">
-          {getDataSourceCountLabel(ABOUT_DATA_SOURCES, locale)}
-        </span>
       </div>
 
       <div className="mt-3 flex flex-col gap-5">
@@ -157,7 +152,7 @@ export default function AboutPanel() {
         })}
       </div>
 
-      <div className="px-5 pb-4 pt-4 md:px-[16px]">
+      <div className="px-[var(--home-wayfinding-content-inset,14px)] pb-4 pt-4">
         <a
           {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
           onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}

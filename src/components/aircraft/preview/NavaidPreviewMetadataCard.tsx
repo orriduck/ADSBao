@@ -1,11 +1,16 @@
 import NumberFlow from "@number-flow/react";
+import { RadioTower } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
 import {
   formatNavaidFrequency,
   formatNavaidVariation,
 } from "./navaidPreviewFormat";
-import { PreviewCardHeader, PreviewMetaRows } from "./previewCardChrome";
+import {
+  PreviewCardHeader,
+  PreviewMetaRows,
+  PreviewWayfindingRail,
+} from "./previewCardChrome";
 
 type NavaidPreviewMetadataCardProps = {
   navaid?: Record<string, any> | null;
@@ -79,6 +84,7 @@ export default function NavaidPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
+      <PreviewWayfindingRail icon={<RadioTower />} />
       <PreviewCardHeader
         primary={ident}
         secondary={type || undefined}

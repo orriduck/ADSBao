@@ -1,10 +1,15 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { Binoculars } from "lucide-react";
 import {
   formatCandidateWatchingSpotCategory,
   formatCandidateWatchingSpotDistance,
   formatCandidateWatchingSpotName,
 } from "./candidateWatchingSpotPreviewFormat";
-import { PreviewCardHeader, PreviewMetaRows } from "./previewCardChrome";
+import {
+  PreviewCardHeader,
+  PreviewMetaRows,
+  PreviewWayfindingRail,
+} from "./previewCardChrome";
 
 type CandidateWatchingSpotPreviewMetadataCardProps = {
   spot?: Record<string, any> | null;
@@ -34,6 +39,7 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
+      <PreviewWayfindingRail icon={<Binoculars />} />
       <div className="candidate-watching-spot-preview-motion">
         <PreviewCardHeader
           primary={name}

@@ -1,7 +1,16 @@
 import type { CSSProperties, ReactNode } from "react";
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, Minus, Search } from "lucide-react";
+import {
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  ListFilter,
+  Minus,
+  Plane,
+  Route as RouteIcon,
+  Search,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -222,7 +231,7 @@ function AircraftTable({
   return (
     <div className="aircraft-table-shell flex flex-col">
       <div className="aircraft-table-controls flex-none">
-        <div className="flex items-baseline justify-between px-[var(--airport-sidebar-inset)] pb-1.5 pt-4">
+        <div className="aircraft-table-controls-header flex min-h-10 items-center justify-between px-[var(--airport-sidebar-inset)]">
           <span className="atc-kicker atc-kicker--lead">
             {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
           </span>
@@ -235,26 +244,28 @@ function AircraftTable({
           </div>
         </div>
 
-        <div className="aircraft-table-search-bar px-[var(--airport-sidebar-inset)] pb-4">
-          <label className="search-input flex items-center gap-2 px-3 py-1.5">
-            <Search
-              className="h-3.5 w-3.5 shrink-0 text-atc-dim"
-              aria-hidden="true"
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="h-6 min-w-0 flex-1 p-0 text-[calc(11px*var(--sb-body-scale))] font-semibold tracking-normal text-atc-text"
-              placeholder={t("sidebar.searchPlaceholder")}
-              aria-label={t("sidebar.searchAria")}
-            />
+        <div className="aircraft-table-search-bar">
+          <label className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
+            <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-center justify-center bg-[var(--airport-wayfinding-neutral-rail)] text-[var(--airport-wayfinding-neutral-rail-fg)]">
+              <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
+            </span>
+            <span className="flex min-w-0 flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3">
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="h-7 min-w-0 flex-1 p-0 text-[calc(12px*var(--sb-body-scale))] font-normal tracking-normal text-atc-text"
+                placeholder={t("sidebar.searchPlaceholder")}
+                aria-label={t("sidebar.searchAria")}
+              />
+            </span>
           </label>
         </div>
 
         <div className="aircraft-table-filter-shell">
           <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
             <EntityFilterCycleCard
+              icon={<ListFilter />}
               label={t("sidebar.targets")}
               value={entityFilter}
               onValueChange={() =>
@@ -268,6 +279,7 @@ function AircraftTable({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <FilterCard
+                    icon={<RouteIcon />}
                     data-tone="accent"
                     active={trafficFilter === "routed"}
                     contentLayout="split"
@@ -509,6 +521,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   return (
     <div ref={wrapperRef} className="relative">
       <FilterCard
+        icon={<Plane />}
         shape="select"
         contentLayout="split"
         data-state={open ? "open" : "closed"}
@@ -608,6 +621,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
 }
 
 function EntityFilterCycleCard({
+  icon,
   label,
   value,
   onValueChange,
@@ -619,6 +633,7 @@ function EntityFilterCycleCard({
   const displayValue = option?.labelKey ? t(option.labelKey) : option?.label;
   return (
     <FilterCard
+      icon={icon}
       active={value !== "all"}
       contentLayout="split"
       aria-label={ariaLabel}
@@ -714,6 +729,7 @@ function AircraftAltitudeFilterCard({
   return (
     <div ref={wrapperRef} className="relative">
       <FilterCard
+        icon={<ArrowUpDown />}
         shape="select"
         contentLayout="split"
         data-state={open ? "open" : "closed"}

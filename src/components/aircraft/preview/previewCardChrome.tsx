@@ -3,6 +3,14 @@ import { cn } from "@/lib/utils";
 
 type MetaRow = { label: ReactNode; value: ReactNode };
 
+export function PreviewWayfindingRail({ icon }: { icon: ReactNode }) {
+  return (
+    <span className="aircraft-preview-wayfinding-rail" aria-hidden="true">
+      {icon}
+    </span>
+  );
+}
+
 // Shared chrome for the non-aircraft preview cards so they match the aircraft
 // card: a primary identity (mono for codes, sans for names) with an optional
 // secondary on the right, quiet sublines, and the shared metadata rows.

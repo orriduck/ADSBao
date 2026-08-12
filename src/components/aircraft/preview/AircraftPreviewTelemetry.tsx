@@ -1,4 +1,5 @@
 import NumberFlow from "@number-flow/react";
+import { Gauge, MoveUp, Plane, Ruler } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import { toFiniteNumber } from "@/utils/math";
@@ -22,14 +23,20 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
   return (
     <dl className="aircraft-preview-telemetry">
       <NumericStat
+        icon={<Gauge />}
         label={t("metrics.speed")}
         value={speed != null ? Math.round(speed) : null}
         unit="kt"
       />
       {onGround ? (
-        <TextStat label={t("metrics.altitude")} value={t("aircraft.gnd")} />
+        <TextStat
+          icon={<Ruler />}
+          label={t("metrics.altitude")}
+          value={t("aircraft.gnd")}
+        />
       ) : (
         <NumericStat
+          icon={<Ruler />}
           label={t("metrics.altitude")}
           value={altitudeDisplay?.value ?? null}
           unit={altitudeDisplay?.unit ?? "ft"}
@@ -37,12 +44,14 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
         />
       )}
       <NumericStat
+        icon={<MoveUp />}
         label={t("metrics.vertical")}
         value={vs != null ? Math.round(vs) : null}
         unit="fpm"
         signed
       />
       <TextStat
+        icon={<Plane />}
         label={t("metrics.flightPhase")}
         value={onGround ? t("aircraft.ground") : t("aircraft.airborne")}
       />
@@ -50,52 +59,69 @@ export default function AircraftPreviewTelemetry({ aircraft }) {
   );
 }
 
-function NumericStat({ label, value, unit, prefix = "", signed = false }) {
+function NumericStat({
+  icon,
+  label,
+  value,
+  unit,
+  prefix = "",
+  signed = false,
+}) {
   return (
     <div className="aircraft-preview-stat">
-      <dt className="aircraft-preview-stat__label">{label}</dt>
-      <dd className="aircraft-preview-stat__value">
-        {value == null ? (
-          <span className="aircraft-preview-stat__number aircraft-preview-stat__number--missing">
-            —
-          </span>
-        ) : (
-          <>
-            {prefix ? (
-              <span
-                className="aircraft-preview-stat__prefix notranslate"
-                translate="no"
-              >
-                {prefix}
-              </span>
-            ) : null}
-            <NumberFlow
-              value={value}
-              format={signed ? { signDisplay: "exceptZero" } : undefined}
-              className="aircraft-preview-stat__number"
-            />
-          </>
-        )}
-        {value != null && unit && (
-          <span
-            className="aircraft-preview-stat__unit notranslate"
-            translate="no"
-          >
-            {unit}
-          </span>
-        )}
-      </dd>
+      <span className="aircraft-preview-stat__rail" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="aircraft-preview-stat__content">
+        <dt className="aircraft-preview-stat__label">{label}</dt>
+        <dd className="aircraft-preview-stat__value">
+          {value == null ? (
+            <span className="aircraft-preview-stat__number aircraft-preview-stat__number--missing">
+              —
+            </span>
+          ) : (
+            <>
+              {prefix ? (
+                <span
+                  className="aircraft-preview-stat__prefix notranslate"
+                  translate="no"
+                >
+                  {prefix}
+                </span>
+              ) : null}
+              <NumberFlow
+                value={value}
+                format={signed ? { signDisplay: "exceptZero" } : undefined}
+                className="aircraft-preview-stat__number"
+              />
+            </>
+          )}
+          {value != null && unit && (
+            <span
+              className="aircraft-preview-stat__unit notranslate"
+              translate="no"
+            >
+              {unit}
+            </span>
+          )}
+        </dd>
+      </div>
     </div>
   );
 }
 
-function TextStat({ label, value }) {
+function TextStat({ icon, label, value }) {
   return (
     <div className="aircraft-preview-stat">
-      <dt className="aircraft-preview-stat__label">{label}</dt>
-      <dd className="aircraft-preview-stat__value">
-        <span className="aircraft-preview-stat__number">{value}</span>
-      </dd>
+      <span className="aircraft-preview-stat__rail" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="aircraft-preview-stat__content">
+        <dt className="aircraft-preview-stat__label">{label}</dt>
+        <dd className="aircraft-preview-stat__value">
+          <span className="aircraft-preview-stat__number">{value}</span>
+        </dd>
+      </div>
     </div>
   );
 }

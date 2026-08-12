@@ -236,12 +236,9 @@ export function SidebarBrandDock({
     <div
       className={cn(
         "sidebar-brand-dock sticky top-0 z-[calc(var(--z-index-sticky)+1)] flex items-center justify-between gap-2 px-[var(--airport-sidebar-inset)] transition-[padding] duration-200 ease-out",
-        // The sticky brand row's resting surface (near-opaque panel tint +
-        // fade scrim, no backdrop-filter) is owned by a single token-driven
-        // rule — .sidebar-brand-dock.sticky in style.css, keyed off
-        // --app-frost-tint so every glass sidebar shares one appearance. A
-        // gradient scrim just below it fades scrolling content out before it
-        // reaches the logo, so content disappears naturally without a live blur.
+        // The sticky brand row owns a quiet panel-tint surface. Airport
+        // wayfinding sidebars terminate it with a direct neutral divider;
+        // other surfaces may keep their existing scroll-fade treatment.
         compact ? "pb-2 pt-3" : "pb-3 pt-5",
         "[[data-mobile-overlay=true]_&]:pb-1 [[data-mobile-overlay=true]_&]:pt-[calc(12px+env(safe-area-inset-top))]",
         className,
