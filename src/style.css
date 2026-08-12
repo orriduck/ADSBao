@@ -10123,6 +10123,7 @@ body {
 }
 
 .search-screen .airport-discovery-topic > .dither-list {
+    gap: 0 !important;
     margin: 0 !important;
     padding: 0;
 }
@@ -10169,6 +10170,28 @@ body {
     margin: 0;
     padding: 0;
     width: 100%;
+}
+
+.search-screen .airport-list-row__rail-icon {
+    height: 16px;
+    stroke-width: 1.8;
+    width: 16px;
+}
+
+.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby,
+.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby:hover {
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby > span:first-child,
+.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby:hover > span:first-child {
+    align-items: flex-start;
+    background: var(--home-wayfinding-secondary);
+    color: var(--home-wayfinding-secondary-fg) !important;
+    display: flex;
+    justify-content: center;
+    padding: 11px 0 0;
 }
 
 .search-screen .airport-discovery-topic .dither-list .group[data-has-pill="false"]

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Building2, ChevronRight, Globe2, LocateFixed, PackageSearch, Plane } from "lucide-react";
+import { Building2, ChevronRight, Globe2, LocateFixed, Navigation, PackageSearch, Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AirportListRow } from "./AirportListRow";
 import {
@@ -181,7 +181,8 @@ function NearbyPromptRow({ onRequest }: { onRequest: () => void }) {
       <AirportListRow
         as="button"
         onClick={onRequest}
-        pill="HERE"
+        className="airport-list-row--nearby"
+        pill={<Navigation className="airport-list-row__rail-icon" aria-hidden="true" />}
         title={title}
         subtitle={hint}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
