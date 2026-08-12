@@ -1759,7 +1759,18 @@ body {
 }
 
 .airport-map-kit .wayfinding-secondary-view-grid .wayfinding-metric {
+    align-content: start;
+    box-sizing: border-box;
+    grid-template-rows: 16px 30px;
     min-height: 62px;
+    padding-top: 12px;
+    row-gap: 4px;
+}
+
+.airport-map-kit
+    .wayfinding-secondary-view-grid
+    .wayfinding-metric__value {
+    min-height: 30px;
 }
 
 /* iOS Safari rubber-bands the document body even when the app owns its
