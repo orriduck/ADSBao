@@ -18,6 +18,8 @@ import { resolveAircraftDisplayModel } from "@/features/aircraft/aircraftTypeDis
 import {
   formatFlightTelemetryMetric,
   resolveTrackDirectionTranslationKey,
+  resolveVerticalState,
+  resolveVerticalStateTranslationKey,
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
@@ -268,14 +270,7 @@ function FlightTelemetryGrid({
     alternate: activeMetric === "verticalSpeed",
   });
   const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
-  const verticalState =
-    verticalSpeedDisplay == null
-      ? "unknown"
-      : verticalSpeedDisplay.value > 0
-        ? "climbing"
-        : verticalSpeedDisplay.value < 0
-          ? "descending"
-          : "level";
+  const verticalState = resolveVerticalState(verticalSpeedDisplay?.value);
   const verticalIcon =
     verticalState === "climbing" ? (
       <ArrowUp />
@@ -286,16 +281,12 @@ function FlightTelemetryGrid({
     ) : (
       <Minus />
     );
-  // A blue rail still identifies the alternate unit when this metric is
-  // selected. Otherwise the rail is the live vertical-state sign itself.
+  // The rail stays neutral for every live flight state; the icon carries the
+  // direction. A blue rail only marks the alternate-unit state when selected,
+  // so orange stays reserved for the tracked target / primary action.
   const verticalTone =
-    activeMetric === "verticalSpeed"
-      ? "secondary"
-      : verticalState === "climbing"
-        ? "primary"
-        : verticalState === "descending"
-          ? "secondary"
-          : "neutral";
+    activeMetric === "verticalSpeed" ? "secondary" : "neutral";
+  const verticalStateLabel = t(resolveVerticalStateTranslationKey(verticalState));
 
   return (
     <div className="flight-wayfinding-summary">
@@ -330,6 +321,11 @@ function FlightTelemetryGrid({
           animateValue={Boolean(verticalSpeedDisplay)}
           active={activeMetric === "verticalSpeed"}
           tone={verticalTone}
+          ariaLabel={
+            verticalSpeedDisplay == null
+              ? t("metrics.verticalSpeed")
+              : `${t("metrics.verticalSpeed")}, ${Math.abs(verticalSpeedDisplay.value)} ${verticalSpeedDisplay.suffix}, ${verticalStateLabel}`
+          }
           onClick={() => toggleMetric("verticalSpeed")}
         />
         <WayfindingMetric

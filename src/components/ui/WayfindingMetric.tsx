@@ -10,9 +10,10 @@ type WayfindingMetricProps = {
   unit?: ReactNode;
   prefix?: ReactNode;
   active?: boolean;
-  tone?: "neutral" | "primary" | "secondary";
+  tone?: "neutral" | "secondary";
   onClick?: () => void;
   readOnly?: boolean;
+  ariaLabel?: string;
   className?: string;
 };
 
@@ -31,6 +32,7 @@ export default function WayfindingMetric({
   tone = "neutral",
   onClick,
   readOnly = false,
+  ariaLabel,
   className,
 }: WayfindingMetricProps) {
   const hasTitle = title !== null && title !== undefined && title !== "";
@@ -48,7 +50,7 @@ export default function WayfindingMetric({
       />
       <span
         aria-hidden="true"
-        className="wayfinding-metric__icon relative z-[1] col-start-1 row-start-1 flex items-center justify-center self-center text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+        className="wayfinding-metric__icon relative z-[1] col-start-1 row-start-1 flex items-center justify-center self-start text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
       >
         {icon}
       </span>
@@ -69,7 +71,7 @@ export default function WayfindingMetric({
               {prefix}
             </span>
           ) : null}
-          <span className="min-w-0 text-[calc(24px*var(--sb-body-scale))] font-semibold tracking-[-0.025em] tabular-nums text-atc-text">
+          <span className="min-w-0 text-[calc(24px*var(--sb-body-scale))] tracking-[-0.025em] tabular-nums text-atc-text">
             {renderedValue}
           </span>
           {unit ? (
@@ -109,6 +111,7 @@ export default function WayfindingMetric({
       data-active={active ? "true" : undefined}
       data-tone={tone}
       aria-pressed={active}
+      aria-label={ariaLabel}
       onClick={onClick}
     >
       {content}

@@ -309,6 +309,12 @@ const zhCN = {
     altitude: "高度",
     verticalSpeed: "垂直速度",
     track: "航迹角",
+    verticalState: {
+      climbing: "爬升",
+      descending: "下降",
+      level: "平飞",
+      unknown: "未知",
+    },
     hex: "Hex",
     icao24: "ICAO24",
     icao: "ICAO",
