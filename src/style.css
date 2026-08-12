@@ -7712,6 +7712,7 @@ body {
 .info-wayfinding-row__rail,
 .info-wayfinding-section-title__rail,
 .info-wayfinding-group-header__rail,
+.info-wayfinding-source-row__rail,
 .info-wayfinding-repository__rail,
 .mechanism-wayfinding__group > span,
 .mechanism-wayfinding__index,
@@ -7728,6 +7729,7 @@ body {
 .info-wayfinding-row__rail > svg,
 .info-wayfinding-section-title__rail > svg,
 .info-wayfinding-group-header__rail > svg,
+.info-wayfinding-source-row__rail > svg,
 .info-wayfinding-repository__rail > svg,
 .mechanism-wayfinding__group > span > svg,
 .changelog-entry__rail > svg {
@@ -7846,16 +7848,13 @@ body {
     text-align: left;
 }
 
-.info-wayfinding-source-row__code {
+.info-wayfinding-source-row__rail {
     align-items: flex-start;
     align-self: stretch;
     background: var(--home-wayfinding-neutral-rail);
-    color: var(--atc-dim);
+    color: var(--home-wayfinding-neutral-rail-fg);
     display: flex;
-    font-family: var(--font-code);
-    font-size: calc(8px * var(--sb-body-scale));
     justify-content: center;
-    letter-spacing: -0.03em;
     padding-top: 12px;
 }
 

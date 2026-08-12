@@ -1,14 +1,21 @@
 import type { ReactNode } from "react";
 import {
   ArrowUpRight,
+  BookOpen,
   Building2,
+  Camera,
+  Clapperboard,
   CloudSun,
   Database,
   Github,
   Layers3,
+  Map,
   Network,
+  Plane,
+  PlaneLanding,
   RadioTower,
   Tag,
+  TowerControl,
 } from "lucide-react";
 import {
   ABOUT_BUILD_META,
@@ -48,6 +55,19 @@ const CATEGORY_ICON: Record<string, ReactNode> = {
   weather: <CloudSun />,
   airport: <Building2 />,
   context: <Database />,
+};
+const SOURCE_ICON = {
+  "ADS-B": RadioTower,
+  ICONS: Plane,
+  ROUTE: Map,
+  METAR: CloudSun,
+  WX: CloudSun,
+  DIR: TowerControl,
+  RWY: PlaneLanding,
+  SPOT: Camera,
+  WIKI: BookOpen,
+  MAP: Map,
+  VIDEO: Clapperboard,
 };
 
 export default function AboutPanel() {
@@ -114,8 +134,14 @@ export default function AboutPanel() {
                     onClick={(event) => openExternalLink(event, source.href)}
                     className="info-wayfinding-source-row group"
                   >
-                    <span className="info-wayfinding-source-row__code">
-                      {source.glyph}
+                    <span
+                      className="info-wayfinding-source-row__rail"
+                      aria-hidden="true"
+                    >
+                      {(() => {
+                        const SourceIcon = SOURCE_ICON[source.glyph];
+                        return SourceIcon ? <SourceIcon /> : null;
+                      })()}
                     </span>
                     <span className="info-wayfinding-source-row__copy">
                       <strong>{source.titleKey ? t(source.titleKey) : source.title}</strong>
