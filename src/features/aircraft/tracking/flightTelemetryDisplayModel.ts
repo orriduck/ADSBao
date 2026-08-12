@@ -46,6 +46,24 @@ export function resolveTrackDirectionTranslationKey(track: unknown) {
   const index = Math.round(normalized / 45) % TRACK_DIRECTION_KEYS.length;
   return `directions.${TRACK_DIRECTION_KEYS[index]}`;
 }
+
+export type VerticalState = "climbing" | "descending" | "level" | "unknown";
+
+// Classify a (rounded) vertical-speed value into a flight state. The value is
+// compared after rounding so tiny vertical rates read as level, matching the
+// displayed number. Null/undefined means the reading is unavailable.
+export function resolveVerticalState(
+  verticalSpeed: number | null | undefined,
+): VerticalState {
+  if (verticalSpeed == null) return "unknown";
+  if (verticalSpeed > 0) return "climbing";
+  if (verticalSpeed < 0) return "descending";
+  return "level";
+}
+
+export function resolveVerticalStateTranslationKey(state: VerticalState) {
+  return `metrics.verticalState.${state}`;
+}
 const KNOT_TO_KMH = 1.852;
 const FOOT_TO_METER = 0.3048;
 const TRACK_DIRECTION_KEYS = ["n", "ne", "e", "se", "s", "sw", "w", "nw"];

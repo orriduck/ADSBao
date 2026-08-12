@@ -315,6 +315,12 @@ const en = {
     altitude: "Altitude",
     verticalSpeed: "Vertical speed",
     track: "Track",
+    verticalState: {
+      climbing: "climbing",
+      descending: "descending",
+      level: "level",
+      unknown: "unavailable",
+    },
     hex: "Hex",
     icao24: "ICAO24",
     icao: "ICAO",

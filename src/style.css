@@ -1730,19 +1730,9 @@ body {
     background: var(--airport-wayfinding-secondary);
 }
 
-.airport-map-kit .wayfinding-metric[data-tone="primary"]
-    .wayfinding-metric__rail {
-    background: var(--atc-signal-accent);
-}
-
 .airport-map-kit .wayfinding-metric[data-tone="secondary"]
     .wayfinding-metric__icon {
     color: var(--airport-wayfinding-secondary-fg);
-}
-
-.airport-map-kit .wayfinding-metric[data-tone="primary"]
-    .wayfinding-metric__icon {
-    color: var(--airport-wayfinding-primary-rail-fg);
 }
 
 .airport-map-kit
