@@ -1,6 +1,15 @@
-import type { CSSProperties, ReactNode } from "react";
-import { ArrowUpRight, Github } from "lucide-react";
-import { AirportListRow } from "@/components/airport/search/AirportListRow";
+import type { ReactNode } from "react";
+import {
+  ArrowUpRight,
+  Building2,
+  CloudSun,
+  Database,
+  Github,
+  Layers3,
+  Network,
+  RadioTower,
+  Tag,
+} from "lucide-react";
 import {
   ABOUT_BUILD_META,
   ABOUT_DATA_SOURCES,
@@ -14,10 +23,6 @@ const resolveCopy = (entry, t) => {
   return entry.valueKey ? t(entry.valueKey) : entry.value;
 };
 
-// Group the data-source list by concern so it reads as scannable clusters
-// rather than one long stack. Categories derive from each source's glyph code
-// (kept here so the static config stays untouched). Labels are bilingual
-// inline — the glyph codes themselves are already untranslated.
 const SOURCE_CATEGORY: Record<string, string> = {
   "ADS-B": "traffic",
   ICONS: "traffic",
@@ -38,18 +43,12 @@ const CATEGORY_LABEL: Record<string, { en: string; zh: string }> = {
   airport: { en: "Airports", zh: "机场" },
   context: { en: "Context", zh: "背景" },
 };
-
-// The source codes (ADS-B / ICONS / METAR / ROUTE) are wider than ICAO codes,
-// so the shared Explorer row gets a wider, slightly smaller chip here via its
-// CSS-var overrides — same chip style, different column.
-const SOURCE_CHIP_STYLE = {
-  "--lr-chip-col": "54px",
-  "--lr-chip-fs": "9.5px",
-} as CSSProperties;
-
-// Unrailed copy uses the same 14px optical inset as the tracking sidebars.
-// Raived identity content stays on the separate 36px + 12px = 48px axis.
-const INSET = "px-[var(--home-wayfinding-content-inset,14px)]";
+const CATEGORY_ICON: Record<string, ReactNode> = {
+  traffic: <RadioTower />,
+  weather: <CloudSun />,
+  airport: <Building2 />,
+  context: <Database />,
+};
 
 export default function AboutPanel() {
   const { locale, t } = useI18n();
@@ -67,138 +66,114 @@ export default function AboutPanel() {
     : [];
 
   return (
-    <div className="flex flex-none flex-col pb-2">
-      {/* Meta block — stacked label-over-value, left-aligned to the title.
-          Deliberately NOT a left-label/right-value rail (which competed with
-          the chip column below). */}
-      <div className={`flex flex-col gap-4 pt-1 ${INSET}`}>
+    <div className="info-wayfinding-stack flex flex-none flex-col pb-2">
+      <div className="info-wayfinding-meta">
         {version ? (
-          <MetaEntry
+          <InfoRow
+            icon={<Tag />}
             label={version.labelKey ? t(version.labelKey) : version.label}
-            value={
-              <span className="font-code">{resolveCopy(version, t)}</span>
-            }
+            value={<span className="font-code">{resolveCopy(version, t)}</span>}
           />
         ) : null}
-        {sections.map((section) => (
-          <MetaEntry
+        {sections.map((section, index) => (
+          <InfoRow
             key={section.label}
+            icon={index === 0 ? <Layers3 /> : <Network />}
             label={section.labelKey ? t(section.labelKey) : section.label}
-            value={section.items
-              .map((item) => resolveCopy(item, t))
-              .join(" · ")}
+            value={section.items.map((item) => resolveCopy(item, t)).join(" · ")}
           />
         ))}
       </div>
 
-      {/* Hairline divider between the meta block and Data sources. */}
-      <div className="mx-[var(--home-wayfinding-content-inset,14px)] mt-5 mb-4 h-px bg-[color-mix(in_oklab,var(--atc-text)_11%,transparent)]" />
-
-      {/* Section header: serif + accent tick (the one accent here besides the
-          title tick) with a mono source count right-aligned. */}
-      <div className={`flex items-center gap-3 ${INSET}`}>
-        <h2
-          className={
-            "flex min-w-0 items-center gap-2 [font-weight:600] text-[calc(15px*var(--sb-title-scale))] leading-snug text-atc-dim " +
-            "before:block before:h-[1.5px] before:w-[9px] before:shrink-0 before:rounded-full " +
-            "before:bg-[var(--atc-signal-accent)] before:content-['']"
-          }
-        >
-          {t("about.dataSources")}
-        </h2>
+      <div className="info-wayfinding-section-title">
+        <span className="info-wayfinding-section-title__rail" aria-hidden="true">
+          <Database />
+        </span>
+        <h2>{t("about.dataSources")}</h2>
       </div>
 
-      <div className="mt-3 flex flex-col gap-5">
-        {CATEGORY_ORDER.map((category) => {
-          const sources = ABOUT_DATA_SOURCES.filter(
-            (source) => (SOURCE_CATEGORY[source.glyph] || "context") === category,
-          );
-          if (!sources.length) return null;
-          const label =
-            CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
-          return (
-            <section key={category} className="flex flex-col gap-1.5">
-              {/* Sub-group label: plain upright sans, semibold, no tick. */}
-              <h3
-                className={`[font-weight:600] text-[calc(12px*var(--sb-title-scale))] leading-snug text-atc-dim ${INSET}`}
-              >
-                {label}
-              </h3>
-              <ol className={`flex flex-col gap-1 ${INSET}`}>
-                {sources.map((source) => (
-                  <li key={source.host || source.title || source.glyph}>
-                    <AirportListRow
-                      as="a"
-                      style={SOURCE_CHIP_STYLE}
-                      {...getExternalLinkOpenTarget(source.href)}
-                      onClick={(event) => openExternalLink(event, source.href)}
-                      pill={source.glyph}
-                      trailingAlign="start"
-                      title={source.titleKey ? t(source.titleKey) : source.title}
-                      subtitle={
-                        source.descriptionKey
+      {CATEGORY_ORDER.map((category) => {
+        const sources = ABOUT_DATA_SOURCES.filter(
+          (source) => (SOURCE_CATEGORY[source.glyph] || "context") === category,
+        );
+        if (!sources.length) return null;
+        const label = CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
+        return (
+          <section key={category} className="info-wayfinding-source-group">
+            <header className="info-wayfinding-group-header">
+              <span className="info-wayfinding-group-header__rail" aria-hidden="true">
+                {CATEGORY_ICON[category]}
+              </span>
+              <h3>{label}</h3>
+            </header>
+            <ol>
+              {sources.map((source) => (
+                <li key={source.host || source.title || source.glyph}>
+                  <a
+                    {...getExternalLinkOpenTarget(source.href)}
+                    onClick={(event) => openExternalLink(event, source.href)}
+                    className="info-wayfinding-source-row group"
+                  >
+                    <span className="info-wayfinding-source-row__code">
+                      {source.glyph}
+                    </span>
+                    <span className="info-wayfinding-source-row__copy">
+                      <strong>{source.titleKey ? t(source.titleKey) : source.title}</strong>
+                      <small>
+                        {source.descriptionKey
                           ? t(source.descriptionKey)
-                          : source.description
-                      }
-                      trailing={
-                        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                      }
-                    />
-                  </li>
-                ))}
-              </ol>
-            </section>
-          );
-        })}
-      </div>
+                          : source.description}
+                      </small>
+                    </span>
+                    <ArrowUpRight aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </section>
+        );
+      })}
 
-      <div className="px-[var(--home-wayfinding-content-inset,14px)] pb-4 pt-4">
-        <a
-          {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
-          onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
-          className="group dither-repository-card flex items-center justify-between gap-3 rounded-[calc(var(--atc-radius-card)-2px)] px-2 py-2 transition-colors hover:bg-[var(--atc-control-surface-muted)] md:gap-2.5 md:px-2 md:py-2"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-6 w-6 place-items-center text-atc-faint group-hover:text-atc-text">
-              <Github className="h-3 w-3" aria-hidden="true" />
-            </span>
-            <div>
-              <strong className="block text-[calc(11px*var(--sb-body-scale))] font-semibold text-atc-text">
-                {ABOUT_REPOSITORY.name}
-              </strong>
-              <small className="mt-0.5 block font-mono text-[calc(9px*var(--sb-body-scale))] tracking-normal uppercase text-atc-dim">
-                {ABOUT_REPOSITORY.licenseKey
-                  ? t(ABOUT_REPOSITORY.licenseKey)
-                  : ABOUT_REPOSITORY.license}
-              </small>
-            </div>
-          </div>
-          <span className="atc-chip" aria-hidden="true">
-            <span className="flex items-center gap-1">
-              <span>OPEN</span>
-              <ArrowUpRight className="h-3 w-3" />
-            </span>
-          </span>
-        </a>
-      </div>
+      <a
+        {...getExternalLinkOpenTarget(ABOUT_REPOSITORY.href)}
+        onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
+        className="info-wayfinding-repository group"
+      >
+        <span className="info-wayfinding-repository__rail" aria-hidden="true">
+          <Github />
+        </span>
+        <span className="info-wayfinding-repository__copy">
+          <small>
+            {ABOUT_REPOSITORY.licenseKey
+              ? t(ABOUT_REPOSITORY.licenseKey)
+              : ABOUT_REPOSITORY.license}
+          </small>
+          <strong>{ABOUT_REPOSITORY.name}</strong>
+        </span>
+        <ArrowUpRight aria-hidden="true" />
+      </a>
     </div>
   );
 }
 
-// Stacked meta field: a quiet uppercase micro-label over a regular-weight value.
-function MetaEntry({
+function InfoRow({
+  icon,
   label,
   value,
 }: {
+  icon: ReactNode;
   label: ReactNode;
   value: ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-[calc(10px*var(--sb-body-scale))] uppercase [letter-spacing:1.4px] text-atc-faint">
-        {label}
+    <div className="info-wayfinding-row">
+      <span className="info-wayfinding-row__rail" aria-hidden="true">
+        {icon}
       </span>
-      <span className="text-[calc(14px*var(--sb-body-scale))] leading-[1.4] text-atc-text">{value}</span>
+      <span className="info-wayfinding-row__copy">
+        <small>{label}</small>
+        <strong>{value}</strong>
+      </span>
     </div>
   );
 }

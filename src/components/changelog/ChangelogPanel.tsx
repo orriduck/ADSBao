@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CircleDot } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
   CHANGELOG_PAGE_SIZE,
@@ -96,14 +97,8 @@ export default function ChangelogPanel() {
   }, [hasMoreReleases, loadNextPage]);
 
   return (
-    <>
-      <div className="dither-section-header flex-none px-[var(--home-wayfinding-content-inset,14px)] pt-5 pb-2.5">
-        <div className="atc-section-head">
-          <span className="atc-kicker">{t("changelog.releases")}</span>
-        </div>
-      </div>
-
-      <ol className="dither-list dither-list-flow mx-[var(--home-wayfinding-content-inset,14px)] mb-5 flex flex-none flex-col gap-1.5">
+    <div className="changelog-wayfinding flex flex-none flex-col pb-5">
+      <ol className="dither-list flex flex-none flex-col">
         {visibleReleases.map((release, index) => (
           <ChangelogEntry
             key={release.version}
@@ -117,7 +112,7 @@ export default function ChangelogPanel() {
           <li ref={sentinelRef} aria-hidden="true" className="h-px" />
         ) : null}
       </ol>
-    </>
+    </div>
   );
 }
 
@@ -147,20 +142,14 @@ function ChangelogEntry({
       data-current={isLatest ? "true" : undefined}
     >
       <div className="changelog-entry__rail">
-        <span className="changelog-entry__version">{release.version}</span>
-        {release.kind ? (
-          // Same mono code chip as the ICAO / category chips; one shared style.
-          <span className="inline-flex w-fit items-center justify-center whitespace-nowrap rounded-[5px] px-[5px] py-[2.5px] font-code text-[calc(8.5px*var(--sb-body-scale))] [letter-spacing:0.4px] text-atc-dim shadow-[inset_0_0_0_0.5px_var(--atc-line-strong)]">
-            {release.kind.toUpperCase()}
-          </span>
-        ) : null}
-        {isLatest && (
-          <span className="changelog-entry__current">
-            {t("changelog.current")}
-          </span>
-        )}
+        <CircleDot aria-hidden="true" />
       </div>
       <div className="changelog-entry__body">
+        <div className="changelog-entry__meta">
+          <span className="changelog-entry__version">{release.version}</span>
+          {release.kind ? <span>{release.kind.toUpperCase()}</span> : null}
+          {isLatest ? <span>{t("changelog.current")}</span> : null}
+        </div>
         {title ? (
           <p className="changelog-entry__title">
             {title}
