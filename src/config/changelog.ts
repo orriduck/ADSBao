@@ -50,7 +50,7 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.12.0",
+    version: "v3.12.1",
     kind: "feat",
     title: {
       en: "Operational wayfinding",

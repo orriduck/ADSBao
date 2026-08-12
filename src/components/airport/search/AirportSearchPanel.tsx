@@ -58,7 +58,7 @@ export default function AirportSearchPanel({
     <>
       <form
         onSubmit={doSearch}
-        className="search-input home-wayfinding-search mb-3 flex min-h-11 flex-none items-stretch gap-0 p-0"
+        className="search-input home-wayfinding-search flex min-h-11 flex-none items-stretch gap-0 p-0"
       >
         <span className="flex w-9 shrink-0 items-center justify-center bg-[var(--home-wayfinding-neutral-rail)] text-[var(--home-wayfinding-neutral-rail-fg)]">
           <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
