@@ -35,28 +35,34 @@ export default function AirspacePreviewMetadataCard({
   ].filter((row) => row.value);
 
   return (
-    <div className="aircraft-preview-metadata-card pointer-events-auto">
-      <PreviewWayfindingRail icon={<Layers3 />} tone="secondary" />
-      <PreviewCardHeader
-        primary={name}
-        primaryMono={false}
-        secondary={display.type || undefined}
-      />
-      <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-      <PreviewMetaRows rows={rows} />
+    <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--airspace pointer-events-auto">
+      <div className="aircraft-preview-identity-band">
+        <PreviewWayfindingRail icon={<Layers3 />} tone="secondary" />
+        <div className="aircraft-preview-identity-content">
+          <PreviewCardHeader
+            primary={name}
+            primaryMono={false}
+            secondary={display.type || undefined}
+          />
+        </div>
+      </div>
+      <div className="airspace-preview-detail-band">
+        <PreviewMetaRows rows={rows} />
+      </div>
       {display.description ? (
-        <>
-          <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
+        <div className="airspace-preview-description-band">
           <p className="text-[11px] leading-snug text-atc-dim">
             {display.description}
           </p>
-        </>
+        </div>
       ) : null}
-      <AirspacePreviewSelector
-        airspaces={airspaces}
-        selectedAirspaceId={selectedAirspaceId}
-        onSelectAirspace={onSelectAirspace}
-      />
+      <div className="airspace-preview-selector-band">
+        <AirspacePreviewSelector
+          airspaces={airspaces}
+          selectedAirspaceId={selectedAirspaceId}
+          onSelectAirspace={onSelectAirspace}
+        />
+      </div>
     </div>
   );
 }

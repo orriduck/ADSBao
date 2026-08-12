@@ -6831,7 +6831,8 @@ body {
    the identity band only; letting it position against the entire metadata
    card creates a false full-height column and obscures the information order. */
 .aircraft-preview-card .aircraft-preview-metadata-card--aircraft,
-.aircraft-preview-card .aircraft-preview-metadata-card--airport {
+.aircraft-preview-card .aircraft-preview-metadata-card--airport,
+.aircraft-preview-card .aircraft-preview-metadata-card--airspace {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: #fff !important;
@@ -6839,7 +6840,8 @@ body {
 }
 
 :root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--aircraft,
-:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airport {
+:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airport,
+:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airspace {
     background: #000 !important;
 }
 
@@ -6877,9 +6879,34 @@ body {
     padding: 11px 14px;
 }
 
+/* Airspace is a secondary map context: its blue rail identifies the title
+   only. Keeping it out of the detail bands restores the full-width reading
+   surface and prevents the old absolute rail from covering the data. */
+.airspace-preview-detail-band,
+.airspace-preview-description-band,
+.airspace-preview-selector-band {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+}
+
+.airspace-preview-detail-band {
+    padding: 10px 14px;
+}
+
+.airspace-preview-description-band {
+    padding: 10px 14px 11px;
+}
+
+.airspace-preview-description-band > p {
+    margin: 0;
+}
+
+.airspace-preview-selector-band {
+    padding: 8px 14px;
+}
+
 /* The close control shares space with the heading only. Telemetry, selectors,
    and actions below it retain the card's full content width. */
-.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--aircraft):not(.aircraft-preview-metadata-card--airport) > :first-child > :first-child {
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--aircraft):not(.aircraft-preview-metadata-card--airport):not(.aircraft-preview-metadata-card--airspace) > :first-child > :first-child {
     padding-right: 34px;
 }
 

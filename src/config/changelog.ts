@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.7",
+    version: "v3.13.8",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Airport, flight, and first-screen views share one 36px-rail system with clear hierarchy and reserved tracking color.",
-      zh: "机场、航班与首屏统一采用 36px 导视边，以清晰层级和克制的追踪色提升扫读效率。",
+      en: "Airport, flight, and first-screen views share one 36px-rail system with clear hierarchy, reserved tracking color, and aligned map previews.",
+      zh: "机场、航班与首屏统一采用 36px 导视边，以清晰层级、克制的追踪色和对齐的地图预览提升扫读效率。",
     },
     highlights: [],
   },
