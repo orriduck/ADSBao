@@ -10053,6 +10053,22 @@ body {
 .search-screen .airport-discovery-topic .dither-list .group[data-has-pill="false"]:hover {
     grid-template-columns: minmax(0, 1fr) 16px;
     padding-left: 48px;
+    position: relative;
+}
+
+/* Directory rows have no icon or code in the rail, but the wayfinding edge
+   must continue through the entire joined list. This visual-only strip keeps
+   the 36px rail and 48px content axis intact without inventing row semantics. */
+.search-screen .airport-discovery-topic .dither-list .group[data-has-pill="false"]::before,
+.search-screen .airport-search-results .dither-list .group[data-has-pill="false"]::before {
+    background: var(--home-wayfinding-neutral-rail);
+    bottom: 0;
+    content: "";
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 36px;
 }
 
 .search-screen .airport-discovery-topic .dither-list .group > span:first-child {
@@ -10140,6 +10156,7 @@ body {
 .search-screen .airport-search-results .dither-list .group[data-has-pill="false"]:hover {
     grid-template-columns: minmax(0, 1fr) 16px;
     padding-left: 48px;
+    position: relative;
 }
 
 .search-screen .airport-search-results .dither-list .group > span:first-child {
