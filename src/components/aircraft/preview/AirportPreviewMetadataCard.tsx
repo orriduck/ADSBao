@@ -19,9 +19,8 @@ import {
 } from "@/utils/units";
 import { PreviewWayfindingRail } from "./previewCardChrome";
 
-// Airport variant of the preview card. Mirrors the aircraft card's chrome and
-// typography: a mono identity (ICAO + IATA) over name / place, the shared
-// metadata rows, and the Track button in the actions row.
+// Airport variant of the preview card. The signal rail belongs only to the
+// identity band; metrics and the action remain full-width joined sign rows.
 export default function AirportPreviewMetadataCard({ airport }) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
@@ -49,77 +48,81 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const trackHref = icao ? `/airport/${icao}` : null;
 
   return (
-    <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<TowerControl />} />
-      <div className="mb-2.5 flex flex-col gap-[7px]">
-        <div className="flex min-w-0 items-baseline justify-between gap-3">
-          <span
-            className="notranslate min-w-0 truncate font-mono text-[21px] leading-none tracking-[0.02em] text-atc-text"
-            translate="no"
-            title={primaryCode}
-          >
-            {primaryCode}
-          </span>
-          {iata && iata !== primaryCode ? (
-            <span
-              className="notranslate flex-none whitespace-nowrap font-mono text-[12.5px] tracking-[0.04em] text-atc-dim"
-              translate="no"
-            >
-              {iata}
-            </span>
-          ) : null}
+    <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--airport">
+      <div className="aircraft-preview-identity-band">
+        <PreviewWayfindingRail icon={<TowerControl />} />
+        <div className="aircraft-preview-identity-content">
+          <div className="flex flex-col gap-[7px]">
+            <div className="flex min-w-0 items-baseline justify-between gap-3">
+              <span
+                className="notranslate min-w-0 truncate font-mono text-[21px] leading-none tracking-[0.02em] text-atc-text"
+                translate="no"
+                title={primaryCode}
+              >
+                {primaryCode}
+              </span>
+              {iata && iata !== primaryCode ? (
+                <span
+                  className="notranslate flex-none whitespace-nowrap font-mono text-[12.5px] tracking-[0.04em] text-atc-dim"
+                  translate="no"
+                >
+                  {iata}
+                </span>
+              ) : null}
+            </div>
+            {name ? (
+              <div className="min-w-0 truncate text-[13px] leading-snug text-atc-dim">
+                {name}
+              </div>
+            ) : null}
+            {placeLine ? (
+              <div className="min-w-0 truncate text-[11.5px] leading-snug text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
+                {placeLine}
+              </div>
+            ) : null}
+          </div>
         </div>
-        {name ? (
-          <div className="min-w-0 truncate text-[13px] leading-snug text-atc-dim">
-            {name}
-          </div>
-        ) : null}
-        {placeLine ? (
-          <div className="min-w-0 truncate text-[11.5px] leading-snug text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
-            {placeLine}
-          </div>
-        ) : null}
       </div>
 
-      <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-
-      <dl className="aircraft-preview-metadata">
-        <MetaRow
-          label={t("metrics.distance")}
-          value={
-            distanceConverted == null ? (
-              "—"
-            ) : (
-              <>
-                <NumberFlow
-                  value={distanceConverted}
-                  format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
-                />
-                <span className="notranslate" translate="no">
-                  {" "}
-                  {distanceUnitLabel(units.distance)}
-                </span>
-              </>
-            )
-          }
-        />
-        <MetaRow
-          label={t("metrics.elevation")}
-          value={
-            !elevationDisplay ? (
-              "—"
-            ) : (
-              <>
-                <NumberFlow value={elevationDisplay.value ?? 0} />
-                <span className="notranslate" translate="no">
-                  {" "}
-                  {elevationDisplay.unit.toUpperCase()}
-                </span>
-              </>
-            )
-          }
-        />
-      </dl>
+      <div className="aircraft-preview-detail-band">
+        <dl className="aircraft-preview-metadata">
+          <MetaRow
+            label={t("metrics.distance")}
+            value={
+              distanceConverted == null ? (
+                "—"
+              ) : (
+                <>
+                  <NumberFlow
+                    value={distanceConverted}
+                    format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
+                  />
+                  <span className="notranslate" translate="no">
+                    {" "}
+                    {distanceUnitLabel(units.distance)}
+                  </span>
+                </>
+              )
+            }
+          />
+          <MetaRow
+            label={t("metrics.elevation")}
+            value={
+              !elevationDisplay ? (
+                "—"
+              ) : (
+                <>
+                  <NumberFlow value={elevationDisplay.value ?? 0} />
+                  <span className="notranslate" translate="no">
+                    {" "}
+                    {elevationDisplay.unit.toUpperCase()}
+                  </span>
+                </>
+              )
+            }
+          />
+        </dl>
+      </div>
 
       <div className="aircraft-preview-card__actions">
         {trackHref && !alreadyTracking ? (

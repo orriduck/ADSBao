@@ -6819,14 +6819,16 @@ body {
 /* Aircraft previews are joined operational signs. The orange rail belongs to
    the identity band only; letting it position against the entire metadata
    card creates a false full-height column and obscures the information order. */
-.aircraft-preview-card .aircraft-preview-metadata-card--aircraft {
+.aircraft-preview-card .aircraft-preview-metadata-card--aircraft,
+.aircraft-preview-card .aircraft-preview-metadata-card--airport {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     background: #fff !important;
     padding: 0;
 }
 
-:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--aircraft {
+:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--aircraft,
+:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airport {
     background: #000 !important;
 }
 
@@ -6866,7 +6868,7 @@ body {
 
 /* The close control shares space with the heading only. Telemetry, selectors,
    and actions below it retain the card's full content width. */
-.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--aircraft) > :first-child > :first-child {
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--aircraft):not(.aircraft-preview-metadata-card--airport) > :first-child > :first-child {
     padding-right: 34px;
 }
 
@@ -6947,14 +6949,16 @@ body {
     pointer-events: auto;
 }
 
-.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions {
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions,
+.aircraft-preview-metadata-card--airport > .aircraft-preview-card__actions {
     background: color-mix(in oklab, var(--atc-text) 14%, transparent);
     border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
     gap: 1px;
     margin-top: 0;
 }
 
-.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions .aircraft-preview-card__track-btn {
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions .aircraft-preview-card__track-btn,
+.aircraft-preview-metadata-card--airport > .aircraft-preview-card__actions .aircraft-preview-card__track-btn {
     min-height: 36px;
 }
 
