@@ -84,7 +84,7 @@ export default function NavaidPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<RadioTower />} />
+      <PreviewWayfindingRail icon={<RadioTower />} tone="secondary" />
       <PreviewCardHeader
         primary={ident}
         secondary={type || undefined}

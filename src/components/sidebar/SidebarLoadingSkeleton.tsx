@@ -12,7 +12,7 @@ function Placeholder({ className = "" }: { className?: string }) {
   );
 }
 
-function Rail({ tone = "neutral" }: { tone?: "neutral" | "primary" | "secondary" }) {
+function Rail({ tone = "neutral" }: { tone?: "neutral" | "secondary" }) {
   return (
     <span className="sidebar-loading-skeleton__rail" data-tone={tone}>
       <Placeholder className="sidebar-loading-skeleton__icon" />
@@ -42,7 +42,7 @@ export function SidebarLoadingHeader({
       data-variant={variant}
     >
       <div className="sidebar-loading-skeleton__identity">
-        <Rail tone="primary" />
+        <Rail />
         <span className="sidebar-loading-skeleton__identity-copy">
           <Placeholder className={variant === "flight" ? "h-6 w-24" : "h-6 w-32"} />
           <Placeholder className="w-44" />

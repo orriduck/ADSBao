@@ -38,7 +38,7 @@ export default function NavaidPreviewMobileCard({
 
   return (
     <div className="mobile-preview-sign">
-      <MobilePreviewIdentityBand icon={<RadioTower />}>
+      <MobilePreviewIdentityBand icon={<RadioTower />} tone="secondary">
         <MobilePreviewHeader
           primary={ident}
           secondary={type || undefined}

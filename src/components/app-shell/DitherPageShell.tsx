@@ -133,11 +133,11 @@ export default function DitherPageShell({
               <div className="dither-page-copy dither-wayfinding-identity relative grid min-h-[136px] grid-cols-[36px_minmax(0,1fr)] content-center gap-y-2 overflow-hidden">
                 <span
                   aria-hidden="true"
-                  className="absolute inset-y-0 left-0 w-9 bg-[var(--atc-signal-accent)]"
+                  className="dither-wayfinding-identity__rail absolute inset-y-0 left-0 w-9"
                 />
                 <span
                   aria-hidden="true"
-                  className="absolute left-0 top-[11px] z-[1] flex w-9 items-center justify-center text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+                  className="dither-wayfinding-identity__icon absolute left-0 top-[11px] z-[1] flex w-9 items-center justify-center [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
                 >
                   <RouteIcon />
                 </span>

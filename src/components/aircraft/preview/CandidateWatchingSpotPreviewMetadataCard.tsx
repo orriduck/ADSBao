@@ -39,7 +39,7 @@ export default function CandidateWatchingSpotPreviewMetadataCard({
 
   return (
     <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<Binoculars />} />
+      <PreviewWayfindingRail icon={<Binoculars />} tone="secondary" />
       <div className="candidate-watching-spot-preview-motion">
         <PreviewCardHeader
           primary={name}

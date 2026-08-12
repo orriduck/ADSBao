@@ -44,12 +44,22 @@ the airport/flight sidebars in `src/components/sidebar/`.
 
 Each tracked entity or page context owns one primary theme color. ADSBao uses:
 
-- **Orange** (`--atc-signal-accent`) for airport/aircraft identity, selection,
-  live trace, and primary tracking actions.
-- **Blue** (`--airport-wayfinding-secondary`) for a clearly different
-  destination or representation: external provider rows and alternate-unit
-  metric states.
-- **Neutral gray** for ordinary metric, search, filter, and list icon rails.
+- **Orange** (`--atc-signal-accent`) is the scarce highest-priority signal. Use
+  it only for the current airport/aircraft identity, the selected tracking
+  target, live trace, or the single primary tracking action in a context.
+- **Blue** (`--atc-signal-secondary-action`, with
+  `--airport-wayfinding-secondary` as the tracking-sidebar alias) marks
+  secondary interaction or a distinct alternate context: external provider
+  rows, expanded secondary controls, contextual map previews, and
+  alternate-unit metric states.
+- **Dark and light neutral gray** express structure and ordinary information:
+  static page identities, section and group headers, metrics, search, filters,
+  loading placeholders, unselected list rows, and non-interactive status.
+
+Do not promote a rail to orange merely because it starts a page or is the
+newest item in a list. Before adding orange, ask whether the element identifies
+what the user is actively tracking or performs the one primary action. If not,
+use blue for secondary interaction and gray for everything else.
 
 Only the rail or an entire secondary action row receives color. Text content
 stays on the neutral content surface; never put contrasting text blocks inside
