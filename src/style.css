@@ -6821,9 +6821,57 @@ body {
     width: 16px;
 }
 
+/* Aircraft previews are joined operational signs. The orange rail belongs to
+   the identity band only; letting it position against the entire metadata
+   card creates a false full-height column and obscures the information order. */
+.aircraft-preview-card .aircraft-preview-metadata-card--aircraft {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #fff !important;
+    padding: 0;
+}
+
+:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--aircraft {
+    background: #000 !important;
+}
+
+.aircraft-preview-identity-band {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    min-width: 0;
+}
+
+.aircraft-preview-identity-band > .aircraft-preview-wayfinding-rail {
+    bottom: auto;
+    left: auto;
+    position: relative;
+    top: auto;
+    width: 36px;
+}
+
+.aircraft-preview-identity-content {
+    min-width: 0;
+    padding: 14px 40px 11px 12px;
+}
+
+.aircraft-preview-identity-content > :first-child {
+    margin-bottom: 0;
+}
+
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-telemetry {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    gap: 1px;
+    margin: 0;
+}
+
+.aircraft-preview-detail-band {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    padding: 11px 14px;
+}
+
 /* The close control shares space with the heading only. Telemetry, selectors,
    and actions below it retain the card's full content width. */
-.aircraft-preview-card--dismissible .aircraft-preview-metadata-card > :first-child > :first-child {
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--aircraft) > :first-child > :first-child {
     padding-right: 34px;
 }
 
@@ -6902,6 +6950,23 @@ body {
     gap: 6px;
     margin-top: 14px;
     pointer-events: auto;
+}
+
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions {
+    background: color-mix(in oklab, var(--atc-text) 14%, transparent);
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    gap: 1px;
+    margin-top: 0;
+}
+
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions .aircraft-preview-card__track-btn {
+    min-height: 36px;
+}
+
+.aircraft-preview-metadata-card--aircraft > .aircraft-preview-card__actions .aircraft-preview-card__icon-btn {
+    border: 0;
+    border-radius: 0;
+    width: 36px;
 }
 
 .aircraft-preview-card__actions .aircraft-preview-card__track-btn {

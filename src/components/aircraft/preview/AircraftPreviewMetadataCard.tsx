@@ -26,30 +26,35 @@ export default function AircraftPreviewMetadataCard({
     : null;
 
   return (
-    <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<Plane />} />
-      <AircraftPreviewIdentity aircraft={aircraft} />
-      <AircraftPreviewTelemetry aircraft={aircraft} />
-      <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-      <AircraftPreviewMetadata aircraft={aircraft} />
-      {trackHref && (
-        <div
-          className={`aircraft-preview-card__trace-status ${
-            traceStatusVisible ? "is-active" : ""
-          }`}
-          aria-hidden={!traceStatusVisible}
-        >
-          {traceStatusState && traceStatusLabels ? (
-            <AsyncStatusLineDisplay
-              state={traceStatusState}
-              pendingLabel={traceStatusLabels.pendingLabel}
-              successLabel={traceStatusLabels.successLabel}
-              errorLabel={traceStatusLabels.errorLabel}
-              className="justify-center w-full"
-            />
-          ) : null}
+    <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--aircraft">
+      <div className="aircraft-preview-identity-band">
+        <PreviewWayfindingRail icon={<Plane />} />
+        <div className="aircraft-preview-identity-content">
+          <AircraftPreviewIdentity aircraft={aircraft} />
         </div>
-      )}
+      </div>
+      <AircraftPreviewTelemetry aircraft={aircraft} />
+      <div className="aircraft-preview-detail-band">
+        <AircraftPreviewMetadata aircraft={aircraft} />
+        {trackHref && (
+          <div
+            className={`aircraft-preview-card__trace-status ${
+              traceStatusVisible ? "is-active" : ""
+            }`}
+            aria-hidden={!traceStatusVisible}
+          >
+            {traceStatusState && traceStatusLabels ? (
+              <AsyncStatusLineDisplay
+                state={traceStatusState}
+                pendingLabel={traceStatusLabels.pendingLabel}
+                successLabel={traceStatusLabels.successLabel}
+                errorLabel={traceStatusLabels.errorLabel}
+                className="justify-center w-full"
+              />
+            ) : null}
+          </div>
+        )}
+      </div>
       {trackHref &&
       (!alreadyTracking || typeof onOpenPlaneHunter === "function") ? (
         <div className="aircraft-preview-card__actions">
