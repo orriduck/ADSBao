@@ -7628,13 +7628,56 @@ body {
     line-height: 1.35;
 }
 
-.info-wayfinding-section-title,
-.info-wayfinding-group-header {
-    min-height: 44px;
+.info-wayfinding-section-title {
+    min-height: 58px;
 }
 
-.info-wayfinding-section-title h2,
-.info-wayfinding-group-header h3,
+.info-wayfinding-section-title__rail {
+    background: var(--atc-signal-accent);
+    color: var(--atc-signal-accent-fg);
+}
+
+.info-wayfinding-section-title h2 {
+    align-self: center;
+    color: var(--atc-text);
+    font-size: calc(17px * var(--sb-title-scale));
+    font-weight: var(--weight-medium);
+    line-height: 1.15;
+    margin: 0;
+    padding: 0 12px;
+}
+
+.info-wayfinding-group-header {
+    min-height: 34px;
+}
+
+.info-wayfinding-group-header__rail {
+    background: color-mix(
+        in oklab,
+        var(--atc-text) 30%,
+        var(--atc-bg)
+    );
+    padding-top: 9px;
+}
+
+.info-wayfinding-group-header__rail > svg {
+    height: 14px;
+    width: 14px;
+}
+
+.info-wayfinding-group-header h3 {
+    align-self: center;
+    color: var(--atc-dim);
+    font-family: var(--font-code);
+    font-size: calc(9px * var(--sb-body-scale));
+    font-weight: var(--weight-medium);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    margin: 0;
+    padding: 0 12px;
+    text-transform: uppercase;
+}
+
 .mechanism-wayfinding__group h2 {
     align-self: center;
     color: var(--atc-text);
