@@ -5377,9 +5377,11 @@ body {
     color: var(--atc-solid-accent-fg);
 }
 
-/* Focal airport label — vertical stack with the IATA/ICAO code as a
-   yellow parallelogram badge (.atc-code-pill) on top, then optional
-   small detail lines (RWY 4, APP 12) below. */
+/* Airport labels share their DOM between the focal tracking target and
+   contextual map references. The focal target below is deliberately a small
+   wayfinding sign rather than an orange capsule: the 4px signal strip names
+   the tracked airport while the information itself stays on the map's neutral
+   surface. */
 .airport-overlay-label {
     align-items: center;
     --map-badge-offset-x: 0px;
@@ -5499,19 +5501,57 @@ body {
     color: var(--atc-dim);
 }
 
-/* Focal airport = the page's PRIMARY target. Same frosted-glass pill material
-   as the contextual milky badges (so the whole map speaks one material), but
-   colour-coded ORANGE — a signal-accent tint in the glass, an orange rim, and
-   orange text/icon — to mark it as the primary target and tie it to the
-   tracked-aircraft glyph + trace. -accent-strong tracks the theme (deep on the
-   light canvas, bright on the dark canvas) so it stays legible either way. */
+/* Focal airport = the page's PRIMARY target. Keep orange scarce: it occupies
+   only the compact 4px signal strip, while code and proximity stay black on
+   white (or white on black). This is the map-scale counterpart of a 36px
+   sidebar rail and leaves the geography readable. */
+.airport-overlay-label:not(.airport-overlay-label--map-badge) {
+    align-items: flex-start;
+    filter: drop-shadow(
+        0 1px 2px color-mix(in oklab, var(--atc-text) 18%, transparent)
+    );
+    gap: 2px;
+}
+
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
     .airport-overlay-label__code.atc-code-pill {
-    background: var(--atc-signal-accent);
-    border: 1px solid var(--atc-action-primary-border);
-    border-radius: 2px;
-    box-shadow: var(--atc-action-primary-shadow);
-    color: var(--atc-signal-accent-fg);
+    background: #fff;
+    border: 1px solid color-mix(in oklab, var(--atc-text) 22%, transparent);
+    border-left: 4px solid var(--atc-signal-accent);
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--atc-text);
+    font-size: 8px;
+    gap: 3px;
+    letter-spacing: 0.02em;
+    min-width: auto;
+    padding: 4px 6px 4px 4px;
+}
+
+:root[data-theme="dark"]
+    .airport-overlay-label:not(.airport-overlay-label--map-badge)
+    .airport-overlay-label__code.atc-code-pill {
+    background: #000;
+}
+
+.airport-overlay-label:not(.airport-overlay-label--map-badge)
+    .airport-overlay-label__detail--near {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--atc-text);
+    margin-left: 4px;
+    min-height: 0;
+    padding: 2px 4px 2px 3px;
+}
+
+:root[data-theme="dark"]
+    .airport-overlay-label:not(.airport-overlay-label--map-badge)
+    .airport-overlay-label__detail--near {
+    background: #000;
 }
 
 .airport-overlay-label--navaid .airport-overlay-label__code.atc-code-pill {
