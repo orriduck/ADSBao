@@ -279,7 +279,7 @@ function localServiceEnv(port: number) {
     ...pickEnv(env, [
       "ADSBAO_DATABASE_URL",
       "AIRPORT_DIRECTORY_BASE_URL",
-      "ALLOWED_WS_ORIGINS",
+      "ALLOWED_EVENT_ORIGINS",
       "DATABASE_URL",
       "FR24_API_TOKEN",
       "OPENAIP_API_KEY",

@@ -1,10 +1,37 @@
 # Architecture
 
-The public application is a Vite-built React single-page app served by a small
-static gateway. The gateway serves the SPA fallback and forwards `/api`,
-`/events`, and `/health` to the private service over Railway private networking.
+ADSBao is split at the browser boundary:
 
-The public code owns rendering, interaction, local state, and normalized
-browser contracts. The private service owns all operational behavior. This
-separation keeps secrets, provider integration, persistence, and migrations
-out of the public repository.
+```text
+browser
+  | same-origin /, /api, /events, /health
+  v
+public Vite build served by Nginx
+  | static assets and SPA fallback stay public
+  | /api, /events, /health proxy over Railway private networking
+  v
+private adsbao-service (Go)
+  | endpoints, persistence, upstream integrations, credentials
+```
+
+The public repository owns React rendering, interaction, browser-local state,
+and normalized browser contracts. The private service owns operational
+behavior, persistence, upstream selection, and secrets. Do not move a service
+concern into this repository or expose provider details to the browser.
+
+## Browser routes
+
+| Route | Owner | Notes |
+| --- | --- | --- |
+| `/` and application deep links | Nginx/static SPA | Unknown application paths fall back to `index.html`. |
+| `/api/...` | Private service via Nginx | Browser code uses the same origin. |
+| `/events/...` | Private service via Nginx | Server-Sent Events; proxy buffering and cache are disabled. |
+| `/health` | Private service via Nginx | Suitable for bounded health checks. |
+| `/ws` | Nginx/Vite rejection | Retired transport; intentionally returns 404 instead of SPA fallback. |
+
+Nearby realtime uses the browser's native `EventSource` against `/events/...`.
+When validating it, inspect live named frames in browser DevTools; a stream is
+expected to stay open. It is not a WebSocket connection.
+
+Airport map preferences are kept in browser `localStorage`. They are neither
+an account setting nor a private-service persistence contract.

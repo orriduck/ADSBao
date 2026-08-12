@@ -43,16 +43,18 @@ After any deploy or status request, validate:
 ```bash
 railway deployment list --service adsbao-staging --environment production --json
 curl -fsS https://adsbao-staging-production.up.railway.app/health | jq .
-curl -fsS https://adsbao-staging-production.up.railway.app/api/feature-flags | jq .
 curl -fsSI https://adsbao-staging-production.up.railway.app/aircraft/N123AB | sed -n '1,20p'
-node -e 'const ws=new WebSocket("wss://adsbao-staging-production.up.railway.app/ws"); const t=setTimeout(()=>process.exit(1),8000); ws.addEventListener("open",()=>{clearTimeout(t); console.log("ws open"); ws.close(1000,"done")}); ws.addEventListener("error",()=>process.exit(1));'
+curl -fsSI https://adsbao-staging-production.up.railway.app/airport/KBOS | sed -n '1,20p'
 ```
+
+For an SSE change, open the affected route in a browser and inspect named
+`/events/...` frames in DevTools. Do not substitute a WebSocket probe.
 
 Do not print raw Railway variable values. If env validation is needed, use
 presence checks:
 
 ```bash
-railway run --service adsbao-staging --environment production -- sh -lc 'printf "FEATURE_FLAGS_ENV=%s\nDATABASE_URL_SET=%s\n" "$FEATURE_FLAGS_ENV" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)"'
+railway run --service adsbao-staging --environment production -- sh -lc 'printf "DATABASE_URL_SET=%s\nALLOWED_EVENT_ORIGINS_SET=%s\n" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)" "$([ -n "$ALLOWED_EVENT_ORIGINS" ] && echo yes || echo no)"'
 ```
 
 Before finishing, link the local Railway CLI back to production:

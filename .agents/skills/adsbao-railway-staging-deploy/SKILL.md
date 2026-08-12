@@ -16,15 +16,14 @@ Railway app service in the `production` environment, not a separate database.
 | Staging service | `adsbao-staging` |
 | Railway environment | `production` |
 | Staging URL | `https://adsbao-staging-production.up.railway.app` |
-| Staging flag env | `FEATURE_FLAGS_ENV=preview` |
 
-Staging shares production Postgres through Railway reference variables such as
-`${{Postgres.DATABASE_URL}}`, but `FEATURE_FLAGS_ENV=preview` keeps feature
-flags and map settings logically separate from production rows.
+The application does not use a public feature-flags endpoint, account-backed
+map settings, or WebSocket realtime. Do not add staging-only variables or
+validation probes for those retired paths.
 
 ## Rules
 
-- Read `CLAUDE.md` first and pick the validation mode.
+- Read `CLAUDE.md` first and choose the applicable validation path.
 - Never rely on the currently linked Railway service for staging operations.
 - Always pass `--service adsbao-staging --environment production`.
 - Do not print raw Railway variable values; use redaction or presence checks.
@@ -65,15 +64,18 @@ After deploys, check deployment metadata and the deployed service:
 ```bash
 railway deployment list --service adsbao-staging --environment production --json
 curl -fsS https://adsbao-staging-production.up.railway.app/health | jq .
-curl -fsS https://adsbao-staging-production.up.railway.app/api/feature-flags | jq .
 curl -fsSI https://adsbao-staging-production.up.railway.app/aircraft/N123AB | sed -n '1,20p'
-node -e 'const ws=new WebSocket("wss://adsbao-staging-production.up.railway.app/ws"); const t=setTimeout(()=>process.exit(1),8000); ws.addEventListener("open",()=>{clearTimeout(t); console.log("ws open"); ws.close(1000,"done")}); ws.addEventListener("error",()=>process.exit(1));'
+curl -fsSI https://adsbao-staging-production.up.railway.app/airport/KBOS | sed -n '1,20p'
 ```
+
+If the deployed change affects SSE, open the affected route in a browser and
+inspect named `/events/...` frames in DevTools. Do not use a WebSocket probe or
+treat an intentionally open SSE response as a timeout failure.
 
 For env validation, only print presence or known non-secret values:
 
 ```bash
-railway run --service adsbao-staging --environment production -- sh -lc 'printf "FEATURE_FLAGS_ENV=%s\nINTERNAL_ACCESS_ENABLED=%s\nDATABASE_URL_SET=%s\n" "$FEATURE_FLAGS_ENV" "${INTERNAL_ACCESS_ENABLED:-$FLIGHTAWARE_ACCESS_ENABLED}" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)"'
+railway run --service adsbao-staging --environment production -- sh -lc 'printf "DATABASE_URL_SET=%s\nALLOWED_EVENT_ORIGINS_SET=%s\n" "$([ -n "$DATABASE_URL" ] && echo yes || echo no)" "$([ -n "$ALLOWED_EVENT_ORIGINS" ] && echo yes || echo no)"'
 ```
 
 Finish by restoring the default local CLI target:
