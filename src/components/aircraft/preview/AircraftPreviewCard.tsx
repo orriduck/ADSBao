@@ -17,6 +17,7 @@ import ReportingPointPreviewMetadataCard from "./ReportingPointPreviewMetadataCa
 import ReportingPointPreviewMobileCard from "./ReportingPointPreviewMobileCard";
 import MobilePreviewCard, {
   MobilePreviewActions,
+  MobilePreviewIconButton,
   MobilePreviewTrackButton,
 } from "./MobilePreviewCard";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
@@ -143,8 +144,13 @@ export default function AircraftPreviewCard({
     !sidebarOpen &&
     Boolean(entity) &&
     !(suppressMobileWhenAlreadyTracking && alreadyTracking);
+  // Aircraft selection is a glance surface, not a second tracking sidebar.
+  // Keep it compact on every viewport: the photo becomes a thumbnail and the
+  // three live readouts stay on one line. Rich metadata remains on the actual
+  // tracking page. Other map entities retain their larger desktop cards where
+  // the additional descriptive content is useful.
   const showPreferredMobilePreview =
-    preferMobilePreview && !isMobile && Boolean(entity);
+    !isMobile && Boolean(entity) && (preferMobilePreview || isAircraftPreview);
   const showMobilePreview = showMobile || showPreferredMobilePreview;
   const mobilePreviewSafeAreaStyle = showPreferredMobilePreview
     ? ({
@@ -248,7 +254,7 @@ export default function AircraftPreviewCard({
 
   return (
     <>
-      {entity && !isMobile && !preferMobilePreview && (
+      {entity && !isMobile && !preferMobilePreview && !isAircraftPreview && (
         <aside
           key={identityKey}
           className={`aircraft-preview-card app-preview-transition aircraft-preview-card--desktop-reveal ${
@@ -358,14 +364,13 @@ export default function AircraftPreviewCard({
                     </MobilePreviewTrackButton>
                   )}
                   {showMobilePlaneHunterTrigger && (
-                    <MobilePreviewTrackButton
-                      className="flex flex-1 items-center justify-center"
+                    <MobilePreviewIconButton
                       onClick={() => setPlaneHunterOpen(true)}
                       aria-label={t("preview.planeHunter")}
                       title={t("preview.planeHunter")}
                     >
                       <Camera aria-hidden="true" className="size-[16px]" strokeWidth={1.8} />
-                    </MobilePreviewTrackButton>
+                    </MobilePreviewIconButton>
                   )}
                 </div>
               </MobilePreviewActions>

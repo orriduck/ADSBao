@@ -714,7 +714,7 @@ function AirportExplorerContent({
         style={mapShellStyle}
         className={`font-sans text-atc-text ${
           isMobile
-            ? "app-detail-shell fixed inset-0 z-0 flex overflow-hidden overscroll-y-none"
+            ? "airport-map-kit app-detail-shell fixed inset-0 z-0 flex overflow-hidden overscroll-y-none"
             : `airport-map-kit ${
                 sidebarOpen ? "airport-map-kit--sidebar-open" : ""
               } flex h-dvh overflow-hidden`

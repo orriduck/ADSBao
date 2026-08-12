@@ -22,6 +22,10 @@ assert.equal(airportDisplayCode({ code: "EGLL", iata: "LHR" }), "EGLL");
 assert.equal(airportDisplayCode({ iata: "BOS" }), "BOS");
 assert.equal(cleanAirportCode("<NIL>"), "");
 assert.equal(airportDisplayCodeLine({ icao: "KDAW", iata: "<NIL>" }), "KDAW");
+assert.equal(
+  airportDisplayCodeLine({ icao: "<NIL>", iata: "<NIL>", localCode: "MA17" }),
+  "MA17",
+);
 assert.equal(airportDisplayName(jfk, "zh-CN"), "约翰·F·肯尼迪国际机场");
 assert.equal(airportSubtitle(jfk, "zh-CN"), "🇺🇸 纽约 · 美国");
 assert.equal(

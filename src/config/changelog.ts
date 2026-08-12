@@ -46,9 +46,22 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 73;
+export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.13.0",
+    kind: "feat",
+    title: {
+      en: "Complete wayfinding workspace",
+      zh: "完整导视化工作区",
+    },
+    summary: {
+      en: "Airport, flight, and first-screen views now share one 36px-rail wayfinding system across desktop, mobile, light, dark, live, and loading states; compact map previews keep only glanceable flight context.",
+      zh: "机场、航班与首屏现于桌面、移动端、明暗主题及实时与加载状态中统一采用 36px 导视系统；地图预览仅保留可快速扫读的航班信息。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.12.4",
     kind: "feat",
@@ -57,21 +70,8 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
       zh: "导视化追踪界面",
     },
     summary: {
-      en: "Airport, flight, and first-screen sidebars now share a concise 36px-rail wayfinding system, with cleaner joined aircraft previews across live and loading states.",
-      zh: "机场、航班与首屏侧栏现统一采用 36px 导视色轨，并优化实时与加载状态下的飞机预览结构。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v3.10.28",
-    kind: "feat",
-    title: {
-      en: "Stable tracking and map preferences",
-      zh: "稳定追踪与地图偏好",
-    },
-    summary: {
-      en: "Flight tracking now rejects stale position frames, preserves a coherent live trace through brief feed gaps, and keeps map preferences on this device.",
-      zh: "航班追踪现会拒绝过期定位帧，在短暂数据中断时保持连续航迹，并将地图偏好保存在本机。",
+      en: "Airport, flight, and first-screen sidebars adopt a concise joined-sign hierarchy with clearer metrics, filters, and aircraft lists.",
+      zh: "机场、航班与首屏侧栏采用简洁的连体导视层级，并提升指标、筛选器与飞机列表的扫读效率。",
     },
     highlights: [],
   },

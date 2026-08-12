@@ -1,5 +1,15 @@
 import { useMemo, useState } from "react";
-import { CloudSun, MapPin, Plane, Route } from "lucide-react";
+import {
+  ArrowUpFromLine,
+  Camera,
+  CloudSun,
+  Compass,
+  Gauge,
+  MapPin,
+  Plane,
+  RadioTower,
+  Route,
+} from "lucide-react";
 import WayfindingMetric from "@/components/ui/WayfindingMetric";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
@@ -41,7 +51,8 @@ export default function SidebarViewSwitch({
   // user's metric/imperial setting; a tap overrides it for the session.
   const [speedUnitOverride, setSpeedUnitOverride] =
     useState<GroundSpeedUnit | null>(null);
-  const groundSpeedUnit = speedUnitOverride ?? defaultGroundSpeedUnit(units);
+  const defaultSpeedUnit = defaultGroundSpeedUnit(units);
+  const groundSpeedUnit = speedUnitOverride ?? defaultSpeedUnit;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
 
@@ -92,7 +103,13 @@ export default function SidebarViewSwitch({
       onClick = onOpenSpotting;
     } else if (interaction.kind === "groundSpeedToggle") {
       onClick = () =>
-        setSpeedUnitOverride(groundSpeedUnit === "kmh" ? "mph" : "kmh");
+        setSpeedUnitOverride(
+          groundSpeedUnit === defaultSpeedUnit
+            ? defaultSpeedUnit === "kmh"
+              ? "mph"
+              : "kmh"
+            : null,
+        );
     } else {
       readOnly = true;
     }
@@ -106,6 +123,12 @@ export default function SidebarViewSwitch({
         unit={unit || undefined}
         prefix={prefix}
         active={active}
+        tone={
+          interaction.kind === "groundSpeedToggle" &&
+          groundSpeedUnit !== defaultSpeedUnit
+            ? "secondary"
+            : "neutral"
+        }
         onClick={onClick}
         readOnly={readOnly}
         className={className}
@@ -118,28 +141,73 @@ export default function SidebarViewSwitch({
   const flightRulesStat = stats.contextRow.find(
     (stat) => stat.id === "flightRules",
   );
+  const atcStat = stats.contextRow.find((stat) => stat.id === "atc");
+  const spottingStat = stats.contextRow.find((stat) => stat.id === "spotting");
+  const briefingStat = stats.contextRow.find((stat) => stat.id === "briefing");
+  const headingStat = stats.contextRow.find((stat) => stat.id === "heading");
+  const speedStat = stats.movementRow.find((stat) => stat.id === "selfSpeed");
+  const altitudeStat = stats.movementRow.find(
+    (stat) => stat.id === "selfAltitude",
+  );
+
+  const trafficMetric = (
+    <WayfindingMetric
+      icon={<Plane />}
+      title={nearMe ? t("sidebar.nearby") : t("sidebar.flights")}
+      value={aircraft.length}
+      animateValue
+      active={isTraffic}
+      onClick={() => onViewChange?.("traffic")}
+    />
+  );
+
+  const nearbyMetric = (
+    <WayfindingMetric
+      icon={<MapPin />}
+      title={t("sidebar.nearby")}
+      value={Number(nearbyAirportCount) || 0}
+      animateValue
+      readOnly
+    />
+  );
 
   return (
     <div className="airport-wayfinding-summary">
       <div className="wayfinding-metrics-grid grid grid-cols-2 gap-px bg-[var(--airport-wayfinding-divider)]">
-        <WayfindingMetric
-          icon={<Plane />}
-          title={nearMe ? t("sidebar.nearby") : t("sidebar.flights")}
-          value={aircraft.length}
-          animateValue
-          active={isTraffic}
-          onClick={() => onViewChange?.("traffic")}
-        />
-        {weatherStat ? renderStat(weatherStat, <CloudSun />) : null}
-        {flightRulesStat ? renderStat(flightRulesStat, <Route />) : null}
-        <WayfindingMetric
-          icon={<MapPin />}
-          title={t("sidebar.nearby")}
-          value={Number(nearbyAirportCount) || 0}
-          animateValue
-          readOnly
-        />
+        {nearMe ? (
+          <>
+            {trafficMetric}
+            {briefingStat ? renderStat(briefingStat, <CloudSun />) : null}
+            {speedStat ? renderStat(speedStat, <Gauge />) : null}
+            {altitudeStat
+              ? renderStat(altitudeStat, <ArrowUpFromLine />)
+              : null}
+            {headingStat ? renderStat(headingStat, <Compass />) : null}
+            {nearbyMetric}
+          </>
+        ) : (
+          <>
+            {trafficMetric}
+            {weatherStat ? renderStat(weatherStat, <CloudSun />) : null}
+            {flightRulesStat ? renderStat(flightRulesStat, <Route />) : null}
+            {nearbyMetric}
+          </>
+        )}
       </div>
+      {atcStat || spottingStat ? (
+        <div className="wayfinding-secondary-view-grid grid grid-cols-2 gap-px bg-[var(--airport-wayfinding-divider)]">
+          {atcStat
+            ? renderStat(atcStat, <RadioTower />, "wayfinding-metric--compact")
+            : null}
+          {spottingStat
+            ? renderStat(
+                spottingStat,
+                <Camera />,
+                "wayfinding-metric--compact",
+              )
+            : null}
+        </div>
+      ) : null}
       {footer ? <div className="sidebar-wayfinding-provider">{footer}</div> : null}
     </div>
   );

@@ -193,3 +193,30 @@ export const MobilePreviewTrackButton = React.forwardRef(
     );
   },
 );
+
+// Secondary icon action for compact previews. It deliberately uses the
+// neutral control material so utility actions never compete with Track.
+export const MobilePreviewIconButton = React.forwardRef(
+  function MobilePreviewIconButton(
+    { className, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>,
+    ref: React.ForwardedRef<HTMLButtonElement>,
+  ) {
+    return (
+      <button
+        ref={ref}
+        type="button"
+        className={cn(
+          "grid min-h-[34px] w-[38px] flex-none cursor-pointer place-items-center [[data-density=compact]_&]:min-h-[30px] [[data-density=compact]_&]:w-[34px]",
+          "rounded-[calc(var(--atc-radius-card)-3px)] border border-[var(--atc-control-border)]",
+          "bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]",
+          "[-webkit-tap-highlight-color:transparent]",
+          "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+          "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96]",
+          "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[3px]",
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
+);

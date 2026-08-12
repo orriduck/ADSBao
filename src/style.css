@@ -1735,7 +1735,8 @@ body {
     color: var(--airport-wayfinding-secondary-fg);
 }
 
-.airport-map-kit .wayfinding-metric:not([data-active="true"]):hover
+.airport-map-kit
+    .wayfinding-metric:not([data-active="true"]):not([data-tone="secondary"]):hover
     .wayfinding-metric__rail {
     background: color-mix(
         in oklab,
@@ -1751,6 +1752,14 @@ body {
 
 .airport-map-kit .weather-wayfinding-grid .wayfinding-metric {
     min-height: 70px;
+}
+
+.airport-map-kit .wayfinding-secondary-view-grid {
+    border-top: 1px solid var(--airport-wayfinding-divider);
+}
+
+.airport-map-kit .wayfinding-secondary-view-grid .wayfinding-metric {
+    min-height: 62px;
 }
 
 /* iOS Safari rubber-bands the document body even when the app owns its
@@ -2296,13 +2305,7 @@ body:has(.dither-page-shell) {
     }
 
     .plane-hunter-shell .dither-page-panel.plane-hunter-panel {
-        background:
-            linear-gradient(
-                135deg,
-                color-mix(in oklab, var(--atc-orange) 14%, transparent),
-                transparent 52%
-            ),
-            var(--atc-surface-preview-card);
+        background: #fff;
         border: 1px solid color-mix(in oklab, var(--atc-line-strong) 82%, transparent);
         border-radius: var(--atc-radius-card);
         /* The shared preview-card surface is semi-opaque, so frost the
@@ -3756,20 +3759,12 @@ body {
 }
 
 .dither-page-panel.plane-hunter-panel {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 10%, transparent),
-        transparent 48%
-    );
+    background: #fff;
     box-shadow: var(--app-panel-shadow);
 }
 
 :root[data-theme="dark"] .dither-page-panel.plane-hunter-panel {
-    background: linear-gradient(
-        135deg,
-        color-mix(in oklab, var(--atc-orange) 18%, transparent),
-        transparent 48%
-    );
+    background: #000;
 }
 
 .dither-page-panel p {

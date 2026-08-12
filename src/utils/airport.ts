@@ -79,7 +79,9 @@ export const airportDisplayName = (airport, locale = "en") => {
 export const airportDisplayCode = (airport: Record<string, any> = {}) =>
   cleanAirportCode(airport?.icao) ||
   cleanAirportCode(airport?.code) ||
-  cleanAirportCode(airport?.iata);
+  cleanAirportCode(airport?.iata) ||
+  cleanAirportCode(airport?.localCode) ||
+  cleanAirportCode(airport?.ident);
 
 // Directory rows lead with the public-facing IATA code when one exists.
 // Operational detail views continue to use airportDisplayCodeLine so their
@@ -91,7 +93,13 @@ export const airportDisplayCodeLine = (airport: Record<string, any> = {}) => {
   const icao = cleanAirportCode(airport?.icao || airport?.code);
   const iata = cleanAirportCode(airport?.iata);
   if (iata && icao && iata !== icao) return `${iata} · ${icao}`;
-  return icao || iata || "—";
+  return (
+    icao ||
+    iata ||
+    cleanAirportCode(airport?.localCode) ||
+    cleanAirportCode(airport?.ident) ||
+    "—"
+  );
 };
 
 export const airportCityName = (city, locale = "en") => {

@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.10.28",
+    kind: "feat",
+    title: {
+      en: "Stable tracking and map preferences",
+      zh: "稳定追踪与地图偏好",
+    },
+    summary: {
+      en: "Flight tracking rejects stale position frames, preserves a coherent live trace through brief feed gaps, and keeps map preferences on this device.",
+      zh: "航班追踪会拒绝过期定位帧，在短暂数据中断时保持连续航迹，并将地图偏好保存在本机。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.9.13",
     kind: "feat",
     title: {
@@ -157,8 +170,8 @@ export const CHANGELOG_HISTORY: ChangelogEntry[] = [
       zh: "主动记录航迹视图",
     },
     summary: {
-      en: "Flight pages now keep the actively recorded trail and destination line visible, add Follow, Full, and Recorded map views, and align mobile sidebar chrome with the page theme. Airspace now loads viewport context on airport pages, uses a fresh cache key so restored boundaries appear immediately, and keeps the selected context record available to its preview card. Aircraft previews now place the mobile photo on the left, keep the desktop type beside the callsign, and reserve the quiet title-corner close control for the header row only. The shared map toolbar now always includes a full-page refresh button; signed-in settings save with the verified account identity, and the metrics, flight search, and filter matrix now share one lightly milky glass treatment with a tighter value scale. The mobile home screen now keeps its first view free of the decorative background. Realtime maps now reject obsolete stream writes, retain an aircraft through a transient missed frame, and atomically replace airspace context tiles.",
-      zh: "飞机追踪页现在会持续显示主动记录的航迹与目的地连线，新增跟随、完整航迹和所有记录点三种视图，并让移动端侧栏与页面主题背景保持一致。空域图层现在会在机场页加载视口数据，使用新的缓存键让恢复后的边界立即出现，并把选中的视口空域保留给预览卡。飞机预览卡现在把移动端照片放在左侧、桌面端机型紧随航班号，并让克制的标题角落关闭符号只给标题行预留空间。共享地图工具栏现在始终提供整页刷新按钮；已登录用户的设置会以已验证的账户身份保存；指标卡、航班搜索框与筛选矩阵共享同一层轻微乳白玻璃，筛选值字号也更紧凑。移动端首页首屏现在不再显示装饰背景。实时地图现在会拒绝过期 stream 写入，在单帧缺失时短暂保留飞机，并以原子方式替换空域视口 tile。",
+      en: "Flight tracking adds Follow, Full, and Recorded trace views, keeps route context coherent through brief feed gaps, and makes map controls and previews easier to scan on desktop and mobile.",
+      zh: "航班追踪新增跟随、完整与记录航迹视图，在短暂数据中断时保持航路上下文连贯，并统一桌面与移动端的地图控件和预览结构。",
     },
     highlights: [],
   },
