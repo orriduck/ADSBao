@@ -5651,150 +5651,176 @@ body {
     min-width: 0;
 }
 
-.sidebar-loading-skeleton--header {
-    gap: 14px;
-    padding-top: 8px;
-}
-
-.sidebar-loading-skeleton__identity {
-    padding: 14px var(--airport-sidebar-inset) 4px;
-}
-
 .sidebar-loading-skeleton__bar {
-    background: color-mix(in oklab, var(--atc-text) 9%, transparent);
-    border-radius: 4px;
+    background: color-mix(in oklab, var(--atc-text) 16%, transparent);
+    border-radius: 0;
     display: block;
-    overflow: hidden;
-    position: relative;
-}
-
-.sidebar-loading-skeleton__bar::after {
-    background: linear-gradient(
-        90deg,
-        transparent,
-        color-mix(in oklab, var(--atc-text) 15%, transparent),
-        transparent
-    );
-    content: "";
-    inset: 0;
-    position: absolute;
-    transform: translateX(-115%);
-    width: 72%;
+    height: 7px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .sidebar-loading-skeleton__bar::after {
-        animation: sidebar-skeleton-sheen 1.8s ease-in-out infinite;
+    .sidebar-loading-skeleton__bar {
+        animation: sidebar-skeleton-pulse 1.5s ease-in-out infinite alternate;
     }
 }
 
-.sidebar-loading-skeleton__airport-metrics,
-.sidebar-loading-skeleton__flight-metrics {
-    background: transparent;
-    border: 1px solid var(--atc-control-border);
-    border-radius: var(--atc-radius-card);
-    box-shadow: var(--atc-control-inset-shadow);
+.sidebar-loading-skeleton__rail {
+    align-items: flex-start;
+    align-self: stretch;
+    background: var(--airport-wayfinding-neutral-rail);
+    color: var(--airport-wayfinding-neutral-rail-fg);
+    display: flex;
+    grid-column: 1;
+    justify-content: center;
+    padding-top: 11px;
+}
+
+.sidebar-loading-skeleton__rail[data-tone="primary"] {
+    background: var(--atc-signal-accent);
+}
+
+.sidebar-loading-skeleton__rail[data-tone="secondary"] {
+    background: color-mix(in oklab, var(--airport-wayfinding-secondary) 84%, black);
+}
+
+.sidebar-loading-skeleton__icon {
+    background: currentColor;
+    height: 16px;
+    opacity: 0.54;
+    width: 16px;
+}
+
+.sidebar-loading-skeleton__identity,
+.sidebar-loading-skeleton__metric,
+.sidebar-loading-skeleton__secondary-row,
+.sidebar-loading-skeleton__search,
+.sidebar-loading-skeleton__filter,
+.sidebar-loading-skeleton__row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    min-width: 0;
+}
+
+.sidebar-loading-skeleton__identity {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 154px;
+}
+
+.sidebar-loading-skeleton__identity-copy {
+    align-self: center;
     display: flex;
     flex-direction: column;
-    margin: 0 var(--airport-sidebar-inset);
-    overflow: hidden;
-    position: relative;
+    gap: 10px;
+    padding: 18px 12px;
 }
 
-.sidebar-loading-skeleton__metric-card {
-    border-radius: 0;
-    box-shadow: 0 1px 0 var(--atc-control-border);
+.sidebar-loading-skeleton__metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sidebar-loading-skeleton__metric {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 78px;
+}
+
+.sidebar-loading-skeleton__metric:nth-child(odd),
+.sidebar-loading-skeleton__filter:nth-child(odd) {
+    border-right: 1px solid var(--airport-wayfinding-divider);
+}
+
+.sidebar-loading-skeleton__metric-copy,
+.sidebar-loading-skeleton__filter-copy {
+    align-self: center;
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    overflow: hidden;
-    position: relative;
-    z-index: 2;
+    gap: 10px;
+    padding: 10px 12px;
 }
 
-.sidebar-loading-skeleton__metric-card > .sidebar-loading-skeleton__bar {
-    border-radius: var(--atc-radius-card) var(--atc-radius-card) 0 0;
+.sidebar-loading-skeleton__secondary-row {
+    background: var(--airport-wayfinding-secondary);
+    min-height: 48px;
 }
 
-.sidebar-loading-skeleton__metric-card > div .sidebar-loading-skeleton__bar {
-    border-radius: 0;
+.sidebar-loading-skeleton__secondary-copy,
+.sidebar-loading-skeleton__section-head,
+.sidebar-loading-skeleton__row-copy {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    min-width: 0;
+    padding: 0 12px;
 }
 
-.sidebar-loading-skeleton__metric-footer {
-    background: linear-gradient(
-        180deg,
-        transparent 0,
-        transparent 14px,
-        color-mix(in oklab, var(--atc-text) 9%, transparent) 14px,
-        color-mix(in oklab, var(--atc-text) 9%, transparent) 100%
-    );
-    border-radius: 0;
-    margin-top: -14px;
-    position: relative;
-    z-index: 0;
+.sidebar-loading-skeleton__secondary-row .sidebar-loading-skeleton__bar {
+    background: color-mix(in oklab, white 58%, transparent);
 }
 
-.sidebar-loading-skeleton__metric-footer::after {
-    inset: 14px 0 0;
+.sidebar-loading-skeleton__section-head {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 38px;
+    padding-left: 14px;
 }
 
-.sidebar-loading-skeleton--content {
-    gap: 12px;
-    padding: 14px var(--airport-sidebar-inset) 22px;
+.sidebar-loading-skeleton__search {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 44px;
+}
+
+.sidebar-loading-skeleton__search-copy {
+    align-self: center;
+    padding: 0 12px;
 }
 
 .sidebar-loading-skeleton__filters {
-    overflow: hidden;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.sidebar-loading-skeleton__filters .sidebar-loading-skeleton__bar {
-    border-radius: 0;
-}
-
-.sidebar-loading-skeleton__filters .sidebar-loading-skeleton__bar:first-child {
-    border-radius: var(--atc-radius-card) 0 0 0;
-}
-
-.sidebar-loading-skeleton__filters .sidebar-loading-skeleton__bar:nth-child(2) {
-    border-radius: 0 var(--atc-radius-card) 0 0;
-}
-
-.sidebar-loading-skeleton__filters .sidebar-loading-skeleton__bar:nth-child(3) {
-    border-radius: 0 0 0 var(--atc-radius-card);
-}
-
-.sidebar-loading-skeleton__filters .sidebar-loading-skeleton__bar:last-child {
-    border-radius: 0 0 var(--atc-radius-card) 0;
-}
-
-.sidebar-loading-skeleton__rows {
-    display: flex;
-    flex-direction: column;
+.sidebar-loading-skeleton__filter {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 74px;
 }
 
 .sidebar-loading-skeleton__row {
-    align-items: center;
-    display: flex;
-    gap: 8px;
-    min-height: 40px;
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
+    min-height: 44px;
 }
 
-@keyframes sidebar-skeleton-sheen {
-    to { transform: translateX(215%); }
+.sidebar-loading-skeleton__row-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 38px 44px;
+}
+
+@keyframes sidebar-skeleton-pulse {
+    from { opacity: 0.38; }
+    to { opacity: 0.88; }
 }
 
 .app-route-loading-workspace {
+    --app-sidebar-width: 18.8rem;
     display: flex;
     min-height: 100dvh;
 }
 
 .app-route-loading-workspace__sidebar {
-    background: color-mix(in oklab, var(--atc-control-surface) 78%, transparent);
-    border-right: 1px solid var(--atc-line-strong);
+    --airport-wayfinding-content: #fff;
+    --airport-wayfinding-divider: color-mix(in oklab, #111 16%, transparent);
+    --airport-wayfinding-neutral-rail: oklch(0.82 0.003 100);
+    --airport-wayfinding-neutral-rail-fg: oklch(0.22 0.004 100);
+    --airport-wayfinding-secondary: oklch(0.62 0.15 245);
+    background: var(--airport-wayfinding-content);
+    border-right: 1px solid var(--airport-wayfinding-divider);
     flex: 0 0 var(--app-sidebar-width);
     overflow: hidden;
-    -webkit-backdrop-filter: var(--app-frost);
-    backdrop-filter: var(--app-frost);
+}
+
+:root[data-theme="dark"] .app-route-loading-workspace__sidebar {
+    --airport-wayfinding-content: #000;
+    --airport-wayfinding-divider: color-mix(in oklab, #fff 18%, transparent);
+    --airport-wayfinding-neutral-rail: oklch(0.34 0.003 100);
+    --airport-wayfinding-neutral-rail-fg: oklch(0.9 0.003 100);
 }
 
 .app-route-loading-workspace__main {

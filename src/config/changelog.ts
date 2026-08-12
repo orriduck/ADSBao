@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 73;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.12.2",
+    version: "v3.12.3",
     kind: "feat",
     title: {
       en: "Operational wayfinding",
       zh: "导视化追踪界面",
     },
     summary: {
-      en: "Airport, flight, and first-screen sidebars now share a concise 36px-rail wayfinding system across identity, metrics, directories, filters, previews, Studio, and product information.",
-      zh: "机场、航班与首屏侧栏现统一采用 36px 导视色轨，覆盖身份、指标、目录、筛选、预览、拍机 Studio 与产品信息。",
+      en: "Airport, flight, and first-screen sidebars now share a concise 36px-rail wayfinding system across live content, loading states, directories, filters, previews, Studio, and product information.",
+      zh: "机场、航班与首屏侧栏现统一采用 36px 导视色轨，覆盖实时内容、加载状态、目录、筛选、预览、拍机 Studio 与产品信息。",
     },
     highlights: [],
   },

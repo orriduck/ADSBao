@@ -4,69 +4,116 @@ type SidebarLoadingSkeletonProps = {
 };
 
 function Placeholder({ className = "" }: { className?: string }) {
-  return <span aria-hidden="true" className={`sidebar-loading-skeleton__bar ${className}`} />;
+  return (
+    <span
+      aria-hidden="true"
+      className={`sidebar-loading-skeleton__bar ${className}`}
+    />
+  );
+}
+
+function Rail({ tone = "neutral" }: { tone?: "neutral" | "primary" | "secondary" }) {
+  return (
+    <span className="sidebar-loading-skeleton__rail" data-tone={tone}>
+      <Placeholder className="sidebar-loading-skeleton__icon" />
+    </span>
+  );
+}
+
+function MetricPlaceholder({ wide = false }: { wide?: boolean }) {
+  return (
+    <div className="sidebar-loading-skeleton__metric">
+      <Rail />
+      <span className="sidebar-loading-skeleton__metric-copy">
+        <Placeholder className={wide ? "w-16" : "w-11"} />
+        <Placeholder className={wide ? "h-5 w-20" : "h-5 w-12"} />
+      </span>
+    </div>
+  );
 }
 
 export function SidebarLoadingHeader({
   variant = "airport",
 }: Omit<SidebarLoadingSkeletonProps, "section">) {
   return (
-    <div aria-hidden="true" className="sidebar-loading-skeleton sidebar-loading-skeleton--header">
+    <div
+      aria-hidden="true"
+      className="sidebar-loading-skeleton sidebar-loading-skeleton--header"
+      data-variant={variant}
+    >
       <div className="sidebar-loading-skeleton__identity">
-        <Placeholder className="w-10" />
-        <Placeholder className="mt-3 h-5 w-28" />
-        <Placeholder className="mt-2 w-44" />
-        <Placeholder className="mt-1 w-36" />
+        <Rail tone="primary" />
+        <span className="sidebar-loading-skeleton__identity-copy">
+          <Placeholder className={variant === "flight" ? "h-6 w-24" : "h-6 w-32"} />
+          <Placeholder className="w-44" />
+          <Placeholder className="w-36" />
+        </span>
       </div>
-      {variant === "flight" ? (
-        <div className="sidebar-loading-skeleton__flight-metrics">
-          <div className="sidebar-loading-skeleton__metric-card">
-            <Placeholder className="h-14 w-full" />
-            <div className="grid grid-cols-2 gap-px">
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-            </div>
-          </div>
-          <Placeholder className="sidebar-loading-skeleton__metric-footer h-10 w-full" />
-        </div>
-      ) : (
-        <div className="sidebar-loading-skeleton__airport-metrics">
-          <div className="sidebar-loading-skeleton__metric-card">
-            <Placeholder className="h-24 w-full" />
-            <div className="grid grid-cols-2 gap-px">
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-              <Placeholder className="h-12 w-full" />
-            </div>
-          </div>
-          <Placeholder className="sidebar-loading-skeleton__metric-footer h-10 w-full" />
-        </div>
-      )}
+
+      <div className="sidebar-loading-skeleton__metrics">
+        <MetricPlaceholder />
+        <MetricPlaceholder wide />
+        <MetricPlaceholder wide />
+        <MetricPlaceholder />
+      </div>
+
+      <div className="sidebar-loading-skeleton__secondary-row">
+        <Rail tone="secondary" />
+        <span className="sidebar-loading-skeleton__secondary-copy">
+          <Placeholder className="w-24" />
+          <Placeholder className="ml-auto w-16" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function FilterPlaceholder({ valueWidth }: { valueWidth: string }) {
+  return (
+    <div className="sidebar-loading-skeleton__filter">
+      <Rail />
+      <span className="sidebar-loading-skeleton__filter-copy">
+        <Placeholder className="w-10" />
+        <Placeholder className={`h-4 ${valueWidth}`} />
+      </span>
     </div>
   );
 }
 
 export function SidebarLoadingContent() {
   return (
-    <div aria-hidden="true" className="sidebar-loading-skeleton sidebar-loading-skeleton--content">
+    <div
+      aria-hidden="true"
+      className="sidebar-loading-skeleton sidebar-loading-skeleton--content"
+    >
+      <div className="sidebar-loading-skeleton__section-head">
+        <Placeholder className="w-12" />
+        <Placeholder className="ml-auto w-14" />
+      </div>
+
       <div className="sidebar-loading-skeleton__search">
-        <Placeholder className="h-9 w-full" />
+        <Rail />
+        <span className="sidebar-loading-skeleton__search-copy">
+          <Placeholder className="w-40" />
+        </span>
       </div>
-      <div className="sidebar-loading-skeleton__filters grid grid-cols-2 gap-px">
-        <Placeholder className="h-14 w-full" />
-        <Placeholder className="h-14 w-full" />
-        <Placeholder className="h-14 w-full" />
-        <Placeholder className="h-14 w-full" />
+
+      <div className="sidebar-loading-skeleton__filters">
+        <FilterPlaceholder valueWidth="w-14" />
+        <FilterPlaceholder valueWidth="w-10" />
+        <FilterPlaceholder valueWidth="w-12" />
+        <FilterPlaceholder valueWidth="w-16" />
       </div>
+
       <div className="sidebar-loading-skeleton__rows">
-        {Array.from({ length: 8 }, (_, index) => (
+        {Array.from({ length: 9 }, (_, index) => (
           <div className="sidebar-loading-skeleton__row" key={index}>
-            <Placeholder className="h-3.5 w-3.5 rounded-[3px]" />
-            <Placeholder className="h-3 w-[34%]" />
-            <Placeholder className="ml-auto h-3 w-[22%]" />
+            <Rail />
+            <span className="sidebar-loading-skeleton__row-copy">
+              <Placeholder className={index % 3 === 0 ? "w-16" : "w-20"} />
+              <Placeholder className="ml-auto w-10" />
+              <Placeholder className="w-11" />
+            </span>
           </div>
         ))}
       </div>
