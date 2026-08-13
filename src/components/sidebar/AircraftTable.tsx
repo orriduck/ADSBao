@@ -254,7 +254,7 @@ function AircraftTable({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="h-7 min-w-0 flex-1 p-0 text-[calc(12px*var(--sb-body-scale))] font-normal tracking-normal text-atc-text"
+                className="h-7 min-w-0 flex-1 p-0 text-[calc(12px*var(--sb-body-scale))] tracking-normal text-atc-text"
                 placeholder={t("sidebar.searchPlaceholder")}
                 aria-label={t("sidebar.searchAria")}
               />
@@ -297,10 +297,10 @@ function AircraftTable({
                   </FilterCard>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-[220px] text-left">
-                  <strong className="block text-[calc(11px*var(--sb-body-scale))] font-semibold uppercase tracking-wide">
+                  <strong className="block text-[calc(11px*var(--sb-body-scale))] uppercase tracking-wide">
                     {t("sidebar.routed")}
                   </strong>
-                  <span className="mt-1 block text-[calc(11px*var(--sb-body-scale))] font-normal leading-snug">
+                  <span className="mt-1 block text-[calc(11px*var(--sb-body-scale))] leading-snug">
                     {t("filters.routedTooltip")}
                   </span>
                 </TooltipContent>
@@ -344,7 +344,7 @@ function AircraftTable({
 
         <div className="aircraft-table-scroll-shell overflow-visible">
           {listRows.length === 0 && filteredAirports.length === 0 ? (
-            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] font-semibold uppercase tracking-normal text-atc-faint">
+            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-faint">
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")
                 : t("sidebar.nothingInRange")}
@@ -601,7 +601,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
                       <span className="min-w-0 truncate">{type.label}</span>
                       {type.icaoType && type.icaoType !== type.label ? (
                         <span
-                          className="notranslate min-w-0 truncate font-mono text-[calc(9px*var(--sb-body-scale))] font-medium uppercase tracking-normal text-atc-faint"
+                          className="notranslate min-w-0 truncate font-mono text-[calc(9px*var(--sb-body-scale))] uppercase tracking-normal text-atc-faint"
                           translate="no"
                         >
                           {type.icaoType}

@@ -1,6 +1,7 @@
 import NumberFlow from "@number-flow/react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import WayfindingRail from "./WayfindingRail";
 
 type WayfindingMetricProps = {
   icon: ReactNode;
@@ -44,24 +45,18 @@ export default function WayfindingMetric({
     );
   const content = (
     <>
-      <span
-        aria-hidden="true"
-        className="wayfinding-metric__rail absolute inset-y-0 left-0 w-[var(--airport-wayfinding-rail-width)] bg-[var(--airport-wayfinding-neutral-rail)]"
+      <WayfindingRail
+        className="wayfinding-metric__rail absolute inset-y-0 left-0"
+        icon={icon}
       />
-      <span
-        aria-hidden="true"
-        className="wayfinding-metric__icon relative z-[1] col-start-1 row-start-1 flex items-center justify-center self-start text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
-      >
-        {icon}
-      </span>
       {hasTitle ? (
-        <span className="wayfinding-metric__title col-start-2 row-start-1 truncate px-3 text-[calc(10px*var(--sb-body-scale))] leading-tight text-atc-dim">
+        <span className="wayfinding-metric__title col-start-2 row-start-1 truncate px-[var(--wayfinding-content-inset)] text-[calc(10px*var(--sb-body-scale))] leading-tight text-atc-dim">
           {title}
         </span>
       ) : null}
       <span
         className={cn(
-          "wayfinding-metric__value flex min-h-[34px] min-w-0 items-center whitespace-nowrap px-3 leading-none",
+          "wayfinding-metric__value flex min-h-[34px] min-w-0 items-center whitespace-nowrap px-[var(--wayfinding-content-inset)] leading-none",
           hasTitle ? "col-start-2 row-start-2" : "col-start-2 row-start-1",
         )}
       >
@@ -84,7 +79,7 @@ export default function WayfindingMetric({
     </>
   );
   const rootClassName = cn(
-    "wayfinding-metric relative grid min-h-[78px] min-w-0 grid-cols-[var(--airport-wayfinding-rail-width)_minmax(0,1fr)] content-center overflow-hidden bg-[var(--airport-wayfinding-content)] text-left outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--atc-action-focus-ring)]",
+    "wayfinding-metric relative grid min-h-[78px] min-w-0 grid-cols-[var(--wayfinding-rail-width)_minmax(0,1fr)] content-center overflow-hidden bg-[var(--airport-wayfinding-content)] text-left outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--atc-action-focus-ring)]",
     hasTitle
       ? "grid-rows-[auto_34px] gap-y-1"
       : "grid-rows-[34px]",

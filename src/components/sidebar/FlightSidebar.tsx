@@ -8,6 +8,7 @@ import {
   SidebarLoadingHeader,
 } from "./SidebarLoadingSkeleton";
 import WayfindingMetric from "@/components/ui/WayfindingMetric";
+import WayfindingRail from "@/components/ui/WayfindingRail";
 import {
   formatFlightRouteLabel,
   getFlightRouteAccuracyNotice,
@@ -189,12 +190,10 @@ function FlightIdentity({
 
   return (
     <div className="flight-wayfinding-identity flex min-h-[142px] overflow-hidden">
-      <div className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--atc-signal-accent)] pt-10 text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]">
-        <Plane aria-hidden="true" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-3 pb-4 pt-9">
+      <WayfindingRail icon={<Plane />} inset="hero" tone="primary" />
+      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-4 pt-[var(--wayfinding-hero-content-top)]">
         <h1
-          className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text"
+          className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text"
           translate="no"
           title={callsign}
         >
@@ -202,7 +201,7 @@ function FlightIdentity({
         </h1>
         {hasTypeDisplay ? (
           <div
-            className="mt-3 truncate text-[calc(13px*var(--sb-title-scale))] font-medium leading-snug text-atc-text"
+            className="mt-3 truncate text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-text"
             title={typeDisplay.displayName}
           >
             {typeDisplay.displayName}
