@@ -206,7 +206,12 @@ export default function VirtualNearbyList({
   // a full re-measure on every click was pure layout thrash.
   useEffect(() => {
     virtualizer.measure();
-  }, [visibleItems.length, resetSignal, rowHeight, virtualizer]);
+    // `scrollMargin` is discovered after the list mounts and can change again
+    // when the flight/airport header resolves. Recompute the virtual range at
+    // that point as well: otherwise React Virtual can retain the pre-header
+    // range and place the first rendered row a full header-height below the
+    // filters until the next user scroll.
+  }, [visibleItems.length, resetSignal, rowHeight, scrollMargin, virtualizer]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();

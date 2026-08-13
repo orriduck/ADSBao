@@ -9444,12 +9444,20 @@ body {
 }
 
 /* A mobile detail overlay fills the map viewport, so it has no adjacent map
-   edge to separate. Keeping the desktop sidebar's right-hand seam here made
-   the logo dock read as a framed card. The dock's own bottom divider still
-   preserves the transition into the airport or flight details. */
+   edge to separate. It must not inherit any desktop seam or give the brand
+   dock its own framed edge: the first actual content row supplies the joined
+   divider below the logo instead. */
 .airport-map-kit .sidebar-layout-overlay,
-.airport-map-kit .sidebar-shell[data-mobile-overlay="true"] {
-    border-right: 0;
+.airport-map-kit .sidebar-shell[data-mobile-overlay="true"],
+.airport-map-kit .sidebar-shell[data-mobile-overlay="true"] .sidebar-brand-dock.sticky {
+    border: 0;
+    box-shadow: none;
+}
+
+/* The dark desktop shell supplies a map-edge shadow with a more specific
+   selector. A full-width mobile overlay has no map edge, so explicitly keep
+   that desktop shadow out as well. */
+:root[data-theme="dark"] .airport-map-kit .sidebar-shell[data-mobile-overlay="true"] {
     box-shadow: none;
 }
 
