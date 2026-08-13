@@ -167,10 +167,10 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="map-settings-row-rail flex items-start justify-center pt-[13px] text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
+      <span className="map-settings-row-rail flex items-start justify-start pl-[10px] pt-[11px] text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
-      <span className="flex min-w-0 flex-col justify-center py-2 pr-2">
+      <span className="flex min-w-0 flex-col justify-center py-2 pl-3 pr-2">
         <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {title}
         </span>
@@ -226,10 +226,10 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="map-settings-row-rail flex items-start justify-center pt-[13px] text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3.5">
+      <span className="map-settings-row-rail flex items-start justify-start pl-[10px] pt-[11px] text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
-      <span className="flex min-w-0 flex-col justify-center py-2 pr-2">
+      <span className="flex min-w-0 flex-col justify-center py-2 pl-3 pr-2">
         <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {label}
         </span>
@@ -458,7 +458,7 @@ export default function MapSettingsSheet({
             <span className="map-settings-header__rail" aria-hidden="true">
               <MapControlIcon iconKey="slidersHorizontal" />
             </span>
-            <div className="min-w-0 py-3.5 pr-12">
+            <div className="min-w-0 py-3.5 pl-3 pr-12">
               <SheetTitle className="text-[17px] font-semibold leading-tight text-atc-text">
                 {t("mapSettings.title")}
               </SheetTitle>
@@ -614,7 +614,7 @@ export default function MapSettingsSheet({
             </section>
 
             <section
-              className="map-settings-section"
+              className="map-settings-section map-settings-section--plain"
               aria-labelledby={`${id}-units`}
             >
               <h3
@@ -629,7 +629,7 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-[46px] grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-3 py-0.5"
+                      className="map-settings-unit-row grid min-h-[46px] grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-[14px] py-0.5"
                     >
                       <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}

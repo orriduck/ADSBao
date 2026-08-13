@@ -8128,8 +8128,8 @@ body {
     align-items: flex-start;
     color: var(--atc-text);
     display: flex;
-    justify-content: center;
-    padding-top: 17px;
+    justify-content: flex-start;
+    padding: 11px 0 0 10px;
 }
 
 .map-settings-header__rail svg {
@@ -8151,11 +8151,25 @@ body {
     text-transform: uppercase;
 }
 
+.map-settings-section--plain .map-settings-section-title {
+    margin-left: 14px;
+}
+
 .map-settings-section > .map-settings-list-group,
 .map-settings-section > .map-settings-note,
 .map-settings-section > .mt-1 {
     margin-left: 0;
     margin-right: 0;
+}
+
+.map-settings-section:not(.map-settings-section--plain) > .mt-1 {
+    margin-left: 48px;
+    margin-right: 12px;
+}
+
+.map-settings-list-group > .map-settings-segmented-control {
+    margin-left: 48px;
+    margin-right: 12px;
 }
 
 .map-settings-option-row[data-active="true"] .map-settings-row-rail {
