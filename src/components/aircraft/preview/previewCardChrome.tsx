@@ -2,24 +2,20 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type MetaRow = { label: ReactNode; value: ReactNode };
-type PreviewRailTone = "primary" | "secondary" | "neutral";
 
 export function MobilePreviewIdentityBand({
   icon,
   children,
   className,
-  tone = "neutral",
 }: {
   icon: ReactNode;
   children: ReactNode;
   className?: string;
-  tone?: PreviewRailTone;
 }) {
   return (
     <div className={cn("mobile-preview-identity-band", className)}>
       <span
         className="mobile-preview-identity-rail"
-        data-tone={tone}
         aria-hidden="true"
       >
         {icon}
@@ -31,15 +27,12 @@ export function MobilePreviewIdentityBand({
 
 export function PreviewWayfindingRail({
   icon,
-  tone = "primary",
 }: {
   icon: ReactNode;
-  tone?: PreviewRailTone;
 }) {
   return (
     <span
       className="aircraft-preview-wayfinding-rail"
-      data-tone={tone}
       aria-hidden="true"
     >
       {icon}

@@ -28,7 +28,7 @@ export default function ReportingPointPreviewMetadataCard({
   return (
     <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--sign">
       <div className="aircraft-preview-identity-band">
-        <PreviewWayfindingRail icon={<MapPin />} tone="secondary" />
+        <PreviewWayfindingRail icon={<MapPin />} />
         <div className="aircraft-preview-identity-content">
           <PreviewCardHeader primary={name} primaryMono={false} secondary={kind} />
         </div>

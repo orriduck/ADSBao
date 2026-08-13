@@ -34,7 +34,7 @@ export default function AirspacePreviewMobileCard({
 
   return (
     <div className="mobile-preview-sign pointer-events-auto">
-      <MobilePreviewIdentityBand icon={<Layers3 />} tone="secondary">
+      <MobilePreviewIdentityBand icon={<Layers3 />}>
         <MobilePreviewHeader
           primary={name}
           primaryMono={false}

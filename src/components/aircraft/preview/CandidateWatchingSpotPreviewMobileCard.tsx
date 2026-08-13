@@ -40,7 +40,7 @@ export default function CandidateWatchingSpotPreviewMobileCard({
 
   return (
     <div className="candidate-watching-spot-preview-motion mobile-preview-sign">
-      <MobilePreviewIdentityBand icon={<Binoculars />} tone="secondary">
+      <MobilePreviewIdentityBand icon={<Binoculars />}>
         <MobilePreviewHeader
           primary={name}
           primaryMono={false}

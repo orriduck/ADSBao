@@ -37,7 +37,7 @@ export default function AirspacePreviewMetadataCard({
   return (
     <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--airspace pointer-events-auto">
       <div className="aircraft-preview-identity-band">
-        <PreviewWayfindingRail icon={<Layers3 />} tone="secondary" />
+        <PreviewWayfindingRail icon={<Layers3 />} />
         <div className="aircraft-preview-identity-content">
           <PreviewCardHeader
             primary={name}

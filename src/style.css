@@ -77,7 +77,20 @@
     --wayfinding-content-inset: 12px;
     --wayfinding-hero-icon-top: 44px;
     --wayfinding-hero-content-top: 40px;
-    --wayfinding-preview-radius: 14px;
+    /* Preview cards are one floating sign family on every breakpoint. Keep
+       their radius bound to the shared card token so aircraft and metadata
+       variants cannot drift apart. */
+    --wayfinding-preview-radius: var(--atc-radius-card);
+    --preview-wayfinding-neutral-rail: color-mix(
+        in oklab,
+        var(--atc-text) 18%,
+        var(--atc-bg)
+    );
+    --preview-wayfinding-neutral-rail-fg: color-mix(
+        in oklab,
+        var(--atc-text) 86%,
+        transparent
+    );
 
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
@@ -6721,9 +6734,9 @@ body {
 
 .aircraft-preview-wayfinding-rail {
     align-items: flex-start;
-    background: var(--atc-signal-accent);
+    background: var(--preview-wayfinding-neutral-rail);
     bottom: 0;
-    color: var(--atc-signal-accent-fg);
+    color: var(--preview-wayfinding-neutral-rail-fg);
     display: flex;
     justify-content: center;
     left: 0;
@@ -6733,25 +6746,13 @@ body {
     width: var(--wayfinding-rail-width);
 }
 
-.aircraft-preview-wayfinding-rail[data-tone="secondary"],
-.mobile-preview-identity-rail[data-tone="secondary"] {
-    background: var(--atc-signal-secondary-action);
-    color: var(--atc-signal-secondary-action-fg);
-}
-
-.aircraft-preview-wayfinding-rail[data-tone="neutral"],
-.mobile-preview-identity-rail[data-tone="neutral"] {
-    background: var(--airport-wayfinding-neutral-rail);
-    color: var(--airport-wayfinding-neutral-rail-fg);
-}
-
 .aircraft-preview-wayfinding-rail > svg {
     height: 16px;
     stroke-width: 1.8;
     width: 16px;
 }
 
-/* Aircraft previews are joined operational signs. The orange rail belongs to
+/* Aircraft previews are joined operational signs. The neutral rail belongs to
    the identity band only; letting it position against the entire metadata
    card creates a false full-height column and obscures the information order. */
 .aircraft-preview-card .aircraft-preview-metadata-card--airport,
@@ -6790,8 +6791,8 @@ body {
     padding: 11px 14px;
 }
 
-/* Airspace is a secondary map context: its blue rail identifies the title
-   only. Keeping it out of the detail bands restores the full-width reading
+/* Airspace keeps its neutral identity rail in the title band only. Keeping it
+   out of the detail bands restores the full-width reading
    surface and prevents the old absolute rail from covering the data. */
 .airspace-preview-detail-band,
 .airspace-preview-description-band,
@@ -6849,8 +6850,8 @@ body {
 
 .mobile-preview-identity-rail {
     align-items: flex-start;
-    background: var(--atc-signal-accent);
-    color: var(--atc-signal-accent-fg);
+    background: var(--preview-wayfinding-neutral-rail);
+    color: var(--preview-wayfinding-neutral-rail-fg);
     display: flex;
     justify-content: center;
     padding-top: 11px;

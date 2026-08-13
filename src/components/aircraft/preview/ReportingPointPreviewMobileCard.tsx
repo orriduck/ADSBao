@@ -29,7 +29,7 @@ export default function ReportingPointPreviewMobileCard({
 
   return (
     <div className="mobile-preview-sign">
-      <MobilePreviewIdentityBand icon={<MapPin />} tone="secondary">
+      <MobilePreviewIdentityBand icon={<MapPin />}>
         <MobilePreviewHeader primary={name} primaryMono={false} secondary={kind} />
       </MobilePreviewIdentityBand>
       <MobilePreviewMetaLine items={items} />
