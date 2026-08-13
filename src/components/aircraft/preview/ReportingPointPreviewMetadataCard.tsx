@@ -26,11 +26,16 @@ export default function ReportingPointPreviewMetadataCard({
   ].filter((row) => row.value);
 
   return (
-    <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<MapPin />} tone="secondary" />
-      <PreviewCardHeader primary={name} primaryMono={false} secondary={kind} />
-      <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-      <PreviewMetaRows rows={rows} />
+    <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--sign">
+      <div className="aircraft-preview-identity-band">
+        <PreviewWayfindingRail icon={<MapPin />} tone="secondary" />
+        <div className="aircraft-preview-identity-content">
+          <PreviewCardHeader primary={name} primaryMono={false} secondary={kind} />
+        </div>
+      </div>
+      <div className="aircraft-preview-detail-band">
+        <PreviewMetaRows rows={rows} />
+      </div>
     </div>
   );
 }

@@ -83,15 +83,20 @@ export default function NavaidPreviewMetadataCard({
   ].filter((row) => row.value);
 
   return (
-    <div className="aircraft-preview-metadata-card">
-      <PreviewWayfindingRail icon={<RadioTower />} tone="secondary" />
-      <PreviewCardHeader
-        primary={ident}
-        secondary={type || undefined}
-        sublines={[name]}
-      />
-      <div className="aircraft-preview-card__divider aircraft-preview-card__divider--soft" />
-      <PreviewMetaRows rows={rows} />
+    <div className="aircraft-preview-metadata-card aircraft-preview-metadata-card--sign">
+      <div className="aircraft-preview-identity-band">
+        <PreviewWayfindingRail icon={<RadioTower />} tone="secondary" />
+        <div className="aircraft-preview-identity-content">
+          <PreviewCardHeader
+            primary={ident}
+            secondary={type || undefined}
+            sublines={[name]}
+          />
+        </div>
+      </div>
+      <div className="aircraft-preview-detail-band">
+        <PreviewMetaRows rows={rows} />
+      </div>
     </div>
   );
 }

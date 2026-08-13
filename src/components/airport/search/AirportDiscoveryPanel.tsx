@@ -5,6 +5,7 @@ import { AirportListRow } from "./AirportListRow";
 import {
   airportDirectoryCode,
   airportDisplayName,
+  airportSubtitle,
 } from "@/utils/airport";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
@@ -222,9 +223,11 @@ function AirportDiscoveryAirportRow({ airport, onOpen, onPrefetch }) {
     >
       <AirportListRow
         as="button"
+        className="airport-list-row--directory"
         onClick={() => onOpen(airport)}
-        title={code}
-        subtitle={airportDisplayName(airport, locale)}
+        pill={code}
+        title={airportDisplayName(airport, locale)}
+        subtitle={airportSubtitle(airport, locale)}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}
       />
     </li>

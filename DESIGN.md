@@ -61,6 +61,10 @@ newest item in a list. Before adding orange, ask whether the element identifies
 what the user is actively tracking or performs the one primary action. If not,
 use blue for secondary interaction and gray for everything else.
 
+Map preview cards are glance surfaces, not tracking pages: their identity rail
+stays neutral gray, and orange is reserved for the single primary action
+(Track) and for the identity hero of the tracking page that action leads to.
+
 Only the rail or an entire secondary action row receives color. Text content
 stays on the neutral content surface; never put contrasting text blocks inside
 a metric merely to make it colorful.
@@ -98,8 +102,8 @@ Do not introduce a third surface recipe.
 
 ## Shape and motion
 
-- Fixed wayfinding stacks: square edges; at most a subtle outer panel radius
-  where a floating preview needs separation from the map.
+- Floating preview cards keep a soft outer radius so they read as elevated
+  surfaces over the map, echoing the toolbar's pill geometry.
 - Floating toolbars: pill geometry remains appropriate.
 - Motion lasts 150–250ms, uses opacity/transform only, and respects
   `prefers-reduced-motion`. Motion should confirm a change or preserve spatial

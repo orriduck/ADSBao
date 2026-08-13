@@ -8,7 +8,7 @@ export function MobilePreviewIdentityBand({
   icon,
   children,
   className,
-  tone = "primary",
+  tone = "neutral",
 }: {
   icon: ReactNode;
   children: ReactNode;

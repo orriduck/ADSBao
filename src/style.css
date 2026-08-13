@@ -77,7 +77,7 @@
     --wayfinding-content-inset: 12px;
     --wayfinding-hero-icon-top: 44px;
     --wayfinding-hero-content-top: 40px;
-    --wayfinding-preview-radius: 2px;
+    --wayfinding-preview-radius: 14px;
 
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
@@ -1771,8 +1771,9 @@ body {
     align-content: start;
     box-sizing: border-box;
     grid-template-rows: 16px 30px;
-    min-height: 62px;
+    min-height: 74px;
     padding-top: 12px;
+    padding-bottom: 12px;
     row-gap: 4px;
 }
 
@@ -2519,7 +2520,7 @@ body:has(.dither-page-shell) {
     .airport-map-kit--sidebar-open:has(
             .airport-desktop-sidebar:not([data-collapsed="true"])
         )
-        .adsb-loading-overlay--flight {
+        :is(.adsb-loading-overlay--flight, .adsb-loading-overlay--airport) {
         padding-left: var(--app-sidebar-width);
     }
 }
@@ -2527,7 +2528,7 @@ body:has(.dither-page-shell) {
 .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"].airport-map-kit--sidebar-open:has(
         .airport-desktop-sidebar:not([data-collapsed="true"])
     )
-    .adsb-loading-overlay--flight {
+    :is(.adsb-loading-overlay--flight, .adsb-loading-overlay--airport) {
     padding-left: calc(
         var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
     );
@@ -6754,7 +6755,8 @@ body {
    the identity band only; letting it position against the entire metadata
    card creates a false full-height column and obscures the information order. */
 .aircraft-preview-card .aircraft-preview-metadata-card--airport,
-.aircraft-preview-card .aircraft-preview-metadata-card--airspace {
+.aircraft-preview-card .aircraft-preview-metadata-card--airspace,
+.aircraft-preview-card .aircraft-preview-metadata-card--sign {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     padding: 0;
@@ -6889,7 +6891,7 @@ body {
     margin-top: 14px;
     padding: 10px 14px;
     border: 1px solid var(--atc-action-primary-border);
-    border-radius: 0;
+    border-radius: var(--atc-radius-pill);
     background: var(--atc-signal-accent);
     box-shadow: var(--atc-action-primary-shadow);
     color: var(--atc-signal-accent-fg);
@@ -8763,7 +8765,7 @@ body {
 .flight-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"][data-state="open"] {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: color-mix(in oklab, var(--airport-wayfinding-secondary) 11%, var(--atc-control-surface));
+    background: color-mix(in oklab, var(--atc-text) 11%, var(--atc-control-surface));
     border-radius: 0;
     box-shadow: none;
     margin: 0;
@@ -8771,7 +8773,7 @@ body {
 
 .airport-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]::before,
 .flight-sidebar-panel .aircraft-table-filter-shell [data-ui="filter-card"]::before {
-    background: var(--airport-wayfinding-secondary);
+    background: color-mix(in oklab, var(--atc-text) 30%, transparent);
     content: "";
     height: 2px;
     inset: 0 0 auto;
@@ -8814,17 +8816,17 @@ body {
     color: var(--atc-dim);
 }
 
-/* Route is a secondary toggle. Blue distinguishes its active state without
-   competing with the orange tracked target. */
+/* Route is a secondary toggle. A neutral-gray wash marks its active state
+   without competing with the orange tracked target. */
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
-    background: color-mix(in oklab, var(--airport-wayfinding-secondary) 10%, var(--atc-control-surface));
+    background: color-mix(in oklab, var(--atc-text) 10%, var(--atc-control-surface));
     box-shadow: none;
 }
 
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] [data-ui="filter-value"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] [data-ui="filter-value"] {
-    color: var(--airport-wayfinding-secondary);
+    color: var(--atc-text);
 }
 
 .airport-sidebar-panel [data-ui="metric-card"][data-layout="split"],
@@ -9399,6 +9401,14 @@ body {
         z-index: var(--z-index-map-ui-floating);
     }
 
+    .airport-map-menu--mobile [data-ui="toolbar"] {
+        box-shadow:
+            var(--app-toolbar-shadow),
+            var(--atc-toolbar-inset-shadow),
+            0 8px 22px color-mix(in oklab, var(--atc-text) 12%, transparent),
+            0 2px 6px color-mix(in oklab, var(--atc-text) 8%, transparent);
+    }
+
 }
 
 /* Visual cohesion pass: one quiet application shell, one map canvas, and one
@@ -9652,6 +9662,7 @@ body {
 .search-screen {
     --home-list-code-column: 44px;
     --home-list-column-gap: 0;
+    --lr-chip-col: 36px;
 }
 
 /* Shared first-screen wayfinding system. Static routes use the same 36px
@@ -10003,16 +10014,19 @@ body {
     width: 36px;
 }
 
-.search-screen .airport-discovery-topic .dither-list .group > span:first-child {
+.search-screen .dither-list .airport-list-row--directory > span:first-child {
     align-self: stretch;
-    background: var(--home-wayfinding-content);
+    align-items: flex-start;
+    background: var(--home-wayfinding-neutral-rail);
     border-radius: 0;
     box-shadow: none;
-    color: var(--atc-dim);
+    color: var(--home-wayfinding-neutral-rail-fg) !important;
+    display: flex;
     font-family: var(--font-code) !important;
     font-size: 10px;
+    justify-content: center;
     margin: 0;
-    padding: 0;
+    padding: 11px 0 0;
     width: 100%;
 }
 
@@ -10031,6 +10045,7 @@ body {
 .search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby > span:first-child,
 .search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby:hover > span:first-child {
     align-items: flex-start;
+    align-self: stretch;
     background: var(--home-wayfinding-secondary);
     color: var(--home-wayfinding-secondary-fg) !important;
     display: flex;
