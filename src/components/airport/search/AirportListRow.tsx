@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 type AirportListRowProps = {
   /** Optional left code chip. Airport directory rows intentionally omit it. */
   pill?: ReactNode;
+  /** A quiet category marker folded into the first row of a directory group. */
+  label?: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   /** Trailing slot, e.g. a chevron on tappable rows. */
@@ -28,6 +30,7 @@ type AirportListRowProps = {
 // category codes without forking the component.
 export function AirportListRow({
   pill,
+  label,
   title,
   subtitle,
   trailing,
@@ -64,6 +67,11 @@ export function AirportListRow({
 
   const text = (
     <span className="flex min-w-0 flex-col gap-0.5 self-center">
+      {label ? (
+        <span className="airport-list-row__label font-code text-[9px] uppercase leading-none tracking-[0.1em] text-atc-faint">
+          {label}
+        </span>
+      ) : null}
       {/* Primary line: 15.5px near-black, regular weight, wraps (no ellipsis). */}
       <span className="text-[calc(15.5px*var(--sb-title-scale))] leading-[1.25] text-atc-text">{title}</span>
       {subtitle ? (
@@ -112,6 +120,7 @@ export function AirportListRow({
       {...(as === "button" ? { type: "button" } : {})}
       data-active={active ? "true" : undefined}
       data-has-pill={pill ? "true" : "false"}
+      data-has-label={label ? "true" : undefined}
       onClick={onClick}
       className={classes}
       {...rest}
