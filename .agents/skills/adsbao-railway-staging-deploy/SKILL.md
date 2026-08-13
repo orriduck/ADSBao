@@ -26,6 +26,9 @@ validation probes for those retired paths.
 - Read `CLAUDE.md` first and choose the applicable validation path.
 - Never rely on the currently linked Railway service for staging operations.
 - Always pass `--service adsbao-staging --environment production`.
+- Treat the named service, environment, and URL as deployment configuration:
+  inspect the explicit deployment list before acting, rather than assuming a
+  locally linked Railway target is current.
 - Do not print raw Railway variable values; use redaction or presence checks.
 - Leave the local CLI linked back to `adsbao-app` before finishing.
 - Do not change the staging source branch unless the user explicitly asks.

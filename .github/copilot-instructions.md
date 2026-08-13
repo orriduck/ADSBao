@@ -14,6 +14,8 @@ documents override generic design or framework instructions when they conflict.
 
 - Vite runs on port 3000. Its same-origin `/api`, `/events`, and `/health`
   routes proxy to the private service on port 8082 for local development.
+  Local-only `/debug` diagnostics are also proxied; deployed Nginx does not
+  expose `/debug`.
 - Nearby realtime is Server-Sent Events with `EventSource` under `/events/...`.
   `/ws` is intentionally retired and returns 404.
 - The production image is static Nginx with SPA fallback; it proxies those same

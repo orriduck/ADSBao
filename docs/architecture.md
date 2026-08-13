@@ -35,3 +35,11 @@ expected to stay open. It is not a WebSocket connection.
 
 Airport map preferences are kept in browser `localStorage`. They are neither
 an account setting nor a private-service persistence contract.
+
+## Local-only diagnostics
+
+Vite additionally proxies `/debug/...` to the private service during local
+development. `pnpm debug:local:status` uses `/debug/channels` and
+`/debug/tracking` to describe the local process state. Nginx intentionally does
+not proxy `/debug` in a deployed public host; it is not part of the browser
+production contract.

@@ -7,19 +7,21 @@ service implementation and operational configuration live in the private
 
 ## Local development
 
-Keep the frontend and private service running separately:
-
-```bash
-cd ../ADSBao-Secret-Service/services/adsbao-service && PORT=8082 ./run-local.sh
-cd ../ADSBao && pnpm dev
-```
-
-For UI-only work, `pnpm debug:local` starts or adopts Vite without requiring
-the private service. For API/SSE or private-service work, use:
+For a full local frontend/private-service contract, use the adopting launcher:
 
 ```bash
 pnpm debug:local:service
 pnpm debug:local:status
+```
+
+For UI-only work, `pnpm debug:local` starts or adopts Vite without requiring
+the private service. To run the private service directly while working in its
+repository:
+
+```bash
+cd ../ADSBao-Secret-Service/services/adsbao-service
+go test ./...
+PORT=8082 ./run-local.sh
 ```
 
 The snapshot checks the SPA, a deep link, proxied `/health`, and active debug

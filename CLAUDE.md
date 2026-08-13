@@ -19,8 +19,9 @@ branches here.
 
 Realtime is same-origin Server-Sent Events under `/events/...`, consumed with
 `EventSource`. `/ws` is deliberately retired and returns 404 in local and
-deployed hosts. Airport map preferences are browser-local storage, not account
-or database state.
+deployed hosts. Vite also proxies `/debug` locally for diagnostics only; Nginx
+does not expose that route in deployment. Airport map preferences are
+browser-local storage, not account or database state.
 
 ## Local development
 
