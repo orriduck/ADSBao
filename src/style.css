@@ -2296,7 +2296,7 @@ body:has(.dither-page-shell) {
        reset (same single-class specificity loses to source order). Without
        this, the camera stage collapses to 0×0 on mobile. */
     .dither-page-shell.plane-hunter-shell {
-        background: rgb(5 5 5);
+        background: var(--plane-hunter-surface);
         gap: 0;
         height: var(--app-viewport-height, 100dvh) !important;
         min-height: var(--app-viewport-height, 100dvh);
@@ -3770,7 +3770,7 @@ body {
 }
 
 .dither-page-background.plane-hunter-stage {
-    background: rgb(5 5 5);
+    background: var(--plane-hunter-surface);
     border-radius: var(--atc-radius-shell);
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.05) inset,
@@ -3779,6 +3779,42 @@ body {
     margin-left: 12px;
     pointer-events: auto;
     position: relative;
+}
+
+/* Capture mode is a deliberate darkroom exception to Operational Wayfinding.
+   Its surface, ink, signal, line, and rounded-control vocabulary stay local
+   to the studio instead of leaking into shared sidebar or preview tokens. */
+.plane-hunter-panel {
+    --plane-hunter-surface: rgb(5 5 5);
+    --plane-hunter-ink: rgb(20 20 18);
+    --plane-hunter-paper: rgb(242 243 238);
+    --plane-hunter-paper-strong: rgb(242 243 238 / 0.92);
+    --plane-hunter-paper-soft: rgb(242 243 238 / 0.7);
+    --plane-hunter-paper-muted: rgb(242 243 238 / 0.5);
+    --plane-hunter-signal: rgb(255 221 119);
+    --plane-hunter-line: rgb(242 243 238 / 0.12);
+    --plane-hunter-line-strong: rgb(242 243 238 / 0.16);
+    --plane-hunter-control-surface: rgb(242 243 238 / 0.08);
+    --plane-hunter-control-surface-strong: rgb(242 243 238 / 0.14);
+    --plane-hunter-control-hover: rgb(242 243 238 / 0.14);
+    --plane-hunter-overlay: rgb(0 0 0 / 0.42);
+    --plane-hunter-overlay-hover: rgb(0 0 0 / 0.56);
+    --plane-hunter-sheet-surface: rgb(8 8 8 / 0.92);
+    --plane-hunter-review-surface: color-mix(in oklab, black 55%, transparent);
+    --plane-hunter-control-radius: 999px;
+    --plane-hunter-sheet-radius: 24px;
+    --plane-hunter-menu-radius: 18px;
+    --plane-hunter-weight-emphasis: 700;
+    --plane-hunter-weight-strong: 800;
+    --plane-hunter-control-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.08),
+        0 8px 22px rgb(0 0 0 / 0.2);
+    --plane-hunter-sheet-shadow:
+        0 20px 44px rgb(0 0 0 / 0.46),
+        inset 0 1px 0 rgb(255 255 255 / 0.06);
+    --plane-hunter-shutter-shadow:
+        0 10px 30px rgb(0 0 0 / 0.34),
+        inset 0 0 0 4px rgb(0 0 0 / 0.84);
 }
 
 .dither-page-panel.plane-hunter-panel {
@@ -4078,8 +4114,7 @@ body {
     padding: 10px;
 }
 
-.aircraft-preview-card--desktop-reveal::before,
-.aircraft-preview-card--desktop-reveal::after {
+.aircraft-preview-card--desktop-reveal::before {
     display: none;
 }
 
@@ -5129,33 +5164,6 @@ body {
     0%,
     43% {
         opacity: 1;
-    }
-    44%,
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes preview-placeholder-cursor {
-    0%,
-    8% {
-        opacity: 0;
-    }
-    10%,
-    18% {
-        opacity: 0.72;
-    }
-    20%,
-    27% {
-        opacity: 0.18;
-    }
-    29%,
-    37% {
-        opacity: 0.64;
-    }
-    39%,
-    43% {
-        opacity: 0.24;
     }
     44%,
     100% {
@@ -6644,33 +6652,16 @@ body {
             color-mix(in oklab, var(--atc-card) 88%, transparent),
             color-mix(in oklab, var(--atc-card) 80%, transparent)
         );
-    border: 1px solid
-        color-mix(in oklab, var(--atc-solid-accent) 18%, var(--tone-border-firm));
-    border-radius: var(--atc-radius-panel);
+    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, var(--tone-border-firm));
+    border-radius: var(--wayfinding-preview-radius);
     box-shadow:
         inset 0 1px 0 color-mix(in oklab, var(--atc-text) 8%, transparent),
-        inset 0 0 48px color-mix(in oklab, var(--atc-solid-accent) 8%, transparent);
+        inset 0 0 48px color-mix(in oklab, var(--atc-text) 5%, transparent);
     content: "";
     inset: 0;
     pointer-events: none;
     position: absolute;
     z-index: 4;
-}
-
-.aircraft-preview-card--desktop-reveal::after {
-    animation: preview-placeholder-cursor var(--motion-ui-slow) steps(1, end) both;
-    background: color-mix(in oklab, var(--atc-solid-accent) 78%, transparent);
-    border-radius: 999px;
-    box-shadow: 0 0 16px
-        color-mix(in oklab, var(--atc-solid-accent) 28%, transparent);
-    content: "";
-    height: 18px;
-    left: 18px;
-    pointer-events: none;
-    position: absolute;
-    top: 18px;
-    width: 4px;
-    z-index: 5;
 }
 
 .aircraft-preview-card--desktop-reveal > *,
@@ -7454,8 +7445,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .aircraft-preview-card--desktop-reveal::before,
-    .aircraft-preview-card--desktop-reveal::after {
+    .aircraft-preview-card--desktop-reveal::before {
         display: none;
     }
 

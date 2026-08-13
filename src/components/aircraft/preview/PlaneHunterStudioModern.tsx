@@ -726,7 +726,7 @@ function useLongPress({
 }
 
 const PLANE_HUNTER_CHIP =
-  "plane-hunter-wayfinding-control inline-flex size-11 shrink-0 select-none items-start justify-center border-r border-[rgba(242,243,238,0.12)] bg-[rgba(242,243,238,0.14)] pt-[11px] text-[rgba(242,243,238,0.9)] transition hover:bg-[rgba(242,243,238,0.2)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
+  "plane-hunter-wayfinding-control inline-flex size-11 shrink-0 select-none items-start justify-center border-r border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface-strong)] pt-[11px] text-[var(--plane-hunter-paper-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
 
 // Floating control dock: switch / zoom / help chips in one row, plus the
 // library + shutter capture row. Sits at the bottom in portrait and on the
@@ -797,11 +797,11 @@ function PlaneHunterControlDock({
   const sheetPosition =
     "absolute inset-x-2 bottom-[calc(100%+10px)] z-20 landscape:inset-x-auto landscape:bottom-auto landscape:right-[calc(100%+12px)] landscape:top-1/2 landscape:w-[280px] landscape:-translate-y-1/2";
   const sheetSurface =
-    "overflow-hidden rounded-[24px] border border-[rgba(242,243,238,0.12)] bg-[rgba(8,8,8,0.92)] text-[rgb(242,243,238)] shadow-[0_20px_44px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl";
+    "overflow-hidden rounded-[var(--plane-hunter-sheet-radius)] border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-sheet-surface)] text-[var(--plane-hunter-paper)] shadow-[var(--plane-hunter-sheet-shadow)] backdrop-blur-2xl";
 
   return (
-    <div className="plane-hunter-wayfinding-dock pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[rgba(242,243,238,0.16)] bg-black px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
-      <div className="flex items-center justify-center overflow-hidden border border-[rgba(242,243,238,0.12)] landscape:flex-col">
+    <div className="plane-hunter-wayfinding-dock pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-surface)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
+      <div className="flex items-center justify-center overflow-hidden border border-[var(--plane-hunter-line)] landscape:flex-col">
         {/* Template — tap to cycle the preset; the live overlay updates. */}
         <button
           type="button"
@@ -813,10 +813,10 @@ function PlaneHunterControlDock({
           title={t(`planeHunter.templates.${template}`)}
           className={cn(
             PLANE_HUNTER_CHIP,
-            "w-auto min-w-11 px-3 text-[12px] font-black",
+            "w-auto min-w-11 px-3 text-[12px] font-[var(--plane-hunter-weight-strong)]",
             template === "none"
-              ? "text-[rgba(242,243,238,0.7)]"
-              : "text-[rgb(255,221,119)]",
+              ? "text-[var(--plane-hunter-paper-soft)]"
+              : "text-[var(--plane-hunter-signal)]",
           )}
         >
           {t(`planeHunter.templateUnits.${template}`)}
@@ -831,8 +831,8 @@ function PlaneHunterControlDock({
             PLANE_HUNTER_CHIP,
             "landscape:hidden",
             template === "none"
-              ? "text-[rgba(242,243,238,0.5)]"
-              : "text-[rgb(255,221,119)]",
+              ? "text-[var(--plane-hunter-paper-muted)]"
+              : "text-[var(--plane-hunter-signal)]",
           )}
         >
           <RotateCcw
@@ -864,8 +864,8 @@ function PlaneHunterControlDock({
             className={cn(
               "size-[19px]",
               canSwitchCamera
-                ? "text-[rgb(255,221,119)]"
-                : "text-[rgba(242,243,238,0.5)]",
+                ? "text-[var(--plane-hunter-signal)]"
+                : "text-[var(--plane-hunter-paper-muted)]",
             )}
           />
         </button>
@@ -881,8 +881,8 @@ function PlaneHunterControlDock({
           title={t("planeHunter.zoomLabel", { value: formatCameraZoom(zoom) })}
           className={cn(
             PLANE_HUNTER_CHIP,
-            "text-[13px] font-black",
-            canZoom ? "text-[rgb(255,221,119)]" : "text-[rgba(242,243,238,0.5)]",
+            "text-[13px] font-[var(--plane-hunter-weight-strong)]",
+            canZoom ? "text-[var(--plane-hunter-signal)]" : "text-[var(--plane-hunter-paper-muted)]",
           )}
         >
           {formatCameraZoom(zoom)}
@@ -893,7 +893,7 @@ function PlaneHunterControlDock({
           aria-haspopup="menu"
           aria-expanded={infoSheetOpen}
           aria-label={t("planeHunter.zoomInfoTitle")}
-          className={cn(PLANE_HUNTER_CHIP, "text-[rgba(242,243,238,0.78)]")}
+          className={cn(PLANE_HUNTER_CHIP, "text-[var(--plane-hunter-paper-soft)]")}
         >
           <CircleHelp aria-hidden="true" className="size-[19px]" />
         </button>
@@ -904,7 +904,7 @@ function PlaneHunterControlDock({
           onClick={onChooseLibrary}
           aria-label={t("planeHunter.chooseLibrary")}
           title={t("planeHunter.chooseLibrary")}
-          className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-full border border-[rgba(242,243,238,0.13)] bg-[rgba(242,243,238,0.08)] text-[rgba(242,243,238,0.86)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_22px_rgba(0,0,0,0.2)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95 landscape:order-2"
+          className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 landscape:order-2"
         >
           <ImageIcon aria-hidden="true" className="size-5" />
         </button>
@@ -914,7 +914,7 @@ function PlaneHunterControlDock({
           aria-label={
             cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")
           }
-          className="size-[74px] justify-self-center rounded-full border-[5px] border-[rgba(242,243,238,0.92)] bg-[rgba(242,243,238,0.18)] shadow-[0_10px_30px_rgba(0,0,0,0.34),inset_0_0_0_4px_rgba(0,0,0,0.84)] transition active:scale-95 landscape:order-1"
+          className="size-[74px] justify-self-center rounded-[var(--plane-hunter-control-radius)] border-[5px] border-[var(--plane-hunter-paper-strong)] bg-[var(--plane-hunter-control-surface-strong)] shadow-[var(--plane-hunter-shutter-shadow)] transition active:scale-95 landscape:order-1"
         />
         <span aria-hidden="true" className="landscape:hidden" />
       </div>
@@ -929,7 +929,7 @@ function PlaneHunterControlDock({
             className="fixed inset-0 z-10 cursor-default bg-transparent"
           />
           <div role="menu" className={cn(sheetPosition, sheetSurface, "p-2")}>
-            <div className="px-2 pb-2 pt-1 text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+            <div className="px-2 pb-2 pt-1 text-[10px] font-[var(--plane-hunter-weight-strong)] uppercase leading-none tracking-wide text-[var(--plane-hunter-paper-muted)]">
               {t("planeHunter.chooseCamera")}
             </div>
             <div className="max-h-[208px] overflow-y-auto">
@@ -946,7 +946,7 @@ function PlaneHunterControlDock({
                       onCameraDeviceSelect(device.deviceId);
                     }}
                     data-active={selected ? "true" : undefined}
-                    className="flex min-h-11 w-full items-center gap-2 rounded-[18px] px-3 text-left text-[12.5px] font-bold text-[rgba(242,243,238,0.82)] transition hover:bg-[rgba(242,243,238,0.1)] data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
+                    className="flex min-h-11 w-full items-center gap-2 rounded-[var(--plane-hunter-menu-radius)] px-3 text-left text-[12.5px] font-[var(--plane-hunter-weight-emphasis)] text-[var(--plane-hunter-paper-strong)] transition hover:bg-[var(--plane-hunter-control-surface)] data-[active=true]:bg-[var(--plane-hunter-signal)] data-[active=true]:text-[var(--plane-hunter-ink)]"
                   >
                     <span className="min-w-0 flex-1 truncate">
                       {displayDeviceLabel(device)}
@@ -971,14 +971,14 @@ function PlaneHunterControlDock({
           />
           <div role="menu" className={cn(sheetPosition, sheetSurface, "p-3")}>
             <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)]">
+              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-signal)]">
                 <ZoomIn aria-hidden="true" className="size-4" />
               </span>
-              <span className="text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+              <span className="text-[10px] font-[var(--plane-hunter-weight-strong)] uppercase leading-none tracking-wide text-[var(--plane-hunter-paper-muted)]">
                 {t("planeHunter.zoomLabel", { value: formatCameraZoom(zoom) })}
               </span>
             </div>
-            <div className="flex rounded-full bg-[rgba(242,243,238,0.08)] p-1">
+            <div className="flex rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-control-surface)] p-1">
               {stops.map((stop) => {
                 const active =
                   Math.abs(zoom - stop) < Math.max(zoomRange.step, 0.1);
@@ -988,7 +988,7 @@ function PlaneHunterControlDock({
                     type="button"
                     onClick={() => onZoomChange(stop)}
                     data-active={active ? "true" : undefined}
-                    className="min-h-9 flex-1 rounded-full px-3 text-[13px] font-black leading-none text-[rgba(242,243,238,0.7)] transition data-[active=true]:bg-[rgb(255,221,119)] data-[active=true]:text-[rgb(14,15,16)]"
+                    className="min-h-9 flex-1 rounded-[var(--plane-hunter-control-radius)] px-3 text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-soft)] transition data-[active=true]:bg-[var(--plane-hunter-signal)] data-[active=true]:text-[var(--plane-hunter-ink)]"
                   >
                     {formatCameraZoom(stop)}
                   </button>
@@ -1010,14 +1010,14 @@ function PlaneHunterControlDock({
           />
           <div role="menu" className={cn(sheetPosition, sheetSurface, "p-3")}>
             <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[rgba(242,243,238,0.1)] text-[rgb(255,221,119)]">
+              <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-signal)]">
                 <CircleHelp aria-hidden="true" className="size-4" />
               </span>
-              <span className="text-[10px] font-black uppercase leading-none tracking-wide text-[rgba(242,243,238,0.5)]">
+              <span className="text-[10px] font-[var(--plane-hunter-weight-strong)] uppercase leading-none tracking-wide text-[var(--plane-hunter-paper-muted)]">
                 {t("planeHunter.zoomInfoTitle")}
               </span>
             </div>
-            <p className="text-[11.5px] font-bold leading-snug text-[rgba(242,243,238,0.72)]">
+            <p className="text-[11.5px] font-[var(--plane-hunter-weight-emphasis)] leading-snug text-[var(--plane-hunter-paper-soft)]">
               {t("planeHunter.zoomInfoBody")}
             </p>
           </div>
@@ -1416,7 +1416,7 @@ function PlaneHunterLiveCameraView({
 }) {
   const direction = usePlaneDirection(planeLat, planeLon);
   return (
-    <div className="absolute inset-0 overflow-hidden bg-black">
+    <div className="absolute inset-0 overflow-hidden bg-[var(--plane-hunter-surface)]">
       {/* Live feed fills the frame; the chrome floats over it so only the
           clear middle is the capture area and the rest dims the feed. */}
       {cameraReady ? (
@@ -1428,27 +1428,27 @@ function PlaneHunterLiveCameraView({
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_34%,rgba(242,243,238,0.11),transparent_36%),linear-gradient(180deg,rgba(242,243,238,0.03),transparent_30%),rgb(4,4,4)]">
-          <span className="inline-flex size-20 items-center justify-center rounded-full border border-[rgba(242,243,238,0.1)] bg-[rgba(242,243,238,0.05)] text-[rgba(242,243,238,0.5)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_34%,color-mix(in_oklab,var(--plane-hunter-paper)_11%,transparent)_0,transparent_36%),linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-paper)_3%,transparent),transparent_30%),var(--plane-hunter-surface)]">
+          <span className="inline-flex size-20 items-center justify-center rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-muted)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.04)]">
             <Camera aria-hidden="true" className="size-8" />
           </span>
         </div>
       )}
       {/* Compass ribbon — where the aircraft is relative to the camera. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,rgba(0,0,0,0.5),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-surface)_50%,transparent),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
         <PlaneHunterCompass direction={direction} />
       </div>
       <button
         type="button"
         onClick={onClose}
         aria-label={t("planeHunter.closeStudio")}
-        className="pointer-events-auto absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-full bg-[rgba(0,0,0,0.42)] text-[rgba(242,243,238,0.92)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(0,0,0,0.56)] active:scale-95"
+        className="pointer-events-auto absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] text-[var(--plane-hunter-paper-strong)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-overlay-hover)] active:scale-95"
       >
         <X aria-hidden="true" className="size-4" />
       </button>
       {status && (
         <div className="pointer-events-none absolute inset-x-0 top-[max(64px,calc(env(safe-area-inset-top)+56px))] z-30 flex justify-center px-4">
-          <span className="rounded-full bg-[rgba(0,0,0,0.55)] px-3 py-2 text-center text-[11px] font-bold leading-snug text-[rgba(242,243,238,0.85)] backdrop-blur-md">
+          <span className="rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] px-3 py-2 text-center text-[11px] font-[var(--plane-hunter-weight-emphasis)] leading-snug text-[var(--plane-hunter-paper-strong)] backdrop-blur-md">
             {status}
           </span>
         </div>
@@ -1514,12 +1514,12 @@ function PlaneHunterReviewView({
   t: PlaneHunterTranslator;
 }) {
   return (
-    <div className="absolute inset-0 overflow-hidden bg-black">
+    <div className="absolute inset-0 overflow-hidden bg-[var(--plane-hunter-surface)]">
       <button
         type="button"
         onClick={onClose}
         aria-label={t("planeHunter.closeStudio")}
-        className="absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-full bg-[rgba(0,0,0,0.42)] text-[rgba(242,243,238,0.92)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(0,0,0,0.56)] active:scale-95"
+        className="absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] text-[var(--plane-hunter-paper-strong)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-overlay-hover)] active:scale-95"
       >
         <X aria-hidden="true" className="size-4" />
       </button>
@@ -1539,7 +1539,7 @@ function PlaneHunterReviewView({
             draggable="false"
           />
         </div>
-        <div className="flex flex-none items-center justify-center gap-3 border-t border-[rgba(242,243,238,0.1)] bg-[color-mix(in_oklab,black_55%,transparent)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
+        <div className="flex flex-none items-center justify-center gap-3 border-t border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-review-surface)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
           {/* Switch the template on the already-captured shot (re-bakes). */}
           <button
             type="button"
@@ -1550,10 +1550,10 @@ function PlaneHunterReviewView({
             aria-label={t(`planeHunter.templates.${template}`)}
             title={t(`planeHunter.templates.${template}`)}
             className={cn(
-              "inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-4 text-[13px] font-black shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95",
+              "inline-flex min-h-12 items-center justify-center rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 text-[13px] font-[var(--plane-hunter-weight-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95",
               template === "none"
-                ? "text-[rgba(242,243,238,0.7)]"
-                : "text-[rgb(255,221,119)]",
+                ? "text-[var(--plane-hunter-paper-soft)]"
+                : "text-[var(--plane-hunter-signal)]",
             )}
           >
             {t(`planeHunter.templateUnits.${template}`)}
@@ -1565,10 +1565,10 @@ function PlaneHunterReviewView({
             aria-label={t("planeHunter.rotateTemplate")}
             title={t("planeHunter.rotateTemplate")}
             className={cn(
-              "inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
+              "inline-flex min-h-12 items-center justify-center rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
               template === "none"
-                ? "text-[rgba(242,243,238,0.6)]"
-                : "text-[rgb(255,221,119)]",
+                ? "text-[var(--plane-hunter-paper-muted)]"
+                : "text-[var(--plane-hunter-signal)]",
             )}
           >
             <RotateCcw
@@ -1580,7 +1580,7 @@ function PlaneHunterReviewView({
           <button
             type="button"
             onClick={onRetake}
-            className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[rgba(242,243,238,0.16)] bg-[rgba(242,243,238,0.08)] px-5 text-[13px] font-extrabold text-[rgba(242,243,238,0.9)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-md transition hover:bg-[rgba(242,243,238,0.14)] active:scale-95"
+            className="inline-flex min-h-12 items-center gap-2 rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-5 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95"
           >
             <RotateCcw aria-hidden="true" className="size-4" />
             {t("planeHunter.retake")}
@@ -1588,7 +1588,7 @@ function PlaneHunterReviewView({
           <button
             type="button"
             onClick={onShare}
-            className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[rgb(242,243,238)] px-6 text-[13px] font-black text-[rgb(20,20,18)] shadow-[0_8px_22px_rgba(0,0,0,0.3)] transition hover:bg-white active:scale-95"
+            className="inline-flex min-h-12 items-center gap-2 rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-paper)] px-6 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-ink)] shadow-[var(--plane-hunter-control-shadow)] transition hover:bg-[var(--plane-hunter-paper-strong)] active:scale-95"
           >
             <Share2 aria-hidden="true" className="size-4" />
             {t("planeHunter.share")}
@@ -2065,14 +2065,14 @@ export default function PlaneHunterStudio({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black text-atc-text"
+      className="plane-hunter-panel fixed inset-0 z-[10000] bg-[var(--plane-hunter-surface)] text-atc-text"
       role="dialog"
       aria-modal="true"
       aria-label={t("planeHunter.title")}
     >
       <div className="dither-page-shell plane-hunter-shell flex h-dvh w-full flex-col text-atc-text">
         <main
-          className="dither-page-background plane-hunter-stage relative min-h-0 flex-1 overflow-hidden bg-black"
+          className="dither-page-background plane-hunter-stage relative min-h-0 flex-1 overflow-hidden bg-[var(--plane-hunter-surface)]"
         >
           {captured ? (
             <PlaneHunterReviewView
