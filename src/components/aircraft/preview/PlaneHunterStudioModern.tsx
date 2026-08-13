@@ -817,7 +817,7 @@ function PlaneHunterControlDock({
             "w-auto min-w-11 px-3 text-[12px] font-[var(--plane-hunter-weight-strong)]",
             template === "none"
               ? "text-[var(--plane-hunter-paper-soft)]"
-              : "text-[var(--plane-hunter-signal)]",
+              : "text-[var(--plane-hunter-paper-strong)]",
           )}
         >
           {t(`planeHunter.templateUnits.${template}`)}
@@ -833,7 +833,7 @@ function PlaneHunterControlDock({
             "landscape:hidden",
             template === "none"
               ? "text-[var(--plane-hunter-paper-muted)]"
-              : "text-[var(--plane-hunter-signal)]",
+              : "text-[var(--plane-hunter-paper-soft)]",
           )}
         >
           <RotateCcw
@@ -865,7 +865,7 @@ function PlaneHunterControlDock({
             className={cn(
               "size-[19px]",
               canSwitchCamera
-                ? "text-[var(--plane-hunter-signal)]"
+                ? "text-[var(--plane-hunter-paper-strong)]"
                 : "text-[var(--plane-hunter-paper-muted)]",
             )}
           />
@@ -883,7 +883,7 @@ function PlaneHunterControlDock({
           className={cn(
             PLANE_HUNTER_CHIP,
             "text-[13px] font-[var(--plane-hunter-weight-strong)]",
-            canZoom ? "text-[var(--plane-hunter-signal)]" : "text-[var(--plane-hunter-paper-muted)]",
+            canZoom ? "text-[var(--plane-hunter-paper-strong)]" : "text-[var(--plane-hunter-paper-muted)]",
           )}
         >
           {formatCameraZoom(zoom)}
@@ -915,7 +915,7 @@ function PlaneHunterControlDock({
           aria-label={
             cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")
           }
-          className="size-[74px] justify-self-center rounded-[var(--plane-hunter-control-radius)] border-[5px] border-[var(--plane-hunter-paper-strong)] bg-[var(--plane-hunter-control-surface-strong)] shadow-[var(--plane-hunter-shutter-shadow)] transition active:scale-95 landscape:order-1"
+          className="size-[74px] justify-self-center rounded-full border-[5px] border-[var(--plane-hunter-paper-strong)] bg-[var(--plane-hunter-control-surface-strong)] shadow-[var(--plane-hunter-shutter-shadow)] transition active:scale-95 landscape:order-1"
         />
         <span aria-hidden="true" className="landscape:hidden" />
       </div>
@@ -1362,6 +1362,42 @@ function PlaneHunterCompass({ direction }: { direction: PlaneDirection }) {
   return <canvas ref={canvasRef} aria-hidden="true" className="h-full w-full" />;
 }
 
+function PlaneHunterStageHeader({
+  labels,
+  onClose,
+  t,
+}: {
+  labels: AircraftLabels;
+  onClose: () => void;
+  t: PlaneHunterTranslator;
+}) {
+  return (
+    <div className="plane-hunter-stage-header absolute inset-x-0 top-[env(safe-area-inset-top)] z-30 flex h-11 items-stretch border-b border-[var(--plane-hunter-line)] bg-[color-mix(in_oklab,var(--plane-hunter-surface)_82%,transparent)]">
+      <div className="flex min-w-0 max-w-[calc(100%-44px)] items-stretch">
+        <span className="plane-hunter-stage-header__rail" aria-hidden="true">
+          <Plane className="size-4" />
+        </span>
+        <span className="flex min-w-0 flex-col justify-center px-3 py-2">
+          <span className="block truncate font-mono text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-strong)]">
+            {labels.callsign}
+          </span>
+          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--plane-hunter-paper-muted)]">
+            {t("planeHunter.title")}
+          </span>
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t("planeHunter.closeStudio")}
+        className="plane-hunter-stage-header__close ml-auto inline-flex size-11 shrink-0 items-center justify-center border-l border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95"
+      >
+        <X aria-hidden="true" className="size-4" />
+      </button>
+    </div>
+  );
+}
+
 function PlaneHunterLiveCameraView({
   labels,
   planeLat,
@@ -1439,21 +1475,7 @@ function PlaneHunterLiveCameraView({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-surface)_50%,transparent),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
         <PlaneHunterCompass direction={direction} />
       </div>
-      <div className="plane-hunter-stage-title pointer-events-none absolute left-16 top-[max(12px,env(safe-area-inset-top))] z-30 flex min-w-0 items-center">
-        <span className="plane-hunter-stage-title__rail"><Plane aria-hidden="true" className="size-4" /></span>
-        <span className="min-w-0 px-3 py-2">
-          <span className="block truncate font-mono text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-strong)]">{labels.callsign}</span>
-          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--plane-hunter-paper-muted)]">{t("planeHunter.title")}</span>
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t("planeHunter.closeStudio")}
-        className="pointer-events-auto absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] text-[var(--plane-hunter-paper-strong)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-overlay-hover)] active:scale-95"
-      >
-        <X aria-hidden="true" className="size-4" />
-      </button>
+      <PlaneHunterStageHeader labels={labels} onClose={onClose} t={t} />
       {status && (
         <div className="pointer-events-none absolute inset-x-0 top-[max(64px,calc(env(safe-area-inset-top)+56px))] z-30 flex justify-center px-4">
           <span className="rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] px-3 py-2 text-center text-[11px] font-[var(--plane-hunter-weight-emphasis)] leading-snug text-[var(--plane-hunter-paper-strong)] backdrop-blur-md">
@@ -1525,21 +1547,7 @@ function PlaneHunterReviewView({
 }) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[var(--plane-hunter-surface)]">
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t("planeHunter.closeStudio")}
-        className="absolute left-3 top-[max(12px,env(safe-area-inset-top))] z-30 inline-flex size-10 items-center justify-center rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] text-[var(--plane-hunter-paper-strong)] shadow-[inset_0_1px_0_rgb(255_255_255_/_0.08)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-overlay-hover)] active:scale-95"
-      >
-        <X aria-hidden="true" className="size-4" />
-      </button>
-      <div className="plane-hunter-stage-title pointer-events-none absolute left-16 top-[max(12px,env(safe-area-inset-top))] z-30 flex min-w-0 items-center">
-        <span className="plane-hunter-stage-title__rail"><Plane aria-hidden="true" className="size-4" /></span>
-        <span className="min-w-0 px-3 py-2">
-          <span className="block truncate font-mono text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-strong)]">{labels.callsign}</span>
-          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--plane-hunter-paper-muted)]">{t("planeHunter.title")}</span>
-        </span>
-      </div>
+      <PlaneHunterStageHeader labels={labels} onClose={onClose} t={t} />
       <div className="absolute inset-0 flex flex-col landscape:flex-row">
         <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
           <img
@@ -1570,7 +1578,7 @@ function PlaneHunterReviewView({
               "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 text-[13px] font-[var(--plane-hunter-weight-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95",
               template === "none"
                 ? "text-[var(--plane-hunter-paper-soft)]"
-                : "text-[var(--plane-hunter-signal)]",
+                : "text-[var(--plane-hunter-paper-strong)]",
             )}
           >
             {t(`planeHunter.templateUnits.${template}`)}
@@ -1585,7 +1593,7 @@ function PlaneHunterReviewView({
               "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
               template === "none"
                 ? "text-[var(--plane-hunter-paper-muted)]"
-                : "text-[var(--plane-hunter-signal)]",
+                : "text-[var(--plane-hunter-paper-soft)]",
             )}
           >
             <RotateCcw

@@ -8223,21 +8223,20 @@ body {
     box-shadow: none;
 }
 
-.plane-hunter-stage-title {
-    background: color-mix(in oklab, var(--plane-hunter-surface) 70%, transparent);
-    border: 1px solid var(--plane-hunter-line);
-    max-width: min(236px, calc(100vw - 148px));
+.plane-hunter-stage-header {
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
 }
 
-.plane-hunter-stage-title__rail {
+.plane-hunter-stage-header__rail {
     align-items: flex-start;
     background: color-mix(in oklab, var(--plane-hunter-paper) 12%, transparent);
     color: var(--plane-hunter-paper-strong);
     display: flex;
     flex: 0 0 36px;
     height: 44px;
-    justify-content: center;
-    padding-top: 13px;
+    justify-content: flex-start;
+    padding: 11px 0 0 10px;
 }
 
 .plane-hunter-review-dock {
@@ -8266,10 +8265,6 @@ body {
 }
 
 @media (orientation: landscape) and (min-height: 360px) {
-    .plane-hunter-stage-title {
-        max-width: 230px;
-    }
-
     .plane-hunter-review-dock {
         display: flex;
         gap: 0;
