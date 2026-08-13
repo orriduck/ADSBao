@@ -9848,13 +9848,6 @@ body {
             oklch(0.77 0.004 100) 0%,
             color-mix(in oklab, oklch(0.77 0.004 100) 88%, transparent) 18%,
             transparent 56%
-        ),
-        linear-gradient(
-            0deg,
-            color-mix(in oklab, oklch(0.77 0.004 100) 84%, transparent),
-            transparent 30%,
-            transparent 70%,
-            color-mix(in oklab, oklch(0.77 0.004 100) 92%, transparent)
         );
 }
 
@@ -9874,13 +9867,6 @@ body {
             oklch(0.16 0.003 100) 0%,
             color-mix(in oklab, oklch(0.16 0.003 100) 86%, transparent) 18%,
             transparent 56%
-        ),
-        linear-gradient(
-            0deg,
-            color-mix(in oklab, oklch(0.16 0.003 100) 86%, transparent),
-            transparent 30%,
-            transparent 70%,
-            color-mix(in oklab, oklch(0.16 0.003 100) 94%, transparent)
         );
 }
 
