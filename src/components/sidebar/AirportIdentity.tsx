@@ -8,6 +8,7 @@ import {
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import DecodeText from "@/components/ui/DecodeText";
+import WayfindingRail from "@/components/ui/WayfindingRail";
 import { MapPin, TowerControl } from "lucide-react";
 
 export default function AirportIdentity({
@@ -89,10 +90,12 @@ export default function AirportIdentity({
 
   return (
     <div className="airport-wayfinding-identity flex min-h-[150px] overflow-hidden">
-      <div className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--atc-signal-accent)] pt-11 text-[var(--airport-wayfinding-primary-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]">
-        {nearMe ? <MapPin aria-hidden="true" /> : <TowerControl aria-hidden="true" />}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-3 pb-5 pt-10">
+      <WayfindingRail
+        icon={nearMe ? <MapPin /> : <TowerControl />}
+        inset="hero"
+        tone="primary"
+      />
+      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-5 pt-[var(--wayfinding-hero-content-top)]">
         <h1 className="text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text">
           <span className="notranslate" translate="no">
             {nearMe ? (

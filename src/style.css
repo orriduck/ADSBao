@@ -71,6 +71,14 @@
     --font-weight-extrabold: var(--weight-regular);
     --font-weight-black: var(--weight-regular);
 
+    /* Operational-wayfinding geometry. Compact rails and identity heroes use
+       separate top insets so their shared optical baseline stays explicit. */
+    --wayfinding-rail-width: 36px;
+    --wayfinding-rail-icon-top: 11px;
+    --wayfinding-content-inset: 12px;
+    --wayfinding-hero-icon-top: 44px;
+    --wayfinding-hero-content-top: 40px;
+
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
     --radius-sm: calc(var(--radius) * 0.75);
@@ -1593,7 +1601,8 @@ body {
    sign-system grammar: one primary airport rail, neutral metric rails, one
    secondary provider row, and a single content surface per theme. */
 .airport-map-kit .sidebar-shell {
-    --airport-wayfinding-rail-width: 36px;
+    --airport-wayfinding-rail-width: var(--wayfinding-rail-width);
+    --airport-wayfinding-content-inset: var(--wayfinding-content-inset);
     --airport-wayfinding-icon-inline-offset: calc(
         (var(--airport-wayfinding-rail-width) - 16px) / 2
     );
