@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.16",
+    version: "v3.13.17",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Airport, flight, and first-screen views share one 36px-rail system with clear hierarchy, reserved tracking color, pictographic source rails, aligned metric baselines, and neutral live vertical-state signs with accessible direction labels. Airport traffic now also keeps usable cached SSE data visible while a source recovers. Directory rows lead with their IATA code in the rail; preview cards keep a soft pill-echoing radius, the mobile toolbar lifts with a faint shadow, and the loading animation stays centered in the map area. Directory and search-result rails now run continuous with no gaps or dividers breaking the rail column.",
-      zh: "机场、航班与首屏统一采用 36px 导视边，以清晰层级、克制的追踪色、图形化数据来源边栏、对齐的指标基线与中性实时升降标识（含无障碍方向标注）提升扫读效率；机场流量源恢复期间也会继续显示可用的 SSE 缓存航迹。目录行现以 IATA 代码领衔；预览卡保留呼应胶囊的柔和圆角，移动端工具栏以淡阴影浮起，加载动画固定居中于地图区。目录与搜索结果行的 rail 现连续贯通，不再有间隙或分隔线切断 rail 列。",
+      en: "Airport, flight, and first-screen views share one 36px-rail system with clear hierarchy, reserved tracking color, pictographic source rails, aligned metric baselines, and neutral live vertical-state signs with accessible direction labels. Airport traffic now also keeps usable cached SSE data visible while a source recovers. Directory rows lead with their IATA code in the rail; preview cards keep a soft pill-echoing radius, the mobile toolbar lifts with a faint shadow, and the loading animation stays centered in the map area. Directory and search-result rails now run continuous with no gaps or dividers breaking the rail column. Full-screen mobile detail panels no longer frame the logo dock with a desktop-only side seam, the near-me rail joins the surrounding wayfinding column squarely, and About and Mechanism fold group headings into flatter continuous lists.",
+      zh: "机场、航班与首屏统一采用 36px 导视边，以清晰层级、克制的追踪色、图形化数据来源边栏、对齐的指标基线与中性实时升降标识（含无障碍方向标注）提升扫读效率；机场流量源恢复期间也会继续显示可用的 SSE 缓存航迹。目录行现以 IATA 代码领衔；预览卡保留呼应胶囊的柔和圆角，移动端工具栏以淡阴影浮起，加载动画固定居中于地图区。目录与搜索结果行的 rail 现连续贯通，不再有间隙或分隔线切断 rail 列。全屏移动端详情面板不再以桌面专用的侧边线框住 logo 顶栏，Near me rail 也改为直角衔接周围导视列；About 与机制页都将组标题收进更平的连续列表。",
     },
     highlights: [],
   },

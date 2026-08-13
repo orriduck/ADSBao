@@ -1,5 +1,5 @@
-import { Fragment, useState } from "react";
-import { ChevronRight, GitBranch, Route } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
@@ -23,60 +23,59 @@ export default function MechanismPanel() {
           const flowLabels = "flowKeys" in item ? item.flowKeys.map((key) => t(key)) : [];
 
           return (
-            <Fragment key={item.id}>
-              {showGroup ? (
-                <li className="mechanism-wayfinding__group">
-                  <span aria-hidden="true">
-                    {index === 0 ? <GitBranch /> : <Route />}
-                  </span>
-                  <h2>{t(item.groupKey)}</h2>
-                </li>
-              ) : null}
-              <li className="mechanism-wayfinding__item" data-expanded={expanded ? "true" : undefined}>
-                <button
-                  type="button"
-                  aria-expanded={expanded}
-                  aria-controls={panelId}
-                  onClick={() => setExpandedId(expanded ? null : item.id)}
-                  className="mechanism-wayfinding__trigger group"
-                >
-                  <span className="mechanism-wayfinding__index" aria-hidden="true">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="mechanism-wayfinding__copy">
-                    <strong>{t(item.titleKey)}</strong>
-                    <small>{t(item.signalKey)}</small>
-                  </span>
-                  <ChevronRight
-                    aria-hidden="true"
-                    className="group-aria-expanded:rotate-90"
-                  />
-                </button>
+            <li
+              key={item.id}
+              className="mechanism-wayfinding__item"
+              data-expanded={expanded ? "true" : undefined}
+            >
+              <button
+                type="button"
+                aria-expanded={expanded}
+                aria-controls={panelId}
+                onClick={() => setExpandedId(expanded ? null : item.id)}
+                className="mechanism-wayfinding__trigger group"
+              >
+                <span className="mechanism-wayfinding__index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mechanism-wayfinding__copy">
+                  {showGroup ? (
+                    <small className="mechanism-wayfinding__group-label">
+                      {t(item.groupKey)}
+                    </small>
+                  ) : null}
+                  <strong>{t(item.titleKey)}</strong>
+                  <small>{t(item.signalKey)}</small>
+                </span>
+                <ChevronRight
+                  aria-hidden="true"
+                  className="group-aria-expanded:rotate-90"
+                />
+              </button>
 
-                <div
-                  id={panelId}
-                  className={cn(
-                    "mechanism-wayfinding__detail-grid grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none",
-                    expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-                  )}
-                >
-                  <div className="min-h-0 overflow-hidden">
-                    <div className="mechanism-wayfinding__detail">
-                      <p>{t(item.bodyKey)}</p>
-                      <MechanismFlow label={t("mechanism.flowLabel")} steps={flowLabels} />
-                      <ol className="mechanism-wayfinding__notes">
-                        {item.detailKeys.map((key, detailIndex) => (
-                          <li key={key}>
-                            <span>{String(detailIndex + 1).padStart(2, "0")}</span>
-                            <span>{t(key)}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
+              <div
+                id={panelId}
+                className={cn(
+                  "mechanism-wayfinding__detail-grid grid transition-[grid-template-rows,opacity] duration-200 motion-reduce:transition-none",
+                  expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                )}
+              >
+                <div className="min-h-0 overflow-hidden">
+                  <div className="mechanism-wayfinding__detail">
+                    <p>{t(item.bodyKey)}</p>
+                    <MechanismFlow label={t("mechanism.flowLabel")} steps={flowLabels} />
+                    <ol className="mechanism-wayfinding__notes">
+                      {item.detailKeys.map((key, detailIndex) => (
+                        <li key={key}>
+                          <span>{String(detailIndex + 1).padStart(2, "0")}</span>
+                          <span>{t(key)}</span>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 </div>
-              </li>
-            </Fragment>
+              </div>
+            </li>
           );
         })}
       </ol>

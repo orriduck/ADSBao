@@ -6,7 +6,6 @@ import {
   Camera,
   Clapperboard,
   CloudSun,
-  Database,
   Github,
   Layers3,
   Map,
@@ -49,12 +48,6 @@ const CATEGORY_LABEL: Record<string, { en: string; zh: string }> = {
   weather: { en: "Weather", zh: "天气" },
   airport: { en: "Airports", zh: "机场" },
   context: { en: "Context", zh: "背景" },
-};
-const CATEGORY_ICON: Record<string, ReactNode> = {
-  traffic: <RadioTower />,
-  weather: <CloudSun />,
-  airport: <Building2 />,
-  context: <Database />,
 };
 const SOURCE_ICON = {
   "ADS-B": RadioTower,
@@ -105,13 +98,6 @@ export default function AboutPanel() {
         ))}
       </div>
 
-      <div className="info-wayfinding-section-title">
-        <span className="info-wayfinding-section-title__rail" aria-hidden="true">
-          <Database />
-        </span>
-        <h2>{t("about.dataSources")}</h2>
-      </div>
-
       {CATEGORY_ORDER.map((category) => {
         const sources = ABOUT_DATA_SOURCES.filter(
           (source) => (SOURCE_CATEGORY[source.glyph] || "context") === category,
@@ -119,15 +105,13 @@ export default function AboutPanel() {
         if (!sources.length) return null;
         const label = CATEGORY_LABEL[category][locale === "zh-CN" ? "zh" : "en"];
         return (
-          <section key={category} className="info-wayfinding-source-group">
-            <header className="info-wayfinding-group-header">
-              <span className="info-wayfinding-group-header__rail" aria-hidden="true">
-                {CATEGORY_ICON[category]}
-              </span>
-              <h3>{label}</h3>
-            </header>
+          <section
+            key={category}
+            className="info-wayfinding-source-group"
+            aria-label={label}
+          >
             <ol>
-              {sources.map((source) => (
+              {sources.map((source, index) => (
                 <li key={source.host || source.title || source.glyph}>
                   <a
                     {...getExternalLinkOpenTarget(source.href)}
@@ -144,6 +128,11 @@ export default function AboutPanel() {
                       })()}
                     </span>
                     <span className="info-wayfinding-source-row__copy">
+                      {index === 0 ? (
+                        <small className="info-wayfinding-source-row__category">
+                          {label}
+                        </small>
+                      ) : null}
                       <strong>{source.titleKey ? t(source.titleKey) : source.title}</strong>
                       <small>
                         {source.descriptionKey
