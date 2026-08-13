@@ -78,6 +78,7 @@
     --wayfinding-content-inset: 12px;
     --wayfinding-hero-icon-top: 44px;
     --wayfinding-hero-content-top: 40px;
+    --wayfinding-preview-radius: 2px;
 
     --radius: var(--atc-radius-control);
     --radius-xs: calc(var(--radius) * 0.5);
@@ -4078,11 +4079,6 @@ body {
     padding: 10px;
 }
 
-.aircraft-preview-metadata-card,
-.aircraft-preview-media-card {
-    border-radius: var(--atc-radius-card);
-}
-
 .aircraft-preview-card--desktop-reveal::before,
 .aircraft-preview-card--desktop-reveal::after {
     display: none;
@@ -4092,14 +4088,6 @@ body {
 .aircraft-preview-card--desktop-reveal .aircraft-preview-metadata-card,
 .aircraft-preview-card__media-slot {
     animation: none;
-}
-
-.aircraft-preview-metadata-card {
-    background: var(--atc-surface-preview-card);
-    border: 1px solid var(--app-frost-border);
-    -webkit-backdrop-filter: var(--app-frost-strong);
-    backdrop-filter: var(--app-frost-strong);
-    box-shadow: var(--preview-card-shadow);
 }
 
 .aircraft-preview-card__track-btn {
@@ -6540,10 +6528,8 @@ body {
     stroke-width: 1.25px;
 }
 
-/* Aircraft preview card — appears on sidebar-row hover. Rounded surface
-   with a silhouette that visually pokes past the top-left corner ("slides
-   out"), header type next to it, then identity / telemetry / metadata
-   below. Uses design tokens for surface + border so it flips with theme. */
+/* Aircraft preview placement. Its child cards own their own flat sign surface
+   so map placement never overwrites the operational material contract. */
 .aircraft-preview-card {
     position: fixed;
     bottom: 20px;
@@ -6551,18 +6537,8 @@ body {
     z-index: var(--z-index-popover);
     width: 320px;
     max-width: calc(100vw - 32px);
-    padding: 18px 18px 14px;
-    /* Frosted material surface. The semi-opaque preview-card token plus a
-       strong backdrop blur diffuse the map behind the card into a soft
-       wash without making it readable — the card still reads as one
-       continuous frosted gray surface, with the divider as the only
-       visual seam. */
-    background: var(--atc-surface-preview-card);
-    -webkit-backdrop-filter: var(--app-frost-strong);
-    backdrop-filter: var(--app-frost-strong);
-    border: 1px solid var(--app-frost-border);
-    border-radius: var(--atc-radius-panel);
-    box-shadow: var(--preview-card-shadow);
+    padding: 0;
+    overflow: visible;
     color: var(--atc-text);
     font-family: var(--font-sans);
     pointer-events: none;
@@ -6642,27 +6618,10 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Aircraft preview stack v2. The parent owns only fixed placement and
+/* Aircraft preview stack. The parent owns only fixed placement and
    layering. The metadata card is always visible above the media card;
    the media card is mounted only after the photo lookup resolves and
    slides upward from behind the metadata card. */
-.aircraft-preview-card {
-    width: 320px;
-    padding: 0;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    /* v2 desktop-reveal stack: this outer card is a transparent
-       pass-through wrapper — the frosted surface is the inner
-       .aircraft-preview-metadata-card. Clear the base card's
-       backdrop-filter here so the wrapper doesn't double-blur the map
-       across its transparent bounding box. */
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
 .aircraft-preview-card--airport {
     width: 360px;
 }
@@ -6755,9 +6714,11 @@ body {
     min-height: 112px;
     padding: 14px 14px 14px 50px;
     border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
-    border-radius: 2px;
+    border-radius: var(--wayfinding-preview-radius);
     background: #fff;
-    box-shadow: 0 8px 24px color-mix(in oklab, var(--atc-text) 14%, transparent);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
     color: #090b0a;
     overflow: hidden;
 }
@@ -6775,10 +6736,10 @@ body {
     display: flex;
     justify-content: center;
     left: 0;
-    padding-top: 11px;
+    padding-top: var(--wayfinding-rail-icon-top);
     position: absolute;
     top: 0;
-    width: 36px;
+    width: var(--wayfinding-rail-width);
 }
 
 .aircraft-preview-wayfinding-rail[data-tone="secondary"],
@@ -6806,18 +6767,12 @@ body {
 .aircraft-preview-card .aircraft-preview-metadata-card--airspace {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: #fff !important;
     padding: 0;
-}
-
-:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airport,
-:root[data-theme="dark"] .aircraft-preview-card .aircraft-preview-metadata-card--airspace {
-    background: #000 !important;
 }
 
 .aircraft-preview-identity-band {
     display: grid;
-    grid-template-columns: 36px minmax(0, 1fr);
+    grid-template-columns: var(--wayfinding-rail-width) minmax(0, 1fr);
     min-width: 0;
 }
 
@@ -6826,12 +6781,12 @@ body {
     left: auto;
     position: relative;
     top: auto;
-    width: 36px;
+    width: var(--wayfinding-rail-width);
 }
 
 .aircraft-preview-identity-content {
     min-width: 0;
-    padding: 14px 40px 11px 12px;
+    padding: 14px 40px 11px var(--wayfinding-content-inset);
 }
 
 .aircraft-preview-identity-content > :first-child {
@@ -7120,12 +7075,16 @@ body {
     width: 100%;
     height: var(--aircraft-preview-media-height, 116px);
     overflow: hidden;
-    border: 1px solid var(--tone-border-firm);
-    border-radius: var(--atc-radius-panel);
-    background: color-mix(in oklab, var(--atc-card) 70%, transparent);
-    box-shadow:
-        0 12px 30px color-mix(in oklab, var(--atc-bg) 64%, transparent),
-        inset 0 1px 0 color-mix(in oklab, var(--atc-text) 10%, transparent);
+    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
+    border-radius: var(--wayfinding-preview-radius);
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+:root[data-theme="dark"] .aircraft-preview-media-card {
+    background: #000;
 }
 
 .aircraft-preview-media-card__photo {
@@ -7533,35 +7492,13 @@ body {
     text-transform: none !important;
 }
 
-.glass-panel,
-.aircraft-preview-metadata-card,
-.aircraft-preview-media-card {
+.glass-panel {
     border-radius: var(--atc-radius-card);
 }
 
 .flight-sidebar-panel .rounded-\[3px\],
 .airport-sidebar-panel .rounded-\[3px\] {
     border-radius: var(--atc-radius-pill) !important;
-}
-
-/* Desktop preview media may remain frosted over the map. Mobile previews use
-   the joined-sign surface above so their identity and data stay fully opaque. */
-.aircraft-preview-metadata-card,
-.aircraft-preview-media-card {
-    -webkit-backdrop-filter: var(--app-frost-strong);
-    backdrop-filter: var(--app-frost-strong);
-    background: var(--atc-surface-preview-card) !important;
-    background-image: none !important;
-    border-color: var(--app-frost-border);
-    box-shadow:
-        var(--preview-card-shadow),
-        var(--atc-preview-card-inset);
-}
-
-:root[data-theme="dark"] .aircraft-preview-metadata-card,
-:root[data-theme="dark"] .aircraft-preview-media-card {
-    background: var(--atc-surface-preview-card) !important;
-    background-image: none !important;
 }
 
 /* First-screen information pages reuse the same joined wayfinding grammar as
@@ -8989,13 +8926,6 @@ body {
 .airport-map-kit .map-ctrl-zone {
     align-items: flex-start;
     height: auto;
-}
-
-.airport-map-kit .aircraft-preview-metadata-card,
-.airport-map-kit .aircraft-preview-media-card {
-    box-shadow:
-        var(--preview-card-shadow),
-        var(--atc-preview-card-inset);
 }
 
 @media (min-width: 768px) {
