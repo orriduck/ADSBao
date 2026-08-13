@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import { Camera, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AircraftPreviewMediaCard from "./AircraftPreviewMediaCard";
-import AircraftPreviewMetadataCard from "./AircraftPreviewMetadataCard";
 import AircraftPreviewMobileCard from "./AircraftPreviewMobileCard";
 import AirportPreviewMetadataCard from "./AirportPreviewMetadataCard";
 import AirportPreviewMobileCard from "./AirportPreviewMobileCard";
@@ -167,23 +166,13 @@ export default function AircraftPreviewCard({
         "--mobile-preview-safe-bottom": "0px",
       } as CSSProperties)
     : undefined;
-  const traceStatusSurfaceActive =
-    isAircraftPreview &&
-    Boolean(aircraftIdentity) &&
-    Boolean(entity) &&
-    (isMobile ? showMobile : showPreferredMobilePreview || !preferMobilePreview);
   const { visible: traceStatusVisible, state: traceAsyncState } =
     useAircraftTraceAsyncStatus({
       aircraftIdentity,
       selectedTrace,
-      surfaceActive: traceStatusSurfaceActive,
+      surfaceActive:
+        isAircraftPreview && Boolean(aircraftIdentity) && showMobilePreview,
     });
-  const traceStatusLabels = {
-    pendingLabel: t("preview.loadingTrace"),
-    successLabel: t("preview.loadedTrace"),
-    errorLabel: t("preview.traceLoadError"),
-  };
-
   // Mobile preview card is the only way to trigger "Track this entity"
   // on touch — desktop uses the explicit Track button inside the larger
   // metadata card. Tapping the mobile card navigates to the right
@@ -312,19 +301,7 @@ export default function AircraftPreviewCard({
               sourceAttribution={candidateWatchingSpotAttribution}
               onOpenNavigation={onOpenCandidateWatchingSpotNavigation}
             />
-          ) : (
-            <AircraftPreviewMetadataCard
-              aircraft={aircraft}
-              onOpenPlaneHunter={
-                showPlaneHunterTrigger
-                  ? () => setPlaneHunterOpen(true)
-                  : undefined
-              }
-              traceStatusVisible={traceStatusVisible}
-              traceStatusState={traceAsyncState}
-              traceStatusLabels={traceStatusLabels}
-            />
-          )}
+          ) : null}
         </aside>
       )}
       {showMobilePreview && (
