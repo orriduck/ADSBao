@@ -8073,11 +8073,13 @@ body {
 .map-settings-body {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 0;
 }
 
 .map-settings-section {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 10%, transparent);
     min-width: 0;
+    padding: 15px 0 13px;
 }
 
 .map-settings-list-group {
@@ -8088,7 +8090,7 @@ body {
 }
 
 .map-settings-list-group > * + * {
-    border-top: 0;
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
 }
 
 .map-settings-list-group .map-settings-option-row[data-active="true"] {
@@ -8106,6 +8108,172 @@ body {
     backdrop-filter: none;
     border-color: transparent;
     box-shadow: none;
+}
+
+.map-settings-header {
+    align-items: stretch;
+    border-bottom: 1px solid color-mix(in oklab, var(--atc-text) 12%, transparent);
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+}
+
+.map-settings-header__rail,
+.map-settings-row-rail {
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+}
+
+.map-settings-header__rail {
+    align-items: flex-start;
+    color: var(--atc-text);
+    display: flex;
+    justify-content: center;
+    padding-top: 17px;
+}
+
+.map-settings-header__rail svg {
+    height: 16px;
+    width: 16px;
+}
+
+.map-settings-body > .map-settings-section:first-child {
+    border-top: 0;
+}
+
+.map-settings-section-title {
+    color: var(--atc-faint);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    margin: 0 12px 10px 48px;
+    text-transform: uppercase;
+}
+
+.map-settings-section > .map-settings-list-group,
+.map-settings-section > .map-settings-note,
+.map-settings-section > .mt-1 {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.map-settings-option-row[data-active="true"] .map-settings-row-rail {
+    background: color-mix(in oklab, var(--atc-signal-secondary-action) 25%, var(--atc-text) 7%);
+}
+
+.map-settings-toggle-row[data-active="true"] .map-settings-row-rail {
+    background: color-mix(in oklab, var(--atc-text) 12%, transparent);
+}
+
+.map-settings-unit-row + .map-settings-unit-row {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
+}
+
+.map-settings-footer {
+    border-top: 1px solid color-mix(in oklab, var(--atc-text) 12%, transparent);
+    padding: 10px 12px;
+}
+
+.map-settings-footer__cancel,
+.map-settings-footer__save {
+    border-radius: 4px;
+    min-height: 36px;
+}
+
+.map-settings-footer__save {
+    box-shadow: none;
+}
+
+/* Plane Hunter follows the same operational language as the map around it:
+   one dark stage, square joined controls, and a single orange commit action.
+   The shutter remains round because it represents a physical camera action,
+   not another generic app button. */
+.plane-hunter-panel {
+    --plane-hunter-surface: #000;
+    --plane-hunter-signal: var(--atc-signal-accent);
+    --plane-hunter-control-radius: 4px;
+    --plane-hunter-sheet-radius: 4px;
+    --plane-hunter-menu-radius: 2px;
+    --plane-hunter-control-shadow: none;
+    --plane-hunter-sheet-shadow: 0 16px 32px rgb(0 0 0 / 0.4);
+}
+
+.dither-page-background.plane-hunter-stage {
+    border-radius: 0;
+    box-shadow: none;
+    margin-left: 0;
+}
+
+.plane-hunter-wayfinding-dock {
+    box-shadow: none;
+}
+
+.plane-hunter-stage-title {
+    background: color-mix(in oklab, var(--plane-hunter-surface) 70%, transparent);
+    border: 1px solid var(--plane-hunter-line);
+    max-width: min(236px, calc(100vw - 148px));
+}
+
+.plane-hunter-stage-title__rail {
+    align-items: flex-start;
+    background: color-mix(in oklab, var(--plane-hunter-paper) 12%, transparent);
+    color: var(--plane-hunter-paper-strong);
+    display: flex;
+    flex: 0 0 36px;
+    height: 44px;
+    justify-content: center;
+    padding-top: 13px;
+}
+
+.plane-hunter-review-dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) 48px minmax(0, 1fr) minmax(0, 1.1fr);
+    padding-left: 12px;
+    padding-right: 12px;
+    width: 100%;
+}
+
+.plane-hunter-review-dock__tool,
+.plane-hunter-review-dock__share {
+    border-radius: 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.plane-hunter-review-dock__tool + .plane-hunter-review-dock__tool,
+.plane-hunter-review-dock__share {
+    border-left-width: 0;
+}
+
+.plane-hunter-review-dock__share {
+    justify-content: center;
+}
+
+@media (orientation: landscape) and (min-height: 360px) {
+    .plane-hunter-stage-title {
+        max-width: 230px;
+    }
+
+    .plane-hunter-review-dock {
+        display: flex;
+        gap: 0;
+        padding: 12px 0 12px 12px;
+        width: 154px;
+    }
+
+    .plane-hunter-review-dock__tool,
+    .plane-hunter-review-dock__share {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .plane-hunter-review-dock__tool + .plane-hunter-review-dock__tool,
+    .plane-hunter-review-dock__share {
+        border-left-width: 1px;
+        border-top-width: 0;
+    }
 }
 
 @media (min-width: 768px) {

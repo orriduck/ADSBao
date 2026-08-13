@@ -120,25 +120,25 @@ const LAYER_CONTROLS = [
 ];
 
 const sectionTitleClassName =
-  "mb-2 px-1 text-[9px] font-bold uppercase tracking-[0.1em] text-atc-faint";
+  "map-settings-section-title";
 
 const settingsListGroupClassName =
-  "map-settings-list-group grid gap-0.5 overflow-visible";
+  "map-settings-list-group grid overflow-visible";
 
 const settingsOptionRowClassName = cn(
-  "group map-settings-option-row grid min-h-[40px] w-full grid-cols-[20px_minmax(0,1fr)_4px] items-center gap-2.5",
-  "rounded-[var(--atc-radius-card)] px-2.5 py-2 text-left text-atc-text transition-[background,color,opacity] duration-150",
-  "hover:bg-[var(--atc-control-surface-hover)]",
+  "group map-settings-option-row grid min-h-[52px] w-full grid-cols-[36px_minmax(0,1fr)_20px] items-stretch",
+  "px-0 text-left text-atc-text transition-[background,color,opacity] duration-150",
+  "hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.99]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:bg-transparent data-[active=true]:text-atc-text",
-  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_7%,transparent)]",
+  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)] data-[active=true]:text-atc-text",
+  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_9%,transparent)]",
 );
 
 const layerToggleRowClassName = cn(
-  "group grid min-h-[40px] w-full grid-cols-[20px_minmax(0,1fr)_26px] items-center gap-2.5",
-  "rounded-[var(--atc-radius-card)] bg-transparent px-2.5 py-2 text-left text-atc-text",
+  "group map-settings-toggle-row grid min-h-[52px] w-full grid-cols-[36px_minmax(0,1fr)_40px] items-stretch",
+  "bg-transparent px-0 text-left text-atc-text",
   "transition-[background,opacity] duration-150",
-  "hover:bg-[var(--atc-control-surface-hover)]",
+  "hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.99]",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
   "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
 );
@@ -167,10 +167,10 @@ function SettingsOptionRow({
       data-active={active ? "true" : "false"}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[6px] bg-transparent text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
+      <span className="map-settings-row-rail flex items-start justify-center pt-[13px] text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
-      <span className="min-w-0">
+      <span className="flex min-w-0 flex-col justify-center py-2 pr-2">
         <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {title}
         </span>
@@ -178,15 +178,7 @@ function SettingsOptionRow({
           {description}
         </span>
       </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "ml-auto h-3 w-[2px] rounded-full transition-[background,opacity]",
-          active
-            ? "bg-atc-text opacity-90"
-            : "bg-transparent opacity-0",
-        )}
-      />
+      <span aria-hidden="true" className={cn("my-auto h-5 w-[2px] transition-[background,opacity]", active ? "bg-[var(--atc-signal-secondary-action)] opacity-100" : "bg-transparent opacity-0")} />
     </button>
   );
 }
@@ -234,10 +226,10 @@ function LayerToggleRow({
       disabled={disabled}
       onClick={onClick}
     >
-      <span className="relative flex size-5 items-center justify-center rounded-[6px] bg-transparent text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3.5">
+      <span className="map-settings-row-rail flex items-start justify-center pt-[13px] text-atc-faint transition-colors group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
-      <span className="min-w-0">
+      <span className="flex min-w-0 flex-col justify-center py-2 pr-2">
         <span className="block text-[12px] font-semibold leading-tight text-atc-text">
           {label}
         </span>
@@ -245,7 +237,7 @@ function LayerToggleRow({
           {subtitle}
         </span>
       </span>
-      <SettingsSwitch active={active} />
+      <span className="flex items-center justify-center"><SettingsSwitch active={active} /></span>
     </button>
   );
 }
@@ -462,16 +454,21 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="space-y-1 px-5 py-3.5 pr-11 text-left">
-            <SheetTitle className="text-[17px] font-semibold leading-tight text-atc-text">
-              {t("mapSettings.title")}
-            </SheetTitle>
-            <SheetDescription className="text-[11px] leading-snug text-atc-muted">
-              {t("mapSettings.description")}
-            </SheetDescription>
+          <SheetHeader className="map-settings-header text-left">
+            <span className="map-settings-header__rail" aria-hidden="true">
+              <MapControlIcon iconKey="slidersHorizontal" />
+            </span>
+            <div className="min-w-0 py-3.5 pr-12">
+              <SheetTitle className="text-[17px] font-semibold leading-tight text-atc-text">
+                {t("mapSettings.title")}
+              </SheetTitle>
+              <SheetDescription className="mt-1 text-[11px] leading-snug text-atc-muted">
+                {t("mapSettings.description")}
+              </SheetDescription>
+            </div>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-3.5">
+          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
@@ -632,7 +629,7 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-9 grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-0 py-0.5"
+                      className="map-settings-unit-row grid min-h-[46px] grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-3 py-0.5"
                     >
                       <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
@@ -756,10 +753,10 @@ export default function MapSettingsSheet({
             </section>
           </div>
 
-          <div className="flex items-center justify-end gap-2 border-t border-[var(--app-frost-border)] px-5 py-3">
+          <div className="map-settings-footer flex items-center justify-end gap-2">
             <button
               type="button"
-              className="rounded-[var(--atc-radius-card)] px-3 py-2 text-[12px] font-semibold text-atc-muted transition-colors hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text"
+              className="map-settings-footer__cancel px-3 py-2 text-[12px] font-semibold text-atc-muted transition-colors hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.98]"
               disabled={saving}
               onClick={() => handleOpenChange(false)}
             >
@@ -767,7 +764,7 @@ export default function MapSettingsSheet({
             </button>
             <button
               type="button"
-              className="rounded-[var(--atc-radius-card)] bg-[var(--atc-accent)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-click-fg)] transition-opacity disabled:cursor-wait disabled:opacity-60"
+              className="map-settings-footer__save bg-[var(--atc-signal-secondary-action)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-signal-secondary-action-fg)] transition-opacity active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
               disabled={saving || !onSaveMapSettings}
               onClick={saveDraft}
             >

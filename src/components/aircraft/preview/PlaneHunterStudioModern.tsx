@@ -3,6 +3,7 @@ import {
   Check,
   CircleHelp,
   ImageIcon,
+  Plane,
   RotateCcw,
   Share2,
   SwitchCamera,
@@ -1438,6 +1439,13 @@ function PlaneHunterLiveCameraView({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-surface)_50%,transparent),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
         <PlaneHunterCompass direction={direction} />
       </div>
+      <div className="plane-hunter-stage-title pointer-events-none absolute left-16 top-[max(12px,env(safe-area-inset-top))] z-30 flex min-w-0 items-center">
+        <span className="plane-hunter-stage-title__rail"><Plane aria-hidden="true" className="size-4" /></span>
+        <span className="min-w-0 px-3 py-2">
+          <span className="block truncate font-mono text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-strong)]">{labels.callsign}</span>
+          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--plane-hunter-paper-muted)]">{t("planeHunter.title")}</span>
+        </span>
+      </div>
       <button
         type="button"
         onClick={onClose}
@@ -1492,6 +1500,7 @@ function PlaneHunterLiveCameraView({
 // the bottom in portrait and on the trailing side in landscape.
 function PlaneHunterReviewView({
   image,
+  labels,
   template,
   templateRotation,
   mapPosition,
@@ -1503,6 +1512,7 @@ function PlaneHunterReviewView({
   t,
 }: {
   image: string;
+  labels: AircraftLabels;
   template: PlaneHunterTemplate;
   templateRotation: TemplateRotation;
   mapPosition: MapPosition;
@@ -1523,6 +1533,13 @@ function PlaneHunterReviewView({
       >
         <X aria-hidden="true" className="size-4" />
       </button>
+      <div className="plane-hunter-stage-title pointer-events-none absolute left-16 top-[max(12px,env(safe-area-inset-top))] z-30 flex min-w-0 items-center">
+        <span className="plane-hunter-stage-title__rail"><Plane aria-hidden="true" className="size-4" /></span>
+        <span className="min-w-0 px-3 py-2">
+          <span className="block truncate font-mono text-[13px] font-[var(--plane-hunter-weight-strong)] leading-none text-[var(--plane-hunter-paper-strong)]">{labels.callsign}</span>
+          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--plane-hunter-paper-muted)]">{t("planeHunter.title")}</span>
+        </span>
+      </div>
       <div className="absolute inset-0 flex flex-col landscape:flex-row">
         <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
           <img
@@ -1539,7 +1556,7 @@ function PlaneHunterReviewView({
             draggable="false"
           />
         </div>
-        <div className="flex flex-none items-center justify-center gap-3 border-t border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-review-surface)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 backdrop-blur-2xl landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
+        <div className="plane-hunter-review-dock flex flex-none items-center justify-center gap-0 border-t border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-review-surface)] pb-[max(12px,env(safe-area-inset-bottom))] pt-3 landscape:h-full landscape:flex-col landscape:border-l landscape:border-t-0 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))]">
           {/* Switch the template on the already-captured shot (re-bakes). */}
           <button
             type="button"
@@ -1550,7 +1567,7 @@ function PlaneHunterReviewView({
             aria-label={t(`planeHunter.templates.${template}`)}
             title={t(`planeHunter.templates.${template}`)}
             className={cn(
-              "inline-flex min-h-12 items-center justify-center rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 text-[13px] font-[var(--plane-hunter-weight-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95",
+              "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 text-[13px] font-[var(--plane-hunter-weight-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95",
               template === "none"
                 ? "text-[var(--plane-hunter-paper-soft)]"
                 : "text-[var(--plane-hunter-signal)]",
@@ -1565,7 +1582,7 @@ function PlaneHunterReviewView({
             aria-label={t("planeHunter.rotateTemplate")}
             title={t("planeHunter.rotateTemplate")}
             className={cn(
-              "inline-flex min-h-12 items-center justify-center rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
+              "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
               template === "none"
                 ? "text-[var(--plane-hunter-paper-muted)]"
                 : "text-[var(--plane-hunter-signal)]",
@@ -1580,7 +1597,7 @@ function PlaneHunterReviewView({
           <button
             type="button"
             onClick={onRetake}
-            className="inline-flex min-h-12 items-center gap-2 rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-5 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95"
+            className="plane-hunter-review-dock__tool inline-flex min-h-12 items-center gap-2 border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-5 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-paper-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95"
           >
             <RotateCcw aria-hidden="true" className="size-4" />
             {t("planeHunter.retake")}
@@ -1588,7 +1605,7 @@ function PlaneHunterReviewView({
           <button
             type="button"
             onClick={onShare}
-            className="inline-flex min-h-12 items-center gap-2 rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-paper)] px-6 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-ink)] shadow-[var(--plane-hunter-control-shadow)] transition hover:bg-[var(--plane-hunter-paper-strong)] active:scale-95"
+            className="plane-hunter-review-dock__share inline-flex min-h-12 items-center gap-2 bg-[var(--plane-hunter-signal)] px-6 text-[13px] font-[var(--plane-hunter-weight-strong)] text-[var(--plane-hunter-ink)] transition hover:brightness-[1.04] active:scale-95"
           >
             <Share2 aria-hidden="true" className="size-4" />
             {t("planeHunter.share")}
@@ -2077,6 +2094,7 @@ export default function PlaneHunterStudio({
           {captured ? (
             <PlaneHunterReviewView
               image={capturedImage || capturedFrame}
+              labels={labels}
               template={template}
               templateRotation={templateRotation}
               mapPosition={mapPosition}
