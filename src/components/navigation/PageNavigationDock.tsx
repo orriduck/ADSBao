@@ -74,7 +74,6 @@ export default function PageNavigationDock() {
     <nav className="page-nav-dock" aria-label={t("nav.homePage")}>
       <Toolbar reveal={false}>
         <AppToolbarBrand />
-        <ToolbarSeparator />
         {PAGE_ITEMS.map((item) => {
           const Icon = item.Icon;
           const active = item.href === activeHref;

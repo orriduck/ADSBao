@@ -86,7 +86,6 @@ export default function SidebarShell({
           {mobileToolbar || (
             <Toolbar layout="inline" aria-label={t("nav.home")}>
               <AppToolbarBrand />
-              <ToolbarSeparator />
               <ToolbarButton
                 onClick={onBack}
                 aria-label={t("nav.homePage")}

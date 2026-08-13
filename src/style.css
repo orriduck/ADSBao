@@ -5941,63 +5941,34 @@ body {
 }
 
 .brand-logo__mark {
-    --brand-logo-tile: oklch(0.91 0.012 90);
-    --brand-logo-primary: oklch(0.16 0.009 90);
+    --brand-logo-quiet: oklch(0.56 0.008 90);
+    --brand-logo-light: oklch(0.95 0.006 90);
     --brand-logo-signal: var(--atc-signal-accent);
-    --brand-logo-light-plane: oklch(0.97 0.006 90);
-    --brand-logo-shade-plane: oklch(0.65 0.008 90);
-    filter: drop-shadow(0 1px 1px rgb(31 39 49 / 0.18))
-        drop-shadow(0 2px 2px rgb(31 39 49 / 0.1));
-    transform-box: fill-box;
-    transform-origin: center;
 }
 
 :root[data-theme="light"] .brand-logo__mark {
-    --brand-logo-tile: oklch(0.91 0.012 90);
-    --brand-logo-primary: oklch(0.16 0.009 90);
-    --brand-logo-light-plane: oklch(0.97 0.006 90);
-    --brand-logo-shade-plane: oklch(0.65 0.008 90);
-    filter: drop-shadow(0 1px 1px rgb(31 39 49 / 0.16))
-        drop-shadow(0 2px 2px rgb(31 39 49 / 0.08));
+    --brand-logo-quiet: oklch(0.63 0.009 90);
+    --brand-logo-light: oklch(0.96 0.006 90);
 }
 
 :root[data-theme="dark"] .brand-logo__mark {
-    --brand-logo-tile: oklch(0.13 0.005 90);
-    --brand-logo-primary: oklch(0.97 0.006 90);
-    --brand-logo-light-plane: oklch(0.74 0.008 90);
-    --brand-logo-shade-plane: oklch(0.48 0.008 90);
+    --brand-logo-quiet: oklch(0.48 0.008 90);
+    --brand-logo-light: oklch(0.9 0.006 90);
 }
 
-.brand-logo__tile {
-    fill: var(--brand-logo-tile);
-    transform-box: fill-box;
-    transform-origin: center;
+.brand-logo__route {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3.5;
 }
 
-.brand-logo__plane,
-.brand-logo__word {
-    transform-box: fill-box;
-}
+.brand-logo__route--quiet { stroke: var(--brand-logo-quiet); }
+.brand-logo__route--light { stroke: var(--brand-logo-light); }
+.brand-logo__route--signal { stroke: var(--brand-logo-signal); }
 
-.brand-logo__plane {
-    transform-origin: center;
-}
-
-.brand-logo__plane--primary { fill: var(--brand-logo-primary); }
-.brand-logo__plane--signal { fill: var(--brand-logo-signal); }
-.brand-logo__plane--light { fill: var(--brand-logo-light-plane); }
-.brand-logo__plane--shade { fill: var(--brand-logo-shade-plane); }
-
-.brand-logo__word {
-    transform-origin: left center;
-}
-
-.brand-logo--animated .brand-logo__mark {
+.brand-logo--animated .brand-logo__routes {
     animation: brand-logo-mark-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.brand-logo--animated .brand-logo__word {
-    animation: brand-logo-word-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) 430ms both;
 }
 
 @keyframes brand-logo-mark-enter {
@@ -6011,20 +5982,8 @@ body {
     }
 }
 
-@keyframes brand-logo-word-enter {
-    from {
-        opacity: 0;
-        transform: translateX(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .brand-logo--animated .brand-logo__mark,
-    .brand-logo--animated .brand-logo__word {
+    .brand-logo--animated .brand-logo__routes {
         animation: none;
     }
 }

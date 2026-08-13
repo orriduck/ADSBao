@@ -53,7 +53,6 @@ export default function MapControlRail({
   return (
     <Toolbar className="map-control-toolbar isolate">
       <AppToolbarBrand />
-      <ToolbarSeparator />
       {showSidebarToggle ? (
         <ToolbarButton
           tone="rail"

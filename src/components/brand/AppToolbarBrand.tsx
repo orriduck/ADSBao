@@ -8,12 +8,9 @@ import { cn } from "@/lib/utils";
 // content row of every sidebar. Keeping it as a link also preserves the
 // existing, predictable route back to the home directory.
 export default function AppToolbarBrand({ className = "" }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const homeHref = setHomeSearchParamCarryover(searchParams as any);
-  const wordmark = String(locale || "").toLowerCase().startsWith("zh")
-    ? t("brand.wordmarkZh")
-    : "ADSBao";
 
   return (
     <Link
@@ -21,15 +18,14 @@ export default function AppToolbarBrand({ className = "" }) {
       aria-label={t("nav.homePage")}
       title={t("nav.homePage")}
       className={cn(
-        "app-toolbar-brand inline-flex h-[var(--atc-toolbar-cell-size)] shrink-0 touch-manipulation items-center rounded-[2px] px-1 text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent",
+        "app-toolbar-brand inline-flex size-[var(--atc-toolbar-cell-size)] shrink-0 touch-manipulation items-center justify-center rounded-[2px] p-0 text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-atc-accent",
         className,
       )}
     >
       <BrandLogo
-        height={18}
-        wordmark={wordmark}
-        ariaLabel={wordmark}
-        className="pointer-events-none block h-[18px] w-auto"
+        size={20}
+        ariaLabel="ADSBao"
+        className="pointer-events-none block size-5"
         animated
       />
     </Link>
