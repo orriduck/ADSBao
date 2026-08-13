@@ -54,7 +54,7 @@ export default function AirspacePreviewSelector({
               title={name}
               onClick={() => selectAtIndex(index)}
               className={cn(
-                "grid size-5 place-items-center rounded-full border font-mono text-[10px] font-semibold tabular-nums transition-[background-color,border-color,color,transform,box-shadow] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
+                "grid size-5 place-items-center rounded-full border font-mono text-[10px] tabular-nums transition-[background-color,border-color,color,transform,box-shadow] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
                 "[-webkit-tap-highlight-color:transparent] active:scale-95",
                 "focus-visible:outline-2 focus-visible:outline-[var(--atc-action-focus-ring)] focus-visible:outline-offset-[2px]",
                 active

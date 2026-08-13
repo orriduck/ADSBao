@@ -332,10 +332,10 @@ function SpottingPanel({
   return (
     <div className="spotting-wayfinding-panel flex flex-col pb-5">
       <div className="flex items-baseline justify-between border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-3">
-        <h2 className="text-[calc(11px*var(--sb-title-scale))] font-bold uppercase tracking-normal text-atc-text">
+        <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
-        <span className="font-mono text-[calc(9px*var(--sb-body-scale))] font-semibold uppercase text-atc-faint">
+        <span className="font-mono text-[calc(9px*var(--sb-body-scale))] uppercase text-atc-faint">
           {t(countKey, { count: spots.length })}
         </span>
       </div>
@@ -360,21 +360,21 @@ function SpottingPanel({
               <div className="flex min-w-0 flex-1 flex-col justify-center bg-[var(--airport-wayfinding-content)] px-3 py-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="truncate text-[calc(10px*var(--sb-body-scale))] font-bold uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+                  <div className="truncate text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
                     {spot.name || spot.title || spot.category || "Spotter location"}
                   </div>
-                  <div className="mt-1 text-[calc(10px*var(--sb-body-scale))] font-medium text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <div className="mt-1 text-[calc(10px*var(--sb-body-scale))] text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
                     {spot.what || spot.category || spot.sourceLabel || "Photo guide"}
                   </div>
                 </div>
                 {spot.spotNumber ? (
-                  <span className="shrink-0 font-mono text-[calc(9px*var(--sb-body-scale))] font-semibold text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <span className="shrink-0 font-mono text-[calc(9px*var(--sb-body-scale))] text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                     #{spot.spotNumber}
                   </span>
                 ) : null}
               </div>
               {spot.focalLength || spot.when ? (
-                <div className="mt-1.5 font-mono text-[calc(8px*var(--sb-body-scale))] font-semibold uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                <div className="mt-1.5 font-mono text-[calc(8px*var(--sb-body-scale))] uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
                   {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}

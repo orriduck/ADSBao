@@ -26,7 +26,7 @@ export default function FlightRadar24Link({
 
   return (
     <div className="flex min-h-12 w-full items-center justify-between gap-3 bg-[var(--airport-wayfinding-secondary)] px-[var(--airport-sidebar-inset)] py-2 text-[var(--airport-wayfinding-secondary-fg)]">
-      <span className="min-w-0 truncate text-[calc(10px*var(--sb-body-scale))] font-medium">{prompt}</span>
+      <span className="min-w-0 truncate text-[calc(10px*var(--sb-body-scale))]">{prompt}</span>
       <span className="flex shrink-0 items-center gap-1">
       {flightAwareDestination ? (
         <a

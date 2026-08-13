@@ -193,7 +193,7 @@ function FlightIdentity({
       <WayfindingRail icon={<Plane />} inset="hero" tone="primary" />
       <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-4 pt-[var(--wayfinding-hero-content-top)]">
         <h1
-          className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text"
+          className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text"
           translate="no"
           title={callsign}
         >
@@ -201,7 +201,7 @@ function FlightIdentity({
         </h1>
         {hasTypeDisplay ? (
           <div
-            className="mt-3 truncate text-[calc(13px*var(--sb-title-scale))] font-medium leading-snug text-atc-text"
+            className="mt-3 truncate text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-text"
             title={typeDisplay.displayName}
           >
             {typeDisplay.displayName}

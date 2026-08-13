@@ -54,11 +54,10 @@
     --font-serif: var(--theme-font-serif);
     --font-code: var(--theme-font-code);
 
-    /* Typographic polarity: ADSBao uses only light (300) and regular (400).
-       Hierarchy comes from size, color, tracking, and surface — never weight.
-       Every Tailwind weight utility (font-medium…font-black) collapses to 400;
-       font-light/font-thin stay 300. Tune here, never re-type weights at call
-       sites. The two raw tokens below are reused by hand-authored CSS rules. */
+    /* Typographic polarity: ADSBao uses a controlled light (500) and regular
+       (600) pair. Wayfinding hierarchy comes from size, color, tracking, and
+       surface rather than named Tailwind weight utilities; tune these tokens,
+       not call sites. The raw values are reused by hand-authored CSS rules. */
     --weight-light: 500;
     --weight-regular: 600;
     --font-weight-thin: var(--weight-light);

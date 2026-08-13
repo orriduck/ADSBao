@@ -3,6 +3,42 @@ import reactHooks from "eslint-plugin-react-hooks";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
+const namedTailwindWeight =
+  /(?:^|\s)!?(?:[a-z-]+:)*font-(?:thin|extralight|light|normal|medium|semibold|bold|extrabold|black)(?=\s|$)/;
+
+const wayfindingRules = {
+  "no-named-tailwind-weight": {
+    meta: {
+      type: "problem",
+      docs: {
+        description:
+          "Keep operational-wayfinding hierarchy independent of named Tailwind font-weight utilities.",
+      },
+      messages: {
+        namedWeight:
+          "Use hierarchy from layout or an explicit --weight-* token, not a named Tailwind font-weight utility.",
+      },
+      schema: [],
+    },
+    create(context) {
+      const reportNamedWeight = (node, value) => {
+        if (typeof value === "string" && namedTailwindWeight.test(value)) {
+          context.report({ node, messageId: "namedWeight" });
+        }
+      };
+
+      return {
+        Literal(node) {
+          reportNamedWeight(node, node.value);
+        },
+        TemplateElement(node) {
+          reportNamedWeight(node, node.value.cooked);
+        },
+      };
+    },
+  },
+};
+
 export default tseslint.config(
   {
     ignores: [
@@ -40,6 +76,20 @@ export default tseslint.config(
       "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/purity": "off",
+    },
+  },
+  {
+    files: [
+      "src/components/sidebar/**/*.{ts,tsx}",
+      "src/components/ui/Wayfinding*.tsx",
+      "src/components/aircraft/preview/**/*.{ts,tsx}",
+    ],
+    ignores: ["src/components/aircraft/preview/PlaneHunterStudioModern.tsx"],
+    plugins: {
+      wayfinding: { rules: wayfindingRules },
+    },
+    rules: {
+      "wayfinding/no-named-tailwind-weight": "error",
     },
   },
 );

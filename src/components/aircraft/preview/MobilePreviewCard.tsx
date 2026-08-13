@@ -166,7 +166,7 @@ export const MobilePreviewTrackButton = React.forwardRef(
           "rounded-none",
           "bg-[var(--atc-signal-accent)] text-[var(--atc-signal-accent-fg)]",
           "shadow-[var(--atc-action-primary-shadow)]",
-          "font-[var(--font-sans)] text-[11px] font-semibold not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
+          "font-[var(--font-sans)] text-[11px] not-italic tracking-normal leading-[1.15] text-center [[data-density=compact]_&]:text-[10px]",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[box-shadow,filter,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:brightness-[1.04] active:scale-[0.97] active:brightness-[0.96]",

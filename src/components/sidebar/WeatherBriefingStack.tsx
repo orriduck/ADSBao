@@ -197,7 +197,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div
-              className="text-[calc(40px*var(--sb-body-scale))] font-semibold leading-none tracking-[-0.025em] text-atc-text"
+              className="text-[calc(40px*var(--sb-body-scale))] leading-none tracking-[-0.025em] text-atc-text"
             >
               {category || "—"}
             </div>
@@ -372,7 +372,7 @@ function LocalView({ local, loading, t, units }) {
         <div className="flex items-start justify-between">
           <div className="flex items-baseline gap-1.5">
             <span
-              className="notranslate text-[calc(44px*var(--sb-body-scale))] font-semibold leading-none tracking-[-0.025em] text-atc-text"
+              className="notranslate text-[calc(44px*var(--sb-body-scale))] leading-none tracking-[-0.025em] text-atc-text"
             >
               {tempValue}
             </span>

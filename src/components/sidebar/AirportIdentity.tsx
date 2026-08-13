@@ -96,7 +96,7 @@ export default function AirportIdentity({
         tone="primary"
       />
       <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-5 pt-[var(--wayfinding-hero-content-top)]">
-        <h1 className="text-[calc(29px*var(--sb-title-scale))] font-semibold leading-none tracking-[-0.035em] text-atc-text">
+        <h1 className="text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text">
           <span className="notranslate" translate="no">
             {nearMe ? (
               <DecodeText text={codeLine || t("sidebar.unknownAirport")} />
@@ -106,7 +106,7 @@ export default function AirportIdentity({
           </span>
         </h1>
         {nameLine ? (
-          <div className="mt-3 text-[calc(13px*var(--sb-title-scale))] font-medium leading-snug text-atc-text">
+          <div className="mt-3 text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-text">
             {nearMe ? <DecodeText text={nameLine} /> : nameLine}
           </div>
         ) : null}
