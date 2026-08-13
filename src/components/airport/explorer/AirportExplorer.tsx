@@ -168,7 +168,6 @@ function AirportExplorerContent({
     clientDeviceProfile,
     clientDeviceLayout,
     sidebarOpen,
-    sidebarCollapsed,
     isMobile,
     mapZoom,
     showMapLabels,
@@ -203,8 +202,6 @@ function AirportExplorerContent({
     setSelectedAirspaceId,
     setSelectedCandidateWatchingSpotId,
     clearAllPreviewSelections,
-    collapseSidebar,
-    expandSidebar,
     mapFollowsAircraft,
     setUserLocationPreferences,
   } = useExplorerUi();
@@ -657,10 +654,6 @@ function AirportExplorerContent({
     onBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
-    collapsed: sidebarCollapsed,
-    collapseEnabled: !isMobile,
-    onCollapse: collapseSidebar,
-    onExpand: expandSidebar,
     fillAircraftList: true,
     loading: shouldShowNearMeSidebarLoading({
       nearMe,
@@ -693,7 +686,7 @@ function AirportExplorerContent({
                 : undefined
             }
             isMobile={isMobile}
-            sidebarOpen={sidebarOpen && !sidebarCollapsed}
+            sidebarOpen={sidebarOpen}
             onDismiss={handleClearPreviewSelections}
             clientDeviceProfile={clientDeviceProfile}
             preferMobilePreview={
@@ -723,7 +716,6 @@ function AirportExplorerContent({
         {!isMobile && (
           <AirportExplorerDesktopSidebar
             open={sidebarOpen}
-            collapsed={sidebarCollapsed}
             width={desktopSidebarWidth}
             sidebarProps={sidebarProps}
           />

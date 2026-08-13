@@ -100,7 +100,6 @@ function FlightExplorerContent({ callsign }) {
     clientDeviceProfile,
     clientDeviceLayout,
     sidebarOpen,
-    sidebarCollapsed,
     isMobile,
     mapZoom,
     showMapLabels,
@@ -125,8 +124,6 @@ function FlightExplorerContent({ callsign }) {
     selectAirspace,
     setSelectedAirspaceId,
     clearAllPreviewSelections,
-    collapseSidebar,
-    expandSidebar,
     setUserLocationPreferences,
     fitToTrace,
     resumeMapFollow,
@@ -918,10 +915,6 @@ function FlightExplorerContent({ callsign }) {
     onBack: handleBack,
     onMap: closeSidebar,
     mobileToolbar: mobileSidebarToolbar,
-    collapsed: sidebarCollapsed,
-    collapseEnabled: !isMobile,
-    onCollapse: collapseSidebar,
-    onExpand: expandSidebar,
     fillAircraftList: true,
     loading: flightTrackingLoadingActive || mapMainContentLoading,
   };
@@ -944,7 +937,7 @@ function FlightExplorerContent({ callsign }) {
         selectedAirspaceId={selectedAirspaceId}
         onSelectAirspace={setSelectedAirspaceId}
         isMobile={isMobile}
-        sidebarOpen={sidebarOpen && !sidebarCollapsed}
+        sidebarOpen={sidebarOpen}
         onDismiss={clearAllPreviewSelections}
         clientDeviceProfile={clientDeviceProfile}
         preferMobilePreview={clientDeviceLayout.useDesktopMobileLandscapeLayout}
@@ -971,21 +964,14 @@ function FlightExplorerContent({ callsign }) {
           <div
             className="airport-desktop-sidebar shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out"
             data-open={sidebarOpen ? "true" : "false"}
-            data-collapsed={sidebarCollapsed ? "true" : undefined}
             style={{
-              width: sidebarOpen
-                ? sidebarCollapsed
-                  ? "max-content"
-                  : desktopSidebarWidth
-                : "0",
+              width: sidebarOpen ? desktopSidebarWidth : "0",
             }}
           >
             <div
               className="app-panel-transition h-full"
               style={{
-                width: sidebarCollapsed
-                  ? "max-content"
-                  : desktopSidebarWidth,
+                width: desktopSidebarWidth,
               }}
             >
               <FlightSidebar {...sidebarProps} />

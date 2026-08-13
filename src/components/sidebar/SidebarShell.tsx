@@ -1,13 +1,11 @@
+import { useRef } from "react";
 import type React from "react";
 import { Home, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
+import AppToolbarBrand from "@/components/brand/AppToolbarBrand";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThemePreference } from "@/features/app-shell/useThemePreference";
-import {
-  SidebarBrandDock,
-  useCollapsibleSidebarPanel,
-} from "./CollapsibleSidebarChrome";
 import { SidebarScrollContext } from "./SidebarScrollContext";
 import {
   Toolbar,
@@ -20,10 +18,6 @@ type SidebarShellProps = {
   onBack: () => void;
   onMap?: (() => void) | null;
   onClose?: (() => void) | null;
-  collapsed?: boolean;
-  collapseEnabled?: boolean;
-  onCollapse?: (() => void) | null;
-  onExpand?: (() => void) | null;
   header?: React.ReactNode;
   children?: React.ReactNode;
   variant?: "airport" | "flight" | string;
@@ -38,7 +32,6 @@ const TOOLBAR_BUTTON_CLASS = toolbarButtonVariants({ tone: "soft" });
 
 // Shared chrome for the airport + flight sidebars. Handles:
 //   - The outer panel container + responsive overlay variant.
-//   - The sticky brand row.
 //   - One scroll owner for the whole sidebar content.
 //
 // Pages provide their identity content via `header` and the scrollable
@@ -47,10 +40,6 @@ export default function SidebarShell({
   onBack,
   onMap = null,
   onClose = null,
-  collapsed = false,
-  collapseEnabled = false,
-  onCollapse = null,
-  onExpand = null,
   header,
   children,
   variant = "airport",
@@ -66,16 +55,7 @@ export default function SidebarShell({
   } = useThemePreference();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
-  const {
-    shellRef,
-    brandCompact,
-    isCollapsed,
-    handleScroll,
-  } = useCollapsibleSidebarPanel({
-    collapsed,
-    collapseEnabled: collapseEnabled && !isMobileOverlay,
-    onCollapse,
-  });
+  const shellRef = useRef<HTMLDivElement | null>(null);
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-transparent",
@@ -99,70 +79,59 @@ export default function SidebarShell({
     <div
       ref={shellRef}
       className={panelClasses}
-      data-collapsed={isCollapsed ? "true" : undefined}
       data-mobile-overlay={isMobileOverlay ? "true" : undefined}
-      onScroll={handleScroll}
     >
-      <SidebarBrandDock
-        compact={isCollapsed || brandCompact}
-        collapsed={isCollapsed}
-        expandLabel={t("map.expandDetails")}
-        onExpand={() => onExpand?.()}
-      />
+      {isMobileOverlay ? (
+        <div className="sidebar-top-dock">
+          {mobileToolbar || (
+            <Toolbar layout="inline" aria-label={t("nav.home")}>
+              <AppToolbarBrand />
+              <ToolbarSeparator />
+              <ToolbarButton
+                onClick={onBack}
+                aria-label={t("nav.homePage")}
+                title={t("nav.homePage")}
+              >
+                <Home aria-hidden="true" />
+              </ToolbarButton>
+              {mapAction ? (
+                <ToolbarButton
+                  onClick={mapAction}
+                  aria-label={t("nav.map")}
+                  title={t("nav.map")}
+                >
+                  <Map aria-hidden="true" />
+                </ToolbarButton>
+              ) : null}
+              <ToolbarSeparator />
+              <LanguageSwitch
+                className={TOOLBAR_BUTTON_CLASS}
+                menuPlacement="bottom"
+                menuAlign="center"
+              />
+              <ThemeToggle
+                className={TOOLBAR_BUTTON_CLASS}
+                iconKey={themeIconKey}
+                preference={themePreference}
+                title={themeTitle}
+                onClick={cycleTheme}
+                onSelectTheme={selectTheme}
+                menuPlacement="bottom"
+                menuAlign="center"
+              />
+            </Toolbar>
+          )}
+        </div>
+      ) : null}
 
-      {isCollapsed ? null : (
-        <>
-          {isMobileOverlay ? (
-            <div className="sidebar-top-dock">
-              {mobileToolbar || (
-                <Toolbar layout="inline" aria-label={t("nav.home")}>
-                  <ToolbarButton
-                    onClick={onBack}
-                    aria-label={t("nav.homePage")}
-                    title={t("nav.homePage")}
-                  >
-                    <Home aria-hidden="true" />
-                  </ToolbarButton>
-                  {mapAction ? (
-                    <ToolbarButton
-                      onClick={mapAction}
-                      aria-label={t("nav.map")}
-                      title={t("nav.map")}
-                    >
-                      <Map aria-hidden="true" />
-                    </ToolbarButton>
-                  ) : null}
-                  <ToolbarSeparator />
-                  <LanguageSwitch
-                    className={TOOLBAR_BUTTON_CLASS}
-                    menuPlacement="bottom"
-                    menuAlign="center"
-                  />
-                  <ThemeToggle
-                    className={TOOLBAR_BUTTON_CLASS}
-                    iconKey={themeIconKey}
-                    preference={themePreference}
-                    title={themeTitle}
-                    onClick={cycleTheme}
-                    onSelectTheme={selectTheme}
-                    menuPlacement="bottom"
-                    menuAlign="center"
-                  />
-                </Toolbar>
-              )}
-            </div>
-          ) : null}
-
-          <SidebarScrollContext.Provider value={shellRef}>
-            <div className="sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible">
-              {header ? <div className="flex-none">{header}</div> : null}
-              <div className="sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible">
-                {children}
-              </div>
-            </div>
-          </SidebarScrollContext.Provider>
-        </>
-      )}
+      <SidebarScrollContext.Provider value={shellRef}>
+        <div className="sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible">
+          {header ? <div className="flex-none">{header}</div> : null}
+          <div className="sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible">
+            {children}
+          </div>
+        </div>
+      </SidebarScrollContext.Provider>
     </div>
   );
 }

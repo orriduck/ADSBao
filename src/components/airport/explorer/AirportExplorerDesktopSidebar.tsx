@@ -21,12 +21,9 @@ const mapKitEdgeGlow = cn(
 
 export default function AirportExplorerDesktopSidebar({
   open,
-  collapsed = false,
   width,
   sidebarProps,
 }) {
-  const visibleWidth = collapsed ? "max-content" : width;
-
   return (
     <div
       className={cn(
@@ -34,10 +31,9 @@ export default function AirportExplorerDesktopSidebar({
         mapKitEdgeGlow,
       )}
       data-open={open ? "true" : "false"}
-      data-collapsed={collapsed ? "true" : undefined}
-      style={{ width: open ? visibleWidth : "0" }}
+      style={{ width: open ? width : "0" }}
     >
-      <div className="app-panel-transition h-full" style={{ width: visibleWidth }}>
+      <div className="app-panel-transition h-full" style={{ width }}>
         <AirportSidebar {...sidebarProps} />
       </div>
     </div>

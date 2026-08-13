@@ -1681,16 +1681,6 @@ body {
     min-height: 78px;
 }
 
-.airport-map-kit .sidebar-brand-dock.sticky {
-    background: var(--airport-wayfinding-column-bg);
-    border-bottom: 1px solid var(--airport-wayfinding-divider);
-    padding-left: var(--airport-wayfinding-icon-inline-offset);
-}
-
-.airport-map-kit .sidebar-brand-dock.sticky::after {
-    display: none;
-}
-
 /* The traffic controls continue the full-width sign stack instead of
    floating as inset cards. Text keeps its normal reading inset, while the
    search field and 2x2 filter matrix meet both sidebar edges. */
@@ -2530,17 +2520,13 @@ body:has(.dither-page-shell) {
    flight loading/terminal copy in the unobstructed map area, matching the
    offset-aware camera rather than the full viewport behind the sidebar. */
 @media (min-width: 768px) {
-    .airport-map-kit--sidebar-open:has(
-            .airport-desktop-sidebar:not([data-collapsed="true"])
-        )
+    .airport-map-kit--sidebar-open:has(.airport-desktop-sidebar)
         :is(.adsb-loading-overlay--flight, .adsb-loading-overlay--airport) {
         padding-left: var(--app-sidebar-width);
     }
 }
 
-.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"].airport-map-kit--sidebar-open:has(
-        .airport-desktop-sidebar:not([data-collapsed="true"])
-    )
+.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"].airport-map-kit--sidebar-open:has(.airport-desktop-sidebar)
     :is(.adsb-loading-overlay--flight, .adsb-loading-overlay--airport) {
     padding-left: calc(
         var(--app-sidebar-width) + var(--app-safe-area-left, 0px)
@@ -3682,17 +3668,6 @@ body {
         0 18px 42px color-mix(in oklab, oklch(0.08 0.003 100) 32%, transparent);
 }
 
-.dither-page-panel[data-collapsed="true"] {
-    align-self: flex-start;
-    background: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
-    max-height: none;
-    overflow: visible;
-    width: max-content !important;
-}
-
 .dither-page-header.dither-page-header--copy-only {
     padding-top: 8px;
 }
@@ -4005,25 +3980,6 @@ body {
     overflow: hidden;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
-}
-
-.airport-desktop-sidebar[data-collapsed="true"] {
-    bottom: auto;
-    height: auto;
-}
-
-.airport-desktop-sidebar[data-collapsed="true"] > .h-full,
-.airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-}
-
-.airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: transparent;
-    box-shadow: none;
 }
 
 .airport-sidebar-panel--mobile,
@@ -6316,42 +6272,6 @@ body {
 
 /* Sidebar search mirrors the home search field, compressed for the dense
  * airport table controls. */
-/* SINGLE source of truth for the sticky brand/logo row, shared by every glass
-   sidebar (desktop explorer .airport-map-kit, mobile detail shell
-   .app-detail-shell, home panel .dither-page-panel). They all standardise on
-   --app-frost-tint, so the row derives its resting surface from that ONE token
-   rather than each panel re-specifying it per ancestor (which is exactly what
-   let the surfaces drift apart).
-
-   - Back the logo with the panel's OWN tint (theme-aware via --app-frost-tint),
-     near-opaque so scrolling rows are hidden behind the wordmark.
-   - NO backdrop-filter: a live blur on a sticky row smeared the scrolling
-     rows/search into a frosted band under the logo.
-   - A matching tinted scrim (::after) just below fades content out cleanly as
-     it scrolls up — no smear, no foreign-colour seam.
-
-   The collapsed/static pill (.static) is a glass Toolbar and owns its own
-   surface, so it is intentionally untouched here. */
-.sidebar-brand-dock.sticky {
-    background: var(--app-page-chrome-bg);
-    box-shadow: none;
-}
-
-.sidebar-brand-dock.sticky::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    height: 28px;
-    background: linear-gradient(
-        to bottom,
-        var(--app-page-chrome-bg),
-        transparent
-    );
-    pointer-events: none;
-}
-
 /* The sidebar flight search reuses the home airport-search look: the milky
    .search-input box plus a reset and a FIXED 13px input — matching that box's
    typography exactly (the home search is `.search-screen .search-input input`,
@@ -7995,11 +7915,6 @@ body {
     color: var(--atc-faint);
 }
 
-/* Brand dock visuals are owned by the SidebarBrandDock component
-   (transparent at rest, frost + hairline only once content scrolls under
-   it). The previous forced solid fill + bottom rule made the logo read as a
-   divided strip split from the page content — removed. */
-
 :root[data-theme="dark"] .map-settings-sheet {
     --atc-bg: oklch(0.17 0.003 100);
     --atc-card: color-mix(in oklab, oklch(0.235 0.003 100) 76%, transparent);
@@ -8651,15 +8566,10 @@ body {
     left: calc(var(--map-kit-inset) + var(--app-safe-area-left, 0px));
 }
 
-/* The bottom-left range scale is positioned against the full-bleed map, so it
-   hides behind the sidebar wherever the panel is shown down the left edge —
-   desktop/tablet (≥768) and mobile landscape. Offset it clear of the panel
-   (width + Dynamic-Island inset, which is 0 without an island). A collapsed
-   sidebar is a small pill that doesn't occlude the scale, so :has() keeps the
-   default left-4 placement in that case. Portrait (<768) uses a bottom-sheet
-   sidebar that never covers the bottom-left, so it is excluded. */
+/* The bottom-left range scale clears the full-width desktop sidebar on
+   desktop/tablet and mobile landscape. Portrait uses a bottom-sheet sidebar. */
 @media (min-width: 768px) {
-    .airport-map-kit:has(.airport-desktop-sidebar:not([data-collapsed="true"]))
+    .airport-map-kit:has(.airport-desktop-sidebar)
         .z-map-legend {
         left: calc(
             var(--app-sidebar-width) + var(--app-safe-area-left, 0px) + 16px
@@ -8669,9 +8579,7 @@ body {
 
 /* Landscape phones below 768px still show the desktop sidebar via the mobile
    landscape exception, so offset there too. */
-.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]:has(
-        .airport-desktop-sidebar:not([data-collapsed="true"])
-    )
+.airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]:has(.airport-desktop-sidebar)
     .z-map-legend {
     left: calc(
         var(--app-sidebar-width) + var(--app-safe-area-left, 0px) + 16px
@@ -8692,35 +8600,6 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] {
-    bottom: auto;
-    height: auto;
-    left: calc(
-        var(--map-plane-inset) + var(--map-kit-inset) +
-            var(--map-stage-border-width)
-    );
-    top: calc(
-        var(--map-plane-inset) + var(--map-kit-inset) +
-            var(--map-stage-border-width)
-    );
-}
-
-.airport-map-kit[data-client-horizontal-obstruction="true"][data-client-orientation="landscape"]
-    .airport-desktop-sidebar[data-collapsed="true"] {
-    left: calc(
-        var(--map-plane-inset) + var(--map-kit-inset) +
-            var(--app-safe-area-left, 0px) + var(--map-stage-border-width)
-    );
-}
-
-.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] > .h-full,
-.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
-    border-radius: var(--atc-radius-shell);
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-}
-
 :root[data-theme="dark"] .airport-map-kit .aircraft-table-card .text-atc-text {
     color: oklch(0.94 0.003 100) !important;
 }
@@ -8731,13 +8610,6 @@ body {
 
 :root[data-theme="dark"] .airport-map-kit .aircraft-table-card .text-atc-faint {
     color: color-mix(in oklab, oklch(0.94 0.003 100) 48%, transparent) !important;
-}
-
-.airport-map-kit .airport-desktop-sidebar[data-collapsed="true"] .sidebar-shell {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    background: transparent;
-    box-shadow: none;
 }
 
 :root[data-theme="dark"] .airport-map-kit .airport-sidebar-panel,
@@ -9178,19 +9050,6 @@ body {
     }
 
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-desktop-sidebar[data-collapsed="true"],
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-desktop-sidebar[data-collapsed="true"]
-        > .h-full,
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
-        .airport-desktop-sidebar[data-collapsed="true"]
-        .sidebar-shell {
-        height: auto;
-        overflow: visible;
-        overscroll-behavior-y: auto;
-    }
-
-    .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .sidebar-shell-body,
     .airport-map-kit[data-client-mobile-device="true"][data-client-orientation="landscape"]
         .sidebar-shell-main,
@@ -9621,12 +9480,9 @@ body {
 }
 
 /* A mobile detail overlay fills the map viewport, so it has no adjacent map
-   edge to separate. It must not inherit any desktop seam or give the brand
-   dock its own framed edge: the first actual content row supplies the joined
-   divider below the logo instead. */
+   edge to separate. Keep the content surface free of desktop-only seams. */
 .airport-map-kit .sidebar-layout-overlay,
-.airport-map-kit .sidebar-shell[data-mobile-overlay="true"],
-.airport-map-kit .sidebar-shell[data-mobile-overlay="true"] .sidebar-brand-dock.sticky {
+.airport-map-kit .sidebar-shell[data-mobile-overlay="true"] {
     border: 0;
     box-shadow: none;
 }
@@ -9843,16 +9699,6 @@ body {
     box-shadow: 1px 0 0 var(--home-wayfinding-divider);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-}
-
-.dither-page-shell .sidebar-brand-dock.sticky {
-    background: var(--home-wayfinding-content);
-    border-bottom: 1px solid var(--home-wayfinding-divider);
-    padding-left: 10px;
-}
-
-.dither-page-shell .sidebar-brand-dock.sticky::after {
-    display: none;
 }
 
 .dither-wayfinding-identity {

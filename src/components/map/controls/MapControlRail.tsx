@@ -4,6 +4,7 @@ import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
+import AppToolbarBrand from "@/components/brand/AppToolbarBrand";
 import {
   MenuItem,
   MenuItemLabel,
@@ -50,7 +51,9 @@ export default function MapControlRail({
 }) {
   const { t } = useI18n();
   return (
-    <Toolbar className="isolate">
+    <Toolbar className="map-control-toolbar isolate">
+      <AppToolbarBrand />
+      <ToolbarSeparator />
       {showSidebarToggle ? (
         <ToolbarButton
           tone="rail"
