@@ -54,3 +54,6 @@ dist-ssr
 /.clerk/
 .claude/dev-server.log
 .claude/*.png
+
+# agent collaboration artifacts
+.artifacts/
