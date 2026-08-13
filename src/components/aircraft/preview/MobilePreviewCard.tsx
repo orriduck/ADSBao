@@ -15,6 +15,7 @@ const SHEET_DRAG_THRESHOLD = 26;
 export default function MobilePreviewCard({
   ariaLabel,
   children,
+  topMedia = null,
   actions = null,
   compact = false,
   placement = "top",
@@ -88,6 +89,7 @@ export default function MobilePreviewCard({
       data-placement={placement === "bottomRight" ? "bottom-right" : "top"}
       data-expanded={expanded ? "true" : undefined}
       data-dismissible={dismissible ? "true" : undefined}
+      data-has-top-media={topMedia ? "true" : undefined}
       data-ui="mobile-preview-card"
       style={style}
       className={cn(
@@ -116,6 +118,7 @@ export default function MobilePreviewCard({
       {/* Landscape bottom-sheet: grabber rides the top edge (drag up). */}
       {!isTop ? grabber : null}
       <div data-preview-content className="min-w-0">
+        {topMedia}
         {children}
       </div>
       {dismissible ? (

@@ -151,6 +151,8 @@ export default function AircraftPreviewCard({
   const showPreferredMobilePreview =
     !isMobile && Boolean(entity) && (preferMobilePreview || isAircraftPreview);
   const showMobilePreview = showMobile || showPreferredMobilePreview;
+  const showDesktopAircraftPhoto =
+    !isMobile && isAircraftPreview && hasPhoto && showPreferredMobilePreview;
   const mobilePreviewSafeAreaStyle = showPreferredMobilePreview
     ? ({
         "--mobile-preview-safe-left": `${Math.max(
@@ -309,6 +311,14 @@ export default function AircraftPreviewCard({
           key={`mobile-${identityKey}`}
           ariaLabel={previewAriaLabel}
           compact={mobileCompact}
+          topMedia={
+            showDesktopAircraftPhoto ? (
+              <AircraftPreviewMediaCard
+                photo={photo}
+                onError={() => setFailedPhotoSrc(String(photoSrc || ""))}
+              />
+            ) : null
+          }
           placement={
             showPreferredMobilePreview ? "bottomRight" : "top"
           }
@@ -377,7 +387,7 @@ export default function AircraftPreviewCard({
           ) : (
             <AircraftPreviewMobileCard
               aircraft={aircraft}
-              photo={photo}
+              photo={isMobile ? photo : null}
               traceStatusState={traceStatusVisible ? traceAsyncState : null}
             />
           )}

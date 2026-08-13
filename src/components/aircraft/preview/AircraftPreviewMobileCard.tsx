@@ -18,8 +18,9 @@ type AircraftPreviewMobileCardProps = {
   traceStatusState?: AsyncStatusState | null;
 };
 
-// Compact aircraft sign: callsign and route lead from the fixed identity axis,
-// the thumbnail stays secondary, and telemetry/actions span the full card.
+// Compact touch aircraft sign: on phones the thumbnail anchors the whole
+// callsign/route group from the left, while telemetry/actions span the card.
+// Desktop supplies a full-width photo above this sign instead.
 export default function AircraftPreviewMobileCard({
   aircraft,
   photo,
@@ -58,6 +59,15 @@ export default function AircraftPreviewMobileCard({
     <div className="mobile-preview-sign">
       <MobilePreviewIdentityBand icon={<Plane />}>
         <div className="flex min-w-0 items-start gap-2.5">
+          {showPhoto ? (
+            <img
+              src={photoSrc}
+              alt=""
+              draggable="false"
+              className="size-9 flex-none rounded-[2px] object-cover"
+              onError={() => setFailedPhotoSrc(photoSrc)}
+            />
+          ) : null}
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-baseline gap-2">
               <span
@@ -110,15 +120,6 @@ export default function AircraftPreviewMobileCard({
               )}
             </div>
           </div>
-          {showPhoto ? (
-            <img
-              src={photoSrc}
-              alt=""
-              draggable="false"
-              className="size-9 flex-none rounded-[2px] object-cover"
-              onError={() => setFailedPhotoSrc(photoSrc)}
-            />
-          ) : null}
         </div>
       </MobilePreviewIdentityBand>
 

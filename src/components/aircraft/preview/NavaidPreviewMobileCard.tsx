@@ -1,5 +1,8 @@
 import { toFiniteNumber } from "@/utils/math";
-import { formatNavaidFrequency } from "./navaidPreviewFormat";
+import {
+  formatNavaidFrequency,
+  formatNavaidType,
+} from "./navaidPreviewFormat";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
   MobilePreviewHeader,
@@ -17,7 +20,7 @@ export default function NavaidPreviewMobileCard({
 }: NavaidPreviewMobileCardProps) {
   const { t } = useI18n();
   const ident = String(navaid?.ident || "").trim().toUpperCase() || "—";
-  const type = String(navaid?.type || "").trim().toUpperCase();
+  const type = formatNavaidType(navaid?.type);
   const name = String(navaid?.name || "").trim();
   const distance = toFiniteNumber(navaid?.distanceNm);
   const frequency = formatNavaidFrequency(navaid?.frequencyKhz);

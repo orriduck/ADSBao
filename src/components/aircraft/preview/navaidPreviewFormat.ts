@@ -1,5 +1,28 @@
 import { toFiniteNumber } from "@/utils/math";
 
+const OPENAIP_NAVAID_TYPE_LABELS: Record<number, string> = {
+  0: "DME",
+  1: "TACAN",
+  2: "NDB",
+  3: "VOR",
+  4: "VOR-DME",
+  5: "VORTAC",
+  6: "DVOR",
+  7: "DVOR-DME",
+  8: "DVORTAC",
+};
+
+export const formatNavaidType = (value: unknown) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+
+  if (/^\d+$/.test(raw)) {
+    return OPENAIP_NAVAID_TYPE_LABELS[Number(raw)] || "";
+  }
+
+  return raw.toUpperCase();
+};
+
 export const formatNavaidFrequency = (frequencyKhz: unknown) => {
   const value = toFiniteNumber(frequencyKhz);
   if (value == null) return "";

@@ -6671,8 +6671,8 @@ body {
 
 /* The close control shares space with the heading only. Telemetry, selectors,
    and actions below it retain the card's full content width. */
-.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--airport):not(.aircraft-preview-metadata-card--airspace) > :first-child > :first-child {
-    padding-right: 34px;
+.aircraft-preview-card--dismissible .aircraft-preview-metadata-card:not(.aircraft-preview-metadata-card--airport):not(.aircraft-preview-metadata-card--airspace) > .aircraft-preview-identity-band > .aircraft-preview-identity-content {
+    padding-right: 48px;
 }
 
 /* Mobile previews are compact joined signs. The 36px signal rail is limited
@@ -6680,6 +6680,30 @@ body {
 [data-ui="mobile-preview-card"] {
     background: #fff !important;
     overflow: hidden;
+}
+
+/* Desktop aircraft previews use the vertical space available over the map:
+   the photo becomes a calm, full-width lead image while the compact sign and
+   its 36px rail remain unchanged below. Phones keep the inline thumbnail. */
+[data-ui="mobile-preview-card"][data-placement="bottom-right"][data-has-top-media="true"]
+    .aircraft-preview-media-card {
+    height: 156px;
+    border: 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    border-radius: 0;
+}
+
+[data-ui="mobile-preview-card"][data-placement="bottom-right"][data-has-top-media="true"]
+    .aircraft-preview-media-card__image {
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+}
+
+[data-ui="mobile-preview-card"][data-placement="bottom-right"][data-has-top-media="true"]
+    > button[aria-label] {
+    background: color-mix(in oklab, var(--atc-control-surface) 86%, transparent);
+    color: var(--atc-text);
 }
 
 :root[data-theme="dark"] [data-ui="mobile-preview-card"] {
@@ -6817,6 +6841,8 @@ body {
 }
 
 .aircraft-preview-metadata-card--airport > .aircraft-preview-card__actions .aircraft-preview-card__track-btn {
+    border: 0;
+    border-radius: 0;
     min-height: 36px;
 }
 
