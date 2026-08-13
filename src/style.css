@@ -9771,6 +9771,10 @@ body {
     margin-top: 10px;
 }
 
+.search-screen .airport-discovery-topic .dither-list {
+    margin-top: 0;
+}
+
 .airport-discovery-section-header {
     align-items: start;
     display: grid;
@@ -9989,7 +9993,7 @@ body {
     border-radius: 0;
     grid-template-columns: 36px minmax(0,1fr) 16px;
     min-height: 58px;
-    padding: 8px 12px 8px 0;
+    padding: 0 12px 0 0;
 }
 
 .search-screen .airport-discovery-topic .dither-list .group[data-has-pill="false"],
@@ -10118,7 +10122,7 @@ body {
     border-radius: 0;
     grid-template-columns: 36px minmax(0, 1fr) 16px;
     min-height: 58px;
-    padding: 8px 12px 8px 0;
+    padding: 0 12px 0 0;
 }
 
 .search-screen .airport-search-results .dither-list .group[data-has-pill="false"],
@@ -10130,14 +10134,17 @@ body {
 
 .search-screen .airport-search-results .dither-list .group > span:first-child {
     align-self: stretch;
-    background: var(--home-wayfinding-content);
+    align-items: flex-start;
+    background: var(--home-wayfinding-neutral-rail);
     border-radius: 0;
     box-shadow: none;
-    color: var(--atc-dim);
+    color: var(--home-wayfinding-neutral-rail-fg) !important;
+    display: flex;
     font-family: var(--font-code) !important;
-    font-size: 9px;
+    font-size: 10px;
+    justify-content: center;
     margin: 0;
-    padding: 0;
+    padding: 11px 0 0;
     width: 100%;
 }
 
