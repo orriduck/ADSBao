@@ -15,6 +15,8 @@ type AirportListRowProps = {
   trailingAlign?: "center" | "start";
   /** Selected "best match" search row — differs by color/luminance only. */
   active?: boolean;
+  /** First-screen motion grammar for the glyph inside the static 36px rail. */
+  railMotionKind?: "code" | "navigation" | "search" | "radar";
   as?: "button" | "a" | "div";
   onClick?: (event?: any) => void;
   className?: string;
@@ -36,6 +38,7 @@ export function AirportListRow({
   trailing,
   trailingAlign = "center",
   active = false,
+  railMotionKind,
   as = "div",
   onClick,
   className,
@@ -47,6 +50,8 @@ export function AirportListRow({
   // color (ink, hairline, fill) changes between resting and selected.
   const chip = pill ? (
     <span
+      data-motion-kind={railMotionKind}
+      data-motion-rail={railMotionKind ? "true" : undefined}
       className={cn(
         "mt-[2px] inline-flex w-[var(--lr-chip-col,46px)] items-center justify-center self-start rounded-[6px] py-[3px]",
         "whitespace-nowrap font-code text-[length:var(--lr-chip-fs,calc(10px*var(--sb-body-scale)))] leading-none [letter-spacing:0.6px]",
@@ -61,7 +66,9 @@ export function AirportListRow({
             ),
       )}
     >
-      {pill}
+      <span className="wayfinding-rail-glyph inline-flex items-center justify-center">
+        {pill}
+      </span>
     </span>
   ) : null;
 

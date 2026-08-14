@@ -60,8 +60,12 @@ export default function AirportSearchPanel({
         onSubmit={doSearch}
         className="search-input home-wayfinding-search flex min-h-11 flex-none items-stretch gap-0 p-0"
       >
-        <span className="flex w-9 shrink-0 items-center justify-center bg-[var(--home-wayfinding-neutral-rail)] text-[var(--home-wayfinding-neutral-rail-fg)]">
-          <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
+        <span
+          data-motion-kind="search"
+          data-motion-rail="true"
+          className="flex w-9 shrink-0 items-center justify-center bg-[var(--home-wayfinding-neutral-rail)] text-[var(--home-wayfinding-neutral-rail-fg)]"
+        >
+          <Search className="wayfinding-rail-glyph size-[16px] stroke-[1.8]" aria-hidden="true" />
         </span>
         <span className="flex min-w-0 flex-1 items-center bg-[var(--home-wayfinding-content)] px-3">
           <Input

@@ -109,6 +109,25 @@ Do not introduce a third surface recipe.
   `prefers-reduced-motion`. Motion should confirm a change or preserve spatial
   context, never delay reading.
 
+### First-screen rail-stage motion
+
+Home, About, Mechanism, and Changelog treat the 36px rail as an independent
+signal stage. Its background and the adjacent reading surface paint
+immediately; page panels, sections, rows, and text do not translate together.
+Only the icon, code, sequence number, or status mark inside the rail may perform
+a short 150–250ms opacity/transform micro-motion.
+
+- Rail motion is owned by `[data-motion-rail]` and its glyph, never by the
+  surrounding row or content column.
+- Identity, search, navigation, code, data-source, sequence, and status glyphs
+  may use distinct variants of one restrained arrival grammar.
+- Hover/focus feedback remains inside the rail stage so content baselines stay
+  fixed.
+- Search-state changes may remount and replay the relevant rail glyph; live
+  data refreshes must not replay the whole page.
+- Reduced-motion users receive the same static rail and content with no
+  animation or transform transition.
+
 ## Visual review checklist
 
 Before shipping, inspect every affected sidebar in both themes and verify:

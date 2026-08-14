@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { ChevronRight, Navigation } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AirportListRow } from "./AirportListRow";
@@ -10,8 +10,6 @@ import {
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 import { requestNearMeDeviceOrientationPermission } from "@/features/airport/nearby/nearMeLocationModel";
-import gsap from "gsap";
-import { MOTION, EASE } from "@/animations/gsap";
 
 const PREFETCH_INTENT_DELAY_MS = 120;
 
@@ -20,59 +18,15 @@ export default function AirportDiscoveryPanel({
   onOpen,
   onPrefetch,
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const ctx = gsap.context(() => {
-      // 1. Sections stagger in
-      const sections = container.querySelectorAll("section");
-      if (sections.length > 0) {
-        gsap.fromTo(
-          sections,
-          { opacity: 0, y: 10 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: MOTION.med,
-            ease: EASE.out,
-            stagger: { each: 0.08, from: "start" },
-            overwrite: "auto",
-          },
-        );
-      }
-
-      // 2. List items stagger in after sections
-      const rows = container.querySelectorAll("li");
-      if (rows.length > 0) {
-        gsap.fromTo(
-          rows,
-          { opacity: 0, x: -6 },
-          {
-            opacity: 1,
-            x: 0,
-            duration: MOTION.med,
-            ease: EASE.out,
-            stagger: { each: 0.04, from: "start" },
-            overwrite: "auto",
-          },
-        );
-      }
-    }, container);
-
-    return () => ctx.revert();
-  }, [topics.length]);
-
   return (
-    <div ref={containerRef} className="dither-content-stack flex flex-col">
+    <div className="dither-content-stack flex flex-col">
       <NearMeDiscoverySection />
 
-      {topics.map((topic) => (
+      {topics.map((topic, topicIndex) => (
         <AirportDiscoveryTopicSection
           key={topic.id}
           topic={topic}
+          motionBase={topicIndex * 3 + 1}
           onOpen={onOpen}
           onPrefetch={onPrefetch}
         />
@@ -113,7 +67,7 @@ function NearMeDiscoverySection() {
   );
 }
 
-function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
+function AirportDiscoveryTopicSection({ topic, motionBase, onOpen, onPrefetch }) {
   const { t } = useI18n();
 
   return (
@@ -131,6 +85,7 @@ function AirportDiscoveryTopicSection({ topic, onOpen, onPrefetch }) {
             key={airport.icao || airport.code || airport.name}
             airport={airport}
             label={index === 0 ? t(topic.titleKey) : undefined}
+            motionOrder={motionBase + index}
             onOpen={onOpen}
             onPrefetch={onPrefetch}
           />
@@ -158,6 +113,7 @@ function NearbyPromptRow({
         onClick={onRequest}
         className="airport-list-row--nearby"
         pill={<Navigation className="airport-list-row__rail-icon" aria-hidden="true" />}
+        railMotionKind="navigation"
         label={label}
         title={title}
         subtitle={hint}
@@ -167,7 +123,13 @@ function NearbyPromptRow({
   );
 }
 
-function AirportDiscoveryAirportRow({ airport, label, onOpen, onPrefetch }) {
+function AirportDiscoveryAirportRow({
+  airport,
+  label,
+  motionOrder,
+  onOpen,
+  onPrefetch,
+}) {
   const { locale } = useI18n();
   const code = airportDirectoryCode(airport);
   const prefetchTimerRef = useRef<number | null>(null);
@@ -190,6 +152,9 @@ function AirportDiscoveryAirportRow({ airport, label, onOpen, onPrefetch }) {
 
   return (
     <li
+      style={{
+        "--rail-motion-delay": `${28 + motionOrder * 18}ms`,
+      } as CSSProperties}
       onMouseEnter={schedulePrefetch}
       onMouseLeave={cancelPrefetch}
       onFocus={schedulePrefetch}
@@ -201,6 +166,7 @@ function AirportDiscoveryAirportRow({ airport, label, onOpen, onPrefetch }) {
         className="airport-list-row--directory"
         onClick={() => onOpen(airport)}
         pill={code}
+        railMotionKind="code"
         label={label}
         title={airportDisplayName(airport, locale)}
         subtitle={airportSubtitle(airport, locale)}

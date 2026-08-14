@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { ChevronRight } from "lucide-react";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -35,8 +35,18 @@ export default function MechanismPanel() {
                 onClick={() => setExpandedId(expanded ? null : item.id)}
                 className="mechanism-wayfinding__trigger group"
               >
-                <span className="mechanism-wayfinding__index" aria-hidden="true">
-                  {String(index + 1).padStart(2, "0")}
+                <span
+                  data-motion-kind="sequence"
+                  data-motion-rail="true"
+                  className="mechanism-wayfinding__index"
+                  aria-hidden="true"
+                  style={{
+                    "--rail-motion-delay": `${46 + Math.min(index, 7) * 18}ms`,
+                  } as CSSProperties}
+                >
+                  <span className="wayfinding-rail-glyph">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </span>
                 <span className="mechanism-wayfinding__copy">
                   {showGroup ? (

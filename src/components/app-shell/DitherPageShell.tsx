@@ -9,7 +9,6 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { resolveClientDeviceLayoutProfile } from "@/features/app-shell/device/clientDeviceModel";
 import { useClientDeviceProfile } from "@/features/app-shell/device/useClientDeviceProfile";
 import { scheduleViewportScrollReset } from "@/features/app-shell/viewportScroll";
-import { usePageEntrance } from "@/animations/usePageEntrance";
 import PageMotionGrid from "@/components/app-shell/PageMotionGrid";
 
 export default function DitherPageShell({
@@ -36,10 +35,6 @@ export default function DitherPageShell({
   useEffect(() => {
     return scheduleViewportScrollReset(() => shellRef.current);
   }, [clientDeviceLayout.orientation, routeKey, shellRef, viewportHeight]);
-
-  usePageEntrance(shellRef, {
-    triggerKey: routeKey,
-  });
 
   const resolvedTitle = title ?? routeChrome.title;
   const resolvedDescription =
@@ -83,9 +78,11 @@ export default function DitherPageShell({
             />
             <span
               aria-hidden="true"
+              data-motion-kind="identity"
+              data-motion-rail="true"
               className="dither-wayfinding-identity__icon absolute left-0 top-[11px] z-[1] flex w-9 items-center justify-center [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
             >
-              <RouteIcon />
+              <RouteIcon className="wayfinding-rail-glyph" />
             </span>
             <h1
               className="atc-page-title col-start-2 row-start-1 min-w-0 px-3 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"

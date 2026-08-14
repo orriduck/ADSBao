@@ -25,7 +25,7 @@ export default function AppToolbarBrand({ className = "" }) {
       <BrandLogo
         size={30}
         ariaLabel="ADSBao"
-        className="pointer-events-none block size-[30px] object-cover"
+        className="app-toolbar-brand__mark pointer-events-none block size-[30px] object-cover"
         animated
       />
     </Link>

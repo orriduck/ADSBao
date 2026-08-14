@@ -18,7 +18,9 @@ export default function AirportRow({
   motionOrder = 0,
 }) {
   const { locale } = useI18n();
-  const motionStyle = { "--motion-order": motionOrder } as CSSProperties;
+  const motionStyle = {
+    "--rail-motion-delay": `${28 + motionOrder * 18}ms`,
+  } as CSSProperties;
   const prefetchTimerRef = useRef<number | null>(null);
 
   const cancelPrefetch = () => {
@@ -55,6 +57,7 @@ export default function AirportRow({
         className="airport-list-row--directory"
         onClick={() => onOpen(airport)}
         pill={airportDirectoryCode(airport)}
+        railMotionKind="code"
         title={airportDisplayName(airport, locale)}
         subtitle={airportSubtitle(airport, locale)}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}

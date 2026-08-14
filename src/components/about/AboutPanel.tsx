@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowUpRight,
   BookOpen,
@@ -83,17 +83,25 @@ export default function AboutPanel() {
       <div className="info-wayfinding-meta">
         {version ? (
           <InfoRow
-            icon={<Tag />}
+            icon={<Tag className="wayfinding-rail-glyph" />}
             label={version.labelKey ? t(version.labelKey) : version.label}
             value={<span className="font-code">{resolveCopy(version, t)}</span>}
+            motionOrder={1}
           />
         ) : null}
         {sections.map((section, index) => (
           <InfoRow
             key={section.label}
-            icon={index === 0 ? <Layers3 /> : <Network />}
+            icon={
+              index === 0 ? (
+                <Layers3 className="wayfinding-rail-glyph" />
+              ) : (
+                <Network className="wayfinding-rail-glyph" />
+              )
+            }
             label={section.labelKey ? t(section.labelKey) : section.label}
             value={section.items.map((item) => resolveCopy(item, t)).join(" · ")}
+            motionOrder={index + 2}
           />
         ))}
       </div>
@@ -119,12 +127,21 @@ export default function AboutPanel() {
                     className="info-wayfinding-source-row group"
                   >
                     <span
+                      data-motion-kind="source"
+                      data-motion-rail="true"
                       className="info-wayfinding-source-row__rail"
                       aria-hidden="true"
+                      style={{
+                        "--rail-motion-delay": `${
+                          28 + (ABOUT_DATA_SOURCES.indexOf(source) + 3) * 18
+                        }ms`,
+                      } as CSSProperties}
                     >
                       {(() => {
                         const SourceIcon = SOURCE_ICON[source.glyph];
-                        return SourceIcon ? <SourceIcon /> : null;
+                        return SourceIcon ? (
+                          <SourceIcon className="wayfinding-rail-glyph" />
+                        ) : null;
                       })()}
                     </span>
                     <span className="info-wayfinding-source-row__copy">
@@ -154,8 +171,18 @@ export default function AboutPanel() {
         onClick={(event) => openExternalLink(event, ABOUT_REPOSITORY.href)}
         className="info-wayfinding-repository group"
       >
-        <span className="info-wayfinding-repository__rail" aria-hidden="true">
-          <Github />
+        <span
+          data-motion-kind="repository"
+          data-motion-rail="true"
+          className="info-wayfinding-repository__rail"
+          aria-hidden="true"
+          style={{
+            "--rail-motion-delay": `${
+              28 + (ABOUT_DATA_SOURCES.length + 3) * 18
+            }ms`,
+          } as CSSProperties}
+        >
+          <Github className="wayfinding-rail-glyph" />
         </span>
         <span className="info-wayfinding-repository__copy">
           <small>
@@ -175,14 +202,24 @@ function InfoRow({
   icon,
   label,
   value,
+  motionOrder,
 }: {
   icon: ReactNode;
   label: ReactNode;
   value: ReactNode;
+  motionOrder: number;
 }) {
   return (
     <div className="info-wayfinding-row">
-      <span className="info-wayfinding-row__rail" aria-hidden="true">
+      <span
+        data-motion-kind="info"
+        data-motion-rail="true"
+        className="info-wayfinding-row__rail"
+        aria-hidden="true"
+        style={{
+          "--rail-motion-delay": `${28 + motionOrder * 18}ms`,
+        } as CSSProperties}
+      >
         {icon}
       </span>
       <span className="info-wayfinding-row__copy">

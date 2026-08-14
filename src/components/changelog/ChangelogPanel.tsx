@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { CircleDot } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
@@ -105,6 +111,7 @@ export default function ChangelogPanel() {
             release={release}
             locale={locale}
             isLatest={index === 0}
+            motionOrder={Math.min(index, 7)}
             localizedCopy={historyReleaseCopy[release.version]}
           />
         ))}
@@ -121,11 +128,13 @@ function ChangelogEntry({
   isLatest,
   locale,
   localizedCopy,
+  motionOrder,
 }: {
   release: ProductChangelogEntry;
   isLatest: boolean;
   locale: string;
   localizedCopy?: ChangelogLocalizedReleaseCopy;
+  motionOrder: number;
 }) {
   const { t } = useI18n();
   const localizedRelease = locale === "zh-CN" ? localizedCopy : null;
@@ -141,8 +150,15 @@ function ChangelogEntry({
       className="changelog-entry"
       data-current={isLatest ? "true" : undefined}
     >
-      <div className="changelog-entry__rail">
-        <CircleDot aria-hidden="true" />
+      <div
+        data-motion-kind="status"
+        data-motion-rail="true"
+        className="changelog-entry__rail"
+        style={{
+          "--rail-motion-delay": `${46 + motionOrder * 18}ms`,
+        } as CSSProperties}
+      >
+        <CircleDot className="wayfinding-rail-glyph" aria-hidden="true" />
       </div>
       <div className="changelog-entry__body">
         <div className="changelog-entry__meta">

@@ -50,8 +50,13 @@ export function AirportSearchResults({
         aria-labelledby="airport-search-results-heading"
       >
         <div className="home-wayfinding-results-head">
-          <span aria-hidden="true" className="home-wayfinding-results-icon">
-            <Radar />
+          <span
+            aria-hidden="true"
+            data-motion-kind="radar"
+            data-motion-rail="true"
+            className="home-wayfinding-results-icon"
+          >
+            <Radar className="wayfinding-rail-glyph" />
           </span>
           <div className="atc-section-head min-w-0">
             <span id="airport-search-results-heading" className="atc-kicker">
@@ -102,6 +107,7 @@ export function AirportSearchResults({
                   as="button"
                   active
                   pill={t("search.trackFlightPill")}
+                  railMotionKind="code"
                   title={t("search.trackFlight", { callsign: trackingCallsign })}
                   subtitle={t("search.trackFlightHint")}
                   trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}

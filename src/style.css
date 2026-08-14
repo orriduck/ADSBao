@@ -5945,6 +5945,22 @@ body {
     transform-origin: center;
 }
 
+/* The toolbar uses the circular crop as a physical brand badge. A quiet rim
+   keeps its pale outer ring legible over either toolbar material; only the
+   light theme adds a short contact shadow so it lifts from bright imagery. */
+.app-toolbar-brand__mark {
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px
+        color-mix(in oklab, var(--atc-text) 18%, transparent);
+}
+
+:root[data-theme="light"] .app-toolbar-brand__mark {
+    box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--atc-text) 22%, transparent),
+        0 2px 5px rgb(0 0 0 / 0.16),
+        0 1px 1px rgb(0 0 0 / 0.1);
+}
+
 @keyframes brand-logo-mark-enter {
     from {
         opacity: 0;
@@ -9675,6 +9691,160 @@ body {
 
 .dither-wayfinding-identity__icon {
     color: var(--home-wayfinding-neutral-rail-fg);
+}
+
+/* First-screen rail-stage motion. Across Home, About, Mechanism, and Changelog,
+   the 36px color block and every content baseline are static from first paint;
+   only the glyph inside the rail reports that its signal is online. */
+.dither-page-shell [data-motion-rail="true"] {
+    contain: paint;
+    overflow: hidden;
+}
+
+.dither-page-shell [data-motion-rail="true"] .wayfinding-rail-glyph {
+    animation-delay: var(--rail-motion-delay, 28ms);
+    animation-duration: 240ms;
+    animation-fill-mode: backwards;
+    animation-timing-function: var(--motion-ease-out);
+    transform-origin: center;
+    transition: transform 150ms var(--motion-ease-out),
+        opacity 150ms var(--motion-ease-out);
+}
+
+.dither-page-shell [data-motion-kind="identity"] .wayfinding-rail-glyph,
+.dither-page-shell [data-motion-kind="navigation"] .wayfinding-rail-glyph {
+    animation-name: rail-flight-signal-enter;
+}
+
+.dither-page-shell [data-motion-kind="search"] .wayfinding-rail-glyph {
+    animation-name: rail-search-signal-enter;
+}
+
+.dither-page-shell [data-motion-kind="radar"] .wayfinding-rail-glyph {
+    animation-name: rail-radar-signal-enter;
+}
+
+.dither-page-shell [data-motion-kind="code"] .wayfinding-rail-glyph,
+.dither-page-shell [data-motion-kind="sequence"] .wayfinding-rail-glyph {
+    animation-name: rail-code-signal-enter;
+}
+
+.dither-page-shell [data-motion-kind="info"] .wayfinding-rail-glyph,
+.dither-page-shell [data-motion-kind="source"] .wayfinding-rail-glyph,
+.dither-page-shell [data-motion-kind="repository"] .wayfinding-rail-glyph {
+    animation-name: rail-code-signal-enter;
+}
+
+.dither-page-shell [data-motion-kind="status"] .wayfinding-rail-glyph {
+    animation-name: rail-status-signal-enter;
+}
+
+@keyframes rail-flight-signal-enter {
+    from {
+        opacity: 0;
+        transform: translate3d(-4px, 4px, 0) rotate(-8deg) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0) scale(1);
+    }
+}
+
+@keyframes rail-search-signal-enter {
+    from {
+        opacity: 0;
+        transform: rotate(-18deg) scale(0.72);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+    }
+}
+
+@keyframes rail-radar-signal-enter {
+    from {
+        opacity: 0;
+        transform: rotate(-32deg) scale(0.84);
+    }
+    to {
+        opacity: 1;
+        transform: rotate(0) scale(1);
+    }
+}
+
+@keyframes rail-code-signal-enter {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes rail-status-signal-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.45);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.search-screen .home-wayfinding-search:focus-within
+    [data-motion-kind="search"]
+    .wayfinding-rail-glyph {
+    transform: rotate(-8deg) scale(1.06);
+}
+
+.search-screen .airport-list-row--nearby:hover
+    [data-motion-kind="navigation"]
+    .wayfinding-rail-glyph,
+.search-screen .airport-list-row--nearby:focus-visible
+    [data-motion-kind="navigation"]
+    .wayfinding-rail-glyph {
+    transform: translate3d(1px, -1px, 0) rotate(4deg) scale(1.04);
+}
+
+.search-screen .airport-list-row--directory:hover
+    [data-motion-kind="code"]
+    .wayfinding-rail-glyph,
+.search-screen .airport-list-row--directory:focus-visible
+    [data-motion-kind="code"]
+    .wayfinding-rail-glyph {
+    transform: translateY(-1px) scale(1.04);
+}
+
+.about-screen .info-wayfinding-source-row:hover .wayfinding-rail-glyph,
+.about-screen .info-wayfinding-source-row:focus-visible .wayfinding-rail-glyph,
+.about-screen .info-wayfinding-repository:hover .wayfinding-rail-glyph,
+.about-screen .info-wayfinding-repository:focus-visible .wayfinding-rail-glyph {
+    transform: translateY(-1px) scale(1.04);
+}
+
+.mechanism-screen .mechanism-wayfinding__trigger:hover .wayfinding-rail-glyph,
+.mechanism-screen .mechanism-wayfinding__trigger:focus-visible .wayfinding-rail-glyph,
+.mechanism-screen
+    .mechanism-wayfinding__item[data-expanded="true"]
+    .wayfinding-rail-glyph {
+    transform: translateY(-1px) scale(1.06);
+}
+
+/* Legacy list/page entrance hooks cannot move a first-screen reading surface;
+   the rail glyphs above own all route and search-state arrival feedback. */
+.dither-page-shell .app-list-motion > * {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dither-page-shell [data-motion-rail="true"] .wayfinding-rail-glyph {
+        animation: none !important;
+        transform: none !important;
+        transition: none !important;
+    }
 }
 
 .dither-page-shell .dither-page-header.dither-page-header--copy-only {
