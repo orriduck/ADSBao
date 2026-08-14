@@ -5,18 +5,12 @@ import {
   ArrowUpDown,
   Check,
   ChevronDown,
+  CircleDot,
   ListFilter,
   Minus,
   Plane,
-  Route as RouteIcon,
   Search,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   FilterCard,
   FilterCardGrid,
@@ -38,10 +32,12 @@ import {
   resolveAircraftDisplayModel,
 } from "@/features/aircraft/aircraftTypeDisplayModel";
 import {
+  AIRBORNE_FILTER_OPTIONS,
   ALTITUDE_LEVEL_OPTIONS,
   ALTITUDE_LEVEL_VALUES,
   ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
+  getNextAirborneFilter,
   getAircraftTypeGroups,
   getNextEntityFilter,
   isAltitudeSelectionAll,
@@ -77,11 +73,11 @@ function AircraftTable({
 }) {
   const { t } = useI18n();
   const {
-    trafficFilter,
+    airborneFilter,
     typeFilter,
     altitudeLevel,
     entityFilter,
-    setTrafficFilter,
+    setAirborneFilter,
     setTypeFilter,
     setAltitudeLevel,
     setEntityFilter,
@@ -134,7 +130,7 @@ function AircraftTable({
         aircraft: aircraftWithDist,
         altitudeLevel: selectedAltitudeLevels,
         query,
-        trafficFilter,
+        airborneFilter,
         typeFilter,
         movementFilter,
       }),
@@ -143,13 +139,14 @@ function AircraftTable({
       movementFilter,
       query,
       selectedAltitudeLevels,
-      trafficFilter,
+      airborneFilter,
       typeFilter,
     ],
   );
 
   const filteredAirports = useMemo(() => {
     if (entityFilter === "aircraft") return [];
+    if (airborneFilter !== "all") return [];
     if (movementFilter !== "all") return [];
     const normalizedQuery = query.trim().toLowerCase();
     return airports
@@ -161,7 +158,7 @@ function AircraftTable({
       .toSorted(
         (left, right) => (left.distanceNm || 0) - (right.distanceNm || 0),
       );
-  }, [airports, entityFilter, movementFilter, query]);
+  }, [airborneFilter, airports, entityFilter, movementFilter, query]);
 
   const filteredAircraft = useMemo(() => {
     if (entityFilter === "airports") return [];
@@ -201,7 +198,7 @@ function AircraftTable({
     () =>
       [
         query.trim().toLowerCase(),
-        trafficFilter,
+        airborneFilter,
         Array.isArray(typeFilter) ? typeFilter.join("|") : typeFilter,
         selectedAltitudeLevels.join("|"),
         entityFilter,
@@ -212,7 +209,7 @@ function AircraftTable({
       movementFilter,
       query,
       selectedAltitudeLevels,
-      trafficFilter,
+      airborneFilter,
       typeFilter,
     ],
   );
@@ -246,8 +243,14 @@ function AircraftTable({
 
         <div className="aircraft-table-search-bar">
           <label className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
-            <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-center justify-center bg-[var(--airport-wayfinding-neutral-rail)] text-[var(--airport-wayfinding-neutral-rail-fg)]">
-              <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
+            <span
+              className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-center justify-center overflow-hidden bg-[var(--airport-wayfinding-neutral-rail)] text-[var(--airport-wayfinding-neutral-rail-fg)]"
+              data-motion-kind="search"
+              data-motion-rail="true"
+            >
+              <span className="wayfinding-rail-glyph inline-flex">
+                <Search className="size-[16px] stroke-[1.8]" aria-hidden="true" />
+              </span>
             </span>
             <span className="flex min-w-0 flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3">
               <input
@@ -275,37 +278,16 @@ function AircraftTable({
               ariaLabel={t("filters.showAria")}
             />
 
-            <TooltipProvider delayDuration={250}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <FilterCard
-                    icon={<RouteIcon />}
-                    data-tone="accent"
-                    active={trafficFilter === "routed"}
-                    contentLayout="split"
-                    aria-pressed={trafficFilter === "routed"}
-                    onClick={() =>
-                      setTrafficFilter(
-                        trafficFilter === "routed" ? "all" : "routed",
-                      )
-                    }
-                  >
-                    <FilterCardLabel>{t("sidebar.route")}</FilterCardLabel>
-                    <FilterCardValue>
-                      {trafficFilter === "routed" ? t("sidebar.routed") : t("sidebar.all")}
-                    </FilterCardValue>
-                  </FilterCard>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-[220px] text-left">
-                  <strong className="block text-[calc(11px*var(--sb-body-scale))] uppercase tracking-wide">
-                    {t("sidebar.routed")}
-                  </strong>
-                  <span className="mt-1 block text-[calc(11px*var(--sb-body-scale))] leading-snug">
-                    {t("filters.routedTooltip")}
-                  </span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <EntityFilterCycleCard
+              icon={<CircleDot />}
+              label={t("sidebar.status")}
+              value={airborneFilter}
+              onValueChange={() =>
+                setAirborneFilter(getNextAirborneFilter(airborneFilter))
+              }
+              options={AIRBORNE_FILTER_OPTIONS}
+              ariaLabel={t("filters.airborneFilterAria")}
+            />
 
             <AircraftTypeFilterCard
               groups={typeGroups}
@@ -405,7 +387,7 @@ function AircraftTable({
 }
 
 // The four filter cells share one label-over-value structure. Dropdown cells
-// end in a small chevron; the Route toggle omits it. The value row stretches
+// end in a small chevron. The value row stretches
 // across the card so all labels and values keep one clean left axis while the
 // chevrons land on one right axis.
 function FilterPillValue({
@@ -787,14 +769,14 @@ function filterAndSortAircraft({
   aircraft = [],
   altitudeLevel = [],
   query = "",
-  trafficFilter = "all",
+  airborneFilter = "all",
   typeFilter = "all",
   movementFilter = "all",
 }: {
   aircraft?: AircraftLike[];
   altitudeLevel?: string | string[];
   query?: string;
-  trafficFilter?: string;
+  airborneFilter?: string;
   typeFilter?: any;
   movementFilter?: string;
 }) {
@@ -803,7 +785,7 @@ function filterAndSortAircraft({
   return [...aircraft]
     .filter((item) =>
       aircraftMatchesFilters(item, {
-        trafficFilter,
+        airborneFilter,
         typeFilter,
         altitudeLevel,
         movementFilter,

@@ -180,7 +180,7 @@ function AirportExplorerContent({
     mapSettings,
     mapSettingsReadyForUserLocation,
     userLocationEnabled,
-    trafficFilter,
+    airborneFilter,
     typeFilter,
     altitudeLevel,
     selectedAircraftId,
@@ -764,7 +764,7 @@ function AirportExplorerContent({
               showCandidateWatchingSpots={showCandidateWatchingSpots}
               showCallsigns={showCallsigns}
               baseLayer={mapSettings?.baseLayer}
-              trafficFilter={trafficFilter}
+              airborneFilter={airborneFilter}
               typeFilter={typeFilter}
               altitudeLevel={altitudeLevel}
               selectedAircraftId={selectedAircraftId}

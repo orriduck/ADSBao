@@ -108,7 +108,7 @@ function FlightExplorerContent({ callsign }) {
     mapSettings,
     mapSettingsReadyForUserLocation,
     userLocationEnabled,
-    trafficFilter,
+    airborneFilter,
     typeFilter,
     altitudeLevel,
     selectedAircraftId,
@@ -1007,7 +1007,7 @@ function FlightExplorerContent({ callsign }) {
               showNavaidMarkers={showNavaidMarkers}
               showAirspaces={mapSettingsToExplorerLayers(mapSettings).showAirspaces}
               baseLayer={mapSettings?.baseLayer}
-              trafficFilter={trafficFilter}
+              airborneFilter={airborneFilter}
               typeFilter={typeFilter}
               altitudeLevel={altitudeLevel}
               selectedAircraftId={selectedAircraftId}

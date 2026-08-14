@@ -15,6 +15,8 @@ type WayfindingMetricProps = {
   onClick?: () => void;
   readOnly?: boolean;
   ariaLabel?: string;
+  railMotionKind?: "instrument" | "status";
+  strokeReplayKey?: string | number | null;
   className?: string;
 };
 
@@ -34,6 +36,8 @@ export default function WayfindingMetric({
   onClick,
   readOnly = false,
   ariaLabel,
+  railMotionKind = "instrument",
+  strokeReplayKey,
   className,
 }: WayfindingMetricProps) {
   const hasTitle = title !== null && title !== undefined && title !== "";
@@ -48,6 +52,8 @@ export default function WayfindingMetric({
       <WayfindingRail
         className="wayfinding-metric__rail absolute inset-y-0 left-0"
         icon={icon}
+        motionKind={railMotionKind}
+        strokeReplayKey={strokeReplayKey}
       />
       {hasTitle ? (
         <span className="wayfinding-metric__title col-start-2 row-start-1 truncate px-[var(--wayfinding-content-inset)] text-[calc(10px*var(--sb-body-scale))] leading-tight text-atc-dim">

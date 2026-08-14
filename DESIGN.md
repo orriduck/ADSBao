@@ -84,6 +84,9 @@ a metric merely to make it colorful.
 
 - Search, filters, and nearby rows continue the same 36px rail and 48px content
   axis. They are full-width joined rows, not floating capsules.
+- Selected filters stay neutral: change only the gray rail luminance (darker in
+  light mode, lighter in dark mode). Blue remains reserved for a distinct
+  secondary context, not ordinary filter state.
 - Nearby aircraft remain a dense operational manifest: one row per target,
   neutral rail at rest, orange rail when selected, stable columns for distance
   and altitude.

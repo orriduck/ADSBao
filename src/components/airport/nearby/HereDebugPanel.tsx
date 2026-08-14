@@ -1,4 +1,4 @@
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { Crosshair, Pause, Play, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   advanceNearMeDebugLocation,
@@ -85,80 +85,81 @@ export default function HereDebugPanel({
 
   return (
     <section
-      className="absolute bottom-3 right-3 z-map-toolbar w-[min(19rem,calc(100vw_-_1.5rem))] rounded-[var(--atc-radius-card)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] p-2.5 shadow-[var(--atc-control-inset-shadow)] backdrop-blur-[12px]"
+      className="here-debug-panel"
       data-ui="here-debug-panel"
+      data-running={running ? "true" : "false"}
     >
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="font-mono text-[10px] font-bold tracking-[0.12em] text-atc-text">
-          HERE DEBUG
+      <header className="here-debug-panel__header">
+        <span className="here-debug-panel__rail" aria-hidden="true">
+          <Crosshair />
         </span>
-        <span className="text-[10px] text-atc-dim">
-          {running ? "Simulating" : "Injected GPS"}
+        <span className="here-debug-panel__identity">
+          <strong>HERE DEBUG</strong>
+          <span aria-live="polite">
+            {running ? "Simulating" : "Injected GPS"}
+          </span>
         </span>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        <label className="grid gap-0.5 text-[10px] text-atc-dim">
-          Lat
+      </header>
+      <div className="here-debug-panel__fields">
+        <label className="here-debug-panel__field">
+          <span>LAT</span>
           <input
             value={lat}
             inputMode="decimal"
             onChange={(event) => setLat(event.target.value)}
-            className="h-7 rounded-md border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--atc-control-surface-hover)_74%,transparent)] px-1.5 font-mono text-[11px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-action-focus-ring)]"
           />
         </label>
-        <label className="grid gap-0.5 text-[10px] text-atc-dim">
-          Lon
+        <label className="here-debug-panel__field">
+          <span>LON</span>
           <input
             value={lon}
             inputMode="decimal"
             onChange={(event) => setLon(event.target.value)}
-            className="h-7 rounded-md border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--atc-control-surface-hover)_74%,transparent)] px-1.5 font-mono text-[11px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-action-focus-ring)]"
           />
         </label>
-        <label className="grid gap-0.5 text-[10px] text-atc-dim">
-          Heading °
+        <label className="here-debug-panel__field">
+          <span>HEADING °</span>
           <input
             value={heading}
             inputMode="decimal"
             onChange={(event) => setHeading(event.target.value)}
-            className="h-7 rounded-md border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--atc-control-surface-hover)_74%,transparent)] px-1.5 font-mono text-[11px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-action-focus-ring)]"
           />
         </label>
-        <label className="grid gap-0.5 text-[10px] text-atc-dim">
-          km/h
+        <label className="here-debug-panel__field">
+          <span>KM/H</span>
           <input
             value={speedKph}
             inputMode="decimal"
             onChange={(event) => setSpeedKph(event.target.value)}
-            className="h-7 rounded-md border border-[var(--app-frost-border)] bg-[color-mix(in_oklab,var(--atc-control-surface-hover)_74%,transparent)] px-1.5 font-mono text-[11px] text-atc-text outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-action-focus-ring)]"
           />
         </label>
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-1.5">
+      <footer className="here-debug-panel__actions">
         <button
           type="button"
           onClick={applyLocation}
-          className="h-7 rounded-md bg-[var(--atc-click-bg)] text-[10px] font-semibold text-[var(--atc-click-fg)] active:scale-[0.98]"
+          className="here-debug-panel__apply"
         >
           Apply
         </button>
         <button
           type="button"
           onClick={() => setRunning((previous) => !previous)}
-          className="inline-flex h-7 items-center justify-center gap-1 rounded-md border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] text-[10px] font-semibold text-atc-text active:scale-[0.98]"
+          className="here-debug-panel__drive"
+          data-running={running ? "true" : "false"}
         >
-          {running ? <Pause className="size-3" /> : <Play className="size-3" />}
+          {running ? <Pause /> : <Play />}
           {running ? "Stop" : "Drive"}
         </button>
         <button
           type="button"
           onClick={resetLocation}
-          className="inline-flex h-7 items-center justify-center rounded-md border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] text-atc-dim active:scale-[0.98]"
+          className="here-debug-panel__reset"
           aria-label="Reset Here debug controls"
         >
-          <RotateCcw className="size-3" />
+          <RotateCcw />
         </button>
-      </div>
+      </footer>
     </section>
   );
 }

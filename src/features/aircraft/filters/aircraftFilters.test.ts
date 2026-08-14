@@ -4,11 +4,38 @@ import test from "node:test";
 import {
   aircraftMatchesFilters,
   aircraftTypeLabel,
+  getNextAirborneFilter,
   getAircraftTypeGroups,
   getNextEntityFilter,
   isAltitudeSelectionAll,
   normalizeAltitudeLevelSelection,
 } from "./aircraftFilters";
+
+test("cycles airborne filter from all to airborne to ground and back", () => {
+  assert.equal(getNextAirborneFilter("all"), "airborne");
+  assert.equal(getNextAirborneFilter("airborne"), "ground");
+  assert.equal(getNextAirborneFilter("ground"), "all");
+  assert.equal(getNextAirborneFilter("stale"), "all");
+});
+
+test("filters aircraft by airborne state without route metadata", () => {
+  assert.equal(
+    aircraftMatchesFilters({ onGround: false }, { airborneFilter: "airborne" }),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters({ onGround: true }, { airborneFilter: "airborne" }),
+    false,
+  );
+  assert.equal(
+    aircraftMatchesFilters({ onGround: true }, { airborneFilter: "ground" }),
+    true,
+  );
+  assert.equal(
+    aircraftMatchesFilters({ onGround: false }, { airborneFilter: "ground" }),
+    false,
+  );
+});
 
 test("cycles entity filter from all to aircraft to airports and back", () => {
   assert.equal(getNextEntityFilter("all"), "aircraft");

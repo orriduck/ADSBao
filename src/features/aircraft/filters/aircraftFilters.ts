@@ -44,7 +44,7 @@ const LEGACY_ALTITUDE_LEVELS = Object.freeze({
 });
 
 export const DEFAULT_AIRCRAFT_FILTERS = Object.freeze({
-  trafficFilter: "all",
+  airborneFilter: "all",
   typeFilter: "all",
   altitudeLevel: DEFAULT_ALTITUDE_LEVELS,
   // What kind of entities to show in the list:
@@ -62,12 +62,25 @@ export const ENTITY_FILTER_OPTIONS = [
   { value: "airports", labelKey: "filters.entityAirports", label: "Airports" },
 ];
 
+export const AIRBORNE_FILTER_OPTIONS = [
+  { value: "all", labelKey: "sidebar.all", label: "All" },
+  { value: "airborne", labelKey: "aircraft.airborne", label: "Airborne" },
+  { value: "ground", labelKey: "aircraft.ground", label: "Ground" },
+];
+
 const ENTITY_FILTER_CYCLE = ["all", "aircraft", "airports"];
+const AIRBORNE_FILTER_CYCLE = ["all", "airborne", "ground"];
 
 export function getNextEntityFilter(value) {
   const index = ENTITY_FILTER_CYCLE.indexOf(value);
   if (index < 0) return "all";
   return ENTITY_FILTER_CYCLE[(index + 1) % ENTITY_FILTER_CYCLE.length];
+}
+
+export function getNextAirborneFilter(value) {
+  const index = AIRBORNE_FILTER_CYCLE.indexOf(value);
+  if (index < 0) return "all";
+  return AIRBORNE_FILTER_CYCLE[(index + 1) % AIRBORNE_FILTER_CYCLE.length];
 }
 
 // ADS-B emitter / wake-class categories. A1–A7 map to specific labels; anything
@@ -100,7 +113,7 @@ type AircraftFilterRecord = {
 };
 
 type AircraftFilterOptions = {
-  trafficFilter?: string;
+  airborneFilter?: string;
   typeFilter?: string | string[];
   altitudeLevel?: string | readonly string[];
   movementFilter?: string;
@@ -190,12 +203,12 @@ const toNumber = (value: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 
-function matchesTrafficFilter(aircraft: AircraftFilterRecord, trafficFilter: string) {
-  if (trafficFilter === "routed") {
-    // flightRouteLabel is non-empty only when the route lookup resolved a
-    // distinct origin AND destination — i.e., a legitimately parsed route.
-    return Boolean(aircraft.flightRouteLabel);
-  }
+function matchesAirborneFilter(
+  aircraft: AircraftFilterRecord,
+  airborneFilter: string,
+) {
+  if (airborneFilter === "ground") return aircraft.onGround === true;
+  if (airborneFilter === "airborne") return aircraft.onGround !== true;
   return true;
 }
 
@@ -269,14 +282,14 @@ function matchesAltitudeLevel(
 export function aircraftMatchesFilters(
   aircraft: AircraftFilterRecord,
   {
-    trafficFilter = "all",
+    airborneFilter = "all",
     typeFilter = "all",
     altitudeLevel = DEFAULT_ALTITUDE_LEVELS,
     movementFilter = "all",
   }: AircraftFilterOptions = {},
 ) {
   return (
-    matchesTrafficFilter(aircraft, trafficFilter) &&
+    matchesAirborneFilter(aircraft, airborneFilter) &&
     matchesMovementFilter(aircraft, movementFilter) &&
     matchesTypeFilter(aircraft, typeFilter) &&
     matchesAltitudeLevel(aircraft, altitudeLevel)

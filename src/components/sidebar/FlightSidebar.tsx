@@ -182,7 +182,12 @@ function FlightIdentity({
 
   return (
     <div className="flight-wayfinding-identity flex min-h-[142px] overflow-hidden">
-      <WayfindingRail icon={<Plane />} inset="hero" tone="primary" />
+      <WayfindingRail
+        icon={<Plane />}
+        inset="hero"
+        motionKind="identity"
+        tone="primary"
+      />
       <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-4 pt-[var(--wayfinding-hero-content-top)]">
         <h1
           className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text"
@@ -312,6 +317,8 @@ function FlightTelemetryGrid({
           animateValue={Boolean(verticalSpeedDisplay)}
           active={activeMetric === "verticalSpeed"}
           tone={verticalTone}
+          railMotionKind="status"
+          strokeReplayKey={verticalState}
           ariaLabel={
             verticalSpeedDisplay == null
               ? t("metrics.verticalSpeed")

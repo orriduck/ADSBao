@@ -1,10 +1,12 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type WayfindingRailProps = {
   icon: ReactNode;
   tone?: "primary" | "secondary" | "neutral";
   inset?: "rail" | "hero";
+  motionKind?: "identity" | "instrument" | "status" | "search";
+  strokeReplayKey?: string | number | null;
   className?: string;
 };
 
@@ -14,8 +16,18 @@ export default function WayfindingRail({
   icon,
   tone = "neutral",
   inset = "rail",
+  motionKind = "instrument",
+  strokeReplayKey,
   className,
 }: WayfindingRailProps) {
+  const previousStrokeReplayKeyRef = useRef(strokeReplayKey);
+  const hasReplayedStrokeRef = useRef(false);
+
+  if (!Object.is(previousStrokeReplayKeyRef.current, strokeReplayKey)) {
+    previousStrokeReplayKeyRef.current = strokeReplayKey;
+    hasReplayedStrokeRef.current = true;
+  }
+
   const toneClassName = {
     primary:
       "bg-[var(--atc-signal-accent)] text-[var(--airport-wayfinding-primary-rail-fg)]",
@@ -29,16 +41,26 @@ export default function WayfindingRail({
     <span
       aria-hidden="true"
       className={cn(
-        "wayfinding-rail flex w-[var(--wayfinding-rail-width)] shrink-0 items-start justify-center [&>svg]:size-[16px] [&>svg]:stroke-[1.8]",
+        "wayfinding-rail flex w-[var(--wayfinding-rail-width)] shrink-0 items-start justify-center",
         inset === "hero"
           ? "pt-[var(--wayfinding-hero-icon-top)]"
           : "pt-[var(--wayfinding-rail-icon-top)]",
         toneClassName,
         className,
       )}
+      data-motion-kind={motionKind}
+      data-motion-rail="true"
       data-tone={tone}
     >
-      {icon}
+      <span
+        key={strokeReplayKey == null ? "static" : String(strokeReplayKey)}
+        className={cn(
+          "wayfinding-rail-glyph inline-flex [&>svg]:size-[16px] [&>svg]:stroke-[1.8]",
+          hasReplayedStrokeRef.current && "wayfinding-stroke-replay",
+        )}
+      >
+        {icon}
+      </span>
     </span>
   );
 }

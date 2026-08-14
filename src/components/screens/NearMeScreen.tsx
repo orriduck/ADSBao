@@ -249,7 +249,7 @@ export default function NearMeScreen() {
 
   return (
     <div
-      className="app-route-transition relative min-h-dvh"
+      className="relative min-h-dvh"
       onPointerDown={handleNearMeInteraction}
     >
       <>

@@ -93,6 +93,7 @@ export default function AirportIdentity({
       <WayfindingRail
         icon={nearMe ? <MapPin /> : <TowerControl />}
         inset="hero"
+        motionKind="identity"
         tone="primary"
       />
       <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-5 pt-[var(--wayfinding-hero-content-top)]">

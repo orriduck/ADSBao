@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.31",
+    version: "v3.13.34",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Airport, flight, and first-screen views now share a continuous 36px wayfinding rail with clearer hierarchy, aligned metrics, stable cached traffic, and cleaner desktop and mobile previews. Toolbars use the circular dumpling-radio mark; aircraft photos and navaid labels scan more easily; and Home, About, Mechanism, and Changelog keep content fixed while only rail glyphs animate.",
-      zh: "机场、航班与首屏现统一采用连续 36px 导视边，并整理指标、缓存流量、桌面与移动端预览及导航台信息层级。工具栏启用圆形团子对讲机标志；Home、About、机制与更新日志保持正文静止，只让 rail 内图标、代码与状态标记独立微动。",
+      en: "Airport, flight, Here, and first-screen views now share a stable 36px wayfinding stage, with neutral live-status filters and a matching joined Here Debug controller.",
+      zh: "机场、航班、Here 与首屏现统一使用稳定的 36px 导视舞台，并采用中性实时状态筛选及同构的 Here Debug 控制器。",
     },
     highlights: [],
   },

@@ -108,7 +108,7 @@ export default function AirportMap({
   showCandidateWatchingSpots = false,
   showCallsigns = true,
   baseLayer = "terrain",
-  trafficFilter = "all",
+  airborneFilter = "all",
   typeFilter = "all",
   altitudeLevel = DEFAULT_ALTITUDE_LEVELS,
   selectedAircraftId = "",
@@ -512,8 +512,8 @@ export default function AirportMap({
   ]);
   const aircraftCanvasMatchesFilters = useCallback(
     (ac: any) =>
-      aircraftMatchesFilters(ac, { trafficFilter, typeFilter, altitudeLevel }),
-    [trafficFilter, typeFilter, altitudeLevel],
+      aircraftMatchesFilters(ac, { airborneFilter, typeFilter, altitudeLevel }),
+    [airborneFilter, typeFilter, altitudeLevel],
   );
   const selectedAircraft = useMemo(
     () =>

@@ -1,4 +1,4 @@
-import { lazy, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
@@ -23,7 +23,6 @@ export default function HomeScreen() {
   const currentIcao = normalizePathIcao(pathname);
   const seedAirportRef = useRef(null);
   const pageLeavingRef = useRef(false);
-  const routeTransitionActive = useRouteTransition(currentIcao);
   const seededAirport = useMemo(
     () =>
       airportProfileCode(seedAirportRef.current) === currentIcao
@@ -128,9 +127,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <div
-      className={`${routeTransitionActive ? "app-route-transition " : ""}min-h-dvh`}
-    >
+    <div className="min-h-dvh">
       <AirportExplorer
         icao={currentIcao}
         airport={airport}
@@ -150,27 +147,6 @@ function normalizePathIcao(pathname) {
   const candidate = airportIndex >= 0 ? segments[airportIndex + 1] : "";
   const normalized = String(candidate || "").trim().toUpperCase();
   return /^[A-Z0-9]{3,4}$/.test(normalized) ? normalized : "";
-}
-
-function useRouteTransition(currentIcao) {
-  const [routeTransitionActive, setRouteTransitionActive] = useState(true);
-  const hasPlayedInitialRouteTransitionRef = useRef(false);
-
-  useEffect(() => {
-    if (!currentIcao) return undefined;
-    if (!hasPlayedInitialRouteTransitionRef.current) {
-      hasPlayedInitialRouteTransitionRef.current = true;
-      setRouteTransitionActive(true);
-      return undefined;
-    }
-    setRouteTransitionActive(false);
-    const frameId = window.requestAnimationFrame(() => {
-      setRouteTransitionActive(true);
-    });
-    return () => window.cancelAnimationFrame(frameId);
-  }, [currentIcao]);
-
-  return routeTransitionActive;
 }
 
 function isInterruptedNavigationFetch(error, expectedIcao) {

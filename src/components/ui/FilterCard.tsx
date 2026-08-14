@@ -119,6 +119,7 @@ export const FilterCard = forwardRef(function FilterCard(
     onKeyDown: externalKeyDown,
     onKeyUp: externalKeyUp,
     onBlur: externalBlur,
+    onClick: externalClick,
     ...props
   },
   ref,
@@ -151,6 +152,10 @@ export const FilterCard = forwardRef(function FilterCard(
     },
     [gsapRef, ref],
   );
+  const [strokeReplayRevision, setStrokeReplayRevision] = React.useState(0);
+  const replayFilterStroke = React.useCallback(() => {
+    setStrokeReplayRevision((current) => current + 1);
+  }, []);
 
   return (
     <Comp
@@ -171,14 +176,25 @@ export const FilterCard = forwardRef(function FilterCard(
       onKeyDown={composeEventHandlers(onKeyDown, externalKeyDown)}
       onKeyUp={composeEventHandlers(onKeyUp, externalKeyUp)}
       onBlur={composeEventHandlers(onBlur, externalBlur)}
+      onClick={composeEventHandlers(replayFilterStroke, externalClick)}
     >
       {icon ? (
         <>
           <span
             aria-hidden="true"
-            className="filter-card__rail flex w-[var(--airport-wayfinding-rail-width)] shrink-0 self-stretch items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-[11px] text-[var(--airport-wayfinding-neutral-rail-fg)] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+            className="filter-card__rail flex w-[var(--airport-wayfinding-rail-width)] shrink-0 self-stretch items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-[11px] text-[var(--airport-wayfinding-neutral-rail-fg)]"
+            data-motion-kind="instrument"
+            data-motion-rail="true"
           >
-            {icon}
+            <span
+              key={strokeReplayRevision}
+              className={cn(
+                "wayfinding-rail-glyph inline-flex [&>svg]:size-[16px] [&>svg]:stroke-[1.8]",
+                strokeReplayRevision > 0 && "wayfinding-stroke-replay",
+              )}
+            >
+              {icon}
+            </span>
           </span>
           <span className="filter-card__content grid min-w-0 flex-1 content-center justify-items-start gap-1 bg-[var(--airport-wayfinding-content)] px-3 py-2 text-left">
             {children}

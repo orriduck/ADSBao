@@ -227,8 +227,8 @@ function airportExplorerUiReducer(state, action) {
         }),
       );
     }
-    case "setTrafficFilter":
-      return { ...state, trafficFilter: action.trafficFilter };
+    case "setAirborneFilter":
+      return { ...state, airborneFilter: action.airborneFilter };
     case "setTypeFilter":
       return { ...state, typeFilter: action.typeFilter };
     case "setAltitudeLevel":
@@ -479,7 +479,7 @@ export function ExplorerUiProvider({ children }) {
     showCallsigns,
     userLocationEnabled,
     mapSettings,
-    trafficFilter,
+    airborneFilter,
     typeFilter,
     altitudeLevel,
     entityFilter,
@@ -628,8 +628,8 @@ export function ExplorerUiProvider({ children }) {
     [],
   );
 
-  const setTrafficFilter = useCallback((trafficFilter) => {
-    dispatch({ type: "setTrafficFilter", trafficFilter });
+  const setAirborneFilter = useCallback((airborneFilter) => {
+    dispatch({ type: "setAirborneFilter", airborneFilter });
   }, []);
 
   const setTypeFilter = useCallback((typeFilter) => {
@@ -731,7 +731,7 @@ export function ExplorerUiProvider({ children }) {
       mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
       mapSettingsSaveCycle,
-      trafficFilter,
+      airborneFilter,
       typeFilter,
       altitudeLevel,
       entityFilter,
@@ -744,7 +744,7 @@ export function ExplorerUiProvider({ children }) {
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
-      setTrafficFilter,
+      setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,
       setEntityFilter,
@@ -798,7 +798,7 @@ export function ExplorerUiProvider({ children }) {
       mapSettingsReadyForUserLocation,
       mapSettingsSaveStatus,
       mapSettingsSaveCycle,
-      trafficFilter,
+      airborneFilter,
       typeFilter,
       altitudeLevel,
       entityFilter,
@@ -811,7 +811,7 @@ export function ExplorerUiProvider({ children }) {
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
-      setTrafficFilter,
+      setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,
       setEntityFilter,
@@ -849,21 +849,21 @@ export function ExplorerUiProvider({ children }) {
   // 产生新对象 → 订阅它的 AircraftTable 不再因 selection/zoom/图层变化而重渲染。
   const filterValue = useMemo(
     () => ({
-      trafficFilter,
+      airborneFilter,
       typeFilter,
       altitudeLevel,
       entityFilter,
-      setTrafficFilter,
+      setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,
       setEntityFilter,
     }),
     [
-      trafficFilter,
+      airborneFilter,
       typeFilter,
       altitudeLevel,
       entityFilter,
-      setTrafficFilter,
+      setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,
       setEntityFilter,
