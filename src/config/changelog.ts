@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.35",
+    version: "v3.13.36",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Wayfinding surfaces stay consistent with a standard flight-rule icon and quiet refresh-button update status.",
-      zh: "导视界面现统一采用标准飞行规则图标与安静的刷新按钮更新提示。",
+      en: "Wayfinding surfaces stay consistent, and the production frontend now ships through Cloudflare with its existing API and live-traffic contracts intact.",
+      zh: "导视界面保持一致，生产前端现已迁移至 Cloudflare，并完整保留既有 API 与实时流量契约。",
     },
     highlights: [],
   },
