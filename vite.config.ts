@@ -10,6 +10,7 @@ import {
   ADSBAO_PWA_PUBLIC_ASSET_PATHS,
   shouldPrecacheViteChunk,
 } from "./src/features/app-shell/pwaCachePolicy";
+import { buildCloudflareHeadersFile } from "./src/config/securityHeaders";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("./package.json", import.meta.url), "utf8"),
@@ -38,6 +39,19 @@ function appVersionManifestPlugin(version: string): Plugin {
         type: "asset",
         fileName: "adsbao-version.json",
         source: payload(),
+      });
+    },
+  };
+}
+
+function cloudflareStaticHeadersPlugin(): Plugin {
+  return {
+    name: "adsbao-cloudflare-static-headers",
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "_headers",
+        source: buildCloudflareHeadersFile(),
       });
     },
   };
@@ -246,6 +260,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       appVersionManifestPlugin(ADSBAO_APP_VERSION),
+      cloudflareStaticHeadersPlugin(),
       runtimeEnvCacheBustPlugin(ADSBAO_APP_VERSION),
       retiredWebSocketRoutePlugin(),
       adsbaoPwaServiceWorkerPlugin(ADSBAO_APP_VERSION),

@@ -1,8 +1,11 @@
 **/.env
-.env.sentry-build-plugin
+.env*
+.dev.vars*
+!.dev.vars.preview.example
 **/build
 **/dist
 **/.next
+**/.wrangler/
 **/node_modules
 **/__pycache__
 *_backup

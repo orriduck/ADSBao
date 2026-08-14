@@ -39,3 +39,24 @@ export function buildSecurityHeaders() {
     },
   ];
 }
+
+export function buildCloudflareHeadersFile() {
+  const lines = [
+    "/*",
+    ...securityHeaders.map(({ key, value }) => `  ${key}: ${value}`),
+    "",
+    "/assets/*",
+    "  Cache-Control: public, max-age=31536000, immutable",
+    "",
+    "/adsbao-version.json",
+    "  Cache-Control: no-store",
+    "",
+    "/sw.js",
+    "  Cache-Control: no-cache, no-store, must-revalidate",
+    "",
+    "/manifest.webmanifest",
+    "  Cache-Control: public, max-age=0, must-revalidate",
+  ];
+
+  return `${lines.join("\n")}\n`;
+}

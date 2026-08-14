@@ -1,0 +1,5 @@
+# Copy to .dev.vars.preview for `pnpm cloudflare:dev`.
+ADSBAO_SERVICE_ORIGIN="http://localhost:8082"
+VITE_NEW_RELIC_ACCOUNT_ID=""
+VITE_NEW_RELIC_BROWSER_APP_ID=""
+VITE_NEW_RELIC_BROWSER_LICENSE_KEY=""

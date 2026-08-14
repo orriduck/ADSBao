@@ -14,6 +14,9 @@
     "debug:local:restart": "tsx scripts/local-debug.ts --restart",
     "debug:local:service": "tsx scripts/local-debug.ts --service",
     "debug:local:service:restart": "tsx scripts/local-debug.ts --service --service-restart",
+    "cloudflare:check": "pnpm build && wrangler deploy --env preview --dry-run",
+    "cloudflare:dev": "pnpm build && CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false wrangler dev --env preview --port 8787",
+    "cloudflare:deploy:preview": "pnpm build && wrangler deploy --env preview",
     "lint": "eslint src scripts vite.config.ts eslint.config.mjs",
     "knip": "knip",
     "test": "tsx scripts/run-tests.ts",
@@ -58,7 +61,8 @@
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1",
-    "vite": "^8.1.0"
+    "vite": "^8.1.0",
+    "wrangler": "4.123.0"
   },
   "pnpm": {
     "supportedArchitectures": {
