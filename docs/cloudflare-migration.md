@@ -1,10 +1,12 @@
 # Cloudflare frontend migration
 
-This note records the Phase 0 delivery contract and the initial hosting decision
-for [issue #624](https://github.com/orriduck/ADSBao/issues/624). It is a preview
-runbook, not evidence that the production domain has moved.
+This note records the delivery contract, hosting decision, and completed
+production cutover for
+[issue #624](https://github.com/orriduck/ADSBao/issues/624). Cloudflare Workers
+Static Assets became authoritative for `adsbao.dev` and `www.adsbao.dev` on
+2026-08-14; the old Railway frontend was then deleted.
 
-## Current delivery contract
+## Pre-migration delivery contract
 
 As inspected on 2026-08-14, Railway deploys `Dockerfile`, which builds the Vite
 application and copies `dist/` into Nginx. `nginx.conf.template` owns the public
@@ -52,26 +54,28 @@ HTML on Cloudflare's revalidation default, marks the version manifest and
 service worker refreshable, and generates the existing security headers into
 the build as `_headers`.
 
-## Preview topology
+## Final topology
 
 ```text
 Browser
-  -> adsbao-frontend-preview.<account>.workers.dev
+  -> adsbao.dev / www.adsbao.dev
+       -> adsbao-frontend.orriduck.workers.dev
        |-- static SPA/assets: Cloudflare Workers Static Assets
        |-- /api, /events, /health: Worker streaming proxy
-                                      -> adsbao-app-production.up.railway.app
-                                           -> Railway private adsbao-service
+                                      -> adsbao-service-production.up.railway.app
+                                           -> Railway adsbao-service
+                                                -> Railway Postgres
 ```
 
-The extra Railway Nginx hop is deliberate for preview. The private Go service
-currently has no public Railway domain, while the existing frontend service has
-a stable Railway service domain and already owns the verified private proxy.
-This avoids exposing the private service merely to start frontend validation.
-It also keeps the production Railway frontend untouched as the rollback target.
+The Go service now has a Railway public service domain targeting its production
+port `8080`. The Worker streams upstream responses without reading their bodies,
+so the existing EventSource contract remains intact. Browser application URLs
+stay relative and same-origin; the backend origin is a Worker secret rather
+than a client-visible runtime value.
 
-Before preview SSE browser testing, add the final Workers preview origin to the
-private service's allowed event origins. Do not rewrite the browser `Origin`
-header in the Worker to bypass that check.
+`ALLOWED_EVENT_ORIGINS` includes the Cloudflare preview and Workers development
+origins in addition to the production custom domains. The Worker preserves the
+browser `Origin` header rather than rewriting it.
 
 ## Local preview
 
@@ -121,9 +125,9 @@ pnpm exec wrangler secret put VITE_NEW_RELIC_BROWSER_LICENSE_KEY --env preview
 pnpm cloudflare:deploy:preview
 ```
 
-Set `ADSBAO_SERVICE_ORIGIN` to the existing Railway frontend service origin for
-this transition. The three New Relic values are public browser identifiers but
-remain deployment configuration rather than repository constants.
+Set `ADSBAO_SERVICE_ORIGIN` to the Railway `adsbao-service` public origin. The
+three New Relic values are public browser identifiers but remain deployment
+configuration rather than repository constants.
 
 The first remote preview deployment completed on 2026-08-14 as Worker version
 `c42f09eb-952c-4b35-9efd-be9ae3599068`. Its validation confirmed:
@@ -140,18 +144,75 @@ The first remote preview deployment completed on 2026-08-14 as Worker version
 - The KBOS airport page rendered live aircraft in Chrome with no console
   warnings or errors.
 
-No production custom-domain route is present in `wrangler.jsonc`. Add it only
-after preview REST, SSE, PWA/update, responsive rendering, and before/after
-delivery measurements pass.
+## Production deployment
 
-## Cutover and rollback boundary
+The root Wrangler environment is the production Worker. Its secrets use the
+same four names as preview and its custom-domain routes are declared in
+`wrangler.jsonc`:
 
-Cutover must retain the Railway frontend until the Cloudflare production origin
-has passed deep-link, REST, health, SSE reconnect/stale, PWA update, desktop,
-and mobile checks. The first rollback is DNS/custom-domain routing back to the
-existing Railway frontend. No database, backend business behavior, realtime
-protocol, or service lifecycle change belongs in this migration.
+```bash
+pnpm exec wrangler secret put ADSBAO_SERVICE_ORIGIN
+pnpm exec wrangler secret put VITE_NEW_RELIC_ACCOUNT_ID
+pnpm exec wrangler secret put VITE_NEW_RELIC_BROWSER_APP_ID
+pnpm exec wrangler secret put VITE_NEW_RELIC_BROWSER_LICENSE_KEY
+pnpm cloudflare:deploy:production
+```
 
-Removing the Railway frontend requires a later independently verified route
-from Cloudflare to `adsbao-service`; the preview's Nginx hop is not that final
-state.
+The production deployment completed as Worker version
+`c7c3eead-7c88-4f48-9670-9d04fb907c01` and owns:
+
+- `https://adsbao.dev`
+- `https://www.adsbao.dev`
+- `https://adsbao-frontend.orriduck.workers.dev`
+
+The named preview environment declares an empty `routes` array so it cannot
+inherit production custom domains.
+
+## Production verification
+
+After custom-domain activation, and again after deleting the Railway frontend,
+the following checks passed on 2026-08-14:
+
+- `/`, `/airport/KBOS`, and `/aircraft/DAL1576` returned the SPA shell on both
+  custom domains.
+- `/health` and `/api/airport/KBOS` returned the Go service JSON contracts;
+  `/ws` returned 404.
+- `/runtime-env.js`, `/adsbao-version.json`, and `/sw.js` returned the expected
+  JavaScript/JSON resources. The version manifest and service worker use
+  refresh-safe cache controls; content-hashed assets use a one-year immutable
+  policy and returned `CF-Cache-Status: HIT`.
+- An EventSource request from `https://adsbao.dev` returned
+  `200 text/event-stream`, the exact allowed origin, `no-cache, no-transform`,
+  and live `nearby:snapshot` plus `nearby:traffic` frames.
+- Chrome rendered the KBOS map with live aircraft after a fresh navigation.
+  The page was controlled by `https://adsbao.dev/sw.js`; its registration and
+  controller were `activated`, with no waiting or installing worker.
+- Browser DevTools observed the production EventSource response and no console
+  warnings or errors before removal. A fresh navigation after removal rendered
+  new live counts and aircraft; the terminal contract check independently
+  reconfirmed SSE at the same origin.
+
+Five warm requests from the same machine gave the following delivery snapshot.
+The hashed CSS filenames differed because the Railway frontend was one build
+behind, so each origin was measured with the asset referenced by its own HTML:
+
+| Resource | Cloudflare average | Railway average | Payload |
+| --- | ---: | ---: | ---: |
+| HTML TTFB / total | 47.3 ms / 48.2 ms | 71.5 ms / 71.7 ms | 2,161 bytes |
+| Hashed CSS TTFB / total | 46.5 ms / 96.0 ms | 60.2 ms / 156.0 ms | about 464 KB |
+
+These are a cutover sanity check, not a geographically representative
+benchmark.
+
+## Cutover completion
+
+The old Railway custom domains and conflicting Cloudflare CNAME records were
+removed only after the production Worker passed the checks above. Railway
+service `adsbao-app` was then deleted. Its former generated URL now returns 404;
+Railway retains only `adsbao-service` and Postgres for this application.
+
+The user explicitly chose not to retain the Railway frontend as a hot rollback
+target. Recovery therefore means redeploying a frontend from Git history or a
+known Cloudflare Worker version, not switching DNS back to a running Railway
+frontend. The backend database, business behavior, and realtime protocol were
+not migrated or removed.

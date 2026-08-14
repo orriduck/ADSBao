@@ -5,6 +5,16 @@
   "compatibility_date": "2026-08-14",
   "workers_dev": true,
   "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "adsbao.dev",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.adsbao.dev",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
@@ -21,6 +31,7 @@
   },
   "env": {
     "preview": {
+      "routes": [],
       "secrets": {
         "required": [
           "ADSBAO_SERVICE_ORIGIN",
