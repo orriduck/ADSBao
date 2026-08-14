@@ -41,7 +41,8 @@
       "services": [
         {
           "binding": "ADSBAO_BACKEND",
-          "service": "adsbao-backend-preview"
+          "service": "adsbao-backend-preview",
+          "remote": true
         }
       ],
       "secrets": {
