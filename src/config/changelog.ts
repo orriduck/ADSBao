@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.36",
+    version: "v3.13.37",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Wayfinding surfaces stay consistent, and the production frontend now ships through Cloudflare with its existing API and live-traffic contracts intact.",
-      zh: "导视界面保持一致，生产前端现已迁移至 Cloudflare，并完整保留既有 API 与实时流量契约。",
+      en: "Wayfinding surfaces stay consistent, and the app now runs end to end on Cloudflare while preserving its API and live EventSource traffic contracts.",
+      zh: "导视界面保持一致，应用现已端到端运行于 Cloudflare，并完整保留既有 API 与 EventSource 实时流量契约。",
     },
     highlights: [],
   },

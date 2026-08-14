@@ -29,12 +29,23 @@
       "/ws"
     ]
   },
+  "services": [
+    {
+      "binding": "ADSBAO_BACKEND",
+      "service": "adsbao-backend"
+    }
+  ],
   "env": {
     "preview": {
       "routes": [],
+      "services": [
+        {
+          "binding": "ADSBAO_BACKEND",
+          "service": "adsbao-backend-preview"
+        }
+      ],
       "secrets": {
         "required": [
-          "ADSBAO_SERVICE_ORIGIN",
           "VITE_NEW_RELIC_ACCOUNT_ID",
           "VITE_NEW_RELIC_BROWSER_APP_ID",
           "VITE_NEW_RELIC_BROWSER_LICENSE_KEY"
