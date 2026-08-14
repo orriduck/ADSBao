@@ -19,10 +19,7 @@ const en = {
     wordmarkZh: "拍机宝",
   },
   appUpdate: {
-    title: "New ADSBao version available",
-    description:
-      "You are running {currentVersion}. Refresh to load {latestVersion}.",
-    refresh: "Refresh",
+    refreshAvailable: "Refresh to update to v{latestVersion}",
   },
   nav: {
     home: "ADSBao",

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, RefreshCw } from "lucide-react";
+import { Check } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
 import AppToolbarBrand from "@/components/brand/AppToolbarBrand";
+import AppRefreshButton from "@/components/app-shell/AppRefreshButton";
 import {
   MenuItem,
   MenuItemLabel,
@@ -118,14 +119,7 @@ export default function MapControlRail({
         <MapControlIcon iconKey="monitorCheck" />
       </ToolbarButton>
 
-      <ToolbarButton
-        tone="rail"
-        title={t("map.refreshPage")}
-        aria-label={t("map.refreshPage")}
-        onClick={() => window.location.reload()}
-      >
-        <RefreshCw aria-hidden="true" />
-      </ToolbarButton>
+      <AppRefreshButton />
 
       <ToolbarSeparator />
 

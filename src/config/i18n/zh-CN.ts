@@ -17,9 +17,7 @@ const zhCN = {
     wordmarkZh: "拍机宝",
   },
   appUpdate: {
-    title: "ADSBao 有新版本",
-    description: "当前是 {currentVersion}，刷新后载入 {latestVersion}。",
-    refresh: "刷新",
+    refreshAvailable: "刷新并更新至 v{latestVersion}",
   },
   nav: {
     home: "ADSBao",

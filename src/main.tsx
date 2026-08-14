@@ -2,7 +2,7 @@ import { installNewRelicClickTracking } from "@/platform/observability/newRelicB
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import AppUpdateToast from "@/components/app-shell/AppUpdateToast";
+import AppVersionUpdateProvider from "@/components/app-shell/AppVersionUpdateProvider";
 import ThemedToaster from "@/components/app-shell/ThemedToaster";
 import QueryProvider from "@/features/app-shell/queryProvider";
 import { registerAdsbaoServiceWorker } from "@/features/app-shell/registerServiceWorker";
@@ -66,11 +66,12 @@ createRoot(root).render(
         <QueryProvider>
           <UnitPreferencesProvider>
             <NotificationPreferencesProvider>
-              <WebMcpProvider />
-              <AppUpdateToast />
-              <div className="min-h-dvh bg-atc-bg text-atc-text">
-                <App />
-              </div>
+              <AppVersionUpdateProvider>
+                <WebMcpProvider />
+                <div className="min-h-dvh bg-atc-bg text-atc-text">
+                  <App />
+                </div>
+              </AppVersionUpdateProvider>
             </NotificationPreferencesProvider>
           </UnitPreferencesProvider>
         </QueryProvider>

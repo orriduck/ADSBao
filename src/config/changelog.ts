@@ -8,7 +8,7 @@
 // into the current minor's single rolling entry (update its `summary` and bump
 // its `version` to the new patch number, e.g. v2.30.16 -> v2.30.17). The
 // `version` keeps a patch digit ON PURPOSE: it must match `package.json` so the
-// AppUpdateToast's semver compare still fires on every release. Start a fresh
+// The version-update indicator's semver compare still fires on every release. Start a fresh
 // entry only when the minor digit changes (a real feature / milestone).
 
 export type LocalizedText = string | { en: string; zh: string };
@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 74;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.34",
+    version: "v3.13.35",
     kind: "feat",
     title: {
       en: "Complete wayfinding workspace",
       zh: "完整导视化工作区",
     },
     summary: {
-      en: "Airport, flight, Here, and first-screen views now share a stable 36px wayfinding stage, with neutral live-status filters and a matching joined Here Debug controller.",
-      zh: "机场、航班、Here 与首屏现统一使用稳定的 36px 导视舞台，并采用中性实时状态筛选及同构的 Here Debug 控制器。",
+      en: "Wayfinding surfaces stay consistent with a standard flight-rule icon and quiet refresh-button update status.",
+      zh: "导视界面现统一采用标准飞行规则图标与安静的刷新按钮更新提示。",
     },
     highlights: [],
   },

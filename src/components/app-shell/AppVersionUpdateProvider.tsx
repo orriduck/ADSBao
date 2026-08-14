@@ -1,11 +1,16 @@
-import { useEffect, useRef } from "react";
-import { toast } from "sonner";
-import { ADSBAO_SITE_VERSION } from "@/config/siteMeta";
-import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
-  APP_UPDATE_TOAST_ID,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { ADSBAO_SITE_VERSION } from "@/config/siteMeta";
+import {
   resolveAppVersionUpdate,
   versionManifestUrl,
+  type AppVersionUpdate,
 } from "@/features/app-shell/appVersionModel";
 
 const APP_VERSION_CHECK_INTERVAL_MS = 5 * 60_000;
@@ -13,6 +18,14 @@ const APP_VERSION_CHECK_INTERVAL_MS = 5 * 60_000;
 type AppVersionManifest = {
   version?: unknown;
 };
+
+type AppVersionUpdateContextValue = {
+  update: AppVersionUpdate | null;
+};
+
+const AppVersionUpdateContext = createContext<AppVersionUpdateContextValue>({
+  update: null,
+});
 
 async function fetchLatestAppVersion(signal?: AbortSignal) {
   const response = await fetch(versionManifestUrl(), {
@@ -27,15 +40,20 @@ async function fetchLatestAppVersion(signal?: AbortSignal) {
   return manifest.version;
 }
 
-export default function AppUpdateToast({
+export function useAppVersionUpdate() {
+  return useContext(AppVersionUpdateContext);
+}
+
+export default function AppVersionUpdateProvider({
+  children,
   currentVersion = ADSBAO_SITE_VERSION,
   checkIntervalMs = APP_VERSION_CHECK_INTERVAL_MS,
 }: {
+  children: ReactNode;
   currentVersion?: string;
   checkIntervalMs?: number;
 }) {
-  const { t } = useI18n();
-  const latestToastVersionRef = useRef("");
+  const [update, setUpdate] = useState<AppVersionUpdate | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -46,25 +64,7 @@ export default function AppUpdateToast({
       try {
         const latestVersion = await fetchLatestAppVersion(controller.signal);
         if (disposed) return;
-        const update = resolveAppVersionUpdate({
-          currentVersion,
-          latestVersion,
-        });
-        if (!update) return;
-        if (latestToastVersionRef.current === update.latestVersion) return;
-        latestToastVersionRef.current = update.latestVersion;
-        toast.info(t("appUpdate.title"), {
-          id: APP_UPDATE_TOAST_ID,
-          description: t("appUpdate.description", {
-            currentVersion: update.currentVersion,
-            latestVersion: update.latestVersion,
-          }),
-          action: {
-            label: t("appUpdate.refresh"),
-            onClick: () => window.location.reload(),
-          },
-          duration: Infinity,
-        });
+        setUpdate(resolveAppVersionUpdate({ currentVersion, latestVersion }));
       } catch {
         // Version checks are advisory; network failures should not interrupt
         // live tracking or airport workflows.
@@ -91,7 +91,13 @@ export default function AppUpdateToast({
       document.removeEventListener("visibilitychange", checkWhenVisible);
       window.removeEventListener("focus", checkWhenVisible);
     };
-  }, [checkIntervalMs, currentVersion, t]);
+  }, [checkIntervalMs, currentVersion]);
 
-  return null;
+  const value = useMemo(() => ({ update }), [update]);
+
+  return (
+    <AppVersionUpdateContext.Provider value={value}>
+      {children}
+    </AppVersionUpdateContext.Provider>
+  );
 }

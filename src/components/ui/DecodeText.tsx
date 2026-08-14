@@ -5,8 +5,7 @@ import { useEffect, useRef, useState } from "react";
 // here-mode place name so crossing into a new city/area reads as the label
 // being decoded rather than hard-cutting.
 //
-// Conventions match the rest of the app's motion (see FlightRuleGlyph): the
-// effect plays only on a real value change, and `prefers-reduced-motion`
+// The effect plays only on a real value change, and `prefers-reduced-motion`
 // jumps straight to the final text. Scramble characters are drawn from a pool
 // that matches the target's script (CJK target → CJK scramble) so glyph width
 // stays stable and the line doesn't jitter mid-animation.

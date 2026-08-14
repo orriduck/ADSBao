@@ -1,5 +1,4 @@
 const APP_VERSION_MANIFEST_PATH = "/adsbao-version.json";
-export const APP_UPDATE_TOAST_ID = "app-update-available";
 
 export type AppVersionUpdate = {
   currentVersion: string;

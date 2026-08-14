@@ -16,7 +16,6 @@ import {
   Wind,
 } from "lucide-react";
 import WayfindingMetric from "@/components/ui/WayfindingMetric";
-import FlightRuleGlyph, { type FlightRule } from "@/components/weather/FlightRuleGlyph";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import {
@@ -185,15 +184,9 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
   return (
     <>
       <HeroCard
-        icon={
-          category && level >= 0 ? (
-            <FlightRuleGlyph key={category} rule={category as FlightRule} />
-          ) : (
-            <Cloud />
-          )
-        }
+        icon={category && level >= 0 ? <CloudFog /> : <Cloud />}
       >
-        {/* Abbreviation + subtitle, with the category glyph drawing on to the right */}
+        {/* Abbreviation + subtitle; the rail uses the same standard icon scale as every metric. */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div
@@ -208,7 +201,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
             </div>
           </div>
         </div>
-        {/* Progress bar — fills to the current category's level after the glyph draws */}
+        {/* Progress bar — fills to the current category's level. */}
         <div className="mt-3.5 flex gap-1.5" aria-hidden="true">
           {FLIGHT_RULE_SEQUENCE.map((item, i) => {
             const on = level >= 0 && i <= level;
