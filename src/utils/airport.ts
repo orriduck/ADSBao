@@ -65,9 +65,9 @@ export const cleanAirportCode = (value: unknown) => {
 export const airportDisplayName = (airport, locale = "en") => {
   const fallback =
     airport?.name ||
+    cleanAirportCode(airport?.iata) ||
     cleanAirportCode(airport?.icao) ||
     cleanAirportCode(airport?.code) ||
-    cleanAirportCode(airport?.iata) ||
     "";
   if (locale !== "zh-CN") return fallback;
   const localizedName = String(airport?.localizedName || "").trim();
@@ -76,31 +76,26 @@ export const airportDisplayName = (airport, locale = "en") => {
   return AIRPORT_NAME_ZH[icao] || fallback;
 };
 
+// Public-facing airport code. IATA is the three-letter code travellers
+// expect (JFK, LHR), so it leads everywhere in the UI; ICAO and local
+// identifiers are fallbacks for airports that have no IATA code.
 export const airportDisplayCode = (airport: Record<string, any> = {}) =>
+  cleanAirportCode(airport?.iata) ||
   cleanAirportCode(airport?.icao) ||
   cleanAirportCode(airport?.code) ||
-  cleanAirportCode(airport?.iata) ||
   cleanAirportCode(airport?.localCode) ||
   cleanAirportCode(airport?.ident);
 
-// Directory rows lead with the public-facing IATA code when one exists.
-// Operational detail views continue to use airportDisplayCodeLine so their
-// ICAO identity is never lost.
+// Kept as an alias so directory/search call sites read as directory intent
+// while sharing the same IATA-first display rule as every other surface.
 export const airportDirectoryCode = (airport: Record<string, any> = {}) =>
-  cleanAirportCode(airport?.iata) || airportDisplayCode(airport);
+  airportDisplayCode(airport);
 
-export const airportDisplayCodeLine = (airport: Record<string, any> = {}) => {
-  const icao = cleanAirportCode(airport?.icao || airport?.code);
-  const iata = cleanAirportCode(airport?.iata);
-  if (iata && icao && iata !== icao) return `${iata} · ${icao}`;
-  return (
-    icao ||
-    iata ||
-    cleanAirportCode(airport?.localCode) ||
-    cleanAirportCode(airport?.ident) ||
-    "—"
-  );
-};
+// Single-line code display (IATA-first, ICAO/local fallback). Older call
+// sites used this name to render "IATA · ICAO"; it now returns only the
+// display code so the UI stays consistently three-letter when IATA exists.
+export const airportDisplayCodeLine = (airport: Record<string, any> = {}) =>
+  airportDisplayCode(airport) || "—";
 
 export const airportCityName = (city, locale = "en") => {
   const fallback = String(city || "");
