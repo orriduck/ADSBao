@@ -61,10 +61,7 @@ export default function AirportIdentity({
   const displayIata = cleanAirportCode(iata);
   const codeLine = nearMe
     ? nearMeBadge
-    : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata }).replace(
-        " · ",
-        " / ",
-      );
+    : airportDisplayCodeLine({ icao: displayIcao, iata: displayIata });
   const countryLabel = nearMe ? "" : countryName(country, locale) || country;
   const cityLabel = nearMe ? "" : airportCityName(city, locale);
   const displayName = nearMe
@@ -81,8 +78,8 @@ export default function AirportIdentity({
   // no country flag emoji, no separate local-time row (Frosted redesign).
   const metaLine = [placeText, coordLine].filter(Boolean).join("  ·  ");
   // The full name recedes to a 13px subtitle under the code. Suppress it
-  // when it would only echo the code/ICAO (e.g. before airport data loads,
-  // airportDisplayName falls back to the ICAO).
+  // when it would only echo the display code (e.g. before airport data loads,
+  // airportDisplayName falls back to the IATA/ICAO code).
   const nameLine =
     displayName && displayName !== codeLine && displayName !== displayIcao
       ? displayName

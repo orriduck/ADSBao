@@ -27,10 +27,8 @@ export default function AirportPreviewMobileCard({
 }: AirportPreviewMobileCardProps) {
   const { locale, t } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const codeLine = airportDisplayCodeLine(airport);
   const icao = cleanAirportCode(airport?.icao || airport?.code);
-  const iata = cleanAirportCode(airport?.iata);
-  const primaryCode = icao || codeLine;
+  const primaryCode = airportDisplayCodeLine(airport);
   const name = airportDisplayName(airport, locale);
   const flag = flagEmoji(airport?.country);
   const country = countryName(airport?.country, locale) || airport?.country || "";
@@ -59,14 +57,6 @@ export default function AirportPreviewMobileCard({
             >
               {primaryCode}
             </span>
-            {iata && iata !== primaryCode ? (
-              <span
-                className="notranslate flex-none whitespace-nowrap font-mono text-[12px] tracking-[0.04em] text-atc-dim"
-                translate="no"
-              >
-                {iata}
-              </span>
-            ) : null}
           </div>
           {name ? (
             <div className="mt-[5px] min-w-0 truncate text-[11.5px] leading-snug text-atc-dim">

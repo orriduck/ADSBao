@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 75;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.14.1",
+    version: "v3.14.2",
     kind: "feat",
     title: {
       en: "Cloudflare-native ADSBao",
       zh: "Cloudflare 原生 ADSBao",
     },
     summary: {
-      en: "Cloudflare now serves the site and API with restored free live traffic and airport context.",
-      zh: "Cloudflare 现承载站点与 API，并恢复免费实时流量与机场上下文。",
+      en: "Cloudflare now serves the site and API with restored free live traffic and airport context. Airport codes now display IATA-first across the UI.",
+      zh: "Cloudflare 现承载站点与 API，并恢复免费实时流量与机场上下文；机场代码统一优先显示 IATA。",
     },
     highlights: [],
   },

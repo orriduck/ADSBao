@@ -10,7 +10,7 @@ import { rowPropsEqual } from "./rowPropsEqual";
 
 // Airport equivalent of AircraftRow — same single-line, fixed-height rhythm
 // so an "airports & aircraft" mixed list reads as one coherent table:
-// [glyph] ICAO·IATA  country … distance / elevation. The full "City, Country"
+// [glyph] IATA  country … distance / elevation. The full "City, Country"
 // lives in the preview card, not the compact row.
 function AirportRow({
   airport,

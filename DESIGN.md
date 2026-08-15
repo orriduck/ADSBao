@@ -72,8 +72,9 @@ a metric merely to make it colorful.
 ## Typography and data
 
 - Keep the established sans family; do not condense or stretch it.
-- Callsigns and IATA/ICAO identifiers lead. Directory rows show IATA on line
-  one and the airport's full name on line two.
+- Callsigns and airport identifiers lead. Airport codes display IATA-first
+  (the three-letter public code) with ICAO/local codes as fallback when no
+  IATA code exists.
 - Labels are quiet and compact. Values are larger, tabular where appropriate,
   and aligned to a common baseline.
 - A metric may switch representations when clicked (for example kt / km/h or

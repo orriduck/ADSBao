@@ -26,9 +26,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
   const { preferences: units } = useUnitPreferences();
   const { pathname } = useLocation();
   const icao = cleanAirportCode(airport?.icao || airport?.code);
-  const iata = cleanAirportCode(airport?.iata);
-  const codeLine = airportDisplayCodeLine(airport);
-  const primaryCode = icao || codeLine;
+  const primaryCode = airportDisplayCodeLine(airport);
   const name = airportDisplayName(airport, locale) || t("sidebar.unknownAirport");
   const flag = flagEmoji(airport?.country);
   const country = countryName(airport?.country, locale) || airport?.country || "";
@@ -61,14 +59,6 @@ export default function AirportPreviewMetadataCard({ airport }) {
               >
                 {primaryCode}
               </span>
-              {iata && iata !== primaryCode ? (
-                <span
-                  className="notranslate flex-none whitespace-nowrap font-mono text-[12.5px] tracking-[0.04em] text-atc-dim"
-                  translate="no"
-                >
-                  {iata}
-                </span>
-              ) : null}
             </div>
             {name ? (
               <div className="min-w-0 truncate text-[13px] leading-snug text-atc-dim">

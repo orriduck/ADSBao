@@ -1,7 +1,7 @@
 import { Camera, RadioTower, Signpost, TowerControl } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Shared airport-pin badge — a code pill (IATA / ICAO) plus an
+// Shared airport-pin badge — an IATA-first code pill (ICAO fallback) plus an
 // optional list of detail chips (NEAR n, RWY n, APP n, distance NM…).
 //
 // Two render modes because Leaflet's L.divIcon accepts an HTML string,
