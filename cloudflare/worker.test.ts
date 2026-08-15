@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import {
   buildRuntimeEnvScript,
-  buildServiceUrl,
   handleRequest,
   isProxiedPath,
   type Env,
@@ -12,22 +11,9 @@ assert.equal(isProxiedPath("/events/nearby/callsign/DAL1576"), true);
 assert.equal(isProxiedPath("/health"), true);
 assert.equal(isProxiedPath("/airport/KBOS"), false);
 
-assert.equal(
-  buildServiceUrl(
-    "https://preview.example/api/airport/KBOS?units=us",
-    "https://railway.example/private/path",
-  ).toString(),
-  "https://railway.example/api/airport/KBOS?units=us",
-);
-assert.throws(() =>
-  buildServiceUrl("https://preview.example/health", "file:///tmp/service"),
-);
-assert.throws(() =>
-  buildServiceUrl("https://preview.example/health", "https://user:pass@example.com"),
-);
-
 const runtimeScript = buildRuntimeEnvScript({
   ASSETS: { fetch },
+  ADSBAO_BACKEND: { fetch },
   VITE_NEW_RELIC_ACCOUNT_ID: "123",
   VITE_NEW_RELIC_BROWSER_APP_ID: "456",
   VITE_NEW_RELIC_BROWSER_LICENSE_KEY: 'quote"safe',
@@ -43,6 +29,11 @@ const env: Env = {
       return new Response("asset");
     },
   },
+  ADSBAO_BACKEND: {
+    async fetch() {
+      throw new Error("Unexpected backend request");
+    },
+  },
 };
 
 const assetResponse = await handleRequest(
@@ -52,29 +43,42 @@ const assetResponse = await handleRequest(
 assert.equal(await assetResponse.text(), "asset");
 assert.ok(assetRequest instanceof Request);
 
-const missingOriginResponse = await handleRequest(
+let proxiedRequest: Request | null = null;
+const upstreamResponse = new Response("stream", {
+  headers: { "Content-Type": "text/event-stream" },
+});
+const sseRequest = new Request(
+  "https://preview.example/events/nearby/callsign/DAL1576?locale=en",
+  { headers: { Accept: "text/event-stream" } },
+);
+const proxiedResponse = await handleRequest(
+  sseRequest,
+  {
+    ...env,
+    ADSBAO_BACKEND: {
+      async fetch(request) {
+        assert.ok(request instanceof Request);
+        proxiedRequest = request;
+        return upstreamResponse;
+      },
+    },
+  },
+);
+assert.equal(proxiedRequest, sseRequest);
+assert.equal(
+  proxiedRequest?.url,
+  "https://preview.example/events/nearby/callsign/DAL1576?locale=en",
+);
+assert.equal(proxiedRequest?.headers.get("accept"), "text/event-stream");
+assert.equal(proxiedResponse, upstreamResponse);
+assert.equal(await proxiedResponse.text(), "stream");
+
+const unavailableResponse = await handleRequest(
   new Request("https://preview.example/health"),
   env,
 );
-assert.equal(missingOriginResponse.status, 503);
-assert.equal(missingOriginResponse.headers.get("cache-control"), "no-store");
-
-let proxiedUrl = "";
-let proxiedHeaders: Headers | null = null;
-const proxiedResponse = await handleRequest(
-  new Request("https://preview.example/health"),
-  { ...env, ADSBAO_SERVICE_ORIGIN: "https://railway.example" },
-  async (input, init) => {
-    proxiedUrl = String(input);
-    proxiedHeaders = new Headers(init?.headers);
-    return new Response("stream", {
-      headers: { "Content-Type": "text/event-stream" },
-    });
-  },
-);
-assert.equal(proxiedUrl, "https://railway.example/health");
-assert.equal(proxiedHeaders?.get("x-forwarded-host"), "preview.example");
-assert.equal(await proxiedResponse.text(), "stream");
+assert.equal(unavailableResponse.status, 502);
+assert.equal(unavailableResponse.headers.get("cache-control"), "no-store");
 
 const retiredResponse = await handleRequest(
   new Request("https://preview.example/ws"),

@@ -1,16 +1,4 @@
-type Fetcher = {
-  fetch(input: Request | string | URL, init?: RequestInit): Promise<Response>;
-};
-
-export type Env = {
-  ASSETS: Fetcher;
-  ADSBAO_SERVICE_ORIGIN?: string;
-  VITE_NEW_RELIC_ACCOUNT_ID?: string;
-  VITE_NEW_RELIC_BROWSER_APP_ID?: string;
-  VITE_NEW_RELIC_BROWSER_LICENSE_KEY?: string;
-};
-
-type FetchImplementation = typeof fetch;
+export type Env = CloudflareWorkerEnv;
 
 const PROXIED_PREFIXES = ["/api/", "/events/"] as const;
 const PROXIED_EXACT_PATHS = new Set(["/api", "/events", "/health"]);
@@ -20,19 +8,6 @@ export function isProxiedPath(pathname: string) {
     PROXIED_EXACT_PATHS.has(pathname) ||
     PROXIED_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   );
-}
-
-export function buildServiceUrl(requestUrl: string, rawOrigin: string) {
-  const incoming = new URL(requestUrl);
-  const origin = new URL(rawOrigin);
-  if (!(["http:", "https:"] as string[]).includes(origin.protocol)) {
-    throw new Error("Unsupported service origin protocol");
-  }
-  if (origin.username || origin.password) {
-    throw new Error("Service origin must not contain credentials");
-  }
-
-  return new URL(`${incoming.pathname}${incoming.search}`, origin.origin);
 }
 
 export function buildRuntimeEnvScript(env: Env) {
@@ -54,37 +29,7 @@ function noStoreHeaders(contentType: string) {
   };
 }
 
-async function proxyToService(
-  request: Request,
-  rawOrigin: string,
-  fetchImpl: FetchImplementation,
-) {
-  const incoming = new URL(request.url);
-  const target = buildServiceUrl(request.url, rawOrigin);
-  const headers = new Headers(request.headers);
-  headers.delete("host");
-  headers.set("X-Forwarded-Host", incoming.host);
-  headers.set("X-Forwarded-Proto", incoming.protocol.replace(/:$/, ""));
-
-  const init: RequestInit = {
-    method: request.method,
-    headers,
-    redirect: "manual",
-  };
-  if (request.method !== "GET" && request.method !== "HEAD") {
-    init.body = request.body;
-  }
-
-  // Returning the upstream response without reading its body preserves SSE
-  // streaming and avoids converting realtime traffic into buffered payloads.
-  return fetchImpl(target, init);
-}
-
-export async function handleRequest(
-  request: Request,
-  env: Env,
-  fetchImpl: FetchImplementation = fetch,
-) {
+export async function handleRequest(request: Request, env: Env) {
   const { pathname } = new URL(request.url);
 
   if (pathname === "/ws") {
@@ -101,19 +46,11 @@ export async function handleRequest(
   }
 
   if (isProxiedPath(pathname)) {
-    const serviceOrigin = env.ADSBAO_SERVICE_ORIGIN?.trim();
-    if (!serviceOrigin) {
-      return Response.json(
-        { error: "backend_origin_not_configured" },
-        {
-          status: 503,
-          headers: noStoreHeaders("application/json; charset=utf-8"),
-        },
-      );
-    }
-
     try {
-      return await proxyToService(request, serviceOrigin, fetchImpl);
+      // Forward the original Request and return the backend Response untouched.
+      // In particular, never consume the body: EventSource streams must remain
+      // streaming across the Worker-to-Worker service binding.
+      return await env.ADSBAO_BACKEND.fetch(request);
     } catch {
       return Response.json(
         { error: "backend_unavailable" },
