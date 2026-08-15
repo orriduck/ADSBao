@@ -46,32 +46,32 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 74;
+export const CHANGELOG_TOTAL_COUNT = 75;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.13.37",
+    version: "v3.14.0",
     kind: "feat",
     title: {
-      en: "Complete wayfinding workspace",
-      zh: "完整导视化工作区",
+      en: "Cloudflare-native ADSBao",
+      zh: "Cloudflare 原生 ADSBao",
     },
     summary: {
-      en: "Wayfinding surfaces stay consistent, and the app now runs end to end on Cloudflare while preserving its API and live EventSource traffic contracts.",
-      zh: "导视界面保持一致，应用现已端到端运行于 Cloudflare，并完整保留既有 API 与 EventSource 实时流量契约。",
+      en: "The site, API, live EventSource traffic, and airport catalogue now run on Cloudflare.",
+      zh: "站点、API、EventSource 实时流量与机场目录现均运行在 Cloudflare。",
     },
     highlights: [],
   },
   {
-    version: "v3.12.4",
+    version: "v3.13.37",
     kind: "feat",
     title: {
-      en: "Operational wayfinding",
-      zh: "导视化追踪界面",
+      en: "Cloudflare delivery",
+      zh: "Cloudflare 交付",
     },
     summary: {
-      en: "Airport, flight, and first-screen sidebars adopt a concise joined-sign hierarchy with clearer metrics, filters, and aircraft lists.",
-      zh: "机场、航班与首屏侧栏采用简洁的连体导视层级，并提升指标、筛选器与飞机列表的扫读效率。",
+      en: "The frontend began routing same-origin API and EventSource requests through Cloudflare.",
+      zh: "前端开始经由 Cloudflare 转发同源 API 与 EventSource 请求。",
     },
     highlights: [],
   },

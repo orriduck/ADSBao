@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.12.4",
+    kind: "feat",
+    title: {
+      en: "Operational wayfinding",
+      zh: "导视化追踪界面",
+    },
+    summary: {
+      en: "Airport, flight, and first-screen sidebars adopt a concise joined-sign hierarchy with clearer metrics, filters, and aircraft lists.",
+      zh: "机场、航班与首屏侧栏采用简洁的连体导视层级，并提升指标、筛选器与飞机列表的扫读效率。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.10.28",
     kind: "feat",
     title: {
