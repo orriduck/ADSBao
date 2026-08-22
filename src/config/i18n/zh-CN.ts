@@ -420,7 +420,7 @@ const zhCN = {
     composeStepLabel: "套模板",
     closeStudio: "关闭",
     templateLabel: "模板",
-    rotateTemplate: "旋转模板",
+    rotateTemplate: "旋转",
     templates: {
       none: "不加模板",
       previewCard: "预览卡片",

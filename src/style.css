@@ -8325,18 +8325,25 @@ body {
 
 .plane-hunter-review-dock {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) 48px minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     padding-left: 12px;
     padding-right: 12px;
     width: 100%;
 }
 
+.plane-hunter-review-image-stage {
+    background: var(--plane-hunter-surface);
+}
+
 .plane-hunter-review-dock__tool,
 .plane-hunter-review-dock__share {
     border-radius: 999px;
+    gap: 6px;
     min-width: 0;
     overflow: hidden;
+    padding-left: 8px;
+    padding-right: 8px;
     white-space: nowrap;
 }
 
@@ -8380,16 +8387,33 @@ body {
         width: 66px;
     }
 
+}
+
+/* iPhone landscape viewports can be slightly shorter than 360 CSS pixels.
+   Keep the captured photo dominant at every landscape height instead of
+   falling back to the large portrait action row. */
+@media (orientation: landscape) {
+    .plane-hunter-review-layout {
+        flex-direction: row;
+    }
+
     .plane-hunter-review-dock {
+        border-left-width: 1px;
+        border-top-width: 0;
         display: flex;
+        flex-direction: column;
         gap: 8px;
-        padding: 12px 0 12px 12px;
-        width: 154px;
+        height: 100%;
+        padding: 12px max(10px, env(safe-area-inset-right)) 12px 10px;
+        width: 136px;
     }
 
     .plane-hunter-review-dock__tool,
     .plane-hunter-review-dock__share {
+        flex: 0 0 48px;
         justify-content: center;
+        padding-left: 10px;
+        padding-right: 10px;
         width: 100%;
     }
 

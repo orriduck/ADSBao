@@ -1539,19 +1539,12 @@ function PlaneHunterReviewView({
   return (
     <div className="absolute inset-0 overflow-hidden bg-[var(--plane-hunter-surface)]">
       <PlaneHunterStageHeader labels={labels} onClose={onClose} t={t} />
-      <div className="absolute inset-0 flex flex-col landscape:flex-row">
-        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+      <div className="plane-hunter-review-layout absolute inset-0 flex flex-col landscape:flex-row">
+        <div className="plane-hunter-review-image-stage relative min-h-0 min-w-0 flex-1 overflow-hidden">
           <img
             src={image}
             alt=""
-            aria-hidden="true"
-            className="media-photo-color absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl"
-            draggable="false"
-          />
-          <img
-            src={image}
-            alt=""
-            className="media-photo-color relative z-[1] h-full w-full object-contain"
+            className="media-photo-color block h-full w-full object-contain"
             draggable="false"
           />
         </div>
@@ -1581,7 +1574,7 @@ function PlaneHunterReviewView({
             aria-label={t("planeHunter.rotateTemplate")}
             title={t("planeHunter.rotateTemplate")}
             className={cn(
-              "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 landscape:hidden",
+              "plane-hunter-review-dock__tool inline-flex min-h-12 items-center justify-center gap-2 border border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-control-surface)] px-4 text-[13px] font-[var(--plane-hunter-weight-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100",
               template === "none"
                 ? "text-[var(--plane-hunter-paper-muted)]"
                 : "text-[var(--plane-hunter-paper-soft)]",
@@ -1592,6 +1585,7 @@ function PlaneHunterReviewView({
               className="size-4 transition-transform"
               style={{ transform: `rotate(${templateRotation}deg)` }}
             />
+            <span>{t("planeHunter.rotateTemplate")}</span>
           </button>
           <button
             type="button"
