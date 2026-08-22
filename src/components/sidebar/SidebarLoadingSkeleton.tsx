@@ -12,17 +12,25 @@ function Placeholder({ className = "" }: { className?: string }) {
   );
 }
 
-function Rail() {
+function Rail({ className = "" }: { className?: string }) {
   return (
-    <span className="sidebar-loading-skeleton__rail">
+    <span className={`sidebar-loading-skeleton__rail ${className}`.trim()}>
       <Placeholder className="sidebar-loading-skeleton__icon" />
     </span>
   );
 }
 
-function MetricPlaceholder({ wide = false }: { wide?: boolean }) {
+function MetricPlaceholder({
+  wide = false,
+  compact = false,
+}: {
+  wide?: boolean;
+  compact?: boolean;
+}) {
   return (
-    <div className="sidebar-loading-skeleton__metric">
+    <div
+      className={`sidebar-loading-skeleton__metric ${compact ? "sidebar-loading-skeleton__metric--compact" : ""}`.trim()}
+    >
       <Rail />
       <span className="sidebar-loading-skeleton__metric-copy">
         <Placeholder className={wide ? "w-16" : "w-11"} />
@@ -35,18 +43,25 @@ function MetricPlaceholder({ wide = false }: { wide?: boolean }) {
 export function SidebarLoadingHeader({
   variant = "airport",
 }: Omit<SidebarLoadingSkeletonProps, "section">) {
+  const isAirport = variant === "airport";
+
   return (
     <div
       aria-hidden="true"
       className="sidebar-loading-skeleton sidebar-loading-skeleton--header"
       data-variant={variant}
     >
-      <div className="sidebar-loading-skeleton__identity">
-        <Rail />
-        <span className="sidebar-loading-skeleton__identity-copy">
-          <Placeholder className={variant === "flight" ? "h-6 w-24" : "h-6 w-32"} />
-          <Placeholder className="w-44" />
-          <Placeholder className="w-36" />
+      <div
+        className={`sidebar-loading-skeleton__identity ${isAirport ? "airport-wayfinding-identity" : ""}`.trim()}
+      >
+        <Rail className={isAirport ? "wayfinding-rail" : ""} />
+        <span
+          className={`sidebar-loading-skeleton__identity-copy ${isAirport ? "airport-wayfinding-identity__content" : ""}`.trim()}
+        >
+          <Placeholder className="sidebar-loading-skeleton__identity-code" />
+          <Placeholder className="sidebar-loading-skeleton__identity-name" />
+          <Placeholder className="sidebar-loading-skeleton__identity-meta" />
+          <Placeholder className="sidebar-loading-skeleton__identity-detail" />
         </span>
       </div>
 
@@ -55,10 +70,17 @@ export function SidebarLoadingHeader({
         <MetricPlaceholder wide />
         <MetricPlaceholder wide />
         <MetricPlaceholder />
+        {isAirport ? (
+          <>
+            <MetricPlaceholder compact wide />
+            <MetricPlaceholder compact />
+          </>
+        ) : null}
       </div>
 
-      <div className="sidebar-loading-skeleton__secondary-row">
-        <span className="sidebar-loading-skeleton__secondary-copy">
+      <div className="sidebar-loading-skeleton__secondary-row provider-link-row">
+        <span aria-hidden="true" className="provider-link-row__rail" />
+        <span className="sidebar-loading-skeleton__secondary-copy provider-link-row__content">
           <Placeholder className="w-24" />
           <Placeholder className="ml-auto w-16" />
         </span>
@@ -85,9 +107,12 @@ export function SidebarLoadingContent() {
       aria-hidden="true"
       className="sidebar-loading-skeleton sidebar-loading-skeleton--content"
     >
-      <div className="sidebar-loading-skeleton__section-head">
-        <Placeholder className="w-12" />
-        <Placeholder className="ml-auto w-14" />
+      <div className="sidebar-loading-skeleton__section-head aircraft-table-controls-header">
+        <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
+        <span className="sidebar-loading-skeleton__section-head-copy aircraft-table-controls-header__content">
+          <Placeholder className="w-12" />
+          <Placeholder className="ml-auto w-14" />
+        </span>
       </div>
 
       <div className="sidebar-loading-skeleton__search">

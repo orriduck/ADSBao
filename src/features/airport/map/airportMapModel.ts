@@ -23,7 +23,6 @@ type AirportMapInitialCenterOptions = {
 
 type NearbyAirportLayerDisplayOptions = {
   nearbyAirports?: AirportMapCoordinate[];
-  showMapLabels?: unknown;
 };
 
 type VisibleAircraftOptions = {

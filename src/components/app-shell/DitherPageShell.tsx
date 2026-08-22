@@ -71,7 +71,11 @@ export default function DitherPageShell({
         className="dither-page-panel relative isolate flex w-[var(--app-sidebar-width)] flex-none flex-col border-r border-[var(--atc-line-strong)] bg-atc-bg transition-[width] duration-300 ease-in-out"
       >
         <div className="dither-page-header dither-page-header--copy-only flex-none">
-          <div className="dither-page-copy dither-wayfinding-identity relative grid min-h-[136px] grid-cols-[36px_minmax(0,1fr)] content-center gap-y-2 overflow-hidden">
+          <div className="dither-page-copy dither-wayfinding-identity relative grid min-h-[136px] grid-cols-[36px_minmax(0,1fr)] content-start gap-y-2 overflow-hidden py-[34px]">
+            <span
+              aria-hidden="true"
+              className="dither-wayfinding-identity__content absolute inset-y-0 left-9 right-0"
+            />
             <span
               aria-hidden="true"
               className="dither-wayfinding-identity__rail absolute inset-y-0 left-0 w-9"
@@ -80,12 +84,12 @@ export default function DitherPageShell({
               aria-hidden="true"
               data-motion-kind="identity"
               data-motion-rail="true"
-              className="dither-wayfinding-identity__icon absolute left-0 top-[11px] z-[1] flex w-9 items-center justify-center [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
+              className="dither-wayfinding-identity__icon col-start-1 row-start-1 z-[1] flex w-9 items-start justify-center self-start pt-[2px] [&>svg]:size-[16px] [&>svg]:stroke-[1.8]"
             >
               <RouteIcon className="wayfinding-rail-glyph" />
             </span>
             <h1
-              className="atc-page-title col-start-2 row-start-1 min-w-0 px-3 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"
+              className="atc-page-title z-[1] col-start-2 row-start-1 min-w-0 px-3 text-[calc(26px*var(--sb-title-scale))] font-extrabold leading-[1.12] text-atc-text"
               style={{
                 fontFamily: "var(--font-display)",
                 letterSpacing: "normal",
@@ -94,7 +98,7 @@ export default function DitherPageShell({
               <span className="block break-words">{resolvedTitle}</span>
             </h1>
             {hasDescription ? (
-              <p className="dither-page-description fs-desc col-start-2 row-start-2 min-w-0 px-3">
+              <p className="dither-page-description fs-desc z-[1] col-start-2 row-start-2 min-w-0 px-3">
                 {resolvedDescription}
               </p>
             ) : null}

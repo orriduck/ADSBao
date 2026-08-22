@@ -24,7 +24,7 @@ const MAP_TILE_REBUILD_AFTER_HIDDEN_MS = 15_000;
 export default function MapTileLayers({
   theme = "dark",
   locale = "en",
-  showLabels = true,
+  labelLevel = "all",
   baseLayer = "terrain",
   selectionActive = false,
   onReadinessChange = null,
@@ -61,7 +61,7 @@ export default function MapTileLayers({
     loadLocalizedMapStyle({
       theme,
       locale,
-      showLabels,
+      labelLevel,
       baseLayer,
       signal: abort.signal,
     })
@@ -119,7 +119,7 @@ export default function MapTileLayers({
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
-  }, [map, theme, locale, showLabels, baseLayer, onReadinessChange, resumeRevision]);
+  }, [map, theme, locale, labelLevel, baseLayer, onReadinessChange, resumeRevision]);
 
   useEffect(() => {
     setSelectionOpacity(layerRef.current, theme, selectionActive);
@@ -177,13 +177,13 @@ export default function MapTileLayers({
 async function loadLocalizedMapStyle({
   theme,
   locale,
-  showLabels,
+  labelLevel,
   baseLayer,
   signal,
 }: Record<string, any>) {
   const params = new URLSearchParams({
     locale,
-    labels: showLabels ? "1" : "0",
+    labels: labelLevel === "off" ? "0" : "1",
     v: MAP_STYLE_THEME_REVISION,
   });
   if (baseLayer) params.set("baseLayer", baseLayer);
@@ -194,7 +194,7 @@ async function loadLocalizedMapStyle({
     theme,
     baseLayer,
   });
-  return buildLocalizedMapLibreStyle(themedStyle, { locale, showLabels });
+  return buildLocalizedMapLibreStyle(themedStyle, { locale, labelLevel });
 }
 
 async function requestJson(url: string, { signal }: Record<string, any> = {}) {

@@ -46,9 +46,22 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 76;
+export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.16.0",
+    kind: "feat",
+    title: {
+      en: "Tracking interface refinement",
+      zh: "追踪界面精修",
+    },
+    summary: {
+      en: "Layered map labels, aligned security-glass wayfinding, and clearer Plane Studio controls refine airport tracking.",
+      zh: "分级地图标签、统一的安检玻璃导视和更清晰的 Plane Studio 控件进一步完善机场追踪体验。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.15.2",
     kind: "feat",
@@ -59,19 +72,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     summary: {
       en: "A grayscale-and-yellow wayfinding refresh sharpens aircraft, stabilizes nearby lists, and gives Plane Studio a calmer camera and capture-review interface.",
       zh: "灰黄导视更新提升飞机清晰度、稳定附近列表，并让 Plane Studio 的拍摄与成片审核界面更清晰克制。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v3.14.3",
-    kind: "feat",
-    title: {
-      en: "Cloudflare-native ADSBao",
-      zh: "Cloudflare 原生 ADSBao",
-    },
-    summary: {
-      en: "Cloudflare serves the site and API with free live traffic and airport context. The interface now pairs a grayscale wayfinding system with yellow reserved for airport identity and the primary Track action, color photography, one calm typeface, clearer hierarchy, continuous full-height rails with a restrained glass finish, white provider marks on a compact deep-blue sign, a quieter airport directory, and complete airport identities.",
-      zh: "Cloudflare 承载站点与 API，并提供免费实时流量与机场上下文；界面现采用灰度导视系统，仅以黄色标记机场身份和主 Track 操作，并结合彩色摄影、单一字体、清晰字阶、带克制玻璃质感的连续全高 rail、紧凑深蓝导视条上的白色服务商标识、更安静的机场目录和完整的机场身份信息建立层级。",
     },
     highlights: [],
   },

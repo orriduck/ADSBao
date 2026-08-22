@@ -10,7 +10,7 @@ const en = {
     airportExplorer: "Airports",
     aboutTitle: "About",
     aboutSubtitle: "How ADSBao is built",
-    mechanismTitle: "Mechanism & Architecture",
+    mechanismTitle: "Backroom",
     mechanismSubtitle: "How the realtime system fits together",
     siteDescription:
       "Airport context with METAR weather, nearby aircraft, route hints, and map overlays.",
@@ -26,7 +26,7 @@ const en = {
     homePage: "Home",
     map: "Map",
     about: "About",
-    mechanism: "Mechanism & Architecture",
+    mechanism: "Backroom",
     changelog: "Changelog",
   },
   about: {
@@ -104,7 +104,7 @@ const en = {
     },
   },
   mechanism: {
-    title: "Mechanism & Architecture",
+    title: "Backroom",
     description:
       "How ADSBao keeps map tracking, here mode, nearby lists, and realtime delivery coordinated.",
     sidebarLabel: "System profile",
@@ -655,8 +655,13 @@ const en = {
   },
   mapLayers: {
     mapLabels: "Map labels",
-    showMapLabels: "Show map labels",
-    hideMapLabels: "Hide map labels",
+    mapLabelLevelControl: "Map label detail",
+    mapLabelLevels: {
+      off: "Off",
+      majorCities: "States / provinces + major cities",
+      majorHighways: "States / provinces + major cities + highway numbers",
+      all: "All labels",
+    },
     approachBeams: "Approach beams",
     showApproachBeams: "Show approach beams",
     hideApproachBeams: "Hide approach beams",

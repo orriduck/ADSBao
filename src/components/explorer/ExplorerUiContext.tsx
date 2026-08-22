@@ -162,12 +162,6 @@ function airportExplorerUiReducer(state, action) {
         mapZoom: action.mapZoom,
         mapFollowsAircraft: true,
       };
-    case "toggleMapLabels":
-      return applyManualLayerToggle(
-        state,
-        MAP_LAYER_KEYS.MAP_LABELS,
-        toggleValue(state.showMapLabels),
-      );
     case "toggleRunwayBeams":
       return applyManualLayerToggle(
         state,
@@ -470,7 +464,7 @@ export function ExplorerUiProvider({ children }) {
     sidebarMode,
     sidebarOpen,
     mapZoom,
-    showMapLabels,
+    mapLabelLevel,
     showRunwayBeams,
     showNavaidMarkers,
     showReportingPoints,
@@ -585,10 +579,6 @@ export function ExplorerUiProvider({ children }) {
     },
     [mapSettings, mapSettingsDevice],
   );
-
-  const toggleMapLabels = useCallback(() => {
-    dispatch({ type: "toggleMapLabels" });
-  }, []);
 
   const toggleRunwayBeams = useCallback(() => {
     dispatch({ type: "toggleRunwayBeams" });
@@ -717,7 +707,7 @@ export function ExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       mapFollowsAircraft,
-      showMapLabels,
+      mapLabelLevel,
       showRunwayBeams,
       showNavaidMarkers,
       showReportingPoints,
@@ -750,7 +740,6 @@ export function ExplorerUiProvider({ children }) {
       setEntityFilter,
       toggleSidebar,
       closeSidebar,
-      toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleReportingPoints,
@@ -784,7 +773,7 @@ export function ExplorerUiProvider({ children }) {
       isMobile,
       mapZoom,
       mapFollowsAircraft,
-      showMapLabels,
+      mapLabelLevel,
       showRunwayBeams,
       showNavaidMarkers,
       showReportingPoints,
@@ -817,7 +806,6 @@ export function ExplorerUiProvider({ children }) {
       setEntityFilter,
       toggleSidebar,
       closeSidebar,
-      toggleMapLabels,
       toggleRunwayBeams,
       toggleNavaidMarkers,
       toggleReportingPoints,

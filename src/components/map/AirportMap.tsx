@@ -100,7 +100,7 @@ export default function AirportMap({
   fullTraceContext = false,
   onContextTilesChange = null,
   airport = null,
-  showMapLabels = false,
+  mapLabelLevel = "off",
   showRunwayBeams = true,
   showNavaidMarkers = false,
   showReportingPoints = false,
@@ -701,7 +701,6 @@ export default function AirportMap({
   });
   const nearbyAirportLayerDisplay = resolveNearbyAirportLayerDisplay({
     nearbyAirports,
-    showMapLabels,
   });
   const mapVisualReady = resolveMapVisualReady({
     mapCreated: Boolean(mapInstance),
@@ -785,7 +784,7 @@ export default function AirportMap({
           <MapTileLayers
             theme={currentTheme}
             locale={locale}
-            showLabels={showMapLabels}
+            labelLevel={mapLabelLevel}
             baseLayer={baseLayer}
             selectionActive={selectionActive}
             onReadinessChange={handleMapTileReadinessChange}

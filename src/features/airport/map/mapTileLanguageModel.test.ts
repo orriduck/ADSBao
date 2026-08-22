@@ -7,6 +7,7 @@ import {
   buildStandardDetailMapLibreStyle,
   getMapLibreBaseStyleUrl,
 } from "./mapTileLanguageModel";
+import { MAP_LABEL_LEVEL_IDS } from "./mapLabelLevelModel";
 
 assert.equal(
   getMapLibreBaseStyleUrl("dark"),
@@ -29,7 +30,7 @@ assert.equal(
       {
         id: "place_city",
         type: "symbol",
-        layout: { "text-field": ["get", "name"] },
+        layout: { "text-field": ["get", "name"], "text-size": 18 },
       },
       {
         id: "road_oneway",
@@ -41,7 +42,7 @@ assert.equal(
 
   const localized = buildLocalizedMapLibreStyle(style, {
     locale: "zh-CN",
-    showLabels: true,
+    labelLevel: MAP_LABEL_LEVEL_IDS.ALL,
   });
 
   assert.notEqual(localized, style);
@@ -56,7 +57,54 @@ assert.equal(
     ["get", "name_en"],
   ]);
   assert.equal(localized.layers[1].layout.visibility, undefined);
+  assert.equal(localized.layers[1].layout["text-size"], 10);
   assert.equal(localized.layers[2].layout.visibility, undefined);
+}
+
+{
+  const interpolatedSize = [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    4,
+    9,
+    11,
+    18,
+  ];
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "place_city",
+        type: "symbol",
+        layout: {
+          "text-field": ["get", "name"],
+          "text-size": interpolatedSize,
+        },
+      },
+      {
+        id: "place_village",
+        type: "symbol",
+        layout: { "text-field": ["get", "name"], "text-size": 9 },
+      },
+    ],
+  };
+
+  const localized = buildLocalizedMapLibreStyle(style, {
+    locale: "en",
+    labelLevel: MAP_LABEL_LEVEL_IDS.ALL,
+  });
+
+  assert.deepEqual(localized.layers[0].layout["text-size"], [
+    "interpolate",
+    ["linear"],
+    ["zoom"],
+    4,
+    9,
+    11,
+    10,
+  ]);
+  assert.equal(localized.layers[1].layout["text-size"], 9);
 }
 
 {
@@ -73,7 +121,7 @@ assert.equal(
 
   const localized = buildLocalizedMapLibreStyle(style, {
     locale: "fr",
-    showLabels: true,
+    labelLevel: MAP_LABEL_LEVEL_IDS.ALL,
   });
 
   assert.deepEqual(localized.layers[0].layout["text-field"], [
@@ -158,11 +206,156 @@ assert.equal(
 
   const localized = buildLocalizedMapLibreStyle(style, {
     locale: "en",
-    showLabels: false,
+    labelLevel: MAP_LABEL_LEVEL_IDS.OFF,
   });
 
   assert.equal(localized.layers[0].layout.visibility, "none");
   assert.equal(localized.layers[1].layout.visibility, undefined);
+}
+
+{
+  const style = {
+    version: 8,
+    layers: [
+      {
+        id: "label_state",
+        type: "symbol",
+        maxzoom: 8,
+        filter: ["==", ["get", "class"], "state"],
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "label_city",
+        type: "symbol",
+        filter: ["==", ["get", "class"], "city"],
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "label_city_capital",
+        type: "symbol",
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "label_town",
+        type: "symbol",
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "highway-name-major",
+        type: "symbol",
+        minzoom: 12.2,
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "highway-shield-us-interstate",
+        type: "symbol",
+        layout: { "text-field": ["get", "ref"] },
+      },
+      {
+        id: "highway-shield-non-us",
+        type: "symbol",
+        minzoom: 8,
+        filter: ["!=", ["get", "network"], "us-interstate"],
+        layout: { "text-field": ["get", "ref"] },
+      },
+      {
+        id: "highway_name_motorway",
+        type: "symbol",
+        filter: ["==", ["get", "class"], "motorway"],
+        layout: { "text-field": ["get", "name"] },
+      },
+      {
+        id: "highway_name_other",
+        type: "symbol",
+        filter: ["!=", ["get", "class"], "motorway"],
+        layout: { "text-field": ["get", "name"] },
+      },
+    ],
+  };
+
+  const off = buildLocalizedMapLibreStyle(style, {
+    labelLevel: MAP_LABEL_LEVEL_IDS.OFF,
+  });
+  assert.equal(off.layers[0].layout.visibility, "none");
+  assert.equal(off.layers[1].layout.visibility, "none");
+  assert.equal(off.layers[4].layout.visibility, "none");
+
+  const majorCities = buildLocalizedMapLibreStyle(style, {
+    labelLevel: MAP_LABEL_LEVEL_IDS.MAJOR_CITIES,
+  });
+  assert.equal(majorCities.layers[0].layout.visibility, undefined);
+  assert.equal(majorCities.layers[0].maxzoom, 15);
+  assert.deepEqual(majorCities.layers[0].filter, [
+    "match",
+    ["get", "class"],
+    ["state", "province"],
+    true,
+    false,
+  ]);
+  assert.equal(majorCities.layers[1].layout.visibility, undefined);
+  assert.equal(majorCities.layers[1].layout["text-size"], 10);
+  assert.equal(majorCities.layers[2].layout.visibility, undefined);
+  assert.equal(majorCities.layers[3].layout.visibility, "none");
+  assert.equal(majorCities.layers[4].layout.visibility, "none");
+  assert.deepEqual(majorCities.layers[1].filter, [
+    "all",
+    ["==", ["get", "class"], "city"],
+    ["<=", ["get", "rank"], 10],
+  ]);
+
+  const majorHighways = buildLocalizedMapLibreStyle(style, {
+    labelLevel: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
+  });
+  assert.equal(majorHighways.layers[0].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[1].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[1].layout["text-size"], 10);
+  assert.equal(majorHighways.layers[3].layout.visibility, "none");
+  assert.equal(majorHighways.layers[4].layout.visibility, "none");
+  assert.equal(majorHighways.layers[5].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[5].layout["text-size"], 8);
+  assert.deepEqual(majorHighways.layers[5].layout["text-field"], ["get", "ref"]);
+  assert.deepEqual(majorHighways.layers[5].filter, [
+    "all",
+    ["has", "ref"],
+  ]);
+  assert.equal(majorHighways.layers[6].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[6].layout["text-size"], 8);
+  assert.deepEqual(majorHighways.layers[6].layout["text-field"], ["get", "ref"]);
+  assert.deepEqual(majorHighways.layers[6].filter, [
+    "all",
+    ["!=", ["get", "network"], "us-interstate"],
+    ["has", "ref"],
+    ["match", ["get", "class"], ["motorway", "trunk"], true, false],
+  ]);
+  assert.equal(majorHighways.layers[7].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[7].layout["text-size"], 8);
+  assert.deepEqual(majorHighways.layers[7].layout["text-field"], ["get", "ref"]);
+  assert.equal(majorHighways.layers[8].layout.visibility, undefined);
+  assert.equal(majorHighways.layers[8].layout["text-size"], 8);
+  assert.deepEqual(majorHighways.layers[8].filter, [
+    "all",
+    ["!=", ["get", "class"], "motorway"],
+    ["has", "ref"],
+    ["match", ["get", "class"], ["motorway", "trunk"], true, false],
+  ]);
+
+  const all = buildLocalizedMapLibreStyle(style, {
+    labelLevel: MAP_LABEL_LEVEL_IDS.ALL,
+  });
+  assert.equal(all.layers[0].maxzoom, 8);
+  assert.equal(all.layers[3].layout.visibility, undefined);
+  assert.equal(all.layers[4].layout.visibility, undefined);
+  assert.equal(all.layers[4].minzoom, 12.2);
+  assert.equal(all.layers[5].layout.visibility, undefined);
+  assert.equal(all.layers[5].layout["text-size"], 8);
+  assert.deepEqual(all.layers[5].layout["text-field"], ["get", "ref"]);
+  assert.equal(all.layers[6].layout.visibility, undefined);
+  assert.equal(all.layers[6].layout["text-size"], 8);
+  assert.deepEqual(all.layers[6].layout["text-field"], ["get", "ref"]);
+  assert.equal(all.layers[7].layout.visibility, undefined);
+  assert.equal(all.layers[7].layout["text-size"], 10);
+  assert.notDeepEqual(all.layers[7].layout["text-field"], ["get", "ref"]);
+  assert.equal(all.layers[8].layout.visibility, undefined);
 }
 
 {

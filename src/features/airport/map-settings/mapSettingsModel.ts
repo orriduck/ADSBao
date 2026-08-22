@@ -1,3 +1,9 @@
+import {
+  DEFAULT_MAP_LABEL_LEVEL,
+  isKnownMapLabelLevel,
+  normalizeMapLabelLevel,
+} from "@/features/airport/map/mapLabelLevelModel";
+
 type MapSettingsRecord = Record<string, any>;
 type MapSettingsOptions = Record<string, any>;
 
@@ -85,7 +91,7 @@ export const DEFAULT_MAP_SETTINGS: MapSettingsRecord = Object.freeze({
   selectedMode: MAP_MODE_IDS.CUSTOM,
   baseMode: MAP_MODE_IDS.CUSTOM,
   layerOverrides: Object.freeze({
-    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    [MAP_LAYER_KEYS.MAP_LABELS]: DEFAULT_MAP_LABEL_LEVEL,
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
     [MAP_LAYER_KEYS.CANDIDATE_WATCHING_SPOTS]: true,
     [MAP_LAYER_KEYS.SHOW_CALLSIGNS]: false,
@@ -157,7 +163,13 @@ function normalizeMapLayerOverrides(layerOverrides: unknown) {
 
   return Object.fromEntries(
     Object.entries(layerOverrides)
-      .filter(([key, value]) => LAYER_KEY_SET.has(key) && typeof value === "boolean")
+      .filter(
+        ([key, value]) =>
+          LAYER_KEY_SET.has(key) &&
+          (key === MAP_LAYER_KEYS.MAP_LABELS
+            ? isKnownMapLabelLevel(value)
+            : typeof value === "boolean"),
+      )
       .map(([key, value]) => [key, value]),
   );
 }
@@ -284,7 +296,7 @@ function resolveMapSettingsLayers(
 ) {
   const normalized = normalizeMapSettings(settings);
   return {
-    [MAP_LAYER_KEYS.MAP_LABELS]: true,
+    [MAP_LAYER_KEYS.MAP_LABELS]: DEFAULT_MAP_LABEL_LEVEL,
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: false,
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: false,
     [MAP_LAYER_KEYS.REPORTING_POINTS]: false,
@@ -303,7 +315,11 @@ export function buildCustomMapSettings({
   now = new Date().toISOString(),
 }: MapSettingsOptions = {}) {
   const normalized = normalizeMapSettings(settings);
-  if (!LAYER_KEY_SET.has(layerKey) || typeof value !== "boolean") {
+  const validValue =
+    layerKey === MAP_LAYER_KEYS.MAP_LABELS
+      ? isKnownMapLabelLevel(value)
+      : typeof value === "boolean";
+  if (!LAYER_KEY_SET.has(layerKey) || !validValue) {
     return normalized;
   }
 
@@ -345,7 +361,7 @@ export function mapSettingsToExplorerLayers(
 ) {
   const layers = resolveMapSettingsLayers(settings);
   return {
-    showMapLabels: layers[MAP_LAYER_KEYS.MAP_LABELS],
+    mapLabelLevel: normalizeMapLabelLevel(layers[MAP_LAYER_KEYS.MAP_LABELS]),
     showRunwayBeams: layers[MAP_LAYER_KEYS.APPROACH_BEAMS],
     showNavaidMarkers: layers[MAP_LAYER_KEYS.NAVAID_MARKERS],
     showReportingPoints: layers[MAP_LAYER_KEYS.REPORTING_POINTS],

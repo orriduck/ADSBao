@@ -31,6 +31,11 @@ import {
   NEARBY_AIRPORT_RADIUS_PRESETS_NM,
 } from "@/features/notifications/notificationPreferencesModel";
 import { MapControlIcon } from "./mapControlIcons";
+import {
+  MAP_LABEL_LEVEL_OPTIONS,
+  getMapLabelLevelAtIndex,
+  getMapLabelLevelIndex,
+} from "@/features/airport/map/mapLabelLevelModel";
 
 const UNIT_GROUPS = [
   {
@@ -54,15 +59,6 @@ const UNIT_GROUPS = [
 ] as const;
 
 const LAYER_CONTROLS = [
-  {
-    layerKey: MAP_LAYER_KEYS.MAP_LABELS,
-    iconKey: "type",
-    labelKey: "mapLayers.mapLabels",
-    activeKey: "mapLayers.showMapLabels",
-    inactiveKey: "mapLayers.hideMapLabels",
-    prop: "showMapLabels",
-    handler: "onToggleMapLabels",
-  },
   {
     layerKey: MAP_LAYER_KEYS.APPROACH_BEAMS,
     iconKey: "spotlight",
@@ -242,6 +238,49 @@ function LayerToggleRow({
   );
 }
 
+function MapLabelLevelRow({ level, onChange, t }) {
+  const levelIndex = getMapLabelLevelIndex(level);
+  const levelLabel = t(`mapLayers.mapLabelLevels.${level}`);
+  return (
+    <div className="map-settings-label-level-row grid min-h-[58px] w-full grid-cols-[36px_minmax(0,1fr)_92px] items-stretch">
+      <span className="map-settings-row-rail flex items-start justify-start pl-[10px] pt-[11px] text-atc-faint [&>svg]:size-3.5">
+        <MapControlIcon iconKey="type" />
+      </span>
+      <span className="flex min-w-0 flex-col justify-center py-2 pl-3 pr-2">
+        <span className="block text-[12px] font-semibold leading-tight text-atc-text">
+          {t("mapLayers.mapLabels")}
+        </span>
+        <span className="mt-0.5 block text-[9.5px] leading-snug text-atc-muted">
+          {levelLabel}
+        </span>
+      </span>
+      <span className="map-label-level-control relative flex h-8 items-start justify-center pr-2">
+        <input
+          className="map-label-level-control__input"
+          type="range"
+          min="0"
+          max={MAP_LABEL_LEVEL_OPTIONS.length - 1}
+          step="1"
+          value={levelIndex}
+          aria-label={t("mapLayers.mapLabelLevelControl")}
+          aria-valuetext={levelLabel}
+          onInput={(event) =>
+            onChange(getMapLabelLevelAtIndex(event.currentTarget.value))
+          }
+        />
+        <span className="map-label-level-control__stops" aria-hidden="true">
+          {MAP_LABEL_LEVEL_OPTIONS.map((option) => (
+            <span
+              key={option}
+              data-active={option === level ? "true" : "false"}
+            />
+          ))}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 // Distance-radius picker for a notification toggle — same segmented-button
 // visual language as the unit preferences below, just scoped to one row
 // instead of the whole units section.
@@ -276,7 +315,6 @@ export default function MapSettingsSheet({
   onOpenChange,
   onSaveMapSettings = null,
   mapSettings,
-  showMapLabels,
   showBeams,
   showNavaidMarkers,
   showReportingPoints = false,
@@ -339,7 +377,7 @@ export default function MapSettingsSheet({
   const baseLayerOptions = getMapBaseLayerOptions();
   const activeBaseLayerId = settings.baseLayer || DEFAULT_MAP_BASE_LAYER;
   const state = {
-    showMapLabels: draftLayers.showMapLabels,
+    mapLabelLevel: draftLayers.mapLabelLevel,
     showBeams: draftLayers.showRunwayBeams,
     showNavaidMarkers: draftLayers.showNavaidMarkers,
     showReportingPoints: draftLayers.showReportingPoints,
@@ -349,7 +387,6 @@ export default function MapSettingsSheet({
   };
   const updateLayerDraft = (layerKey) => {
     const layerValues = {
-      [MAP_LAYER_KEYS.MAP_LABELS]: state.showMapLabels,
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: state.showBeams,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: state.showNavaidMarkers,
       [MAP_LAYER_KEYS.REPORTING_POINTS]: state.showReportingPoints,
@@ -363,6 +400,15 @@ export default function MapSettingsSheet({
         settings: current,
         layerKey,
         value: !layerValues[layerKey],
+      }),
+    );
+  };
+  const updateMapLabelLevelDraft = (mapLabelLevel) => {
+    setDraftSettings((current) =>
+      buildCustomMapSettings({
+        settings: current,
+        layerKey: MAP_LAYER_KEYS.MAP_LABELS,
+        value: mapLabelLevel,
       }),
     );
   };
@@ -514,6 +560,11 @@ export default function MapSettingsSheet({
                 {t("mapSettings.layersSection")}
               </h3>
               <div className={settingsListGroupClassName}>
+                <MapLabelLevelRow
+                  level={state.mapLabelLevel}
+                  onChange={updateMapLabelLevelDraft}
+                  t={t}
+                />
                 {LAYER_CONTROLS.map((control) => {
                   const active = Boolean(state[control.prop]);
                   const title = active

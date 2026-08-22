@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Check, Home } from "lucide-react";
 import { getThemeIconKey } from "@/features/app-shell/themePreference";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import { buildPageNavigationHref } from "@/features/app-shell/navigationModel";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
-import AppToolbarBrand from "@/components/brand/AppToolbarBrand";
 import AppRefreshButton from "@/components/app-shell/AppRefreshButton";
 import {
   MenuItem,
@@ -50,10 +51,19 @@ export default function MapControlRail({
   onToggleSettings,
   onToggleWakeLock = null,
 }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   return (
     <Toolbar className="map-control-toolbar isolate">
-      <AppToolbarBrand />
+      <ToolbarButton
+        tone="rail"
+        asChild
+        title={t("nav.homePage")}
+        aria-label={t("nav.homePage")}
+      >
+        <Link to={buildPageNavigationHref("/", locale)}>
+          <Home aria-hidden="true" />
+        </Link>
+      </ToolbarButton>
       {showSidebarToggle ? (
         <ToolbarButton
           tone="rail"

@@ -1,9 +1,10 @@
 import { DEFAULT_AIRCRAFT_FILTERS } from "../../aircraft/filters/aircraftFilters";
 import { ZOOM_APPROACH } from "../../../utils/airportMapDisplay";
+import { DEFAULT_MAP_LABEL_LEVEL } from "../map/mapLabelLevelModel";
 
 export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   mapZoom: ZOOM_APPROACH,
-  showMapLabels: false,
+  mapLabelLevel: DEFAULT_MAP_LABEL_LEVEL,
   showRunwayBeams: true,
   showNavaidMarkers: false,
   showReportingPoints: false,

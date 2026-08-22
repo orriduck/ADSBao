@@ -85,7 +85,7 @@ export default function WayfindingMetric({
     </>
   );
   const rootClassName = cn(
-    "wayfinding-metric relative grid min-h-[78px] min-w-0 grid-cols-[var(--wayfinding-rail-width)_minmax(0,1fr)] content-center overflow-hidden bg-[var(--airport-wayfinding-content)] text-left outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--atc-action-focus-ring)]",
+    "wayfinding-metric relative grid min-h-[var(--wayfinding-metric-height)] min-w-0 grid-cols-[var(--wayfinding-rail-width)_minmax(0,1fr)] content-center overflow-hidden bg-[var(--airport-wayfinding-content)] text-left outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--atc-action-focus-ring)]",
     hasTitle
       ? "grid-rows-[auto_34px] gap-y-1"
       : "grid-rows-[34px]",

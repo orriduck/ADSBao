@@ -19,7 +19,6 @@ export default function MapControlBar({
   zoomActive = true,
   zoomDisabled = false,
   traceViewItems = [],
-  showMapLabels = false,
   showRunwayBeams = true,
   showNavaidMarkers = false,
   showReportingPoints = false,
@@ -43,7 +42,6 @@ export default function MapControlBar({
   wakeLockActive = false,
   wakeLockSupported = false,
   onZoom,
-  onToggleMapLabels,
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
   onToggleReportingPoints,
@@ -100,7 +98,6 @@ export default function MapControlBar({
         onOpenChange={setSettingsOpen}
         onSaveMapSettings={onSaveMapSettings}
         mapSettings={mapSettings}
-        showMapLabels={showMapLabels}
         showBeams={showRunwayBeams}
         showNavaidMarkers={showNavaidMarkers}
         showReportingPoints={showReportingPoints}

@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.14.3",
+    kind: "feat",
+    title: {
+      en: "Cloudflare-native ADSBao",
+      zh: "Cloudflare 原生 ADSBao",
+    },
+    summary: {
+      en: "Cloudflare serves the site and API with free live traffic and airport context. The interface now pairs a grayscale wayfinding system with yellow reserved for airport identity and the primary Track action, color photography, one calm typeface, clearer hierarchy, continuous full-height rails with a restrained glass finish, white provider marks on a compact deep-blue sign, a quieter airport directory, and complete airport identities.",
+      zh: "Cloudflare 承载站点与 API，并提供免费实时流量与机场上下文；界面现采用灰度导视系统，仅以黄色标记机场身份和主 Track 操作，并结合彩色摄影、单一字体、清晰字阶、带克制玻璃质感的连续全高 rail、紧凑深蓝导视条上的白色服务商标识、更安静的机场目录和完整的机场身份信息建立层级。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.13.37",
     kind: "feat",
     title: {

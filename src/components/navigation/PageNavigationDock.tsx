@@ -4,7 +4,6 @@ import { Link, useLocation } from "react-router-dom";
 import { GitBranch, History, Home, Info } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
 import ThemeToggle from "@/components/app-shell/ThemeToggle";
-import AppToolbarBrand from "@/components/brand/AppToolbarBrand";
 import { buildPageNavigationHref } from "@/features/app-shell/navigationModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThemePreference } from "@/features/app-shell/useThemePreference";
@@ -73,7 +72,6 @@ export default function PageNavigationDock() {
   const dock = (
     <nav className="page-nav-dock" aria-label={t("nav.homePage")}>
       <Toolbar reveal={false}>
-        <AppToolbarBrand />
         {PAGE_ITEMS.map((item) => {
           const Icon = item.Icon;
           const active = item.href === activeHref;

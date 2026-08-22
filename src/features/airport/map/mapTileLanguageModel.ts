@@ -3,6 +3,12 @@
 // closest OFM upstream:
 //   standard  → bright (detailed OSM) / dark — clean base with labels
 //   terrain   → bright (detailed) / dark + readable-hillshade processing
+import {
+  MAP_LABEL_LEVEL_IDS,
+  normalizeMapLabelLevel,
+  type MapLabelLevel,
+} from "./mapLabelLevelModel";
+
 const OPENFREEMAP_STYLE_TABLE: Record<
   string,
   Partial<Record<"light" | "dark", string>>
@@ -24,6 +30,27 @@ const MAP_LABEL_LOCALES = Object.freeze({
   en: "en",
   "zh-CN": "zh-Hans",
 });
+
+const MAP_LABEL_MAX_TEXT_SIZE = 10;
+const MAP_NUMBERED_HIGHWAY_LABEL_MAX_TEXT_SIZE = 8;
+const REGION_LABEL_LAYER_IDS = new Set(["label_state", "place_state"]);
+const MAJOR_CITY_LABEL_LAYER_IDS = new Set([
+  "label_city",
+  "label_city_capital",
+  "place_city",
+  "place_city_large",
+]);
+const NUMBERED_HIGHWAY_LABEL_LAYER_IDS = new Set([
+  "highway-shield-non-us",
+  "highway-shield-us-interstate",
+  "highway_name_motorway",
+  "highway_name_other",
+]);
+const REFERENCE_SHIELD_LABEL_LAYER_IDS = new Set([
+  "highway-shield-non-us",
+  "highway-shield-us-interstate",
+  "road_shield_us",
+]);
 
 type MapLibreLayer = {
   type?: string;
@@ -57,7 +84,7 @@ type TileJson = {
 
 type LocalizedMapStyleOptions = {
   locale?: string;
-  showLabels?: boolean;
+  labelLevel?: MapLabelLevel;
 };
 
 type ProxiedMapStyleOptions = {
@@ -315,22 +342,33 @@ function getMapLibreLabelTextField(locale: string) {
 
 export function buildLocalizedMapLibreStyle(
   style: MapLibreStyle,
-  { locale = "en", showLabels = true }: LocalizedMapStyleOptions = {},
+  { locale = "en", labelLevel = MAP_LABEL_LEVEL_IDS.ALL }: LocalizedMapStyleOptions = {},
 ) {
   if (!style || !Array.isArray(style.layers)) return style;
 
   const textField = getMapLibreLabelTextField(locale);
+  const normalizedLabelLevel = normalizeMapLabelLevel(labelLevel);
   return {
     ...style,
     layers: style.layers.map((layer) => {
       if (!isTextSymbolLayer(layer)) return layer;
+      const layerId = String(layer.id || "");
+      const isReferenceShield = REFERENCE_SHIELD_LABEL_LAYER_IDS.has(layerId);
 
       const layout: NonNullable<MapLibreLayer["layout"]> = {
         ...(layer.layout || {}),
-        "text-field": textField,
+        "text-field": isReferenceShield
+          ? layer.layout?.["text-field"]
+          : textField,
+        "text-size": clampMapLabelTextSize(
+          layer.layout?.["text-size"],
+          isReferenceShield
+            ? MAP_NUMBERED_HIGHWAY_LABEL_MAX_TEXT_SIZE
+            : MAP_LABEL_MAX_TEXT_SIZE,
+        ),
       };
 
-      if (showLabels) {
+      if (shouldShowLabelLayer(layer, normalizedLabelLevel)) {
         if (layout.visibility === "none") {
           delete layout.visibility;
         }
@@ -338,12 +376,145 @@ export function buildLocalizedMapLibreStyle(
         layout.visibility = "none";
       }
 
-      return {
+      return refinePlaceLabelLayer({
         ...layer,
         layout,
-      };
+      }, normalizedLabelLevel);
     }),
   };
+}
+
+function shouldShowLabelLayer(layer: MapLibreLayer, level: MapLabelLevel) {
+  if (level === MAP_LABEL_LEVEL_IDS.OFF) return false;
+  if (level === MAP_LABEL_LEVEL_IDS.ALL) return true;
+  const layerId = String(layer.id || "");
+  if (REGION_LABEL_LAYER_IDS.has(layerId)) return true;
+  if (MAJOR_CITY_LABEL_LAYER_IDS.has(layerId)) return true;
+  return (
+    level === MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS &&
+    NUMBERED_HIGHWAY_LABEL_LAYER_IDS.has(layerId)
+  );
+}
+
+function refinePlaceLabelLayer(
+  layer: MapLibreLayer,
+  level: MapLabelLevel,
+): MapLibreLayer {
+  const layerId = String(layer.id || "");
+  if (REGION_LABEL_LAYER_IDS.has(layerId)) {
+    return {
+      ...layer,
+      ...(level === MAP_LABEL_LEVEL_IDS.ALL ? {} : { maxzoom: 15 }),
+      filter: [
+        "match",
+        ["get", "class"],
+        ["state", "province"],
+        true,
+        false,
+      ],
+    };
+  }
+  if (
+    level !== MAP_LABEL_LEVEL_IDS.ALL &&
+    (layerId === "label_city" || layerId === "place_city")
+  ) {
+    return {
+      ...layer,
+      filter: [
+        "all",
+        layer.filter || true,
+        ["<=", ["get", "rank"], 10],
+      ],
+    };
+  }
+  if (
+    level === MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS &&
+    NUMBERED_HIGHWAY_LABEL_LAYER_IDS.has(layerId)
+  ) {
+    const limitsToMotorwayOrTrunk =
+      layerId === "highway-shield-non-us" || layerId === "highway_name_other";
+    return {
+      ...layer,
+      minzoom: Math.min(Number(layer.minzoom ?? 8), 8),
+      layout: {
+        ...(layer.layout || {}),
+        "text-field": ["get", "ref"],
+        "text-size": clampMapLabelTextSize(
+          layer.layout?.["text-size"],
+          MAP_NUMBERED_HIGHWAY_LABEL_MAX_TEXT_SIZE,
+        ),
+      },
+      filter: [
+        "all",
+        ...(layer.filter ? [layer.filter] : []),
+        ["has", "ref"],
+        ...(limitsToMotorwayOrTrunk
+          ? [[
+              "match",
+              ["get", "class"],
+              ["motorway", "trunk"],
+              true,
+              false,
+            ]]
+          : []),
+      ],
+    };
+  }
+  return layer;
+}
+
+function clampMapLabelTextSize(
+  textSize: unknown,
+  maxTextSize = MAP_LABEL_MAX_TEXT_SIZE,
+) {
+  if (typeof textSize === "number") {
+    return Math.min(textSize, maxTextSize);
+  }
+  if (Array.isArray(textSize)) {
+    if (textSize[0] === "interpolate") {
+      return textSize.map((part, index) =>
+        index >= 4 && index % 2 === 0
+          ? clampMapLabelTextSizeOutput(part, maxTextSize)
+          : part,
+      );
+    }
+    if (textSize[0] === "step") {
+      return textSize.map((part, index) =>
+        index === 2 || (index >= 4 && index % 2 === 0)
+          ? clampMapLabelTextSizeOutput(part, maxTextSize)
+          : part,
+      );
+    }
+    return ["min", maxTextSize, textSize];
+  }
+  if (textSize && typeof textSize === "object") {
+    const legacySize = textSize as {
+      default?: unknown;
+      stops?: unknown[];
+    };
+    return {
+      ...legacySize,
+      ...(typeof legacySize.default === "number"
+        ? { default: Math.min(legacySize.default, maxTextSize) }
+        : {}),
+      ...(Array.isArray(legacySize.stops)
+        ? {
+            stops: legacySize.stops.map((stop) =>
+              Array.isArray(stop) && typeof stop[1] === "number"
+                ? [stop[0], Math.min(stop[1], maxTextSize)]
+                : stop,
+            ),
+          }
+        : {}),
+    };
+  }
+  return maxTextSize;
+}
+
+function clampMapLabelTextSizeOutput(output: unknown, maxTextSize: number) {
+  return typeof output === "number"
+    ? Math.min(output, maxTextSize)
+    : ["min", maxTextSize, output];
 }
 
 export function buildProxiedMapLibreStyle(

@@ -76,6 +76,15 @@
     --wayfinding-content-inset: 12px;
     --wayfinding-hero-icon-top: 44px;
     --wayfinding-hero-content-top: 40px;
+    --wayfinding-airport-identity-height: 152px;
+    --wayfinding-flight-identity-height: 142px;
+    --wayfinding-metric-height: 78px;
+    --wayfinding-compact-metric-height: 74px;
+    --wayfinding-provider-row-height: 36px;
+    --wayfinding-section-head-height: 40px;
+    --wayfinding-search-row-height: 44px;
+    --wayfinding-filter-row-height: 56px;
+    --wayfinding-traffic-row-height: 44px;
     /* Preview cards are one floating sign family on every breakpoint. Keep
        their radius bound to the shared card token so aircraft and metadata
        variants cannot drift apart. */
@@ -1726,8 +1735,52 @@ canvas.aircraft-canvas-layer {
 }
 
 .provider-link-row {
-    background-color: var(--atc-provider-sign);
     color: var(--atc-provider-sign-fg);
+    display: grid;
+    grid-template-columns: var(--wayfinding-rail-width) minmax(0, 1fr);
+    min-height: var(--wayfinding-provider-row-height);
+    min-width: 0;
+    width: 100%;
+}
+
+.provider-link-row__rail {
+    align-self: stretch;
+    background-color: var(--atc-provider-sign-rail);
+}
+
+.provider-link-row__content {
+    align-items: center;
+    align-self: stretch;
+    background-color: var(--atc-provider-sign);
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 4px var(--wayfinding-content-inset);
+}
+
+.aircraft-table-controls-header {
+    display: grid;
+    grid-template-columns: var(--wayfinding-rail-width) minmax(0, 1fr);
+    min-height: var(--wayfinding-section-head-height);
+    min-width: 0;
+}
+
+.aircraft-table-controls-header__rail {
+    align-self: stretch;
+    background-color: var(--airport-wayfinding-neutral-rail);
+}
+
+.aircraft-table-controls-header__content {
+    align-items: center;
+    align-self: stretch;
+    background-color: var(--airport-wayfinding-content);
+    border-top: 1px solid var(--airport-wayfinding-divider);
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    min-width: 0;
+    padding: 0 var(--wayfinding-content-inset);
 }
 
 /* Photography remains a source artifact rather than interface chrome. Its
@@ -1815,7 +1868,7 @@ canvas.aircraft-canvas-layer {
 }
 
 .airport-map-kit .flight-wayfinding-metrics .wayfinding-metric {
-    min-height: 78px;
+    min-height: var(--wayfinding-metric-height);
 }
 
 /* The traffic controls continue the full-width sign stack instead of
@@ -1838,8 +1891,7 @@ canvas.aircraft-canvas-layer {
 }
 
 .airport-map-kit .aircraft-table-controls-header {
-    border-top: 1px solid var(--airport-wayfinding-divider);
-    min-height: 40px;
+    min-height: var(--wayfinding-section-head-height);
 }
 
 .airport-map-kit .aircraft-table-search-bar {
@@ -1852,7 +1904,7 @@ canvas.aircraft-canvas-layer {
     border-style: solid;
     border-width: 1px 0;
     box-shadow: none;
-    min-height: 44px;
+    min-height: var(--wayfinding-search-row-height);
     padding: 0;
 }
 
@@ -1911,7 +1963,7 @@ canvas.aircraft-canvas-layer {
     align-content: start;
     box-sizing: border-box;
     grid-template-rows: 16px 30px;
-    min-height: 74px;
+    min-height: var(--wayfinding-compact-metric-height);
     padding-top: 12px;
     padding-bottom: 12px;
     row-gap: 4px;
@@ -5381,8 +5433,8 @@ body {
     background: var(--airport-wayfinding-content);
     border-bottom: 1px solid var(--airport-wayfinding-divider);
     gap: 0;
-    height: 44px;
-    min-height: 44px;
+    height: var(--wayfinding-traffic-row-height);
+    min-height: var(--wayfinding-traffic-row-height);
     padding: 0;
 }
 
@@ -5793,25 +5845,15 @@ body {
 }
 
 .sidebar-loading-skeleton__identity {
-    border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 154px;
+    min-height: var(--wayfinding-airport-identity-height);
 }
 
-.sidebar-loading-skeleton--header[data-variant="airport"]
+.sidebar-loading-skeleton--header[data-variant="flight"]
     .sidebar-loading-skeleton__identity {
-    background-color: var(--atc-theme-yellow);
-    color: var(--atc-theme-yellow-ink);
+    min-height: var(--wayfinding-flight-identity-height);
 }
 
-.sidebar-loading-skeleton--header[data-variant="airport"]
-    .sidebar-loading-skeleton__identity
-    > .sidebar-loading-skeleton__rail {
-    background-color: #fff;
-    color: var(--atc-theme-yellow-ink);
-}
-
-.sidebar-loading-skeleton--header[data-variant="airport"]
-    .sidebar-loading-skeleton__identity-copy
+.sidebar-loading-skeleton__identity-copy.airport-wayfinding-identity__content
     .sidebar-loading-skeleton__bar {
     background: color-mix(
         in oklab,
@@ -5821,11 +5863,48 @@ body {
 }
 
 .sidebar-loading-skeleton__identity-copy {
-    align-self: center;
+    align-self: stretch;
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 18px 12px;
+    justify-content: flex-start;
+    padding: var(--wayfinding-hero-content-top) var(--wayfinding-content-inset) 20px;
+}
+
+.sidebar-loading-skeleton--header[data-variant="flight"]
+    .sidebar-loading-skeleton__identity-copy {
+    padding-bottom: 16px;
+}
+
+.sidebar-loading-skeleton__identity-code {
+    height: calc(22px * var(--sb-title-scale));
+    width: 28%;
+}
+
+.sidebar-loading-skeleton--header[data-variant="flight"]
+    .sidebar-loading-skeleton__identity-code {
+    width: 46%;
+}
+
+.sidebar-loading-skeleton__identity-name {
+    height: calc(9px * var(--sb-title-scale));
+    margin-top: 10px;
+    width: 74%;
+}
+
+.sidebar-loading-skeleton__identity-meta,
+.sidebar-loading-skeleton__identity-detail {
+    height: calc(7px * var(--sb-body-scale));
+    width: 54%;
+}
+
+.sidebar-loading-skeleton__identity-meta {
+    margin-top: 7px;
+}
+
+.sidebar-loading-skeleton__identity-detail {
+    margin-top: 5px;
+    width: 46%;
 }
 
 .sidebar-loading-skeleton__metrics {
@@ -5835,7 +5914,11 @@ body {
 
 .sidebar-loading-skeleton__metric {
     border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 78px;
+    min-height: var(--wayfinding-metric-height);
+}
+
+.sidebar-loading-skeleton__metric--compact {
+    min-height: var(--wayfinding-compact-metric-height);
 }
 
 .sidebar-loading-skeleton__metric:nth-child(odd),
@@ -5853,14 +5936,11 @@ body {
 }
 
 .sidebar-loading-skeleton__secondary-row {
-    background: var(--atc-provider-sign);
     color: var(--atc-provider-sign-fg);
-    display: flex;
-    min-height: 36px;
+    min-height: var(--wayfinding-provider-row-height);
 }
 
 .sidebar-loading-skeleton__secondary-copy,
-.sidebar-loading-skeleton__section-head,
 .sidebar-loading-skeleton__row-copy {
     align-items: center;
     display: flex;
@@ -5878,14 +5958,12 @@ body {
 }
 
 .sidebar-loading-skeleton__section-head {
-    border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 38px;
-    padding-left: 14px;
+    min-height: var(--wayfinding-section-head-height);
 }
 
 .sidebar-loading-skeleton__search {
     border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 44px;
+    min-height: var(--wayfinding-search-row-height);
 }
 
 .sidebar-loading-skeleton__search-copy {
@@ -5900,12 +5978,12 @@ body {
 
 .sidebar-loading-skeleton__filter {
     border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 74px;
+    min-height: var(--wayfinding-filter-row-height);
 }
 
 .sidebar-loading-skeleton__row {
     border-bottom: 1px solid var(--airport-wayfinding-divider);
-    min-height: 44px;
+    min-height: var(--wayfinding-traffic-row-height);
 }
 
 .sidebar-loading-skeleton__row-copy {
@@ -7730,6 +7808,15 @@ body {
 
 .mechanism-wayfinding__detail-grid {
     background: var(--home-wayfinding-content);
+    position: relative;
+}
+
+.mechanism-wayfinding__detail-grid::before {
+    background-color: var(--home-wayfinding-secondary);
+    content: "";
+    inset: 0 auto 0 0;
+    position: absolute;
+    width: 36px;
 }
 
 .mechanism-wayfinding__detail {
@@ -8215,6 +8302,94 @@ body {
     background: color-mix(in oklab, var(--atc-text) 12%, transparent);
 }
 
+.map-settings-label-level-row {
+    background: transparent;
+    transition: background 150ms ease;
+}
+
+.map-settings-label-level-row:hover {
+    background: var(--atc-control-surface-hover);
+}
+
+.map-label-level-control__input {
+    -webkit-appearance: none;
+    appearance: none;
+    background:
+        radial-gradient(circle at 1px 50%, currentColor 0 1px, transparent 1.5px),
+        radial-gradient(circle at 33.333% 50%, currentColor 0 1px, transparent 1.5px),
+        radial-gradient(circle at 66.666% 50%, currentColor 0 1px, transparent 1.5px),
+        radial-gradient(circle at calc(100% - 1px) 50%, currentColor 0 1px, transparent 1.5px),
+        linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat;
+    color: color-mix(in oklab, var(--atc-text) 30%, transparent);
+    cursor: ew-resize;
+    height: 22px;
+    margin: 0;
+    width: 76px;
+}
+
+.map-label-level-control__stops {
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    left: 0;
+    padding-right: 8px;
+    position: absolute;
+    right: 0;
+}
+
+.map-label-level-control__stops > span {
+    background: color-mix(in oklab, var(--atc-text) 30%, transparent);
+    border-radius: 50%;
+    height: 3px;
+    width: 3px;
+}
+
+.map-label-level-control__stops > span[data-active="true"] {
+    background: var(--atc-text);
+}
+
+.map-label-level-control__input::-webkit-slider-runnable-track {
+    background: transparent;
+    border: 0;
+    height: 22px;
+}
+
+.map-label-level-control__input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background:
+        linear-gradient(115deg, rgb(255 255 255 / 0.2), transparent 46%),
+        var(--atc-text);
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 18%, transparent);
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+    height: 20px;
+    margin-top: 1px;
+    width: 12px;
+}
+
+.map-label-level-control__input::-moz-range-track {
+    background: transparent;
+    border: 0;
+    height: 22px;
+}
+
+.map-label-level-control__input::-moz-range-thumb {
+    background:
+        linear-gradient(115deg, rgb(255 255 255 / 0.2), transparent 46%),
+        var(--atc-text);
+    border: 1px solid color-mix(in oklab, var(--atc-bg) 18%, transparent);
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+    height: 20px;
+    width: 12px;
+}
+
+.map-label-level-control__input:focus-visible {
+    outline: 2px solid var(--atc-accent);
+    outline-offset: 3px;
+}
+
 .map-settings-unit-row {
     padding-left: 48px;
     padding-right: 14px;
@@ -8437,7 +8612,7 @@ body {
 
     .dither-page-panel {
         --airport-sidebar-inset: 16px;
-        border-radius: 0 var(--atc-radius-shell) var(--atc-radius-shell) 0;
+        border-radius: 0;
         margin: 0;
         max-height: var(--app-viewport-height, 100dvh);
     }
@@ -8645,7 +8820,7 @@ body {
 .about-screen .dither-page-copy .atc-page-title::after,
 .mechanism-screen .dither-page-copy .atc-page-title::after,
 .changelog-screen .dither-page-copy .atc-page-title::after {
-    background: var(--home-wayfinding-neutral-rail-fg);
+    background: var(--atc-theme-yellow-ink);
     border-radius: 1px;
     content: "";
     display: block;
@@ -9658,23 +9833,6 @@ body {
         var(--atc-bg);
 }
 
-.search-screen .dither-page-header.dither-page-header--copy-only {
-    padding-bottom: 18px;
-}
-
-.search-screen .dither-page-title,
-.search-screen .atc-page-title {
-    letter-spacing: -0.03em;
-}
-
-.search-screen .dither-page-copy .atc-page-title::after {
-    display: none;
-}
-
-.search-screen .dither-page-description {
-    max-width: 19rem;
-}
-
 .search-screen .dither-content-stack > section + section {
     border-top: 1px solid color-mix(in oklab, var(--atc-line-strong) 66%, transparent);
     padding-top: 16px;
@@ -9937,20 +10095,17 @@ body {
 }
 
 .dither-wayfinding-identity {
-    background: var(--home-wayfinding-content);
-    border-bottom: 1px solid var(--home-wayfinding-divider);
+    background: var(--atc-theme-yellow);
+    border-bottom: 0;
 }
 
-.dither-wayfinding-identity__rail {
-    background: color-mix(
-        in oklab,
-        var(--atc-text) 30%,
-        var(--app-frost-tint)
-    );
+.dither-page-shell .dither-wayfinding-identity__rail {
+    background-color: #fff;
+    background-image: var(--wayfinding-rail-material) !important;
 }
 
 .dither-wayfinding-identity__icon {
-    color: var(--home-wayfinding-neutral-rail-fg);
+    color: var(--atc-theme-yellow-ink);
 }
 
 /* Shared rail-stage motion. First-screen and live tracking surfaces keep the
@@ -10186,24 +10341,28 @@ body {
     margin: 0 !important;
 }
 
+.dither-page-panel:not(.plane-hunter-panel)
+    .dither-wayfinding-identity
+    .atc-page-title {
+    color: var(--atc-theme-yellow-ink) !important;
+    font-size: calc(30px * var(--sb-title-scale));
+    font-weight: var(--weight-medium);
+}
+
+.dither-page-panel:not(.plane-hunter-panel)
+    .dither-wayfinding-identity
+    .dither-page-description {
+    color: color-mix(
+        in oklab,
+        var(--atc-theme-yellow-ink) 76%,
+        transparent
+    ) !important;
+    font-size: 12px;
+    font-weight: var(--weight-regular);
+}
+
 .dither-page-body {
     background: var(--home-wayfinding-content);
-}
-
-.search-screen .dither-page-header.dither-page-header--copy-only {
-    padding: 0;
-}
-
-.search-screen .dither-page-copy .atc-page-title {
-    font-size: calc(30px * var(--sb-title-scale));
-    font-weight: var(--weight-regular);
-    letter-spacing: -0.045em;
-}
-
-.search-screen .dither-page-description {
-    font-size: 11px;
-    letter-spacing: 0.015em;
-    max-width: 14rem;
 }
 
 .search-screen .dither-content-stack > section + section {
@@ -10290,55 +10449,12 @@ body {
     border-radius: 8px;
 }
 
-.search-screen .page-motion-grid__image {
-    filter: grayscale(1) contrast(1.04) brightness(0.62);
-    opacity: 0.64;
-}
-
 .page-motion-grid__image.media-photo-color {
-    filter: contrast(0.78) brightness(1.1) !important;
+    filter: grayscale(1) contrast(0.78) brightness(1.1) !important;
 }
 
 :root[data-theme="dark"] .page-motion-grid__image.media-photo-color {
-    filter: contrast(0.82) brightness(0.68) !important;
-}
-
-.search-screen .page-motion-grid__image.media-photo-color {
-    filter: contrast(1.04) brightness(0.62) !important;
-}
-
-.search-screen .dither-page-background,
-.search-screen .page-motion-grid {
-    background: oklch(0.77 0.004 100);
-}
-
-.search-screen .page-motion-grid::after {
-    background:
-        linear-gradient(
-            90deg,
-            oklch(0.77 0.004 100) 0%,
-            color-mix(in oklab, oklch(0.77 0.004 100) 88%, transparent) 18%,
-            transparent 56%
-        );
-}
-
-.search-screen .page-motion-grid__tile {
-    background: oklch(0.64 0.004 100);
-}
-
-:root[data-theme="dark"] .search-screen .dither-page-background,
-:root[data-theme="dark"] .search-screen .page-motion-grid {
-    background: oklch(0.16 0.003 100);
-}
-
-:root[data-theme="dark"] .search-screen .page-motion-grid::after {
-    background:
-        linear-gradient(
-            90deg,
-            oklch(0.16 0.003 100) 0%,
-            color-mix(in oklab, oklch(0.16 0.003 100) 86%, transparent) 18%,
-            transparent 56%
-        );
+    filter: grayscale(1) contrast(0.82) brightness(0.68) !important;
 }
 
 /* Tracking wayfinding trial — research from MTA, Schiphol and airport
@@ -10356,32 +10472,8 @@ body {
 }
 
 .search-screen .dither-page-copy {
+    background: var(--atc-theme-yellow);
     margin-top: 0;
-    padding: 0;
-}
-
-/* The directory is command-first. Keep one compact identity sign, then let
-   category names ride with their first destination instead of spending an
-   entire standalone header row on another hierarchy level. */
-.search-screen .dither-wayfinding-identity {
-    min-height: 96px;
-}
-
-.search-screen .dither-wayfinding-identity__rail {
-    background: var(--home-wayfinding-neutral-rail);
-}
-
-.search-screen .dither-page-copy .atc-page-title {
-    color: var(--atc-text) !important;
-    font-size: calc(28px * var(--sb-title-scale));
-    letter-spacing: -0.045em;
-}
-
-.search-screen .dither-page-copy .dither-page-description {
-    color: var(--atc-dim) !important;
-    font-size: 10.5px;
-    letter-spacing: 0.02em;
-    margin-top: 6px;
 }
 
 .search-screen .dither-content-stack {
@@ -10463,8 +10555,14 @@ body {
     font-size: 10px;
     justify-content: center;
     margin: 0;
-    padding: 11px 0 0;
+    padding: 10px 0 0;
     width: 100%;
+}
+
+.search-screen .dither-list .airport-list-row--directory > .airport-list-row__copy {
+    align-self: start;
+    padding-bottom: 17px;
+    padding-top: 10px;
 }
 
 .search-screen .airport-list-row__rail-icon {
@@ -10489,6 +10587,7 @@ body {
     color: var(--home-wayfinding-secondary-fg) !important;
     display: flex;
     justify-content: center;
+    margin: 0;
     padding: 11px 0 0;
 }
 
@@ -10692,7 +10791,7 @@ body {
     box-shadow: none !important;
     display: flex !important;
     gap: 0 !important;
-    min-height: 56px;
+    min-height: var(--wayfinding-filter-row-height);
     padding: 0 !important;
     text-align: left !important;
     transform: none !important;
@@ -10758,8 +10857,8 @@ body {
     background: var(--airport-wayfinding-content) !important;
     border-bottom: 1px solid var(--airport-wayfinding-divider) !important;
     gap: 0 !important;
-    height: 44px !important;
-    min-height: 44px !important;
+    height: var(--wayfinding-traffic-row-height) !important;
+    min-height: var(--wayfinding-traffic-row-height) !important;
     padding: 0 !important;
 }
 
@@ -10999,6 +11098,11 @@ body {
     --atc-signal-secondary-action: oklch(0.48 0 0);
     --atc-signal-secondary-action-fg: oklch(0.97 0 0);
     --atc-provider-sign: oklch(0.34 0.1 258);
+    --atc-provider-sign-rail: color-mix(
+        in oklab,
+        var(--atc-provider-sign) 78%,
+        #000
+    );
     --atc-provider-sign-fg: #fff;
     --atc-theme-yellow: oklch(0.82 0.16 92);
     --atc-theme-yellow-ink: oklch(0.18 0.015 92);
@@ -11020,6 +11124,7 @@ body {
             transparent 0%,
             rgb(77 55 0 / 0.035) 100%
         );
+    --wayfinding-security-glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Cfilter id='grain' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='112' height='112' filter='url(%23grain)' opacity='.48'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
@@ -11173,11 +11278,15 @@ body {
 .filter-card__rail,
 .aircraft-preview-wayfinding-rail,
 .sidebar-loading-skeleton__rail,
+.provider-link-row__rail,
+.aircraft-table-controls-header__rail,
 .airport-list-row__rail,
 .dither-wayfinding-identity__rail,
 .info-wayfinding-row__rail,
 .info-wayfinding-source-row__rail,
 .info-wayfinding-repository__rail,
+.mechanism-wayfinding__index,
+.mechanism-wayfinding__detail-grid::before,
 .changelog-entry__rail,
 .here-debug-panel__rail,
 .map-settings-header__rail,
@@ -11190,28 +11299,37 @@ body {
     background-image: var(--wayfinding-rail-material) !important;
 }
 
-/* The tracked-airport identity is the palette's one full sign: its rail is a
-   white field with black ink, while the reading surface carries the yellow
-   theme color with black type. This pairing stays stable across app themes so
-   it reads like physical airport signage rather than another dark-mode card. */
-.airport-map-kit .airport-wayfinding-identity > .wayfinding-rail {
-    background-color: #fff !important;
+/* The tracked-airport identity is the palette's one full sign. Match the
+   first-screen identity construction by laying yellow beneath the entire
+   joined module: the translucent white rail then picks up the same warm cast
+   as the home header, while the reading surface keeps black type. */
+.airport-wayfinding-identity {
+    background: var(--atc-theme-yellow);
+}
+
+.airport-wayfinding-identity > .wayfinding-rail {
+    background-color: rgb(255 255 255 / 0.78) !important;
     color: var(--atc-theme-yellow-ink) !important;
 }
 
-.airport-map-kit .airport-wayfinding-identity__content {
-    background-color: var(--atc-theme-yellow) !important;
+.airport-wayfinding-identity__content {
+    background-color: color-mix(
+        in oklab,
+        var(--atc-theme-yellow) 84%,
+        transparent
+    ) !important;
+    background-blend-mode: soft-light, normal, normal, normal !important;
     color: var(--atc-theme-yellow-ink);
 }
 
-.airport-map-kit .airport-wayfinding-identity__content h1,
-.airport-map-kit .airport-wayfinding-identity__name {
+.airport-wayfinding-identity__content h1,
+.airport-wayfinding-identity__name {
     color: var(--atc-theme-yellow-ink) !important;
 }
 
-.airport-map-kit .airport-wayfinding-identity__place,
-.airport-map-kit .airport-wayfinding-identity__coordinates,
-.airport-map-kit .airport-wayfinding-identity__content > .text-atc-dim {
+.airport-wayfinding-identity__place,
+.airport-wayfinding-identity__coordinates,
+.airport-wayfinding-identity__content > .text-atc-dim {
     color: color-mix(
         in oklab,
         var(--atc-theme-yellow-ink) 76%,
@@ -11219,7 +11337,7 @@ body {
     ) !important;
 }
 
-.airport-map-kit .airport-wayfinding-identity__content .near-me-refresh__link:hover {
+.airport-wayfinding-identity__content .near-me-refresh__link:hover {
     border-bottom-color: var(--atc-theme-yellow-ink);
     color: var(--atc-theme-yellow-ink);
 }
@@ -11239,15 +11357,73 @@ body {
 }
 
 /* Yellow behaves like satin wayfinding laminate: one broad highlight plus a
-   warm, shallow falloff. Keep this finish on the three approved sign surfaces
-   only; neutral rails, selection state, and flight geometry stay grayscale. */
-.airport-map-kit .airport-wayfinding-identity__content,
+   warm, shallow falloff. Keep this finish on the approved sign surfaces only;
+   neutral rails, selection state, and flight geometry stay grayscale. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
     .airport-overlay-label__code.atc-code-pill,
 .aircraft-preview-card__track-btn,
 .mobile-preview-track-button {
     background-image: var(--atc-theme-yellow-material) !important;
     background-repeat: no-repeat !important;
+}
+
+/* Airport identity signs approximate the fine-grained laminated glass used
+   around security checkpoints. The grain is a tiny static tile, not a live
+   filter, so scrolling the dense sidebar does not trigger continuous noise
+   repaints. Straight joined edges remain intact; refraction stays inside the
+   existing sign instead of turning it into a floating rounded card. */
+.dither-page-shell .dither-wayfinding-identity__content,
+.airport-wayfinding-identity__content {
+    -webkit-backdrop-filter: blur(20px) saturate(1.08);
+    backdrop-filter: blur(20px) saturate(1.08);
+    background-color: color-mix(
+        in oklab,
+        var(--atc-theme-yellow) 84%,
+        transparent
+    ) !important;
+    background-blend-mode: soft-light, normal, normal, normal !important;
+    background-image:
+        var(--wayfinding-security-glass-grain),
+        var(--atc-theme-yellow-material) !important;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
+    background-size: 112px 112px, auto, auto, auto !important;
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.3),
+        inset 0 -1px 0 rgb(77 55 0 / 0.09),
+        inset 1px 0 0 rgb(255 255 255 / 0.1);
+}
+
+.dither-page-shell .dither-wayfinding-identity__rail,
+.airport-wayfinding-identity > .wayfinding-rail {
+    -webkit-backdrop-filter: blur(20px) saturate(1.04);
+    backdrop-filter: blur(20px) saturate(1.04);
+    background-color: rgb(255 255 255 / 0.9) !important;
+    background-blend-mode: soft-light, normal, normal !important;
+    background-image:
+        var(--wayfinding-security-glass-grain),
+        var(--wayfinding-rail-material) !important;
+    background-repeat: repeat, no-repeat, no-repeat !important;
+    background-size: 112px 112px, auto, auto !important;
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.42),
+        inset -1px 0 0 rgb(0 0 0 / 0.12),
+        inset 1px 0 0 rgb(255 255 255 / 0.18);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .dither-page-shell .dither-wayfinding-identity__content,
+    .airport-wayfinding-identity__content {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background-color: var(--atc-theme-yellow) !important;
+    }
+
+    .dither-page-shell .dither-wayfinding-identity__rail,
+    .airport-wayfinding-identity > .wayfinding-rail {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background-color: #fff !important;
+    }
 }
 
 .aircraft-preview-card__track-btn:visited {

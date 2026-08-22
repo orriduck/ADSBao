@@ -24,45 +24,48 @@ export default function FlightRadar24Link({
   const prompt = t(subject === "airport" ? "sidebar.openThisAirportOn" : "sidebar.openThisAircraftOn");
 
   return (
-    <div className="provider-link-row flex min-h-9 w-full items-center justify-between gap-3 px-[var(--airport-sidebar-inset)] py-1">
-      <span className="min-w-0 truncate text-[calc(10px*var(--sb-body-scale))]">{prompt}</span>
-      <span className="flex shrink-0 items-center gap-1">
-        {flightAwareDestination ? (
-          <a
-            href={flightAwareDestination}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="relative flex h-6 shrink-0 items-center text-inherit before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2"
-            aria-label={t("sidebar.openOnFlightAware", { identifier: label })}
-          >
-            <img
-              src={FLIGHTAWARE_LOGO_URL}
-              alt=""
-              aria-hidden="true"
-              className="provider-logo-monochrome h-[15px] w-[42px] object-contain"
-              decoding="async"
-            />
-          </a>
-        ) : null}
-        {flightRadarDestination ? (
-          <a
-            href={flightRadarDestination}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="relative flex h-6 shrink-0 items-center text-inherit before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2"
-            aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
-          >
-            <span className="relative h-[18px] w-[71px] shrink-0">
+    <div className="provider-link-row">
+      <span aria-hidden="true" className="provider-link-row__rail" />
+      <span className="provider-link-row__content">
+        <span className="min-w-0 truncate text-[calc(10px*var(--sb-body-scale))]">{prompt}</span>
+        <span className="flex shrink-0 items-center gap-1">
+          {flightAwareDestination ? (
+            <a
+              href={flightAwareDestination}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="relative flex h-6 shrink-0 items-center text-inherit before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2"
+              aria-label={t("sidebar.openOnFlightAware", { identifier: label })}
+            >
               <img
-                src={FLIGHTRADAR24_LOGO_URL}
+                src={FLIGHTAWARE_LOGO_URL}
                 alt=""
                 aria-hidden="true"
-                className="provider-logo-monochrome size-full"
+                className="provider-logo-monochrome h-[15px] w-[42px] object-contain"
                 decoding="async"
               />
-            </span>
-          </a>
-        ) : null}
+            </a>
+          ) : null}
+          {flightRadarDestination ? (
+            <a
+              href={flightRadarDestination}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="relative flex h-6 shrink-0 items-center text-inherit before:absolute before:-inset-1 before:content-[''] focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-2"
+              aria-label={t("sidebar.openOnFlightRadar24", { identifier: label })}
+            >
+              <span className="relative h-[18px] w-[71px] shrink-0">
+                <img
+                  src={FLIGHTRADAR24_LOGO_URL}
+                  alt=""
+                  aria-hidden="true"
+                  className="provider-logo-monochrome size-full"
+                  decoding="async"
+                />
+              </span>
+            </a>
+          ) : null}
+        </span>
       </span>
     </div>
   );

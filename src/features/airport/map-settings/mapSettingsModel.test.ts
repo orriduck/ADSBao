@@ -14,6 +14,7 @@ import {
   resolveStoredMapSettings,
   serializeMapSettingsPersistenceSignature,
 } from "./mapSettingsModel";
+import { MAP_LABEL_LEVEL_IDS } from "../map/mapLabelLevelModel";
 
 {
   assert.equal(normalizeMapSettingsDevice("mobile"), "mobile");
@@ -62,7 +63,7 @@ import {
   assert.equal(settings.baseMode, MAP_MODE_IDS.CUSTOM);
   // Explicit stored overrides preserve a prior local setup.
   assert.deepEqual(mapSettingsToExplorerLayers(settings), {
-    showMapLabels: true,
+    mapLabelLevel: MAP_LABEL_LEVEL_IDS.OFF,
     showRunwayBeams: false,
     showNavaidMarkers: false,
     showReportingPoints: false,
@@ -130,7 +131,7 @@ import {
   const saved = buildMapSettingsFromLayerState({
     settings: normalizeMapSettings({}),
     layers: {
-      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+      [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_CITIES,
       [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
       [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
       [MAP_LAYER_KEYS.REPORTING_POINTS]: true,
@@ -148,7 +149,7 @@ import {
   );
   assert.equal(saved.baseMode, MAP_MODE_IDS.CUSTOM);
   assert.deepEqual(saved.layerOverrides, {
-    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_CITIES,
     [MAP_LAYER_KEYS.APPROACH_BEAMS]: true,
     [MAP_LAYER_KEYS.NAVAID_MARKERS]: true,
     [MAP_LAYER_KEYS.REPORTING_POINTS]: true,
@@ -169,7 +170,7 @@ import {
   assert.deepEqual(
     mapSettingsToExplorerLayers(normalized),
     {
-      showMapLabels: false,
+      mapLabelLevel: MAP_LABEL_LEVEL_IDS.OFF,
       showRunwayBeams: true,
       showNavaidMarkers: false,
       showReportingPoints: false,
@@ -193,7 +194,7 @@ import {
   const defaults = resolveStoredMapSettings();
   assert.equal(defaults.source, "default");
   assert.deepEqual(mapSettingsToExplorerLayers(defaults.settings), {
-    showMapLabels: false,
+    mapLabelLevel: MAP_LABEL_LEVEL_IDS.OFF,
     showRunwayBeams: true,
     showNavaidMarkers: false,
     showReportingPoints: false,
@@ -217,7 +218,7 @@ import {
     }),
     updates: {
       layerOverrides: {
-        [MAP_LAYER_KEYS.MAP_LABELS]: false,
+        [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
       },
       updatedAt: "2026-06-02T15:07:00.000Z",
     },
@@ -230,7 +231,7 @@ import {
   assert.deepEqual(merged.layerOverrides, {
     [MAP_LAYER_KEYS.AIRSPACES]: true,
     [MAP_LAYER_KEYS.USER_LOCATION]: true,
-    [MAP_LAYER_KEYS.MAP_LABELS]: false,
+    [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
   });
 }
 
@@ -239,7 +240,7 @@ import {
     selectedMode: MAP_MODE_IDS.CUSTOM,
     baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
-      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+      [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
     },
     baseLayer: "standard",
     hasSelectedMode: true,
@@ -249,7 +250,7 @@ import {
     selectedMode: MAP_MODE_IDS.CUSTOM,
     baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
-      [MAP_LAYER_KEYS.MAP_LABELS]: false,
+      [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
     },
     baseLayer: "standard",
     hasSelectedMode: true,
@@ -259,7 +260,7 @@ import {
     selectedMode: MAP_MODE_IDS.CUSTOM,
     baseMode: MAP_MODE_IDS.CUSTOM,
     layerOverrides: {
-      [MAP_LAYER_KEYS.MAP_LABELS]: true,
+      [MAP_LAYER_KEYS.MAP_LABELS]: MAP_LABEL_LEVEL_IDS.ALL,
     },
     baseLayer: "standard",
     hasSelectedMode: true,

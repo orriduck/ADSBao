@@ -181,7 +181,7 @@ function FlightIdentity({
     .join(" / ");
 
   return (
-    <div className="flight-wayfinding-identity flex min-h-[142px] overflow-hidden">
+    <div className="flight-wayfinding-identity flex min-h-[var(--wayfinding-flight-identity-height)] overflow-hidden">
       <WayfindingRail
         icon={<Plane />}
         inset="hero"

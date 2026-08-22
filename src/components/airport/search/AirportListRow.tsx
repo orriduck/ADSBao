@@ -73,7 +73,7 @@ export function AirportListRow({
   ) : null;
 
   const text = (
-    <span className="flex min-w-0 flex-col gap-0.5 self-center">
+    <span className="airport-list-row__copy flex min-w-0 flex-col gap-0.5 self-center">
       {label ? (
         <span className="airport-list-row__label font-code text-[9px] uppercase leading-none tracking-[0.1em] text-atc-faint">
           {label}

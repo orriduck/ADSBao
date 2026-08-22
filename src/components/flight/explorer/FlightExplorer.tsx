@@ -102,7 +102,7 @@ function FlightExplorerContent({ callsign }) {
     sidebarOpen,
     isMobile,
     mapZoom,
-    showMapLabels,
+    mapLabelLevel,
     showNavaidMarkers,
     showAirspaces,
     mapSettings,
@@ -1002,7 +1002,7 @@ function FlightExplorerContent({ callsign }) {
               nearbyNavaids={contextTiles.navaids}
               airspaces={contextTiles.airspaces}
               airport={null}
-              showMapLabels={showMapLabels}
+              mapLabelLevel={mapLabelLevel}
               showRunwayBeams={false}
               showNavaidMarkers={showNavaidMarkers}
               showAirspaces={mapSettingsToExplorerLayers(mapSettings).showAirspaces}

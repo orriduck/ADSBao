@@ -170,7 +170,7 @@ function AirportExplorerContent({
     sidebarOpen,
     isMobile,
     mapZoom,
-    showMapLabels,
+    mapLabelLevel,
     showRunwayBeams,
     showNavaidMarkers,
     showReportingPoints,
@@ -756,7 +756,7 @@ function AirportExplorerContent({
               // visible polygons follow the map whenever the layer is on.
               contextTileOverlays
               onContextTilesChange={setContextTiles}
-              showMapLabels={showMapLabels}
+              mapLabelLevel={mapLabelLevel}
               showRunwayBeams={showRunwayBeams}
               showNavaidMarkers={showNavaidMarkers}
               showReportingPoints={showReportingPoints}

@@ -9,7 +9,7 @@ const zhCN = {
     airportExplorer: "机场",
     aboutTitle: "关于",
     aboutSubtitle: "ADSBao 是如何构建的",
-    mechanismTitle: "机制与架构",
+    mechanismTitle: "Backroom",
     mechanismSubtitle: "实时系统如何协同运作",
     siteDescription: "用 METAR 天气、附近飞机、航路提示和地图图层呈现机场运行信息。",
   },
@@ -24,7 +24,7 @@ const zhCN = {
     homePage: "首页",
     map: "地图",
     about: "关于",
-    mechanism: "机制与架构",
+    mechanism: "Backroom",
     changelog: "更新日志",
   },
   about: {
@@ -99,7 +99,7 @@ const zhCN = {
     },
   },
   mechanism: {
-    title: "机制与架构",
+    title: "Backroom",
     description:
       "ADSBao 如何协调地图追踪、here 模式、附近列表与实时传递。",
     sidebarLabel: "系统剖面",
@@ -646,8 +646,13 @@ const zhCN = {
   },
   mapLayers: {
     mapLabels: "地图标签",
-    showMapLabels: "显示地图标签",
-    hideMapLabels: "隐藏地图标签",
+    mapLabelLevelControl: "地图标签详细程度",
+    mapLabelLevels: {
+      off: "关",
+      majorCities: "州 / 省级单位 + 主要城市",
+      majorHighways: "州 / 省 + 主要城市 + 高速编号",
+      all: "全部",
+    },
     approachBeams: "进近光束",
     showApproachBeams: "显示进近光束",
     hideApproachBeams: "隐藏进近光束",

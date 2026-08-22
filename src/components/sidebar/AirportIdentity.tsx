@@ -83,7 +83,7 @@ export default function AirportIdentity({
       : "";
 
   return (
-    <div className="airport-wayfinding-identity flex min-h-[150px] overflow-hidden">
+    <div className="airport-wayfinding-identity flex min-h-[var(--wayfinding-airport-identity-height)] overflow-hidden">
       <WayfindingRail
         icon={nearMe ? <MapPin /> : <TowerControl />}
         inset="hero"
