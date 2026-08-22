@@ -9,6 +9,7 @@ import { AirportSearchResults } from "./AirportSearchResults";
 import AirportDiscoveryPanel from "./AirportDiscoveryPanel";
 import { useAirportSearch } from "@/features/airport/search/useAirportSearch";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 
 export default function AirportSearchPanel({
   onOpenAirport,
@@ -103,6 +104,7 @@ export default function AirportSearchPanel({
           />
         )}
       </div>
+      <PublicConcourseBoundary />
     </>
   );
 }

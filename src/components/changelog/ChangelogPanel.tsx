@@ -7,6 +7,7 @@ import {
 } from "react";
 import { CircleDot } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 import {
   CHANGELOG_PAGE_SIZE,
   CHANGELOG_RECENT,
@@ -23,7 +24,7 @@ import {
 // left, release copy on one stable content axis.
 
 export default function ChangelogPanel() {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const [historyReleases, setHistoryReleases] = useState<
     ProductChangelogEntry[]
   >([]);
@@ -103,7 +104,7 @@ export default function ChangelogPanel() {
   }, [hasMoreReleases, loadNextPage]);
 
   return (
-    <div className="changelog-wayfinding flex flex-none flex-col pb-5">
+    <div className="changelog-wayfinding flex flex-none flex-col">
       <ol className="dither-list flex flex-none flex-col">
         {visibleReleases.map((release, index) => (
           <ChangelogEntry
@@ -119,6 +120,7 @@ export default function ChangelogPanel() {
           <li ref={sentinelRef} aria-hidden="true" className="h-px" />
         ) : null}
       </ol>
+      {hasMoreReleases ? null : <PublicConcourseBoundary />}
     </div>
   );
 }

@@ -228,22 +228,6 @@ function AircraftTable({
   return (
     <div className="aircraft-table-shell flex flex-col">
       <div className="aircraft-table-controls flex-none">
-        <div className="aircraft-table-controls-header">
-          <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
-          <div className="aircraft-table-controls-header__content">
-            <span className="atc-kicker atc-kicker--lead">
-              {entityFilter === "airports" ? t("sidebar.airports") : t("sidebar.flights")}
-            </span>
-            <div className="whitespace-nowrap font-mono text-[calc(8px*var(--sb-body-scale))] tracking-normal text-atc-dim tabular-nums">
-              <span>{filteredAircraft.length + filteredAirports.length}</span>
-              <span> / </span>
-              <span>
-                {aircraft.length + airports.length} {t("sidebar.nearby")}
-              </span>
-            </div>
-          </div>
-        </div>
-
         <div className="aircraft-table-search-bar">
           <label className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
             <span
@@ -304,6 +288,22 @@ function AircraftTable({
               ariaLabel={t("filters.altitudeFilterAria")}
             />
           </FilterCardGrid>
+        </div>
+
+        <div className="aircraft-table-controls-header">
+          <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
+          <div className="aircraft-table-controls-header__content">
+            <span className="atc-kicker atc-kicker--lead">
+              {t("sidebar.targets")}
+            </span>
+            <div className="whitespace-nowrap font-mono text-[calc(8px*var(--sb-body-scale))] tracking-normal text-atc-dim tabular-nums">
+              <span>{filteredAircraft.length + filteredAirports.length}</span>
+              <span> / </span>
+              <span>
+                {aircraft.length + airports.length} {t("sidebar.nearby")}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 

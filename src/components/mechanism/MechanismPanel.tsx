@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { MECHANISM_ITEMS } from "@/config/mechanism";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { cn } from "@/lib/utils";
+import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 
 type MechanismItemId = (typeof MECHANISM_ITEMS)[number]["id"];
 
@@ -13,7 +14,7 @@ export default function MechanismPanel() {
   );
 
   return (
-    <div className="mechanism-wayfinding flex flex-none flex-col pb-4">
+    <div className="mechanism-wayfinding flex flex-none flex-col">
       <ol>
         {MECHANISM_ITEMS.map((item, index) => {
           const expanded = item.id === expandedId;
@@ -89,6 +90,7 @@ export default function MechanismPanel() {
           );
         })}
       </ol>
+      <PublicConcourseBoundary />
     </div>
   );
 }

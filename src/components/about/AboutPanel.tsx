@@ -2,7 +2,6 @@ import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowUpRight,
   BookOpen,
-  Building2,
   Camera,
   Clapperboard,
   CloudSun,
@@ -23,6 +22,7 @@ import {
 } from "../../config/about";
 import { getExternalLinkOpenTarget } from "@/features/about/aboutModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 
 const resolveCopy = (entry, t) => {
   if (!entry || typeof entry === "string") return entry;
@@ -79,7 +79,7 @@ export default function AboutPanel() {
     : [];
 
   return (
-    <div className="info-wayfinding-stack flex flex-none flex-col pb-2">
+    <div className="info-wayfinding-stack flex flex-none flex-col">
       <div className="info-wayfinding-meta">
         {version ? (
           <InfoRow
@@ -194,6 +194,7 @@ export default function AboutPanel() {
         </span>
         <ArrowUpRight aria-hidden="true" />
       </a>
+      <PublicConcourseBoundary />
     </div>
   );
 }

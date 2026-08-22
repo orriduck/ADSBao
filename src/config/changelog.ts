@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.0",
+    version: "v3.16.1",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Layered map labels, aligned security-glass wayfinding, and clearer Plane Studio controls refine airport tracking.",
-      zh: "分级地图标签、统一的安检玻璃导视和更清晰的 Plane Studio 控件进一步完善机场追踪体验。",
+      en: "Layered labels, aligned glass wayfinding, shared first-screen boundaries, and clearer Plane Studio and target controls complete this interface pass.",
+      zh: "分级标签、统一的玻璃导视、首屏共享的区域边界，以及更明确的 Plane Studio 与目标列表控件完成本轮界面精修。",
     },
     highlights: [],
   },
