@@ -327,7 +327,8 @@ export default function AircraftPreviewCard({
           dismissLabel={t("ui.close")}
           actions={
             // One always-visible action row. For an aircraft the Track button
-            // is the orange accent, beside the camera (Plane Hunter) action.
+            // carries the scoped yellow action color beside a neutral camera
+            // (Plane Hunter) action.
             (showMobileTrackButton ||
               showMobileSpotNavigationTrigger ||
               showMobilePlaneHunterTrigger) ? (

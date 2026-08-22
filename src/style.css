@@ -8246,18 +8246,21 @@ body {
     box-shadow: none;
 }
 
-/* Plane Hunter follows the same operational language as the map around it:
-   one dark stage, square joined controls, and a single yellow commit action.
-   The shutter remains round because it represents a physical camera action,
-   not another generic app button. */
+/* Plane Hunter keeps ADSBao wayfinding in its top identity bar, while the
+   capture controls follow the familiar iOS camera hierarchy. The live compass
+   aircraft marker is the studio's only chromatic cue. */
 .plane-hunter-panel {
     --plane-hunter-surface: #000;
-    --plane-hunter-signal: var(--atc-signal-accent);
-    --plane-hunter-control-radius: 4px;
-    --plane-hunter-sheet-radius: 4px;
-    --plane-hunter-menu-radius: 2px;
-    --plane-hunter-control-shadow: none;
-    --plane-hunter-sheet-shadow: 0 16px 32px rgb(0 0 0 / 0.4);
+    --plane-hunter-signal: var(--plane-hunter-paper);
+    --plane-hunter-control-radius: 999px;
+    --plane-hunter-sheet-radius: 24px;
+    --plane-hunter-menu-radius: 16px;
+    --plane-hunter-control-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.08),
+        0 8px 22px rgb(0 0 0 / 0.24);
+    --plane-hunter-sheet-shadow:
+        0 20px 44px rgb(0 0 0 / 0.48),
+        inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
 .dither-page-background.plane-hunter-stage {
@@ -8267,12 +8270,46 @@ body {
 }
 
 .plane-hunter-wayfinding-dock {
-    box-shadow: none;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.9), #000 46%);
+    border-color: transparent;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+
+.plane-hunter-tool-strip {
+    border: 0;
+    overflow: visible;
+}
+
+.plane-hunter-capture-control {
+    border-radius: 999px;
+}
+
+.plane-hunter-shutter {
+    position: relative;
+}
+
+.plane-hunter-shutter::after {
+    background: var(--plane-hunter-paper-strong);
+    border-radius: 999px;
+    content: "";
+    inset: 5px;
+    position: absolute;
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.plane-hunter-shutter[data-ready="false"]::after {
+    opacity: 0.42;
+    transform: scale(0.88);
 }
 
 .plane-hunter-stage-header {
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
+}
+
+.plane-hunter-panel button:focus-visible {
+    outline: 2px solid var(--plane-hunter-paper-soft);
+    outline-offset: 2px;
 }
 
 .plane-hunter-stage-header__rail {
@@ -8289,6 +8326,7 @@ body {
 .plane-hunter-review-dock {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) 48px minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 8px;
     padding-left: 12px;
     padding-right: 12px;
     width: 100%;
@@ -8296,7 +8334,7 @@ body {
 
 .plane-hunter-review-dock__tool,
 .plane-hunter-review-dock__share {
-    border-radius: 0;
+    border-radius: 999px;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
@@ -8304,7 +8342,7 @@ body {
 
 .plane-hunter-review-dock__tool + .plane-hunter-review-dock__tool,
 .plane-hunter-review-dock__share {
-    border-left-width: 0;
+    border-left-width: 1px;
 }
 
 .plane-hunter-review-dock__share {
@@ -8312,9 +8350,39 @@ body {
 }
 
 @media (orientation: landscape) and (min-height: 360px) {
+    .plane-hunter-wayfinding-dock {
+        gap: 12px;
+        justify-content: flex-start;
+        padding-bottom: 0;
+        padding-top: 52px;
+    }
+
+    .plane-hunter-tool-strip {
+        gap: 6px;
+    }
+
+    .plane-hunter-wayfinding-control {
+        height: 40px;
+        min-height: 40px;
+    }
+
+    .plane-hunter-wayfinding-dock > .grid {
+        gap: 12px;
+    }
+
+    .plane-hunter-capture-control {
+        height: 44px;
+        width: 44px;
+    }
+
+    .plane-hunter-shutter {
+        height: 66px;
+        width: 66px;
+    }
+
     .plane-hunter-review-dock {
         display: flex;
-        gap: 0;
+        gap: 8px;
         padding: 12px 0 12px 12px;
         width: 154px;
     }
@@ -8328,7 +8396,7 @@ body {
     .plane-hunter-review-dock__tool + .plane-hunter-review-dock__tool,
     .plane-hunter-review-dock__share {
         border-left-width: 1px;
-        border-top-width: 0;
+        border-top-width: 1px;
     }
 }
 

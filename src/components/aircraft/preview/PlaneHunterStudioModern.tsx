@@ -424,13 +424,13 @@ const PH_RATIOS = {
   mapMarkerR: 0.012,
 } as const;
 
-// Shared template palette — frosted paper / ink surfaces plus the
-// design-system signal accent (--atc-signal-accent, dark-theme value
-// oklch(0.74 0.15 55)) flattened to sRGB for canvas. Font matches the app's
-// Figtree. Canvas needs literal colors / loaded fonts (no CSS vars).
+// Shared template palette — neutral paper / ink surfaces only. Plane Studio's
+// one chromatic cue belongs to the live compass marker, not the exported photo
+// treatments. Canvas needs literal colors / loaded fonts (no CSS vars).
 const TPL_PAPER = "rgb(245, 243, 238)";
 const TPL_INK = "rgb(24, 24, 22)";
-const TPL_ORANGE = "rgb(243, 142, 66)";
+const TPL_NEUTRAL = "rgb(214, 213, 208)";
+const TPL_YELLOW = "rgb(244, 201, 0)";
 const TPL_FONT = '"Figtree", "Noto Sans SC", system-ui, sans-serif';
 
 // Split a route label ("SFO → EWR", "SFO - EWR") into [origin, dest] codes so
@@ -516,7 +516,7 @@ function drawTemplate(
 
   if (template === "previewCard") {
     // Compact card. Hierarchy: callsign (hero) → flight data (one line) →
-    // route. The orange type block bleeds flush into
+    // route. The neutral type block bleeds flush into
     // the card's bottom-left corner.
     const cardW = Math.min(width - pad * 2, unit * 0.34);
     const ip = cardW * 0.06;
@@ -578,9 +578,9 @@ function drawTemplate(
       context.fillText(labels.route, left, y, innerW);
     }
 
-    // Band: orange type block (flush bottom-left corner) + one-line data
+    // Band: neutral type block (flush bottom-left corner) + one-line data
     const bandTop = panelY + panelH - bandH;
-    context.fillStyle = TPL_ORANGE;
+    context.fillStyle = TPL_NEUTRAL;
     roundedRectCorners(
       context,
       panelX,
@@ -617,8 +617,8 @@ function drawTemplate(
   }
 
   if (template === "lowerThird") {
-    // Departure-board lower third: full-width bar flush to the bottom edge
-    // (no gap), gold header, column readout, and a gold flight-phase block.
+    // Departure-board lower third: full-width monochrome bar flush to the
+    // bottom edge, with a high-contrast flight-phase block.
     const barW = width;
     const barH = unit * 0.07;
     const barX = 0;
@@ -632,11 +632,11 @@ function drawTemplate(
     context.fillStyle = "rgba(255, 255, 255, 0.08)";
     context.fillRect(barX, barY, barW, Math.max(1, unit * 0.0012));
 
-    // Status block — orange, flush to the right edge, full bar height.
+    // Status block — paper, flush to the right edge, full bar height.
     const statusW = Math.min(barW * 0.2, unit * 0.24);
     const statusX = barW - statusW;
     const phase = labels.phase || (codes ? "EN ROUTE" : "TRACKING");
-    context.fillStyle = TPL_ORANGE;
+    context.fillStyle = TPL_PAPER;
     context.fillRect(statusX, barY, statusW, barH);
     context.fillStyle = TPL_INK;
     context.textAlign = "center";
@@ -646,7 +646,7 @@ function drawTemplate(
 
     // Single line: ✈ then values only — no header, no labels.
     const valueY = barY + barH * 0.65;
-    context.fillStyle = TPL_ORANGE;
+    context.fillStyle = TPL_PAPER;
     context.font = `400 ${barH * 0.42}px ${TPL_FONT}`;
     context.fillText("✈", left, valueY);
     const dataLeft = left + barH * 0.55;
@@ -727,12 +727,11 @@ function useLongPress({
 }
 
 const PLANE_HUNTER_CHIP =
-  "plane-hunter-wayfinding-control inline-flex size-11 shrink-0 select-none items-start justify-center border-r border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface-strong)] pt-[11px] text-[var(--plane-hunter-paper-strong)] transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
+  "plane-hunter-wayfinding-control inline-flex size-11 shrink-0 select-none items-center justify-center rounded-full border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface-strong)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100";
 
-// Floating control dock: switch / zoom / help chips in one row, plus the
-// library + shutter capture row. Sits at the bottom in portrait and on the
-// trailing side in landscape (it reflows with the viewport, so glyphs always
-// stay upright whichever way the phone is turned).
+// Floating control dock: template / zoom / help above the native-style
+// library + shutter + lens-switch capture row. It sits at the bottom in
+// portrait and on the trailing side in landscape, so glyphs stay upright.
 function PlaneHunterControlDock({
   zoom,
   zoomRange,
@@ -802,7 +801,7 @@ function PlaneHunterControlDock({
 
   return (
     <div className="plane-hunter-wayfinding-dock pointer-events-auto relative flex flex-col items-center gap-4 border-t border-[var(--plane-hunter-line-strong)] bg-[var(--plane-hunter-surface)] px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-4 landscape:h-full landscape:justify-center landscape:gap-6 landscape:border-l landscape:border-t-0 landscape:px-3 landscape:pb-3 landscape:pr-[max(12px,env(safe-area-inset-right))] landscape:pt-3">
-      <div className="flex items-center justify-center overflow-hidden border border-[var(--plane-hunter-line)] landscape:flex-col">
+      <div className="plane-hunter-tool-strip flex items-center justify-center gap-2 landscape:flex-col">
         {/* Template — tap to cycle the preset; the live overlay updates. */}
         <button
           type="button"
@@ -844,34 +843,6 @@ function PlaneHunterControlDock({
         </button>
         <button
           type="button"
-          disabled={!canSwitchCamera}
-          {...switchGesture}
-          aria-haspopup="menu"
-          aria-expanded={cameraSheetOpen}
-          aria-label={
-            canSwitchCamera
-              ? t("planeHunter.switchCamera")
-              : t("planeHunter.switchCameraSingle")
-          }
-          title={
-            canSwitchCamera
-              ? t("planeHunter.switchCamera")
-              : t("planeHunter.switchCameraSingle")
-          }
-          className={PLANE_HUNTER_CHIP}
-        >
-          <SwitchCamera
-            aria-hidden="true"
-            className={cn(
-              "size-[19px]",
-              canSwitchCamera
-                ? "text-[var(--plane-hunter-paper-strong)]"
-                : "text-[var(--plane-hunter-paper-muted)]",
-            )}
-          />
-        </button>
-        <button
-          type="button"
           disabled={!canZoom}
           {...zoomGesture}
           aria-haspopup="menu"
@@ -905,7 +876,7 @@ function PlaneHunterControlDock({
           onClick={onChooseLibrary}
           aria-label={t("planeHunter.chooseLibrary")}
           title={t("planeHunter.chooseLibrary")}
-          className="inline-flex size-[52px] items-center justify-center justify-self-start rounded-[var(--plane-hunter-control-radius)] border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 landscape:order-2"
+          className="plane-hunter-capture-control inline-flex size-[52px] items-center justify-center justify-self-start rounded-full border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 landscape:order-2"
         >
           <ImageIcon aria-hidden="true" className="size-5" />
         </button>
@@ -915,9 +886,29 @@ function PlaneHunterControlDock({
           aria-label={
             cameraReady ? t("planeHunter.takePhoto") : t("planeHunter.tryAgain")
           }
-          className="size-[74px] justify-self-center rounded-full border-[5px] border-[var(--plane-hunter-paper-strong)] bg-[var(--plane-hunter-control-surface-strong)] shadow-[var(--plane-hunter-shutter-shadow)] transition active:scale-95 landscape:order-1"
+          data-ready={cameraReady ? "true" : "false"}
+          className="plane-hunter-shutter size-[74px] justify-self-center rounded-full border-[4px] border-[var(--plane-hunter-paper-strong)] bg-transparent shadow-[var(--plane-hunter-shutter-shadow)] transition active:scale-95 landscape:order-1"
         />
-        <span aria-hidden="true" className="landscape:hidden" />
+        <button
+          type="button"
+          disabled={!canSwitchCamera}
+          {...switchGesture}
+          aria-haspopup="menu"
+          aria-expanded={cameraSheetOpen}
+          aria-label={
+            canSwitchCamera
+              ? t("planeHunter.switchCamera")
+              : t("planeHunter.switchCameraSingle")
+          }
+          title={
+            canSwitchCamera
+              ? t("planeHunter.switchCamera")
+              : t("planeHunter.switchCameraSingle")
+          }
+          className="plane-hunter-capture-control inline-flex size-[52px] items-center justify-center justify-self-end rounded-full border border-[var(--plane-hunter-line)] bg-[var(--plane-hunter-control-surface)] text-[var(--plane-hunter-paper-strong)] shadow-[var(--plane-hunter-control-shadow)] backdrop-blur-md transition hover:bg-[var(--plane-hunter-control-hover)] active:scale-95 disabled:opacity-35 disabled:active:scale-100 landscape:order-3"
+        >
+          <SwitchCamera aria-hidden="true" className="size-[20px]" />
+        </button>
       </div>
 
       {cameraSheetOpen && canSwitchCamera && (
@@ -1245,9 +1236,9 @@ function usePlaneDirection(
   return direction;
 }
 
-// Compass ribbon: a heading tape (ticks + degrees + cardinals) with a marker
-// for where the aircraft is relative to the camera. The marker turns green and
-// snaps to centre once aligned, so the photographer knows to shoot.
+// Compass ribbon: a heading tape (ticks + degrees + cardinals) with one yellow
+// and black aircraft marker. Position and copy communicate alignment, so the
+// color never changes into a second status hue.
 function PlaneHunterCompass({ direction }: { direction: PlaneDirection }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
@@ -1323,7 +1314,7 @@ function PlaneHunterCompass({ direction }: { direction: PlaneDirection }) {
 
     // Aircraft marker at the relative bearing (clamped to the visible range).
     const aligned = direction.aligned;
-    const markerColor = aligned ? "rgb(82,220,140)" : TPL_ORANGE;
+    const markerColor = TPL_YELLOW;
     const clamped = Math.abs(direction.relative) > SPAN;
     const mx = Math.max(
       H * 0.16,
@@ -1472,12 +1463,12 @@ function PlaneHunterLiveCameraView({
         </div>
       )}
       {/* Compass ribbon — where the aircraft is relative to the camera. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-[max(84px,calc(env(safe-area-inset-top)+72px))] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-surface)_50%,transparent),transparent)] px-14 pb-2 pt-[max(8px,env(safe-area-inset-top))] landscape:h-[max(60px,calc(env(safe-area-inset-top)+52px))] landscape:px-10 landscape:pb-1 landscape:pt-[max(4px,env(safe-area-inset-top))]">
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+44px)] z-20 h-[84px] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-surface)_50%,transparent),transparent)] px-14 pb-2 pt-2 landscape:h-[60px] landscape:px-10 landscape:pb-1 landscape:pt-1">
         <PlaneHunterCompass direction={direction} />
       </div>
       <PlaneHunterStageHeader labels={labels} onClose={onClose} t={t} />
       {status && (
-        <div className="pointer-events-none absolute inset-x-0 top-[max(64px,calc(env(safe-area-inset-top)+56px))] z-30 flex justify-center px-4">
+        <div className="pointer-events-none absolute inset-x-0 top-[max(116px,calc(env(safe-area-inset-top)+108px))] z-30 flex justify-center px-4">
           <span className="rounded-[var(--plane-hunter-control-radius)] bg-[var(--plane-hunter-overlay)] px-3 py-2 text-center text-[11px] font-[var(--plane-hunter-weight-emphasis)] leading-snug text-[var(--plane-hunter-paper-strong)] backdrop-blur-md">
             {status}
           </span>

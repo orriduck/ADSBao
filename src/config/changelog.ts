@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 76;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.15.0",
+    version: "v3.15.1",
     kind: "feat",
     title: {
       en: "Wayfinding clarity",
       zh: "导视清晰度",
     },
     summary: {
-      en: "A focused grayscale-and-yellow wayfinding refresh sharpens aircraft, simplifies airport screens, and keeps nearby lists stable.",
-      zh: "灰黄导视更新提升飞机清晰度、精简机场界面，并保持附近列表稳定。",
+      en: "A grayscale-and-yellow wayfinding refresh sharpens aircraft, stabilizes nearby lists, and gives Plane Studio a calmer iOS-style camera interface.",
+      zh: "灰黄导视更新提升飞机清晰度、稳定附近列表，并为 Plane Studio 带来更克制的 iOS 相机式界面。",
     },
     highlights: [],
   },
