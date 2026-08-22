@@ -50,7 +50,7 @@ function ensureOverlay(): HTMLElement | null {
     "z-index:99999",
     "padding:6px 9px",
     "border-radius:8px",
-    "font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace",
+    'font:500 11px/1.45 "Figtree","Noto Sans SC",system-ui,sans-serif',
     "color:#e8f6ff",
     "background:rgba(8,12,18,0.82)",
     "border:1px solid rgba(120,180,255,0.35)",

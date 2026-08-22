@@ -74,10 +74,7 @@ export default function AirportIdentity({
     ? nearMeSubtitle
     : [cityLabel, countryLabel].filter(Boolean).join(", ");
   const coordLine = formatCoord(lat, lon);
-  // City/country and coordinates fold onto a single faint meta line —
-  // no country flag emoji, no separate local-time row (Frosted redesign).
-  const metaLine = [placeText, coordLine].filter(Boolean).join("  ·  ");
-  // The full name recedes to a 13px subtitle under the code. Suppress it
+  // The full name recedes beneath the code. Suppress it
   // when it would only echo the display code (e.g. before airport data loads,
   // airportDisplayName falls back to the IATA/ICAO code).
   const nameLine =
@@ -93,7 +90,7 @@ export default function AirportIdentity({
         motionKind="identity"
         tone="primary"
       />
-      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-5 pt-[var(--wayfinding-hero-content-top)]">
+      <div className="airport-wayfinding-identity__content flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-5 pt-[var(--wayfinding-hero-content-top)]">
         <h1 className="text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text">
           <span className="notranslate" translate="no">
             {nearMe ? (
@@ -104,13 +101,18 @@ export default function AirportIdentity({
           </span>
         </h1>
         {nameLine ? (
-          <div className="mt-3 text-[calc(13px*var(--sb-title-scale))] leading-snug text-atc-text">
+          <div className="airport-wayfinding-identity__name mt-2.5 leading-snug text-atc-text">
             {nearMe ? <DecodeText text={nameLine} /> : nameLine}
           </div>
         ) : null}
-        {metaLine ? (
-          <div className="mt-1.5 text-[calc(10px*var(--sb-body-scale))] leading-snug text-atc-dim">
-            {metaLine}
+        {placeText ? (
+          <div className="airport-wayfinding-identity__place mt-1.5 leading-snug text-atc-dim">
+            {placeText}
+          </div>
+        ) : null}
+        {coordLine ? (
+          <div className="airport-wayfinding-identity__coordinates mt-1 font-mono leading-snug text-atc-dim">
+            {coordLine}
           </div>
         ) : null}
         {nearMeRefresh && (

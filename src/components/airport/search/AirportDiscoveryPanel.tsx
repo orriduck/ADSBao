@@ -84,7 +84,6 @@ function AirportDiscoveryTopicSection({ topic, motionBase, onOpen, onPrefetch })
           <AirportDiscoveryAirportRow
             key={airport.icao || airport.code || airport.name}
             airport={airport}
-            label={index === 0 ? t(topic.titleKey) : undefined}
             motionOrder={motionBase + index}
             onOpen={onOpen}
             onPrefetch={onPrefetch}
@@ -125,7 +124,6 @@ function NearbyPromptRow({
 
 function AirportDiscoveryAirportRow({
   airport,
-  label,
   motionOrder,
   onOpen,
   onPrefetch,
@@ -167,7 +165,6 @@ function AirportDiscoveryAirportRow({
         onClick={() => onOpen(airport)}
         pill={code}
         railMotionKind="code"
-        label={label}
         title={airportDisplayName(airport, locale)}
         subtitle={airportSubtitle(airport, locale)}
         trailing={<ChevronRight className="h-4 w-4" aria-hidden="true" />}

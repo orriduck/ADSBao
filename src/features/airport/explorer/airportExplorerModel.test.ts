@@ -11,7 +11,7 @@ import { ARRIVAL, DEPARTURE, UNKNOWN } from "../../../utils/aircraftMovement";
 const fallbackProfile = resolveAirportProfile({ icao: "kbos" });
 assert.equal(fallbackProfile.icao, "KBOS");
 assert.equal(fallbackProfile.iata, "BOS");
-assert.equal(fallbackProfile.name, "Boston Logan");
+assert.equal(fallbackProfile.name, "Boston Logan International Airport");
 assert.equal(fallbackProfile.lat, 42.3656);
 assert.equal(fallbackProfile.lon, -71.0096);
 
@@ -58,7 +58,7 @@ const emptyNameProfile = resolveAirportProfile({
     city: "Boston",
   },
 });
-assert.equal(emptyNameProfile.name, "");
+assert.equal(emptyNameProfile.name, "Boston Logan International Airport");
 
 const localizedProfile = resolveAirportProfile({
   icao: "zspd",

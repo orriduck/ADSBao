@@ -31,7 +31,9 @@ Fixed sidebars and in-flow information panels use one repeating construction:
 - Railed content begins at **48px** from the sidebar edge (36px rail + 12px
   inset). Content without a rail begins at **14px**.
 - The content surface is **pure white in light mode and pure black in dark
-  mode**. Do not alternate black/white within one theme.
+  mode**. Do not alternate black/white within one theme. The tracked-airport
+  identity is the one sign exception: white rail with black glyph, followed by
+  a yellow content field with black type in both themes.
 - The main and secondary areas share the same rail width. Importance comes from
   type scale, row height, and ordering — never from a wider rail.
 - Joined modules use one 1px neutral divider. Avoid doubled borders, inset card
@@ -42,32 +44,42 @@ the airport/flight sidebars in `src/components/sidebar/`.
 
 ## Color semantics
 
-Each tracked entity or page context owns one primary theme color. ADSBao uses:
+ADSBao uses a grayscale wayfinding palette with tightly scoped yellow identity
+and action exceptions:
 
-- **Orange** (`--atc-signal-accent`) is the scarce highest-priority signal. Use
-  it only for the current airport/aircraft identity, the selected tracking
-  target, live trace, or the single primary tracking action in a context.
-- **Blue** (`--atc-signal-secondary-action`, with
+- **Yellow** (`--atc-theme-yellow`) belongs only to the current airport's
+  identity content, focal map label, and the single primary Track button in an
+  aircraft preview. It does not identify aircraft selection or live trace.
+- **Deep blue** belongs only to the compact external-provider link strip. It
+  uses white copy and white provider marks in both themes, like a permanent
+  airport information sign rather than a theme-dependent control.
+- **Signal gray** (`--atc-signal-accent`) marks selected aircraft, live trace,
+  and the primary tracking action without adding another hue.
+- **Medium gray** (`--atc-signal-secondary-action`, with
   `--airport-wayfinding-secondary` as the tracking-sidebar alias) marks
-  secondary interaction or a distinct alternate context: external provider
-  rows, expanded secondary controls, contextual map previews, and
-  alternate-unit metric states.
+  secondary interaction or a distinct alternate context: expanded secondary
+  controls, contextual map previews, and alternate-unit metric states.
 - **Dark and light neutral gray** express structure and ordinary information:
   static page identities, section and group headers, metrics, search, filters,
   loading placeholders, unselected list rows, and non-interactive status.
 
-Do not promote a rail to orange merely because it starts a page or is the
-newest item in a list. Before adding orange, ask whether the element identifies
-what the user is actively tracking or performs the one primary action. If not,
-use blue for secondary interaction and gray for everything else.
+Do not use yellow outside the two airport-identity surfaces and the primary
+Track CTA, or deep blue outside the external-provider strip. Use signal gray
+for aircraft selection and trace, medium gray for secondary interaction, and
+neutral gray for everything else.
+
+Loading placeholders mirror the surface they replace: the airport identity
+placeholder uses the white-rail/yellow-field pairing, and the provider-strip
+placeholder uses deep blue with white marks. All other placeholders stay
+neutral gray.
 
 Map preview cards are glance surfaces, not tracking pages: their identity rail
-stays neutral gray, and orange is reserved for the single primary action
-(Track) and for the identity hero of the tracking page that action leads to.
+stays neutral gray, while the single primary Track action uses yellow with
+black text.
 
-Only the rail or an entire secondary action row receives color. Text content
-stays on the neutral content surface; never put contrasting text blocks inside
-a metric merely to make it colorful.
+Only the tracked-airport identity content, its focal map label, and the primary
+Track CTA receive yellow. Other text content stays on the neutral surface;
+never put contrasting text blocks inside a metric merely to make it colorful.
 
 ## Typography and data
 
@@ -78,23 +90,25 @@ a metric merely to make it colorful.
 - Labels are quiet and compact. Values are larger, tabular where appropriate,
   and aligned to a common baseline.
 - A metric may switch representations when clicked (for example kt / km/h or
-  ft / m). The alternate representation uses the blue rail so the state change
-  is visible without recoloring the content area.
+  ft / m). The alternate representation uses the medium-gray rail so the state
+  change is visible without recoloring the content area.
 
 ## Lists, filters, and previews
 
 - Search, filters, and nearby rows continue the same 36px rail and 48px content
   axis. They are full-width joined rows, not floating capsules.
 - Selected filters stay neutral: change only the gray rail luminance (darker in
-  light mode, lighter in dark mode). Blue remains reserved for a distinct
+  light mode, lighter in dark mode). Medium gray remains reserved for a distinct
   secondary context, not ordinary filter state.
 - Nearby aircraft remain a dense operational manifest: one row per target,
-  neutral rail at rest, orange rail when selected, stable columns for distance
+  neutral rail at rest, signal-gray rail when selected, stable columns for distance
   and altitude.
 - Map preview cards behave like compact signs: flat neutral body, one identity
   rail, strong identifier, concise telemetry, and a full-width action row.
-- Map labels are allowed a compact 4px signal strip because a 36px rail would
-  obscure geography. Their color meanings must match the sidebar.
+- The current-airport map label uses a compact yellow field with black ink and
+  a thick white rail on its left because a 36px rail would obscure geography.
+  Contextual map labels stay neutral, and their color meanings must match the
+  sidebar.
 
 ## Floating and blocking surfaces
 
@@ -141,7 +155,8 @@ Before shipping, inspect every affected sidebar in both themes and verify:
 3. icons and titles share the intended top baseline, while titleless values
    align to the value baseline;
 4. adjacent 1px dividers do not overlap into a visually thick line;
-5. one context uses one primary color, with blue only for secondary/alternate
+5. one context uses one primary color, with medium gray only for secondary/alternate
    meaning;
-6. light content is white and dark content is black;
+6. light content is white and dark content is black, except for the documented
+   yellow tracked-airport identity sign;
 7. every label appears once and every visible total helps an immediate task.

@@ -542,7 +542,7 @@ export default function MapSettingsSheet({
                   onClick={() => updateLayerDraft(MAP_LAYER_KEYS.USER_LOCATION)}
                 />
               </div>
-              <div className="mt-1 space-y-1">
+              <div className="map-settings-rail-extension map-settings-rail-extension--active mt-1 space-y-1">
                 {userLocationActive ? (
                   <>
                     <div
@@ -614,7 +614,7 @@ export default function MapSettingsSheet({
             </section>
 
             <section
-              className="map-settings-section map-settings-section--plain"
+              className="map-settings-section"
               aria-labelledby={`${id}-units`}
             >
               <h3
@@ -629,7 +629,7 @@ export default function MapSettingsSheet({
                   return (
                     <div
                       key={group.key}
-                      className="map-settings-unit-row grid min-h-[46px] grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 px-[14px] py-0.5"
+                      className="map-settings-unit-row grid min-h-[46px] grid-cols-[minmax(0,1fr)_minmax(96px,auto)] items-center gap-2 py-0.5"
                     >
                       <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
@@ -728,7 +728,7 @@ export default function MapSettingsSheet({
                   />
                 ) : null}
               </div>
-              <div className="mt-1 space-y-1">
+              <div className="map-settings-rail-extension mt-1 space-y-1">
                 <div className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none">
                   {t("notifications.airport.hint")}
                 </div>

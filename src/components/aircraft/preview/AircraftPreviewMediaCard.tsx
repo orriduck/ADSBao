@@ -29,7 +29,7 @@ export default function AircraftPreviewMediaCard({ photo, onError }) {
     >
       <div className="aircraft-preview-media-card__photo">
         <img
-          className="aircraft-preview-media-card__image"
+          className="aircraft-preview-media-card__image media-photo-color"
           src={photo.src}
           width={photo.width || CARD_WIDTH_PX}
           height={photo.height || Math.round(CARD_WIDTH_PX * DEFAULT_PHOTO_ASPECT_HEIGHT_RATIO)}

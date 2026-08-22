@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.13.37",
+    kind: "feat",
+    title: {
+      en: "Cloudflare delivery",
+      zh: "Cloudflare 交付",
+    },
+    summary: {
+      en: "The frontend began routing same-origin API and EventSource requests through Cloudflare.",
+      zh: "前端开始经由 Cloudflare 转发同源 API 与 EventSource 请求。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.12.4",
     kind: "feat",
     title: {

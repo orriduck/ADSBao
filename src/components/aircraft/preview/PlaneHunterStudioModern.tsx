@@ -427,11 +427,11 @@ const PH_RATIOS = {
 // Shared template palette — frosted paper / ink surfaces plus the
 // design-system signal accent (--atc-signal-accent, dark-theme value
 // oklch(0.74 0.15 55)) flattened to sRGB for canvas. Font matches the app's
-// Manrope. Canvas needs literal colors / loaded fonts (no CSS vars).
+// Figtree. Canvas needs literal colors / loaded fonts (no CSS vars).
 const TPL_PAPER = "rgb(245, 243, 238)";
 const TPL_INK = "rgb(24, 24, 22)";
 const TPL_ORANGE = "rgb(243, 142, 66)";
-const TPL_FONT = '"Manrope", "Noto Sans SC", system-ui, sans-serif';
+const TPL_FONT = '"Figtree", "Noto Sans SC", system-ui, sans-serif';
 
 // Split a route label ("SFO → EWR", "SFO - EWR") into [origin, dest] codes so
 // the templates can render the airport pair as a bold headline.
@@ -1029,12 +1029,12 @@ function PlaneHunterControlDock({
 }
 
 // Canvas text silently falls back if a weight isn't loaded yet — make sure
-// the Manrope weights the templates use are ready before drawing.
+// the Figtree weights the templates use are ready before drawing.
 async function ensureTemplateFonts() {
   if (typeof document === "undefined" || !document.fonts?.load) return;
   await Promise.all(
     ["400", "500", "800"].map((weight) =>
-      document.fonts.load(`${weight} 24px Manrope`).catch(() => undefined),
+      document.fonts.load(`${weight} 24px Figtree`).catch(() => undefined),
     ),
   );
 }
@@ -1462,7 +1462,7 @@ function PlaneHunterLiveCameraView({
           autoPlay
           muted
           playsInline
-          className="absolute inset-0 h-full w-full object-cover"
+          className="media-photo-color absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_34%,color-mix(in_oklab,var(--plane-hunter-paper)_11%,transparent)_0,transparent_36%),linear-gradient(180deg,color-mix(in_oklab,var(--plane-hunter-paper)_3%,transparent),transparent_30%),var(--plane-hunter-surface)]">
@@ -1554,13 +1554,13 @@ function PlaneHunterReviewView({
             src={image}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl"
+            className="media-photo-color absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-2xl"
             draggable="false"
           />
           <img
             src={image}
             alt=""
-            className="relative z-[1] h-full w-full object-contain"
+            className="media-photo-color relative z-[1] h-full w-full object-contain"
             draggable="false"
           />
         </div>

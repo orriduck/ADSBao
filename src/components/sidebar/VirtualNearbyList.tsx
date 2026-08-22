@@ -11,7 +11,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import AircraftRow from "./AircraftRow";
 import AirportRow from "./AirportRow";
 import CardFlipSlot from "./CardFlipSlot";
-import { useSidebarScrollRef } from "./SidebarScrollContext";
+import { useSidebarScrollElement } from "./SidebarScrollContext";
 
 // Rows are a fixed 42px (single-line, see AircraftRow / AirportRow), so this
 // estimate matches the measured height and the list never jitters before
@@ -68,9 +68,15 @@ export default function VirtualNearbyList({
   // scroll element and offsets its virtual items by `scrollMargin` — the
   // distance from the top of the scroll content down to where the list
   // begins (the identity + hero + filters above it).
-  const scrollRef = useSidebarScrollRef();
+  const scrollElement = useSidebarScrollElement();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
+  // The shared sidebar may already be scrolled when this list remounts. Do not
+  // let React Virtual build an initial range with the placeholder margin of 0:
+  // that range starts a full header-height too far down and can survive the
+  // later margin update. useLayoutEffect resolves the real list offset before
+  // paint, then enables virtualization with the correct coordinate system.
+  const [layoutReady, setLayoutReady] = useState(false);
   // Rows are a fixed height PER VIEWPORT (42px normally, ~51px where the
   // .airport-map-kit override compresses them). Measure it ONCE (and on resize,
   // in the same effect that tracks scrollMargin) and feed it as a fixed
@@ -96,15 +102,15 @@ export default function VirtualNearbyList({
   const hasMore = items.length > visibleItems.length;
 
   useLayoutEffect(() => {
-    const scrollEl = scrollRef?.current;
-    const listEl = listRef.current;
-    if (!scrollEl || !listEl) return undefined;
     let raf = 0;
+    let observer: ResizeObserver | null = null;
     const measure = () => {
+      const listEl = listRef.current;
+      if (!scrollElement || !listEl) return;
       const top =
         listEl.getBoundingClientRect().top -
-        scrollEl.getBoundingClientRect().top +
-        scrollEl.scrollTop;
+        scrollElement.getBoundingClientRect().top +
+        scrollElement.scrollTop;
       setScrollMargin((prev) => (Math.abs(prev - top) > 0.5 ? top : prev));
       // Re-read the fixed row height from a rendered row. Rounded + compared
       // exactly so sub-pixel noise never flips it — it only changes on a real
@@ -116,25 +122,32 @@ export default function VirtualNearbyList({
       if (height > 0) {
         setRowHeight((prev) => (prev !== height ? height : prev));
       }
+      setLayoutReady(true);
     };
-    measure();
     const schedule = () => {
       window.cancelAnimationFrame(raf);
       raf = window.requestAnimationFrame(measure);
     };
-    const observer = new ResizeObserver(schedule);
-    observer.observe(scrollEl);
+    const listEl = listRef.current;
+    if (!scrollElement || !listEl) {
+      setLayoutReady(false);
+      return;
+    }
+
+    // The context value changes when the parent callback ref attaches, so this
+    // first measurement always has the real shared scroll owner. Virtualization
+    // stays disabled until its scroll-margin coordinate system is valid.
+    measure();
+    observer = new ResizeObserver(schedule);
+    observer.observe(scrollElement);
     observer.observe(listEl);
     // The body wraps the header (identity + hero + filters) above the list,
     // so its height changing — e.g. the airport name resolving — must
     // recompute where the list starts.
-    const body = scrollEl.querySelector(".sidebar-shell-body");
+    const body = scrollElement.querySelector(".sidebar-shell-body");
     if (body) observer.observe(body);
-    // The mobile panel has no .sidebar-shell-body — its header (identity + hero
-    // + filters) lives beside the list, so observe the list's own container too:
-    // when the header grows it pushes the list down, which must recompute where
-    // the list begins.
     if (listEl.parentElement) observer.observe(listEl.parentElement);
+    window.addEventListener("resize", schedule);
     // Deliberately NOT re-measured on scroll. scrollMargin is scroll-INVARIANT,
     // so reading getBoundingClientRect every scroll frame was pure waste — a
     // forced synchronous layout that stalls the compositor scroll (keeps the
@@ -142,17 +155,17 @@ export default function VirtualNearbyList({
     // where the list starts (Flights card / airport name resolving) already
     // resizes the observed .sidebar-shell-body / list parent, so the
     // ResizeObserver above re-measures it off the scroll hot path.
-    window.addEventListener("resize", measure);
     return () => {
       window.cancelAnimationFrame(raf);
-      observer.disconnect();
-      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+      window.removeEventListener("resize", schedule);
     };
-  }, [scrollRef, visibleItems.length]);
+  }, [scrollElement, visibleItems.length]);
 
   const virtualizer = useVirtualizer({
     count: visibleItems.length,
-    getScrollElement: () => scrollRef?.current ?? null,
+    enabled: layoutReady,
+    getScrollElement: () => scrollElement,
     estimateSize: () => rowHeight,
     overscan: OVERSCAN_ROWS,
     // Key by POSITION, not identity: a slot stays put at its index and its
@@ -193,10 +206,9 @@ export default function VirtualNearbyList({
   // when the user has already scrolled down into it, so changing a filter
   // while the header is in view doesn't yank the whole sidebar.
   useEffect(() => {
-    const scrollEl = scrollRef?.current;
-    if (!scrollEl) return;
-    if (scrollEl.scrollTop > scrollMargin) {
-      scrollEl.scrollTo({ top: scrollMargin });
+    if (!scrollElement) return;
+    if (scrollElement.scrollTop > scrollMargin) {
+      scrollElement.scrollTo({ top: scrollMargin });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSignal]);
@@ -211,7 +223,14 @@ export default function VirtualNearbyList({
     // that point as well: otherwise React Virtual can retain the pre-header
     // range and place the first rendered row a full header-height below the
     // filters until the next user scroll.
-  }, [visibleItems.length, resetSignal, rowHeight, scrollMargin, virtualizer]);
+  }, [
+    layoutReady,
+    visibleItems.length,
+    resetSignal,
+    rowHeight,
+    scrollMargin,
+    virtualizer,
+  ]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();

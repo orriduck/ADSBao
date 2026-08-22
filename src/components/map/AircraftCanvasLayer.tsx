@@ -37,6 +37,7 @@ import {
   aircraftSpriteCacheSize,
 } from "../../features/aircraft/canvas/aircraftSpriteCache";
 import { recordAircraftCanvasFrame } from "../../features/aircraft/canvas/aircraftCanvasPerfMonitor";
+import { resolveAircraftCanvasDpr } from "../../features/aircraft/canvas/aircraftCanvasResolution";
 
 const HIT_RADIUS_PX = 17; // matches the old 34px invisible hit target
 const HEADING_EASE = 0.25; // per-draw catch-up toward target heading
@@ -79,12 +80,12 @@ interface AircraftCanvasSetData {
 const AircraftCanvasRenderer = (L as any).Renderer.extend({
   _initContainer() {
     const canvas = document.createElement("canvas");
+    canvas.classList.add("aircraft-canvas-layer");
     canvas.style.pointerEvents = "none";
     this._container = canvas;
     this._ctx = canvas.getContext("2d");
-    this._dpr = Math.min(
-      (typeof window !== "undefined" && window.devicePixelRatio) || 1,
-      2,
+    this._dpr = resolveAircraftCanvasDpr(
+      typeof window !== "undefined" ? window.devicePixelRatio : 1,
     );
     this._drawList = [] as AircraftDrawDescriptor[];
     this._motion = new Map();
@@ -136,7 +137,14 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     (L as any).Renderer.prototype._update.call(this);
     const b = this._bounds;
     const size = b.getSize();
-    const dpr = this._dpr;
+    // DPR can change while this renderer stays mounted (responsive device
+    // preview, browser zoom, or moving the window between displays). Re-read it
+    // on every geometry update so the backing bitmap never remains at 1x on a
+    // 2x/3x screen. Sprite-cache keys already include DPR.
+    const dpr = resolveAircraftCanvasDpr(
+      typeof window !== "undefined" ? window.devicePixelRatio : 1,
+    );
+    this._dpr = dpr;
     const canvas = this._container;
     (L as any).DomUtil.setPosition(canvas, b.min);
     canvas.width = Math.round(dpr * size.x);
@@ -365,10 +373,9 @@ function resolveAircraftCanvasPalette(
     arrival: read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
     unknown: read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
     ground: read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
-    // PRIMARY (focal/tracked) target = orange signal accent; SECONDARY
-    // (clicked) target = a high-contrast NEUTRAL (near-white grey on the dark
-    // canvas, near-black grey on the light canvas) — distinguished by luminance
-    // only, no second hue. Fallbacks mirror the tokens if the CSS var can't be read.
+    // PRIMARY (focal/tracked) and SECONDARY (clicked) targets are both neutral
+    // signals in this palette, distinguished by luminance rather than another
+    // hue. Fallbacks mirror the tokens if the CSS var cannot be read.
     focal: read("--atc-signal-accent", dark ? "#e8893f" : "#cf6a1e"),
     selected: read("--atc-signal-secondary", dark ? "#e4e2db" : "#4a4945"),
     // Contrast halo replaces the dropped plate disc — light-on-dark / dark-on-light.
@@ -381,9 +388,9 @@ function resolveAircraftCanvasPalette(
     ),
     monoFont: read(
       "--font-mono",
-      "ui-monospace, SFMono-Regular, Menlo, monospace",
+      '"Figtree", "Noto Sans SC", system-ui, sans-serif',
     ),
-    labelWeight: read("--weight-regular", "600"),
+    labelWeight: read("--weight-regular", "500"),
   };
 }
 

@@ -112,7 +112,7 @@ export default function PageMotionGrid() {
                 >
                   <img
                     alt=""
-                    className="page-motion-grid__image"
+                    className="page-motion-grid__image media-photo-color"
                     decoding="async"
                     draggable={false}
                     loading={rowIndex > 1 ? "lazy" : "eager"}

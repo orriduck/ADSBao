@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import type React from "react";
 import { Home, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -55,7 +55,12 @@ export default function SidebarShell({
   } = useThemePreference();
   const isMobileOverlay = Boolean(onClose);
   const mapAction = onMap || onClose;
-  const shellRef = useRef<HTMLDivElement | null>(null);
+  // Publish the mounted element itself rather than a stable ref object. A ref's
+  // `.current` changing does not notify context consumers, which let the nearby
+  // virtualizer occasionally initialize before its shared scroll owner existed.
+  const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
+    null,
+  );
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-transparent",
@@ -77,7 +82,7 @@ export default function SidebarShell({
 
   return (
     <div
-      ref={shellRef}
+      ref={setScrollElement}
       className={panelClasses}
       data-mobile-overlay={isMobileOverlay ? "true" : undefined}
     >
@@ -123,7 +128,7 @@ export default function SidebarShell({
         </div>
       ) : null}
 
-      <SidebarScrollContext.Provider value={shellRef}>
+      <SidebarScrollContext.Provider value={scrollElement}>
         <div className="sidebar-shell-body flex min-h-0 flex-1 flex-col overflow-visible">
           {header ? <div className="flex-none">{header}</div> : null}
           <div className="sidebar-shell-main flex min-h-0 flex-1 flex-col overflow-visible">

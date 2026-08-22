@@ -16,9 +16,9 @@ export interface AircraftCanvasPalette {
   arrival: string;
   ground: string;
   unknown: string;
-  /** PRIMARY target (page subject / tracked) — the orange signal accent. */
+  /** PRIMARY target (page subject / tracked) — the signal-gray accent. */
   focal: string;
-  /** SECONDARY target (clicked) — the cool-blue signal. */
+  /** SECONDARY target (clicked) — the alternate neutral signal. */
   selected: string;
   /** Contrast halo (light-on-dark / dark-on-light) — the static drop-shadow. */
   halo: string;
@@ -29,10 +29,8 @@ export interface AircraftCanvasPalette {
   labelWeight: string;
 }
 
-// Target emphasis wins over the movement colour: the PRIMARY (focal) target is
-// orange, the SECONDARY (clicked) target is blue, and everything else keeps its
-// neutral departure/arrival/ground/unknown tone. focal outranks selected so the
-// page subject stays orange even while it is also the clicked marker.
+// Target emphasis wins over the movement colour. Focal outranks selected so the
+// page subject keeps the primary signal even while it is also the clicked marker.
 export function colorFor(
   d: AircraftDrawDescriptor,
   palette: AircraftCanvasPalette,

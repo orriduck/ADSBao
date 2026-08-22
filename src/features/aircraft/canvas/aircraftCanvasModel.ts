@@ -83,7 +83,7 @@ export function buildAircraftDrawDescriptor(
       : "dot";
   const sizeScale = showArrow ? resolveAircraftSizeScale(aircraft) : 1;
   // The focal (page-subject) target is never dimmed — it always renders at
-  // full opacity so the orange primary stays prominent regardless of filters.
+  // full opacity so the primary signal stays prominent regardless of filters.
   const emphasis = resolveAircraftContextEmphasis({
     matchesFilters: focal || (selectionActive ? selected : matchesFilters),
     selected,

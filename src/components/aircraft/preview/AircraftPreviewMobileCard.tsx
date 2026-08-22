@@ -64,7 +64,7 @@ export default function AircraftPreviewMobileCard({
               src={photoSrc}
               alt=""
               draggable="false"
-              className="size-9 flex-none rounded-[2px] object-cover"
+              className="media-photo-color size-9 flex-none rounded-[2px] object-cover"
               onError={() => setFailedPhotoSrc(photoSrc)}
             />
           ) : null}

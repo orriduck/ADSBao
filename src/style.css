@@ -39,36 +39,35 @@
     --color-atc-line: var(--atc-line);
     --color-atc-line-strong: var(--atc-line-strong);
 
-    /* Consumer flight-tracking typography. Manrope gives ADSBao the
-       geometric mobility-product feel requested from Uber's type system,
-       while Noto Sans SC carries CJK glyphs. */
+    /* One wayfinding family across editorial, telemetry and controls. Figtree
+       keeps the calm, open proportions of the Schiphol reference while Noto
+       Sans SC carries CJK glyphs without introducing a second visual voice. */
     --font-sans: var(--theme-font-sans);
     --font-mono: var(--theme-font-mono);
     --font-nav: var(--theme-font-nav);
     --font-display: var(--theme-font-display);
-    /* Decorative families used by the Explorer (home) discovery sidebar
-       only: an upright serif for group labels and a true monospace for the
-       ICAO/HERE code chips. Named --font-code (not --font-mono-*) on purpose:
-       the global `[class*="font-mono"]` reset would otherwise force these
-       chips back onto Manrope. Telemetry stays on --font-mono (Manrope). */
+    /* Legacy role names remain so call sites can express intent, but every
+       role resolves to the same family. Code and mono roles distinguish
+       themselves through tabular numerals, size and weight only. */
     --font-serif: var(--theme-font-serif);
     --font-code: var(--theme-font-code);
 
-    /* Typographic polarity: ADSBao uses a controlled light (500) and regular
-       (600) pair. Wayfinding hierarchy comes from size, color, tracking, and
-       surface rather than named Tailwind weight utilities; tune these tokens,
-       not call sites. The raw values are reused by hand-authored CSS rules. */
-    --weight-light: 500;
-    --weight-regular: 600;
+    /* A quiet four-step hierarchy replaces the previous all-600 treatment.
+       Existing utility names now regain meaningful separation without
+       changing component structure or surface styling. */
+    --weight-light: 400;
+    --weight-regular: 500;
+    --weight-medium: 600;
+    --weight-strong: 700;
     --font-weight-thin: var(--weight-light);
     --font-weight-extralight: var(--weight-light);
     --font-weight-light: var(--weight-light);
-    --font-weight-normal: var(--weight-regular);
+    --font-weight-normal: var(--weight-light);
     --font-weight-medium: var(--weight-regular);
-    --font-weight-semibold: var(--weight-regular);
-    --font-weight-bold: var(--weight-regular);
-    --font-weight-extrabold: var(--weight-regular);
-    --font-weight-black: var(--weight-regular);
+    --font-weight-semibold: var(--weight-medium);
+    --font-weight-bold: var(--weight-strong);
+    --font-weight-extrabold: var(--weight-strong);
+    --font-weight-black: var(--weight-strong);
 
     /* Operational-wayfinding geometry. Compact rails and identity heroes use
        separate top insets so their shared optical baseline stays explicit. */
@@ -718,19 +717,19 @@
    near-black in light mode and near-white in dark mode. */
 :root {
     --theme-font-harmony-medium:
-        "Manrope", "Noto Sans SC", system-ui, sans-serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-sans:
-        "Manrope", "Noto Sans SC", system-ui, sans-serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-mono:
-        "Manrope", "Noto Sans SC", system-ui, sans-serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-nav:
-        "Manrope", "Noto Sans SC", system-ui, sans-serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-display:
-        "Manrope", "Noto Sans SC", system-ui, sans-serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-serif:
-        "Fraunces", "Noto Serif SC", Georgia, "Songti SC", serif;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-font-code:
-        "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+        "Figtree", "Noto Sans SC", system-ui, sans-serif;
     --theme-primary-bright: oklch(0.22 0.02 165);
     --theme-primary-deep: oklch(0.22 0.02 165);
     --theme-primary-ink: oklch(0.975 0.005 165);
@@ -747,7 +746,7 @@
 :root {
     font-family: var(--theme-font-sans);
     line-height: 1.5;
-    font-weight: 600;
+    font-weight: var(--weight-regular);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -1609,6 +1608,134 @@ body {
     font-family: var(--font-sans);
 }
 
+/* Monochrome calibration pass. Keep hierarchy in luminance rather than hue
+   while the product's long-term signal palette is reviewed. Semantic token
+   names remain intact so individual colors can be restored deliberately
+   without changing components or interaction behavior. */
+:root {
+    --theme-primary-bright: oklch(0.22 0 0);
+    --theme-primary-deep: oklch(0.22 0 0);
+    --theme-primary-ink: oklch(0.975 0 0);
+    --theme-sidebar-bg: oklch(0.955 0 0);
+    --theme-sidebar-card: oklch(0.982 0 0);
+    --theme-sidebar-dark-bg: oklch(0.16 0 0);
+    --theme-sidebar-dark-card: oklch(0.205 0 0);
+    --atc-bg: oklch(0.975 0 0);
+    --atc-card: oklch(0.99 0 0);
+    --atc-elev: oklch(0.94 0 0);
+    --atc-high: oklch(0.84 0 0);
+    --atc-accent: var(--primary-bright);
+    --atc-mint: oklch(0.55 0 0);
+    --atc-red: oklch(0.49 0 0);
+    --atc-text: oklch(0.17 0 0);
+    --atc-focus-bg: oklch(0.985 0 0);
+    --atc-focus-fg: oklch(0.16 0 0);
+    --traffic-level-color: oklch(0.46 0 0);
+    --aviation-map-label-shadow: rgb(245 245 245 / 0.95);
+    --aviation-map-attribution: rgb(26 26 26 / 0.45);
+    --aviation-map-range-background: rgb(250 250 250 / 0.45);
+    --aviation-map-range-text: rgb(26 26 26);
+    --aviation-map-range-label: rgb(26 26 26 / 0.7);
+    --airspace-blocked-stroke: oklch(0.39 0 0);
+    --airspace-restricted-stroke: oklch(0.48 0 0);
+    --airspace-permission-stroke: oklch(0.43 0 0);
+    --airspace-caution-stroke: oklch(0.45 0 0);
+    --airspace-destructive-stroke: oklch(0.58 0 0);
+    --aviation-runway-yellow: oklch(0.86 0 0);
+    --aviation-runway-annotation-line: oklch(0.17 0 0);
+    --aviation-runway-approach-line: oklch(0.17 0 0 / 0.62);
+    --aviation-runway-approach-beam: oklch(0.3 0 0);
+    --aviation-runway-light-core: oklch(0.94 0 0);
+    --aviation-runway-light: oklch(0.86 0 0);
+    --aviation-runway-light-glow: oklch(0.8 0 0 / 0.36);
+    --atc-runway-light-white: oklch(1 0 0);
+    --atc-runway-light-amber: oklch(0.82 0 0);
+    --atc-runway-light-green: oklch(0.88 0 0);
+    --atc-runway-light-blue: oklch(0.62 0 0);
+    --aviation-runway-night-line: oklch(0.86 0 0 / 0.48);
+    --aviation-runway-night-beam: oklch(0.86 0 0);
+    --aviation-nearby-runway-line: oklch(0.24 0 0);
+    --airport-surface-taxiway-line: oklch(0.44 0 0 / 0.78);
+    --airport-surface-taxilane-line: oklch(0.46 0 0 / 0.74);
+    --airport-surface-apron-fill: oklch(0.5 0 0 / 0.34);
+    --airport-surface-apron-stroke: oklch(0.64 0 0 / 0.55);
+    --aircraft-departure: oklch(0.2 0 0);
+    --aircraft-arrival: oklch(0.2 0 0);
+    --aircraft-unknown: oklch(0.2 0 0);
+    --aircraft-ground: oklch(0.34 0 0);
+    --aviation-logo-plate: oklch(0.96 0 0);
+}
+
+:root[data-theme="dark"] {
+    --primary-bright: oklch(0.93 0 0);
+    --primary-deep: oklch(0.82 0 0);
+    --primary-ink: oklch(0.13 0 0);
+    --atc-bg: oklch(0.14 0 0);
+    --atc-card: oklch(0.195 0 0);
+    --atc-elev: oklch(0.255 0 0);
+    --atc-high: oklch(0.34 0 0);
+    --atc-accent: var(--primary-bright);
+    --atc-mint: oklch(0.78 0 0);
+    --atc-red: oklch(0.68 0 0);
+    --atc-text: oklch(0.91 0 0);
+    --atc-focus-bg: oklch(0.95 0 0);
+    --atc-focus-fg: oklch(0.13 0 0);
+    --traffic-level-color: oklch(0.72 0 0);
+    --aviation-map-label-shadow: rgb(26 26 26);
+    --aviation-map-attribution: rgb(245 245 245 / 0.3);
+    --aviation-map-range-background: rgb(8 8 8 / 0.4);
+    --aviation-map-range-text: rgb(245 245 245);
+    --aviation-map-range-label: rgb(245 245 245 / 0.7);
+    --airspace-blocked-stroke: oklch(0.74 0 0);
+    --airspace-restricted-stroke: oklch(0.77 0 0);
+    --airspace-permission-stroke: oklch(0.81 0 0);
+    --airspace-caution-stroke: oklch(0.84 0 0);
+    --airspace-destructive-stroke: oklch(0.76 0 0);
+    --aviation-runway-annotation-line: var(--aviation-runway-yellow);
+    --aviation-runway-approach-line: oklch(0.86 0 0 / 0.78);
+    --aviation-runway-approach-beam: var(--aviation-runway-yellow);
+    --aviation-nearby-runway-line: var(--aviation-runway-yellow);
+    --aviation-runway-light-core: oklch(0.96 0 0);
+    --aviation-runway-light: oklch(0.91 0 0);
+    --aviation-runway-light-glow: oklch(0.86 0 0 / 0.42);
+    --airport-surface-taxiway-line: oklch(0.72 0 0 / 0.76);
+    --airport-surface-taxilane-line: oklch(0.66 0 0 / 0.64);
+    --airport-surface-apron-fill: oklch(0.66 0 0 / 0.34);
+    --airport-surface-apron-stroke: oklch(0.52 0 0 / 0.6);
+    --aircraft-departure: oklch(0.86 0 0);
+    --aircraft-arrival: oklch(0.86 0 0);
+    --aircraft-unknown: oklch(0.86 0 0);
+    --aircraft-ground: oklch(0.72 0 0);
+}
+
+img,
+video,
+canvas {
+    filter: grayscale(1);
+}
+
+/* Aircraft colours are already resolved from the grayscale map palette before
+   drawing. Avoid filtering the completed bitmap again: CSS filters can force a
+   second raster/composite pass and soften small rotated silhouettes. */
+canvas.aircraft-canvas-layer {
+    filter: none;
+}
+
+.provider-logo-monochrome {
+    filter: brightness(0) invert(1);
+}
+
+.provider-link-row {
+    background-color: var(--atc-provider-sign);
+    color: var(--atc-provider-sign-fg);
+}
+
+/* Photography remains a source artifact rather than interface chrome. Its
+   original color survives the monochrome UI calibration. */
+.media-photo-color {
+    filter: none !important;
+}
+
 /* Airport wayfinding experiment. These tokens preserve the established
    sidebar width and material polarity while giving the header a consistent
    sign-system grammar: one primary airport rail, neutral metric rails, one
@@ -1824,9 +1951,9 @@ body:has(.dither-page-shell) {
     --atc-line-strong: var(--sidebar-border);
 }
 
-/* Anything previously tagged as monospace (telemetry, METAR, ICAO) now
-   renders Manrope (the global font) with tabular numerals + slight
-   tracking so digit columns still align cleanly. */
+/* Mono remains a semantic role rather than a second typeface. Tabular figures
+   keep telemetry columns steady while the shared family keeps the interface
+   visually continuous. */
 .font-mono,
 [class*="font-mono"] {
     font-feature-settings:
@@ -3201,25 +3328,22 @@ body:has(.dither-page-shell) {
          body    → expanded detail copy
          value   → meta value (version, stack item)
          desc    → page-level description under the H1                    */
-    /* Hierarchy comes from size + luminance, never weight: every role is
-       light/regular, so the primary (title) is markedly larger and inked while
-       secondary roles (eyebrow / sub) recede in size and contrast. The eyebrow
-       is a quiet tracked label; the title leads each row; the sub is small and
-       faint. Widen these ratios, don't reach for weight. */
+    /* The shared family is separated by a restrained size-and-weight ladder.
+       Labels remain quiet, titles lead, and supporting text recedes. */
     --fs-eyebrow-font: var(--font-display);
-    --fs-eyebrow-size: 10px;
-    --fs-eyebrow-weight: var(--weight-regular);
+    --fs-eyebrow-size: 9.5px;
+    --fs-eyebrow-weight: var(--weight-medium);
     --fs-eyebrow-tracking: 0.16em;
     --fs-eyebrow-color: var(--atc-faint);
 
     --fs-title-font: var(--font-sans);
-    --fs-title-size: 16px;
-    --fs-title-weight: var(--weight-regular);
+    --fs-title-size: 17px;
+    --fs-title-weight: var(--weight-medium);
     --fs-title-leading: 1.25;
     --fs-title-color: var(--atc-text);
 
-    --fs-sub-size: 10.5px;
-    --fs-sub-weight: var(--weight-regular);
+    --fs-sub-size: 11px;
+    --fs-sub-weight: var(--weight-light);
     --fs-sub-leading: 1.3;
     --fs-sub-color: var(--atc-faint);
 
@@ -3232,8 +3356,8 @@ body:has(.dither-page-shell) {
     --fs-body-leading: 1.55;
     --fs-body-color: var(--atc-dim);
 
-    --fs-value-size: 14px;
-    --fs-value-weight: var(--weight-regular);
+    --fs-value-size: 15px;
+    --fs-value-weight: var(--weight-medium);
     --fs-value-color: var(--atc-text);
 
     --fs-desc-size: 12px;
@@ -4840,7 +4964,7 @@ body {
     width: 19px;
 }
 
-/* Inside an active (ink + yellow) row the light pad still keeps the
+/* Inside an active selected row the light pad still keeps the
    logo readable — no override needed, but suppress any inherited
    filters / opacity dimming from the row. */
 .aircraft-table-row--active .aircraft-table-airline-logo {
@@ -4853,7 +4977,7 @@ body {
 }
 
 /* Pinned-aircraft slot above the scroll list. The inner row already
- * paints the ink+yellow active state via .aircraft-table-row--active, so the pin
+ * paints the active state via .aircraft-table-row--active, so the pin
  * itself only contributes a bottom hairline divider — no extra
  * background or border-left rail to avoid double-framing the row. */
 /* Pinned aircraft slot — the selected row promoted above the scrolling
@@ -4862,7 +4986,7 @@ body {
    card, and the same inset highlight on the bottom rail. The pinned row
    keeps the list's full width (a chosen aircraft is still a list item,
    not a detached tile), so border-radius stays 0 — the visual signal is
-   the glow + colour swap, not the geometry. The yellow lead bar that
+   the glow + colour swap, not the geometry. The signal lead rail that
    the in-list active state uses is hidden here because the row's
    position above the scroll already signals selection. */
 .aircraft-table-pin {
@@ -5307,8 +5431,8 @@ body {
 .airport-map-kit .aircraft-table-row--selected .aircraft-table-row-glyph,
 .airport-map-kit .aircraft-table-row--selected.aircraft-table-row--active
     .aircraft-table-row-glyph {
-    background: var(--atc-signal-accent);
-    color: var(--airport-wayfinding-primary-rail-fg);
+    background: var(--airport-wayfinding-neutral-rail-active);
+    color: var(--airport-wayfinding-neutral-rail-fg);
 }
 
 .aircraft-table-row-glyph svg {
@@ -5323,10 +5447,8 @@ body {
 }
 
 /* Airport labels share their DOM between the focal tracking target and
-   contextual map references. The focal target below is deliberately a small
-   wayfinding sign rather than an orange capsule: the 4px signal strip names
-   the tracked airport while the information itself stays on the map's neutral
-   surface. */
+   contextual map references. The focal target below is deliberately a compact
+   wayfinding sign: a white left rail identifies the yellow airport field. */
 .airport-overlay-label {
     align-items: center;
     --map-badge-offset-x: 0px;
@@ -5401,7 +5523,7 @@ body {
    candidate spot) read as the same milky frosted pill as the Toolbar —
    full capsule, near-opaque luminous surface, backdrop blur, bright inner
    hairline + soft drop. They are reference markers, so they stay NEUTRAL;
-   the orange primary / blue secondary signals are reserved for targets. */
+   the yellow primary / gray secondary signals are reserved for targets. */
 .airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill,
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
     background: #fff;
@@ -5446,10 +5568,10 @@ body {
     color: var(--atc-dim);
 }
 
-/* Focal airport = the page's PRIMARY target. Keep orange scarce: it occupies
-   only the compact 4px signal strip, while code and proximity stay black on
-   white (or white on black). This is the map-scale counterpart of a 36px
-   sidebar rail and leaves the geography readable. */
+/* Focal airport = the page's PRIMARY target. The compact map sign repeats the
+   sidebar identity construction at map scale: a thick white rail on the left,
+   followed by a yellow field with black icon and type. Nearby and contextual
+   airport badges remain neutral. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge) {
     align-items: flex-start;
     filter: drop-shadow(
@@ -5460,23 +5582,17 @@ body {
 
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
     .airport-overlay-label__code.atc-code-pill {
-    background: #fff;
-    border: 1px solid color-mix(in oklab, var(--atc-text) 22%, transparent);
-    border-left: 4px solid var(--atc-signal-accent);
+    background: var(--atc-theme-yellow);
+    border: 0;
+    border-left: 4px solid #fff;
     border-radius: 0;
     box-shadow: none;
-    color: var(--atc-text);
+    color: var(--atc-theme-yellow-ink);
     font-size: 8px;
     gap: 3px;
     letter-spacing: 0.02em;
     min-width: auto;
-    padding: 4px 6px 4px 4px;
-}
-
-:root[data-theme="dark"]
-    .airport-overlay-label:not(.airport-overlay-label--map-badge)
-    .airport-overlay-label__code.atc-code-pill {
-    background: #000;
+    padding: 5px 6px 5px 4px;
 }
 
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
@@ -5658,10 +5774,6 @@ body {
     padding-top: 11px;
 }
 
-.sidebar-loading-skeleton__rail[data-tone="secondary"] {
-    background: color-mix(in oklab, var(--airport-wayfinding-secondary) 84%, black);
-}
-
 .sidebar-loading-skeleton__icon {
     background: currentColor;
     height: 16px;
@@ -5683,6 +5795,29 @@ body {
 .sidebar-loading-skeleton__identity {
     border-bottom: 1px solid var(--airport-wayfinding-divider);
     min-height: 154px;
+}
+
+.sidebar-loading-skeleton--header[data-variant="airport"]
+    .sidebar-loading-skeleton__identity {
+    background-color: var(--atc-theme-yellow);
+    color: var(--atc-theme-yellow-ink);
+}
+
+.sidebar-loading-skeleton--header[data-variant="airport"]
+    .sidebar-loading-skeleton__identity
+    > .sidebar-loading-skeleton__rail {
+    background-color: #fff;
+    color: var(--atc-theme-yellow-ink);
+}
+
+.sidebar-loading-skeleton--header[data-variant="airport"]
+    .sidebar-loading-skeleton__identity-copy
+    .sidebar-loading-skeleton__bar {
+    background: color-mix(
+        in oklab,
+        var(--atc-theme-yellow-ink) 24%,
+        transparent
+    );
 }
 
 .sidebar-loading-skeleton__identity-copy {
@@ -5718,8 +5853,10 @@ body {
 }
 
 .sidebar-loading-skeleton__secondary-row {
-    background: var(--airport-wayfinding-secondary);
-    min-height: 48px;
+    background: var(--atc-provider-sign);
+    color: var(--atc-provider-sign-fg);
+    display: flex;
+    min-height: 36px;
 }
 
 .sidebar-loading-skeleton__secondary-copy,
@@ -5733,7 +5870,11 @@ body {
 }
 
 .sidebar-loading-skeleton__secondary-row .sidebar-loading-skeleton__bar {
-    background: color-mix(in oklab, white 58%, transparent);
+    background: color-mix(
+        in oklab,
+        var(--atc-provider-sign-fg) 58%,
+        transparent
+    );
 }
 
 .sidebar-loading-skeleton__section-head {
@@ -6737,7 +6878,7 @@ body {
     background: color-mix(in oklab, var(--atc-text) 14%, transparent);
 }
 
-/* Primary CTA inside the preview card. Orange is reserved for this action,
+/* Primary CTA inside the preview card. Yellow is reserved for this action,
    while the solid fill, shallow lift, and sidebar sans keep it restrained. */
 .aircraft-preview-card__track-btn {
     display: block;
@@ -7207,7 +7348,7 @@ body {
 .aircraft-table-row--selected.aircraft-table-row--active,
 .aircraft-table-pin .aircraft-table-row--selected,
 .aircraft-table-pin .aircraft-table-row--selected.aircraft-table-row--active {
-    /* Frosted selected row: a faint blue wash + a 2px blue rail along the
+    /* Selected row: a faint theme-color wash + a 2px signal rail along the
        left edge, not the smoke capsule. Text keeps its resting color. */
     background: color-mix(in oklab, var(--atc-signal-accent) 12%, transparent);
     border-color: transparent;
@@ -7930,7 +8071,7 @@ body {
 .map-settings-section {
     border-top: 1px solid color-mix(in oklab, var(--atc-text) 10%, transparent);
     min-width: 0;
-    padding: 15px 0 13px;
+    padding: 0;
 }
 
 .map-settings-list-group {
@@ -7980,6 +8121,7 @@ body {
     color: var(--atc-text);
     display: flex;
     justify-content: flex-start;
+    margin-bottom: 0;
     padding: 11px 0 0 10px;
 }
 
@@ -7993,17 +8135,28 @@ body {
 }
 
 .map-settings-section-title {
+    align-items: center;
     color: var(--atc-faint);
+    display: flex;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.1em;
     line-height: 1;
-    margin: 0 12px 10px 48px;
+    margin: 0;
+    min-height: 40px;
+    padding: 0 12px 0 48px;
+    position: relative;
     text-transform: uppercase;
 }
 
-.map-settings-section--plain .map-settings-section-title {
-    margin-left: 14px;
+.map-settings-section-title::before {
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 36px;
 }
 
 .map-settings-section > .map-settings-list-group,
@@ -8013,14 +8166,45 @@ body {
     margin-right: 0;
 }
 
-.map-settings-section:not(.map-settings-section--plain) > .mt-1 {
+.map-settings-section > .mt-1 {
     margin-left: 48px;
     margin-right: 12px;
 }
 
 .map-settings-list-group > .map-settings-segmented-control {
-    margin-left: 48px;
-    margin-right: 12px;
+    margin: 0;
+    padding: 4px 12px 4px 48px;
+    position: relative;
+}
+
+.map-settings-list-group > .map-settings-segmented-control::before {
+    background: color-mix(in oklab, var(--atc-text) 12%, transparent);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 36px;
+}
+
+.map-settings-section > .map-settings-rail-extension {
+    margin: 0 12px 0 0;
+    padding: 4px 0 13px 48px;
+    position: relative;
+}
+
+.map-settings-rail-extension::before {
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 36px;
+}
+
+.map-settings-rail-extension--active::before {
+    background: color-mix(in oklab, var(--atc-text) 12%, transparent);
 }
 
 .map-settings-option-row[data-active="true"] .map-settings-row-rail {
@@ -8031,8 +8215,20 @@ body {
     background: color-mix(in oklab, var(--atc-text) 12%, transparent);
 }
 
-.map-settings-unit-row + .map-settings-unit-row {
-    border-top: 1px solid color-mix(in oklab, var(--atc-text) 9%, transparent);
+.map-settings-unit-row {
+    padding-left: 48px;
+    padding-right: 14px;
+    position: relative;
+}
+
+.map-settings-unit-row::before {
+    background: color-mix(in oklab, var(--atc-text) 8%, transparent);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 36px;
 }
 
 .map-settings-footer {
@@ -8051,7 +8247,7 @@ body {
 }
 
 /* Plane Hunter follows the same operational language as the map around it:
-   one dark stage, square joined controls, and a single orange commit action.
+   one dark stage, square joined controls, and a single yellow commit action.
    The shutter remains round because it represents a physical camera action,
    not another generic app button. */
 .plane-hunter-panel {
@@ -8757,7 +8953,7 @@ body {
 }
 
 /* Route is a secondary toggle. A neutral-gray wash marks its active state
-   without competing with the orange tracked target. */
+   without competing with the yellow tracked target. */
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
     background: color-mix(in oklab, var(--atc-text) 10%, var(--atc-control-surface));
@@ -9599,7 +9795,7 @@ body {
 
 /* Home directory experiment — airport wayfinding rhythm. The page stays
    neutral and quiet: numbers provide navigation hierarchy, photography reads
-   as a concrete-and-shadow backdrop, and orange remains an operational signal
+   as a concrete-and-shadow backdrop, and yellow remains an operational signal
    rather than becoming general decoration. */
 .search-screen {
     --home-list-code-column: 44px;
@@ -10005,6 +10201,18 @@ body {
 .search-screen .page-motion-grid__image {
     filter: grayscale(1) contrast(1.04) brightness(0.62);
     opacity: 0.64;
+}
+
+.page-motion-grid__image.media-photo-color {
+    filter: contrast(0.78) brightness(1.1) !important;
+}
+
+:root[data-theme="dark"] .page-motion-grid__image.media-photo-color {
+    filter: contrast(0.82) brightness(0.68) !important;
+}
+
+.search-screen .page-motion-grid__image.media-photo-color {
+    filter: contrast(1.04) brightness(0.62) !important;
 }
 
 .search-screen .dither-page-background,
@@ -10486,8 +10694,8 @@ body {
 .airport-map-kit .aircraft-table-row--selected .aircraft-table-row-glyph,
 .airport-map-kit .aircraft-table-row--selected.aircraft-table-row--active
     .aircraft-table-row-glyph {
-    background: var(--atc-signal-accent) !important;
-    color: var(--airport-wayfinding-primary-rail-fg) !important;
+    background: var(--airport-wayfinding-neutral-rail-active) !important;
+    color: var(--airport-wayfinding-neutral-rail-fg) !important;
 }
 
 /* Here Debug is a floating instrument, but its internal construction follows
@@ -10688,4 +10896,268 @@ body {
     .here-debug-panel__actions button {
         transition: none;
     }
+}
+
+/* These semantic hooks are declared by their feature sections later in this
+   file, so the grayscale UI calibration closes the cascade here. Yellow is a
+   separately scoped theme token and must not leak into aircraft state. */
+:root {
+    --atc-signal-accent: oklch(0.62 0 0);
+    --atc-signal-accent-fg: oklch(0.99 0 0);
+    --atc-signal-secondary-action: oklch(0.48 0 0);
+    --atc-signal-secondary-action-fg: oklch(0.97 0 0);
+    --atc-provider-sign: oklch(0.34 0.1 258);
+    --atc-provider-sign-fg: #fff;
+    --atc-theme-yellow: oklch(0.82 0.16 92);
+    --atc-theme-yellow-ink: oklch(0.18 0.015 92);
+    --atc-theme-yellow-material:
+        radial-gradient(
+            140% 105% at 12% -8%,
+            rgb(255 255 255 / 0.2) 0%,
+            rgb(255 255 255 / 0.07) 32%,
+            transparent 58%
+        ),
+        linear-gradient(
+            112deg,
+            rgb(255 255 255 / 0.08) 0%,
+            transparent 44%,
+            rgb(77 55 0 / 0.07) 100%
+        ),
+        linear-gradient(
+            180deg,
+            transparent 0%,
+            rgb(77 55 0 / 0.035) 100%
+        );
+}
+
+:root[data-theme="dark"] {
+    --atc-signal-accent: oklch(0.74 0 0);
+    --atc-signal-accent-fg: oklch(0.18 0 0);
+    --atc-signal-secondary-action: oklch(0.52 0 0);
+    --atc-signal-secondary-action-fg: oklch(0.97 0 0);
+    --atc-theme-yellow: oklch(0.84 0.17 92);
+}
+
+.airport-map-kit .sidebar-shell {
+    --airport-wayfinding-primary-rail-fg: oklch(0.98 0 0);
+    --airport-wayfinding-secondary: oklch(0.48 0 0);
+    --airport-wayfinding-secondary-fg: oklch(0.97 0 0);
+}
+
+:root[data-theme="dark"] .airport-map-kit .sidebar-shell {
+    --airport-wayfinding-secondary: oklch(0.52 0 0);
+}
+
+:root[data-theme="dark"] .atc-tile-base {
+    filter: grayscale(1) brightness(0.82) contrast(1.06);
+}
+
+:root[data-theme="light"] .atc-tile-base {
+    filter: grayscale(1) brightness(1) contrast(0.98);
+}
+
+/* Final typography resolution. The airport dashboard is the densest screen,
+   so its hierarchy is made explicit here without changing its geometry or
+   monochrome palette. */
+.leaflet-container {
+    font-family: var(--font-sans);
+}
+
+.maplibregl-map,
+.maplibregl-map * {
+    font-family: var(--font-sans);
+}
+
+.search-screen .dither-page-copy .atc-page-title,
+.about-screen .dither-page-copy .atc-page-title,
+.mechanism-screen .dither-page-copy .atc-page-title,
+.changelog-screen .dither-page-copy .atc-page-title {
+    font-weight: var(--weight-medium);
+}
+
+.search-screen .airport-list-row__label {
+    font-weight: var(--weight-regular);
+}
+
+.search-screen .airport-list-row__title {
+    font-weight: var(--weight-medium);
+}
+
+.search-screen .airport-list-row__meta {
+    font-weight: var(--weight-light);
+}
+
+.airport-map-kit .airport-wayfinding-identity h1 {
+    font-size: calc(31px * var(--sb-title-scale));
+    font-weight: var(--weight-strong);
+    letter-spacing: -0.035em;
+}
+
+.airport-map-kit .airport-wayfinding-identity__name {
+    font-size: calc(15px * var(--sb-title-scale));
+    font-weight: var(--weight-medium);
+}
+
+.airport-map-kit .airport-wayfinding-identity__place,
+.airport-map-kit .airport-wayfinding-identity__coordinates {
+    font-size: calc(12px * var(--sb-body-scale));
+    font-weight: var(--weight-light);
+}
+
+.airport-map-kit .wayfinding-metric__title {
+    font-size: calc(10px * var(--sb-body-scale));
+    font-weight: var(--weight-regular);
+}
+
+.airport-map-kit .wayfinding-metric__value-group > span:first-child {
+    font-size: calc(25px * var(--sb-body-scale));
+    font-weight: var(--weight-medium);
+}
+
+.airport-map-kit .aircraft-table-controls-header .atc-kicker {
+    font-weight: var(--weight-medium);
+}
+
+.airport-map-kit .aircraft-table-controls-header .font-mono {
+    font-size: calc(8.5px * var(--sb-body-scale));
+    font-weight: var(--weight-light);
+}
+
+.airport-map-kit .aircraft-table-callsign {
+    font-size: calc(12.5px * var(--sb-body-scale));
+    font-weight: var(--weight-medium);
+}
+
+.airport-map-kit .aircraft-table-row-values {
+    font-weight: var(--weight-regular);
+}
+
+.airport-map-kit .aircraft-table-row-values [class*="text-[calc(7.5px"] {
+    font-weight: var(--weight-light);
+}
+
+/* A restrained smoked-glass finish for operational side rails. The material
+   is drawn entirely inside each existing color block: a hairline rim and a
+   broad, low-contrast sheen preserve the rail's state color and continuity
+   without turning in-flow wayfinding surfaces into floating glass cards. */
+:root {
+    --wayfinding-rail-material:
+        linear-gradient(
+            90deg,
+            rgb(255 255 255 / 0.18) 0,
+            transparent 1px,
+            transparent calc(100% - 1px),
+            rgb(0 0 0 / 0.1) calc(100% - 1px)
+        ),
+        linear-gradient(
+            108deg,
+            rgb(255 255 255 / 0.12) 0%,
+            rgb(255 255 255 / 0.035) 32%,
+            transparent 58%,
+            rgb(0 0 0 / 0.045) 100%
+        );
+}
+
+:root[data-theme="dark"] {
+    --wayfinding-rail-material:
+        linear-gradient(
+            90deg,
+            rgb(255 255 255 / 0.12) 0,
+            transparent 1px,
+            transparent calc(100% - 1px),
+            rgb(0 0 0 / 0.24) calc(100% - 1px)
+        ),
+        linear-gradient(
+            108deg,
+            rgb(255 255 255 / 0.1) 0%,
+            rgb(255 255 255 / 0.028) 32%,
+            transparent 58%,
+            rgb(0 0 0 / 0.09) 100%
+        );
+}
+
+.wayfinding-rail,
+.wayfinding-metric__rail,
+.filter-card__rail,
+.aircraft-preview-wayfinding-rail,
+.sidebar-loading-skeleton__rail,
+.airport-list-row__rail,
+.dither-wayfinding-identity__rail,
+.info-wayfinding-row__rail,
+.info-wayfinding-source-row__rail,
+.info-wayfinding-repository__rail,
+.changelog-entry__rail,
+.here-debug-panel__rail,
+.map-settings-header__rail,
+.map-settings-row-rail,
+.plane-hunter-stage-header__rail,
+.map-settings-section-title::before,
+.map-settings-list-group > .map-settings-segmented-control::before,
+.map-settings-rail-extension::before,
+.map-settings-unit-row::before {
+    background-image: var(--wayfinding-rail-material) !important;
+}
+
+/* The tracked-airport identity is the palette's one full sign: its rail is a
+   white field with black ink, while the reading surface carries the yellow
+   theme color with black type. This pairing stays stable across app themes so
+   it reads like physical airport signage rather than another dark-mode card. */
+.airport-map-kit .airport-wayfinding-identity > .wayfinding-rail {
+    background-color: #fff !important;
+    color: var(--atc-theme-yellow-ink) !important;
+}
+
+.airport-map-kit .airport-wayfinding-identity__content {
+    background-color: var(--atc-theme-yellow) !important;
+    color: var(--atc-theme-yellow-ink);
+}
+
+.airport-map-kit .airport-wayfinding-identity__content h1,
+.airport-map-kit .airport-wayfinding-identity__name {
+    color: var(--atc-theme-yellow-ink) !important;
+}
+
+.airport-map-kit .airport-wayfinding-identity__place,
+.airport-map-kit .airport-wayfinding-identity__coordinates,
+.airport-map-kit .airport-wayfinding-identity__content > .text-atc-dim {
+    color: color-mix(
+        in oklab,
+        var(--atc-theme-yellow-ink) 76%,
+        transparent
+    ) !important;
+}
+
+.airport-map-kit .airport-wayfinding-identity__content .near-me-refresh__link:hover {
+    border-bottom-color: var(--atc-theme-yellow-ink);
+    color: var(--atc-theme-yellow-ink);
+}
+
+/* The sole yellow aircraft action. Selection rails and trace geometry keep
+   using the grayscale signal token; only the explicit Track CTA receives the
+   yellow field and black ink requested for the preview-card footer. */
+.aircraft-preview-card__track-btn,
+.mobile-preview-track-button {
+    background-color: var(--atc-theme-yellow) !important;
+    border-color: color-mix(
+        in oklab,
+        var(--atc-theme-yellow-ink) 18%,
+        var(--atc-theme-yellow)
+    ) !important;
+    color: var(--atc-theme-yellow-ink) !important;
+}
+
+/* Yellow behaves like satin wayfinding laminate: one broad highlight plus a
+   warm, shallow falloff. Keep this finish on the three approved sign surfaces
+   only; neutral rails, selection state, and flight geometry stay grayscale. */
+.airport-map-kit .airport-wayfinding-identity__content,
+.airport-overlay-label:not(.airport-overlay-label--map-badge)
+    .airport-overlay-label__code.atc-code-pill,
+.aircraft-preview-card__track-btn,
+.mobile-preview-track-button {
+    background-image: var(--atc-theme-yellow-material) !important;
+    background-repeat: no-repeat !important;
+}
+
+.aircraft-preview-card__track-btn:visited {
+    color: var(--atc-theme-yellow-ink) !important;
 }

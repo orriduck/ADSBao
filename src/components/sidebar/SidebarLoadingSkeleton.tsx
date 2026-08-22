@@ -12,9 +12,9 @@ function Placeholder({ className = "" }: { className?: string }) {
   );
 }
 
-function Rail({ tone = "neutral" }: { tone?: "neutral" | "secondary" }) {
+function Rail() {
   return (
-    <span className="sidebar-loading-skeleton__rail" data-tone={tone}>
+    <span className="sidebar-loading-skeleton__rail">
       <Placeholder className="sidebar-loading-skeleton__icon" />
     </span>
   );
@@ -58,7 +58,6 @@ export function SidebarLoadingHeader({
       </div>
 
       <div className="sidebar-loading-skeleton__secondary-row">
-        <Rail tone="secondary" />
         <span className="sidebar-loading-skeleton__secondary-copy">
           <Placeholder className="w-24" />
           <Placeholder className="ml-auto w-16" />

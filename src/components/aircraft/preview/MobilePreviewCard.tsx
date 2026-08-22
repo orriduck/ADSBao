@@ -164,7 +164,7 @@ export const MobilePreviewTrackButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "min-h-9 w-full cursor-pointer px-[10px]",
+          "mobile-preview-track-button min-h-9 w-full cursor-pointer px-[10px]",
           "border-0 border-t border-[var(--atc-action-primary-border)]",
           "rounded-none",
           "bg-[var(--atc-signal-accent)] text-[var(--atc-signal-accent-fg)]",

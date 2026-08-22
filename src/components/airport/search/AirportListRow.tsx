@@ -79,10 +79,12 @@ export function AirportListRow({
           {label}
         </span>
       ) : null}
-      {/* Primary line: 15.5px near-black, regular weight, wraps (no ellipsis). */}
-      <span className="text-[calc(15.5px*var(--sb-title-scale))] leading-[1.25] text-atc-text">{title}</span>
+      {/* Primary line leads through weight and size; it still wraps naturally. */}
+      <span className="airport-list-row__title text-[calc(15.5px*var(--sb-title-scale))] leading-[1.25] text-atc-text">
+        {title}
+      </span>
       {subtitle ? (
-        <span className="text-[calc(11.5px*var(--sb-body-scale))] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
+        <span className="airport-list-row__meta text-[calc(11.5px*var(--sb-body-scale))] leading-[1.3] text-[color-mix(in_oklab,var(--atc-text)_46%,transparent)]">
           {subtitle}
         </span>
       ) : null}
