@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowUpFromLine,
   Camera,
+  Clock3,
   CloudSun,
   Compass,
   Gauge,
@@ -18,6 +19,7 @@ import {
   type SidebarStat,
 } from "@/features/airport/explorer/sidebarStatsModel";
 import { defaultGroundSpeedUnit, type GroundSpeedUnit } from "@/utils/units";
+import { useAirportLocalTime } from "@/hooks/useAirportLocalTime";
 
 // Frosted "hero stats block": one joined rounded glass container with a big
 // flight count over a fixed two-by-two control matrix (weather / flight rule /
@@ -55,6 +57,9 @@ export default function SidebarViewSwitch({
   const groundSpeedUnit = speedUnitOverride ?? defaultSpeedUnit;
   const atcCount = Array.isArray(frequencies) ? frequencies.length : 0;
   const spottingCount = Number(candidateSpotCount) || 0;
+  const airportLocalTime = useAirportLocalTime(
+    nearMe ? "" : localWeather?.timezone,
+  );
 
   // The summary's product rules live in a pure model. This component only maps
   // each descriptor to a StatTile and wires its interaction.
@@ -171,6 +176,16 @@ export default function SidebarViewSwitch({
     />
   );
 
+  const localTimeMetric = (
+    <WayfindingMetric
+      icon={<Clock3 />}
+      title={t("sidebar.localTime")}
+      value={airportLocalTime.value}
+      unit={airportLocalTime.zone || undefined}
+      readOnly
+    />
+  );
+
   return (
     <div className="airport-wayfinding-summary">
       <div className="wayfinding-metrics-grid grid grid-cols-2 gap-px bg-[var(--airport-wayfinding-divider)]">
@@ -190,7 +205,7 @@ export default function SidebarViewSwitch({
             {trafficMetric}
             {weatherStat ? renderStat(weatherStat, <CloudSun />) : null}
             {flightRulesStat ? renderStat(flightRulesStat, <Route />) : null}
-            {nearbyMetric}
+            {localTimeMetric}
           </>
         )}
       </div>

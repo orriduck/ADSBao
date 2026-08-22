@@ -194,6 +194,8 @@ function AircraftTable({
     }
     return out;
   }, [filteredAirports, hasRouteEndpointAirports, listRows]);
+  const hasEmptyResults =
+    listRows.length === 0 && filteredAirports.length === 0;
 
   const aircraftListResetKey = useMemo(
     () =>
@@ -227,7 +229,10 @@ function AircraftTable({
   });
 
   return (
-    <div className="aircraft-table-shell flex flex-col">
+    <div
+      className="aircraft-table-shell flex flex-col"
+      data-empty-results={hasEmptyResults ? "true" : undefined}
+    >
       <div className="aircraft-table-controls flex-none">
         <div className="aircraft-table-search-bar">
           <label className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
@@ -329,8 +334,8 @@ function AircraftTable({
         ) : null}
 
         <div className="aircraft-table-scroll-shell overflow-visible">
-          {listRows.length === 0 && filteredAirports.length === 0 ? (
-            <div className="app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-faint">
+          {hasEmptyResults ? (
+            <div className="aircraft-table-empty-state app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-faint">
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")
                 : t("sidebar.nothingInRange")}

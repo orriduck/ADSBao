@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.2",
+    version: "v3.16.3",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Aligned identity signs, continuous rail dividers, and compact public-concourse boundaries refine airport and aircraft tracking.",
-      zh: "统一的身份牌、连续的 rail 分隔线与紧凑的公共区边界进一步完善机场与飞机追踪界面。",
+      en: "Airport tracking now shows local time with consistent UTC offsets and keeps empty traffic states aligned with the public-concourse boundary.",
+      zh: "机场追踪现以统一 UTC 偏移显示当地时间，并让空流量状态与公共区边界保持对齐。",
     },
     highlights: [],
   },

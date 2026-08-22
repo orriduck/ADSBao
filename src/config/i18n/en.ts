@@ -268,6 +268,7 @@ const en = {
     airport: "Airport",
     tracking: "Tracking",
     nearby: "Nearby",
+    localTime: "Local time",
     callsignOrRoute: "Callsign / Route",
     distance: "Distance",
     altitude: "Alt.",

@@ -263,6 +263,7 @@ const zhCN = {
     airport: "机场",
     tracking: "追踪航迹",
     nearby: "附近",
+    localTime: "当地时间",
     callsignOrRoute: "呼号 / 航路",
     distance: "距离",
     altitude: "高度",

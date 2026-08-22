@@ -8085,11 +8085,55 @@ body {
 
 .airport-map-kit .public-concourse-boundary--nearby {
     border-top: 0;
+    flex: 0 0 auto;
 }
 
 .airport-map-kit .public-concourse-boundary--nearby
     .public-concourse-boundary__rail {
     background-color: var(--airport-wayfinding-neutral-rail);
+}
+
+/* An empty traffic result occupies the remaining sidebar workspace before the
+   in-flow security boundary. The flex chain is tied to the shell's available
+   height, so identity/metric/filter changes do not require another viewport-
+   height calculation or breakpoint override. */
+.airport-map-kit .aircraft-table-shell[data-empty-results="true"] {
+    --nearby-boundary-min-height: 96px;
+    flex: 1 0 auto;
+    min-height: calc(100% + var(--nearby-boundary-min-height));
+}
+
+.airport-map-kit
+    .aircraft-table-shell[data-empty-results="true"]
+    .aircraft-table-list-card,
+.airport-map-kit
+    .aircraft-table-shell[data-empty-results="true"]
+    .aircraft-table-scroll-shell {
+    flex: 1 0 auto;
+}
+
+.airport-map-kit
+    .aircraft-table-shell[data-empty-results="true"]
+    .aircraft-table-scroll-shell,
+.airport-map-kit
+    .aircraft-table-shell[data-empty-results="true"]
+    .aircraft-table-empty-state {
+    display: flex;
+    flex-direction: column;
+}
+
+.airport-map-kit
+    .aircraft-table-shell[data-empty-results="true"]
+    .aircraft-table-empty-state {
+    align-items: center;
+    flex: 1 0 auto;
+    justify-content: center;
+}
+
+@media (max-width: 720px) {
+    .airport-map-kit .aircraft-table-shell[data-empty-results="true"] {
+        --nearby-boundary-min-height: 136px;
+    }
 }
 
 .sidebar-shell,
