@@ -77,7 +77,7 @@
     --wayfinding-hero-icon-top: 44px;
     --wayfinding-hero-content-top: 40px;
     --wayfinding-airport-identity-height: 152px;
-    --wayfinding-flight-identity-height: 142px;
+    --wayfinding-flight-identity-height: 152px;
     --wayfinding-metric-height: 78px;
     --wayfinding-compact-metric-height: 74px;
     --wayfinding-provider-row-height: 36px;
@@ -5854,6 +5854,8 @@ body {
 }
 
 .sidebar-loading-skeleton__identity-copy.airport-wayfinding-identity__content
+    .sidebar-loading-skeleton__bar,
+.sidebar-loading-skeleton__identity-copy.flight-wayfinding-identity__content
     .sidebar-loading-skeleton__bar {
     background: color-mix(
         in oklab,
@@ -7995,7 +7997,7 @@ body {
     display: grid;
     flex: 1 0 auto;
     grid-template-columns: 36px minmax(0, 1fr);
-    min-height: clamp(144px, 22vh, 210px);
+    min-height: 96px;
 }
 
 .public-concourse-boundary__rail {
@@ -8026,7 +8028,7 @@ body {
         var(--wayfinding-security-glass-grain);
     box-shadow:
         inset 0 1px 0 rgb(255 255 255 / 0.22);
-    padding: 14px 12px 68px;
+    padding: 14px 12px 20px;
     position: relative;
 }
 
@@ -8067,17 +8069,27 @@ body {
     }
 
     .public-concourse-boundary {
-        min-height: calc(
-            clamp(144px, 22vh, 210px) +
-                var(--sidebar-mobile-bottom-placeholder)
-        );
+        min-height: 136px;
     }
 
     .public-concourse-boundary__body {
-        padding-bottom: calc(
-            68px + var(--sidebar-mobile-bottom-placeholder)
-        );
+        padding-bottom: 64px;
     }
+
+    .airport-sidebar-panel--mobile
+        .airport-sidebar-content
+        > .aircraft-table-shell:has(.public-concourse-boundary--nearby) {
+        padding-bottom: 0;
+    }
+}
+
+.airport-map-kit .public-concourse-boundary--nearby {
+    border-top: 0;
+}
+
+.airport-map-kit .public-concourse-boundary--nearby
+    .public-concourse-boundary__rail {
+    background-color: var(--airport-wayfinding-neutral-rail);
 }
 
 .sidebar-shell,
@@ -10572,7 +10584,7 @@ body {
 .search-screen .dither-content-stack {
     display: flex;
     gap: 0;
-    padding-bottom: 24px;
+    padding-bottom: 0;
 }
 
 .search-screen .airport-discovery-topic {
@@ -10896,8 +10908,15 @@ body {
 }
 
 .airport-map-kit .aircraft-table-filter-shell
-    [data-ui="filter-card"]:nth-child(n + 3) {
+    [data-ui="filter-grid"]
+    > :nth-child(n + 3)
+    .filter-card__content {
     border-top: 1px solid var(--airport-wayfinding-divider) !important;
+}
+
+.airport-map-kit .aircraft-table-controls-header__rail,
+.airport-map-kit .aircraft-table-controls-header__content {
+    border-bottom: 1px solid var(--airport-wayfinding-divider);
 }
 
 .airport-map-kit .aircraft-table-list-card {
@@ -11397,20 +11416,23 @@ body {
     background-image: var(--wayfinding-rail-material) !important;
 }
 
-/* The tracked-airport identity is the palette's one full sign. Match the
-   first-screen identity construction by laying yellow beneath the entire
+/* The tracked airport and aircraft identities are the palette's full signs.
+   Match the first-screen identity construction by laying yellow beneath the entire
    joined module: the translucent white rail then picks up the same warm cast
    as the home header, while the reading surface keeps black type. */
-.airport-wayfinding-identity {
+.airport-wayfinding-identity,
+.flight-wayfinding-identity {
     background: var(--atc-theme-yellow);
 }
 
-.airport-wayfinding-identity > .wayfinding-rail {
+.airport-wayfinding-identity > .wayfinding-rail,
+.flight-wayfinding-identity > .wayfinding-rail {
     background-color: rgb(255 255 255 / 0.78) !important;
     color: var(--atc-theme-yellow-ink) !important;
 }
 
-.airport-wayfinding-identity__content {
+.airport-wayfinding-identity__content,
+.flight-wayfinding-identity__content {
     background-color: color-mix(
         in oklab,
         var(--atc-theme-yellow) 84%,
@@ -11421,13 +11443,15 @@ body {
 }
 
 .airport-wayfinding-identity__content h1,
-.airport-wayfinding-identity__name {
+.airport-wayfinding-identity__name,
+.flight-wayfinding-identity__content .text-atc-text {
     color: var(--atc-theme-yellow-ink) !important;
 }
 
 .airport-wayfinding-identity__place,
 .airport-wayfinding-identity__coordinates,
-.airport-wayfinding-identity__content > .text-atc-dim {
+.airport-wayfinding-identity__content > .text-atc-dim,
+.flight-wayfinding-identity__content .text-atc-dim {
     color: color-mix(
         in oklab,
         var(--atc-theme-yellow-ink) 76%,
@@ -11471,7 +11495,8 @@ body {
    repaints. Straight joined edges remain intact; refraction stays inside the
    existing sign instead of turning it into a floating rounded card. */
 .dither-page-shell .dither-wayfinding-identity__content,
-.airport-wayfinding-identity__content {
+.airport-wayfinding-identity__content,
+.flight-wayfinding-identity__content {
     -webkit-backdrop-filter: blur(20px) saturate(1.08);
     backdrop-filter: blur(20px) saturate(1.08);
     background-color: color-mix(
@@ -11492,7 +11517,8 @@ body {
 }
 
 .dither-page-shell .dither-wayfinding-identity__rail,
-.airport-wayfinding-identity > .wayfinding-rail {
+.airport-wayfinding-identity > .wayfinding-rail,
+.flight-wayfinding-identity > .wayfinding-rail {
     -webkit-backdrop-filter: blur(20px) saturate(1.04);
     backdrop-filter: blur(20px) saturate(1.04);
     background-color: rgb(255 255 255 / 0.9) !important;
@@ -11510,14 +11536,16 @@ body {
 
 @media (prefers-reduced-transparency: reduce) {
     .dither-page-shell .dither-wayfinding-identity__content,
-    .airport-wayfinding-identity__content {
+    .airport-wayfinding-identity__content,
+    .flight-wayfinding-identity__content {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         background-color: var(--atc-theme-yellow) !important;
     }
 
     .dither-page-shell .dither-wayfinding-identity__rail,
-    .airport-wayfinding-identity > .wayfinding-rail {
+    .airport-wayfinding-identity > .wayfinding-rail,
+    .flight-wayfinding-identity > .wayfinding-rail {
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         background-color: #fff !important;

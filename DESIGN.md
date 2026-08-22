@@ -31,9 +31,9 @@ Fixed sidebars and in-flow information panels use one repeating construction:
 - Railed content begins at **48px** from the sidebar edge (36px rail + 12px
   inset). Content without a rail begins at **14px**.
 - The content surface is **pure white in light mode and pure black in dark
-  mode**. Do not alternate black/white within one theme. The tracked-airport
-  identity is the one sign exception: white rail with black glyph, followed by
-  a yellow content field with black type in both themes.
+  mode**. Do not alternate black/white within one theme. Tracked-airport and
+  tracked-aircraft identities are the sign exceptions: white rail with black
+  glyph, followed by a yellow content field with black type in both themes.
 - The main and secondary areas share the same rail width. Importance comes from
   type scale, row height, and ordering — never from a wider rail.
 - Joined modules use one 1px neutral divider. Avoid doubled borders, inset card
@@ -47,9 +47,10 @@ the airport/flight sidebars in `src/components/sidebar/`.
 ADSBao uses a grayscale wayfinding palette with tightly scoped yellow identity
 and action exceptions:
 
-- **Yellow** (`--atc-theme-yellow`) belongs only to the current airport's
-  identity content, focal map label, and the single primary Track button in an
-  aircraft preview. It does not identify aircraft selection or live trace.
+- **Yellow** (`--atc-theme-yellow`) belongs only to the current tracked identity
+  sign (airport or aircraft), the focal airport map label, and the single
+  primary Track button in an aircraft preview. It does not identify aircraft
+  selection or live trace.
 - **Deep blue** belongs only to the compact external-provider link strip. It
   uses white copy and white provider marks in both themes, like a permanent
   airport information sign rather than a theme-dependent control.
@@ -68,16 +69,16 @@ Track CTA, or deep blue outside the external-provider strip. Use signal gray
 for aircraft selection and trace, medium gray for secondary interaction, and
 neutral gray for everything else.
 
-Loading placeholders mirror the surface they replace: the airport identity
-placeholder uses the white-rail/yellow-field pairing, and the provider-strip
-placeholder uses deep blue with white marks. All other placeholders stay
-neutral gray.
+Loading placeholders mirror the surface they replace: airport and tracked-
+aircraft identity placeholders use the white-rail/yellow-field pairing, and
+the provider-strip placeholder uses deep blue with white marks. All other
+placeholders stay neutral gray.
 
 Map preview cards are glance surfaces, not tracking pages: their identity rail
 stays neutral gray, while the single primary Track action uses yellow with
 black text.
 
-Only the tracked-airport identity content, its focal map label, and the primary
+Only tracked identity content, the focal airport map label, and the primary
 Track CTA receive yellow. Other text content stays on the neutral surface;
 never put contrasting text blocks inside a metric merely to make it colorful.
 

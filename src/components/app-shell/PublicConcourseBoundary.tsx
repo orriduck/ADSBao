@@ -1,11 +1,15 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 
-export default function PublicConcourseBoundary() {
+export default function PublicConcourseBoundary({
+  className = "",
+}: {
+  className?: string;
+}) {
   const { t } = useI18n();
 
   return (
     <section
-      className="public-concourse-boundary"
+      className={`public-concourse-boundary ${className}`.trim()}
       aria-label={t("publicBoundary.notice")}
     >
       <span

@@ -53,6 +53,7 @@ import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import AircraftList from "./AircraftList";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
+import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 
 type AircraftLike = Record<string, any>;
 type AirportLike = Record<string, any>;
@@ -384,6 +385,7 @@ function AircraftTable({
             </>
           )}
         </div>
+        <PublicConcourseBoundary className="public-concourse-boundary--nearby" />
       </div>
     </div>
   );

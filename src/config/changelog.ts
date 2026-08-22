@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.1",
+    version: "v3.16.2",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Layered labels, aligned glass wayfinding, shared first-screen boundaries, and clearer Plane Studio and target controls complete this interface pass.",
-      zh: "分级标签、统一的玻璃导视、首屏共享的区域边界，以及更明确的 Plane Studio 与目标列表控件完成本轮界面精修。",
+      en: "Aligned identity signs, continuous rail dividers, and compact public-concourse boundaries refine airport and aircraft tracking.",
+      zh: "统一的身份牌、连续的 rail 分隔线与紧凑的公共区边界进一步完善机场与飞机追踪界面。",
     },
     highlights: [],
   },

@@ -188,7 +188,7 @@ function FlightIdentity({
         motionKind="identity"
         tone="primary"
       />
-      <div className="flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-4 pt-[var(--wayfinding-hero-content-top)]">
+      <div className="flight-wayfinding-identity__content flex min-w-0 flex-1 flex-col justify-start bg-[var(--airport-wayfinding-content)] px-[var(--wayfinding-content-inset)] pb-4 pt-[var(--wayfinding-hero-content-top)]">
         <h1
           className="notranslate truncate text-[calc(29px*var(--sb-title-scale))] leading-none tracking-[-0.035em] text-atc-text"
           translate="no"

@@ -44,6 +44,12 @@ export function SidebarLoadingHeader({
   variant = "airport",
 }: Omit<SidebarLoadingSkeletonProps, "section">) {
   const isAirport = variant === "airport";
+  const identityClassName = isAirport
+    ? "airport-wayfinding-identity"
+    : "flight-wayfinding-identity";
+  const identityContentClassName = isAirport
+    ? "airport-wayfinding-identity__content"
+    : "flight-wayfinding-identity__content";
 
   return (
     <div
@@ -52,11 +58,11 @@ export function SidebarLoadingHeader({
       data-variant={variant}
     >
       <div
-        className={`sidebar-loading-skeleton__identity ${isAirport ? "airport-wayfinding-identity" : ""}`.trim()}
+        className={`sidebar-loading-skeleton__identity ${identityClassName}`}
       >
-        <Rail className={isAirport ? "wayfinding-rail" : ""} />
+        <Rail className="wayfinding-rail" />
         <span
-          className={`sidebar-loading-skeleton__identity-copy ${isAirport ? "airport-wayfinding-identity__content" : ""}`.trim()}
+          className={`sidebar-loading-skeleton__identity-copy ${identityContentClassName}`}
         >
           <Placeholder className="sidebar-loading-skeleton__identity-code" />
           <Placeholder className="sidebar-loading-skeleton__identity-name" />
