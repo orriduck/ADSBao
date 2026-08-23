@@ -359,6 +359,73 @@ assert.equal(
 }
 
 {
+  const darkStyleWithoutShields = {
+    version: 8,
+    sources: { openmaptiles: { type: "vector" } },
+    layers: [
+      { id: "background", type: "background" },
+      {
+        id: "place_city",
+        type: "symbol",
+        filter: ["==", ["get", "class"], "city"],
+        layout: {
+          "text-field": ["get", "name"],
+          "text-size": 10,
+          "text-transform": "uppercase",
+        },
+        paint: {
+          "text-color": "rgb(101,101,101)",
+          "text-halo-color": "rgba(0,0,0,0.7)",
+        },
+      },
+    ],
+  };
+
+  const localized = buildLocalizedMapLibreStyle(darkStyleWithoutShields, {
+    locale: "en",
+    labelLevel: MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS,
+    theme: "dark",
+  });
+  const layerById = Object.fromEntries(
+    localized.layers.map((layer) => [layer.id, layer]),
+  );
+
+  assert.equal(layerById.place_city.layout["text-transform"], "none");
+  assert.equal(layerById.place_city.paint["text-color"], "#e3e7e5");
+  assert.equal(layerById.place_city.paint["text-opacity"], 0.96);
+  assert.deepEqual(
+    layerById["highway-shield-us-interstate"].layout["icon-image"],
+    [
+      "concat",
+      "adsbao-dark-us-interstate_",
+      ["get", "ref_length"],
+    ],
+  );
+  assert.equal(
+    layerById["highway-shield-us-interstate"].layout.visibility,
+    undefined,
+  );
+  assert.equal(
+    layerById["highway-shield-us-interstate"].paint["icon-opacity"],
+    1,
+  );
+  assert.equal(
+    layerById["highway-shield-us-interstate"].paint["text-color"],
+    "#ffffff",
+  );
+  assert.equal(
+    layerById["highway-shield-us-interstate"].paint["text-halo-color"],
+    "#111412",
+  );
+  assert.equal(layerById["road_shield_us"].layout.visibility, "none");
+  assert.ok(
+    localized.layers.findIndex(
+      (layer) => layer.id === "highway-shield-us-interstate",
+    ) < localized.layers.findIndex((layer) => layer.id === "place_city"),
+  );
+}
+
+{
   const style = {
     version: 8,
     sources: { openmaptiles: { type: "vector" } },

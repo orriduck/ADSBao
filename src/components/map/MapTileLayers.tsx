@@ -56,6 +56,7 @@ export default function MapTileLayers({
     const abort = new AbortController();
     let cancelled = false;
     let cleanupReadinessWatcher: (() => void) | null = null;
+    let cleanupDarkRoadShields: (() => void) | null = null;
     onReadinessChange?.({ ready: false, reason: "loading" });
 
     loadLocalizedMapStyle({
@@ -82,6 +83,10 @@ export default function MapTileLayers({
           layerRef.current = nextLayer;
           layerRef.current.getContainer()?.classList.add("atc-tile-base");
           const maplibreMap = nextLayer.getMaplibreMap?.();
+          cleanupDarkRoadShields = attachDarkRoadShieldImages(
+            maplibreMap,
+            theme,
+          );
           if (
             maplibreMap &&
             typeof maplibreMap.setMaxTileCacheSize === "function"
@@ -116,6 +121,7 @@ export default function MapTileLayers({
       cancelled = true;
       abort.abort();
       cleanupReadinessWatcher?.();
+      cleanupDarkRoadShields?.();
       removeLayer(layerRef.current, map);
       layerRef.current = null;
     };
@@ -174,6 +180,100 @@ export default function MapTileLayers({
   return null;
 }
 
+const DARK_ROAD_SHIELD_IMAGE_PATTERN =
+  /^adsbao-dark-(road|us-interstate|us-highway|us-state)_(\d)$/;
+const DARK_ROAD_SHIELD_PIXEL_RATIO = 2;
+
+function attachDarkRoadShieldImages(maplibreMap: any, theme: string) {
+  if (
+    theme !== "dark" ||
+    !maplibreMap ||
+    typeof maplibreMap.on !== "function" ||
+    typeof maplibreMap.addImage !== "function"
+  ) {
+    return () => {};
+  }
+
+  const handleMissingImage = ({ id }: { id?: string } = {}) => {
+    const match = String(id || "").match(DARK_ROAD_SHIELD_IMAGE_PATTERN);
+    if (!match || maplibreMap.hasImage?.(id)) return;
+    const image = createDarkRoadShieldImage({
+      kind: match[1],
+      refLength: Number(match[2]),
+    });
+    if (!image) return;
+    maplibreMap.addImage(id, image, {
+      pixelRatio: DARK_ROAD_SHIELD_PIXEL_RATIO,
+    });
+  };
+
+  maplibreMap.on("styleimagemissing", handleMissingImage);
+  return () => maplibreMap.off?.("styleimagemissing", handleMissingImage);
+}
+
+function createDarkRoadShieldImage({
+  kind,
+  refLength,
+}: {
+  kind: string;
+  refLength: number;
+}) {
+  if (typeof document === "undefined") return null;
+  const isRouteShield = kind === "us-interstate" || kind === "us-highway";
+  const cssHeight = isRouteShield ? 17 : 14;
+  const cssWidth = resolveDarkRoadShieldWidth(kind, refLength);
+  const canvas = document.createElement("canvas");
+  canvas.width = cssWidth * DARK_ROAD_SHIELD_PIXEL_RATIO;
+  canvas.height = cssHeight * DARK_ROAD_SHIELD_PIXEL_RATIO;
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  context.scale(DARK_ROAD_SHIELD_PIXEL_RATIO, DARK_ROAD_SHIELD_PIXEL_RATIO);
+  context.fillStyle = "#111412";
+  context.strokeStyle = "rgba(239, 242, 240, 0.72)";
+  context.lineWidth = 1;
+  if (isRouteShield) {
+    drawDarkRouteShield(context, cssWidth, cssHeight);
+  } else {
+    drawDarkRoadBadge(context, cssWidth, cssHeight);
+  }
+  context.fill();
+  context.stroke();
+  return context.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+function resolveDarkRoadShieldWidth(kind: string, refLength: number) {
+  const safeLength = Math.max(1, Math.min(6, refLength || 1));
+  if (kind === "us-interstate" || kind === "us-highway") {
+    return safeLength <= 2 ? 17 : 17 + (safeLength - 2) * 5;
+  }
+  return 9 + safeLength * 5.5;
+}
+
+function drawDarkRouteShield(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  context.beginPath();
+  context.moveTo(1.5, 3.5);
+  context.quadraticCurveTo(width / 2, 0.5, width - 1.5, 3.5);
+  context.lineTo(width - 2.5, height * 0.58);
+  context.quadraticCurveTo(width - 3, height - 2, width / 2, height - 0.8);
+  context.quadraticCurveTo(3, height - 2, 2.5, height * 0.58);
+  context.closePath();
+}
+
+function drawDarkRoadBadge(
+  context: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const radius = 3;
+  context.beginPath();
+  context.roundRect(0.7, 0.7, width - 1.4, height - 1.4, radius);
+}
+
 async function loadLocalizedMapStyle({
   theme,
   locale,
@@ -194,7 +294,11 @@ async function loadLocalizedMapStyle({
     theme,
     baseLayer,
   });
-  return buildLocalizedMapLibreStyle(themedStyle, { locale, labelLevel });
+  return buildLocalizedMapLibreStyle(themedStyle, {
+    locale,
+    labelLevel,
+    theme,
+  });
 }
 
 async function requestJson(url: string, { signal }: Record<string, any> = {}) {

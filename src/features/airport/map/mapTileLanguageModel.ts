@@ -85,6 +85,7 @@ type TileJson = {
 type LocalizedMapStyleOptions = {
   locale?: string;
   labelLevel?: MapLabelLevel;
+  theme?: string;
 };
 
 type ProxiedMapStyleOptions = {
@@ -342,15 +343,23 @@ function getMapLibreLabelTextField(locale: string) {
 
 export function buildLocalizedMapLibreStyle(
   style: MapLibreStyle,
-  { locale = "en", labelLevel = MAP_LABEL_LEVEL_IDS.ALL }: LocalizedMapStyleOptions = {},
+  {
+    locale = "en",
+    labelLevel = MAP_LABEL_LEVEL_IDS.ALL,
+    theme = "light",
+  }: LocalizedMapStyleOptions = {},
 ) {
   if (!style || !Array.isArray(style.layers)) return style;
 
   const textField = getMapLibreLabelTextField(locale);
   const normalizedLabelLevel = normalizeMapLabelLevel(labelLevel);
+  const layers = injectMissingReferenceShieldLayers(
+    style,
+    normalizedLabelLevel,
+  );
   return {
     ...style,
-    layers: style.layers.map((layer) => {
+    layers: layers.map((layer) => {
       if (!isTextSymbolLayer(layer)) return layer;
       const layerId = String(layer.id || "");
       const isReferenceShield = REFERENCE_SHIELD_LABEL_LAYER_IDS.has(layerId);
@@ -376,12 +385,162 @@ export function buildLocalizedMapLibreStyle(
         layout.visibility = "none";
       }
 
-      return refinePlaceLabelLayer({
-        ...layer,
-        layout,
-      }, normalizedLabelLevel);
+      return refineReferenceShieldLayer(
+        refinePlaceLabelLayer(
+          {
+            ...layer,
+            layout,
+          },
+          normalizedLabelLevel,
+          theme,
+        ),
+        theme,
+      );
     }),
   };
+}
+
+function injectMissingReferenceShieldLayers(
+  style: MapLibreStyle,
+  level: MapLabelLevel,
+) {
+  const layers = style.layers || [];
+  if (
+    (level !== MAP_LABEL_LEVEL_IDS.MAJOR_HIGHWAYS &&
+      level !== MAP_LABEL_LEVEL_IDS.ALL) ||
+    !style.sources?.openmaptiles
+  ) {
+    return layers;
+  }
+
+  const existingIds = new Set(layers.map((layer) => String(layer.id || "")));
+  const missingLayers = buildReferenceShieldLayers().filter(
+    (layer) => !existingIds.has(String(layer.id || "")),
+  );
+  if (missingLayers.length === 0) return layers;
+
+  const placeLabelIndex = layers.findIndex((layer) => {
+    const id = String(layer.id || "");
+    return MAJOR_CITY_LABEL_LAYER_IDS.has(id) || REGION_LABEL_LAYER_IDS.has(id);
+  });
+  const insertIndex = placeLabelIndex >= 0 ? placeLabelIndex : layers.length;
+  return [
+    ...layers.slice(0, insertIndex),
+    ...missingLayers,
+    ...layers.slice(insertIndex),
+  ];
+}
+
+function buildReferenceShieldLayers(): MapLibreLayer[] {
+  const baseFilter = [
+    ["<=", ["get", "ref_length"], 6],
+    [
+      "match",
+      ["geometry-type"],
+      ["LineString", "MultiLineString"],
+      true,
+      false,
+    ],
+  ];
+  const baseLayout = {
+    "icon-rotation-alignment": "viewport",
+    "icon-size": 1,
+    "symbol-spacing": 200,
+    "text-field": ["to-string", ["get", "ref"]],
+    "text-font": ["Noto Sans Regular"],
+    "text-rotation-alignment": "viewport",
+    "text-size": MAP_NUMBERED_HIGHWAY_LABEL_MAX_TEXT_SIZE,
+  };
+
+  return [
+    {
+      id: "highway-shield-non-us",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      minzoom: 8,
+      filter: [
+        "all",
+        ...baseFilter,
+        [
+          "match",
+          ["get", "network"],
+          ["us-highway", "us-interstate", "us-state"],
+          false,
+          true,
+        ],
+      ],
+      layout: {
+        ...baseLayout,
+        "icon-image": ["concat", "road_", ["get", "ref_length"]],
+        "symbol-placement": ["step", ["zoom"], "point", 11, "line"],
+      },
+    },
+    {
+      id: "highway-shield-us-interstate",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      minzoom: 7,
+      filter: [
+        "all",
+        ...baseFilter,
+        [
+          "match",
+          ["get", "network"],
+          ["us-interstate"],
+          true,
+          false,
+        ],
+      ],
+      layout: {
+        ...baseLayout,
+        "icon-image": [
+          "concat",
+          ["get", "network"],
+          "_",
+          ["get", "ref_length"],
+        ],
+        "symbol-placement": [
+          "step",
+          ["zoom"],
+          "point",
+          7,
+          "line",
+          8,
+          "line",
+        ],
+      },
+    },
+    {
+      id: "road_shield_us",
+      type: "symbol",
+      source: "openmaptiles",
+      "source-layer": "transportation_name",
+      minzoom: 9,
+      filter: [
+        "all",
+        ...baseFilter,
+        [
+          "match",
+          ["get", "network"],
+          ["us-highway", "us-state"],
+          true,
+          false,
+        ],
+      ],
+      layout: {
+        ...baseLayout,
+        "icon-image": [
+          "concat",
+          ["get", "network"],
+          "_",
+          ["get", "ref_length"],
+        ],
+        "symbol-placement": ["step", ["zoom"], "point", 11, "line"],
+      },
+    },
+  ];
 }
 
 function shouldShowLabelLayer(layer: MapLibreLayer, level: MapLabelLevel) {
@@ -399,11 +558,33 @@ function shouldShowLabelLayer(layer: MapLibreLayer, level: MapLabelLevel) {
 function refinePlaceLabelLayer(
   layer: MapLibreLayer,
   level: MapLabelLevel,
+  theme: string,
 ): MapLibreLayer {
   const layerId = String(layer.id || "");
+  const isMajorCity = MAJOR_CITY_LABEL_LAYER_IDS.has(layerId);
+  const normalizedLayer = isMajorCity
+    ? {
+        ...layer,
+        layout: {
+          ...(layer.layout || {}),
+          "text-transform": "none",
+        },
+        ...(theme === "dark"
+          ? {
+              paint: {
+                ...(layer.paint || {}),
+                "text-color": "#e3e7e5",
+                "text-opacity": 0.96,
+                "text-halo-color": "#0d100f",
+                "text-halo-width": 1,
+              },
+            }
+          : {}),
+      }
+    : layer;
   if (REGION_LABEL_LAYER_IDS.has(layerId)) {
     return {
-      ...layer,
+      ...normalizedLayer,
       ...(level === MAP_LABEL_LEVEL_IDS.ALL ? {} : { maxzoom: 15 }),
       filter: [
         "match",
@@ -419,7 +600,7 @@ function refinePlaceLabelLayer(
     (layerId === "label_city" || layerId === "place_city")
   ) {
     return {
-      ...layer,
+      ...normalizedLayer,
       filter: [
         "all",
         layer.filter || true,
@@ -434,7 +615,7 @@ function refinePlaceLabelLayer(
     const limitsToMotorwayOrTrunk =
       layerId === "highway-shield-non-us" || layerId === "highway_name_other";
     return {
-      ...layer,
+      ...normalizedLayer,
       minzoom: Math.min(Number(layer.minzoom ?? 8), 8),
       layout: {
         ...(layer.layout || {}),
@@ -460,7 +641,54 @@ function refinePlaceLabelLayer(
       ],
     };
   }
-  return layer;
+  return normalizedLayer;
+}
+
+function refineReferenceShieldLayer(layer: MapLibreLayer, theme: string) {
+  const layerId = String(layer.id || "");
+  if (
+    theme !== "dark" ||
+    !REFERENCE_SHIELD_LABEL_LAYER_IDS.has(layerId)
+  ) {
+    return layer;
+  }
+
+  return {
+    ...layer,
+    layout: {
+      ...(layer.layout || {}),
+      "icon-image": getDarkReferenceShieldImage(layerId),
+    },
+    paint: {
+      ...(layer.paint || {}),
+      "icon-opacity": 1,
+      "text-color": "#ffffff",
+      "text-opacity": 1,
+      "text-halo-color": "#111412",
+      "text-halo-width": 0.5,
+      "text-halo-blur": 0,
+    },
+  };
+}
+
+function getDarkReferenceShieldImage(layerId: string) {
+  if (layerId === "highway-shield-us-interstate") {
+    return [
+      "concat",
+      "adsbao-dark-us-interstate_",
+      ["get", "ref_length"],
+    ];
+  }
+  if (layerId === "road_shield_us") {
+    return [
+      "concat",
+      "adsbao-dark-",
+      ["get", "network"],
+      "_",
+      ["get", "ref_length"],
+    ];
+  }
+  return ["concat", "adsbao-dark-road_", ["get", "ref_length"]];
 }
 
 function clampMapLabelTextSize(
