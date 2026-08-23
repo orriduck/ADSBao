@@ -16,6 +16,7 @@ export default function MobileMapSourceStatus({
     feedSource,
     feedStatus,
     cachedLabel: t("app.feedCached"),
+    liveLabel: t("app.feedLive"),
   });
   const updatedLabel = formatUpdated(lastUpdated);
 

@@ -21,7 +21,7 @@ export function useWakeLock(): [WakeLockState, () => void] {
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<WakeLockSentinel | null>(null);
   // Tracking is an eyes-on activity. Start wanted in every map mode; the user
-  // can still turn it off from the existing toolbar control at any time.
+  // can still turn it off from the map settings at any time.
   const wantedRef = useRef(true);
 
   // Detect actual Wake Lock support on the client after hydration.

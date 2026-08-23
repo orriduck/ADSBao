@@ -93,27 +93,30 @@ export default function MapControlBar({
     >
       {showMapViewControls && (
         <MapSettingsSheet
-        id={MAP_SETTINGS_SHEET_ID}
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-        onSaveMapSettings={onSaveMapSettings}
-        mapSettings={mapSettings}
-        showBeams={showRunwayBeams}
-        showNavaidMarkers={showNavaidMarkers}
-        showReportingPoints={showReportingPoints}
-        showAirspaces={showAirspaces}
-        showCandidateWatchingSpots={showCandidateWatchingSpots}
-        showCallsigns={showCallsigns}
-        mapSettingsDevice={mapSettingsDevice}
-        mapSettingsSaveStatus={mapSettingsSaveStatus}
-        mapSettingsSaveCycle={mapSettingsSaveCycle}
-        userLocationActive={userLocationActive}
-        userLocationPending={userLocationPending}
-        userLocationNotice={userLocationNotice}
-        userLocationPermissionDenied={userLocationPermissionDenied}
-        onRequestUserLocationPermission={onRequestUserLocationPermission}
-        userLocationPositionReady={userLocationPositionReady}
-        userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
+          id={MAP_SETTINGS_SHEET_ID}
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          onSaveMapSettings={onSaveMapSettings}
+          mapSettings={mapSettings}
+          showBeams={showRunwayBeams}
+          showNavaidMarkers={showNavaidMarkers}
+          showReportingPoints={showReportingPoints}
+          showAirspaces={showAirspaces}
+          showCandidateWatchingSpots={showCandidateWatchingSpots}
+          showCallsigns={showCallsigns}
+          mapSettingsDevice={mapSettingsDevice}
+          mapSettingsSaveStatus={mapSettingsSaveStatus}
+          mapSettingsSaveCycle={mapSettingsSaveCycle}
+          userLocationActive={userLocationActive}
+          userLocationPending={userLocationPending}
+          userLocationNotice={userLocationNotice}
+          userLocationPermissionDenied={userLocationPermissionDenied}
+          onRequestUserLocationPermission={onRequestUserLocationPermission}
+          userLocationPositionReady={userLocationPositionReady}
+          userLocationCompassHeadingDeg={userLocationCompassHeadingDeg}
+          wakeLockActive={wakeLockActive}
+          wakeLockSupported={wakeLockSupported}
+          onToggleWakeLock={onToggleWakeLock}
         />
       )}
 
@@ -138,13 +141,10 @@ export default function MapControlBar({
         showMapButton={showMapButton}
         showZoom={showMapViewControls}
         showSettings={showMapViewControls}
-        wakeLockActive={wakeLockActive}
-        wakeLockSupported={wakeLockSupported}
         onToggleSidebar={onToggleSidebar}
         onMap={onMap}
         onCycleTheme={cycleTheme}
         onToggleSettings={toggleSettings}
-        onToggleWakeLock={onToggleWakeLock}
       />
     </div>
   );

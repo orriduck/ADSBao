@@ -42,14 +42,11 @@ export default function MapControlRail({
   showMapButton = false,
   showZoom = true,
   showSettings = true,
-  wakeLockActive = false,
-  wakeLockSupported = false,
   onToggleSidebar,
   onMap = null,
   onRecenter = null,
   onCycleTheme,
   onToggleSettings,
-  onToggleWakeLock = null,
 }) {
   const { locale, t } = useI18n();
   return (
@@ -116,18 +113,6 @@ export default function MapControlRail({
           <MapControlIcon iconKey={SETTINGS_ICON_KEY} />
         </ToolbarButton>
       ) : null}
-
-      <ToolbarButton
-        tone="rail"
-        active={wakeLockActive}
-        disabled={!wakeLockSupported || !onToggleWakeLock}
-        title={t("map.wakeLockTitle")}
-        aria-label={t("map.wakeLock")}
-        aria-pressed={wakeLockActive}
-        onClick={onToggleWakeLock}
-      >
-        <MapControlIcon iconKey="monitorCheck" />
-      </ToolbarButton>
 
       <AppRefreshButton />
 

@@ -329,6 +329,9 @@ export default function MapSettingsSheet({
   onRequestUserLocationPermission = null,
   userLocationPositionReady = false,
   userLocationCompassHeadingDeg = null,
+  wakeLockActive = false,
+  wakeLockSupported = false,
+  onToggleWakeLock = null,
   mapSettingsSaveStatus = "idle",
   mapSettingsSaveCycle = 0,
 }) {
@@ -591,6 +594,16 @@ export default function MapSettingsSheet({
                   label={t("mapLayers.userLocation")}
                   subtitle={userLocationTitle}
                   onClick={() => updateLayerDraft(MAP_LAYER_KEYS.USER_LOCATION)}
+                />
+
+                <LayerToggleRow
+                  active={wakeLockActive}
+                  ariaLabel={t("map.wakeLock")}
+                  disabled={!wakeLockSupported || !onToggleWakeLock}
+                  iconKey="monitorCheck"
+                  label={t("map.wakeLock")}
+                  subtitle={t("map.wakeLockTitle")}
+                  onClick={onToggleWakeLock}
                 />
               </div>
               <div className="map-settings-rail-extension map-settings-rail-extension--active mt-1 space-y-1">

@@ -31,8 +31,11 @@ export function buildMapSourceStatusDisplay({
   feedSource = "",
   feedStatus = "live",
   cachedLabel = "Cached",
+  liveLabel = "Live feed",
 }: Record<string, any> = {}) {
-  const source = formatAircraftFeedProvider(feedSource);
+  const source = normalizeKey(feedSource) === "live"
+    ? liveLabel
+    : formatAircraftFeedProvider(feedSource);
   if (!source) return { feedSource: "", cachedLabel: "" };
   return {
     feedSource: source,

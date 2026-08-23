@@ -5,6 +5,14 @@ assert.deepEqual(buildMapSourceStatusDisplay({ feedSource: "adsb.fi" }), {
   feedSource: "adsb.fi",
   cachedLabel: "",
 });
+
+assert.deepEqual(buildMapSourceStatusDisplay({
+  feedSource: "live",
+  liveLabel: "Live feed",
+}), {
+  feedSource: "Live feed",
+  cachedLabel: "",
+});
 assert.equal(formatAircraftFeedProvider("fr24"), "Flightradar24");
 
 assert.deepEqual(
