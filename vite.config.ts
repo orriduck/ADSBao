@@ -91,10 +91,7 @@ function adsbaoPwaServiceWorkerPlugin(version: string): Plugin {
     name: "adsbao-pwa-service-worker",
     generateBundle(_options, bundle) {
       const precacheUrls = collectAdsbaoPrecacheUrls(bundle);
-      const revision = createHash("sha256")
-        .update(precacheUrls.join("\n"))
-        .digest("hex")
-        .slice(0, 10);
+      const revision = buildAdsbaoPrecacheRevision(precacheUrls);
 
       this.emitFile({
         type: "asset",
@@ -106,6 +103,22 @@ function adsbaoPwaServiceWorkerPlugin(version: string): Plugin {
       });
     },
   };
+}
+
+function buildAdsbaoPrecacheRevision(precacheUrls: string[]) {
+  const hash = createHash("sha256").update(precacheUrls.join("\n"));
+
+  // Public assets keep stable URLs for browser/PWA compatibility. Include
+  // their bytes in the cache revision so replacing an icon invalidates the
+  // old service-worker cache even when the app version and URL stay the same.
+  for (const assetPath of ADSBAO_PWA_PUBLIC_ASSET_PATHS) {
+    hash.update(`\n${assetPath}\n`);
+    hash.update(
+      readFileSync(new URL(`./public${assetPath}`, import.meta.url)),
+    );
+  }
+
+  return hash.digest("hex").slice(0, 10);
 }
 
 function collectAdsbaoPrecacheUrls(bundle: Record<string, any>) {
