@@ -46,6 +46,7 @@ import {
 import { useFlightRoutes } from "@/hooks/useFlightRoutes";
 import { useTrackedAircraft } from "@/hooks/useTrackedAircraft";
 import { useTrackingRun } from "@/hooks/useTrackingRun";
+import { useTrackedFlightTraceRefreshKey } from "@/hooks/useTrackedFlightTraceRefreshKey";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { normalizeCallsign } from "@/utils/callsign";
@@ -156,6 +157,7 @@ function FlightExplorerContent({ callsign }) {
   } = useTrackedAircraft(callsign, {
     runStatus: trackingRun?.status,
   });
+  const focalTraceRefreshKey = useTrackedFlightTraceRefreshKey({ lostSignal });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
@@ -927,6 +929,7 @@ function FlightExplorerContent({ callsign }) {
       focalFullTrace
       focalClipToLeg
       focalVisualPosition={focalVisualPosition}
+      focalTraceRefreshKey={focalTraceRefreshKey}
     >
       <AircraftPreviewCard
         aircraft={selectedAircraft}

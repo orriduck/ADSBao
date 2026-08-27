@@ -56,6 +56,7 @@ export function SelectedAircraftTraceProvider({
   focalFullTrace = false,
   focalClipToLeg = false,
   focalVisualPosition = null,
+  focalTraceRefreshKey = "",
   children,
 }) {
   const focalIdentity = focalAircraft
@@ -73,6 +74,7 @@ export function SelectedAircraftTraceProvider({
     fullTrace: focalFullTrace,
     clipToLeg: focalClipToLeg,
     visualPosition: focalVisualPosition,
+    traceRefreshKey: focalTraceRefreshKey,
   });
 
   const primary = useMemo(

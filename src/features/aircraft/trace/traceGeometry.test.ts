@@ -72,6 +72,14 @@ import { computeTraceGeometry } from "./traceGeometry";
     ),
     "sample dots should retain the later live point in each minute",
   );
+  const labelMinutes = geometry.labelPoints.map((point) =>
+    Math.floor(point.timestampMs / 60_000),
+  );
+  assert.equal(
+    new Set(labelMinutes).size,
+    labelMinutes.length,
+    "display labels should not repeat the same rendered minute",
+  );
 }
 
 {
