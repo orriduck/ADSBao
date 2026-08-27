@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.3",
+    version: "v3.16.4",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Airport tracking now shows local time with consistent UTC offsets and keeps empty traffic states aligned with the public-concourse boundary.",
-      zh: "机场追踪现以统一 UTC 偏移显示当地时间，并让空流量状态与公共区边界保持对齐。",
+      en: "Airport tracking now keeps the destination route attached to the aircraft between live position updates, shows local time with consistent UTC offsets, and keeps empty traffic states aligned with the public-concourse boundary.",
+      zh: "机场追踪现会在实时位置更新间持续让目的地航线贴合飞机，并以统一 UTC 偏移显示当地时间，同时让空流量状态与公共区边界保持对齐。",
     },
     highlights: [],
   },

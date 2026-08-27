@@ -1046,6 +1046,7 @@ function FlightExplorerContent({ callsign }) {
                 destination={enrichedTrackedAircraft?.flightRoute?.destination}
                 followPositionRef={visualFocalPositionRef}
                 motionRef={focalMotionRef}
+                motionKey={focalMotionKey}
               />
               <MapFitToTraceController
                 routePath={traceFitRoutePath}
