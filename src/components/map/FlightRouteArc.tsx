@@ -50,6 +50,7 @@ export default function FlightRouteArc({
   destination = null,
   followPositionRef = null,
   motionRef = null,
+  motionKey = "",
   theme = null,
   opacity = 1,
 }) {
@@ -162,7 +163,14 @@ export default function FlightRouteArc({
       }
       return shouldAnimateAircraftVisualPosition(motionRef?.current, now);
     });
-  }, [destinationKey, followsAircraft, map, motionRef, followPositionRef]);
+  }, [
+    destinationKey,
+    followsAircraft,
+    map,
+    motionRef,
+    motionKey,
+    followPositionRef,
+  ]);
 
   return null;
 }
