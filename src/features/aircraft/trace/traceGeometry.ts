@@ -101,6 +101,22 @@ function buildFullTraceLabelPoints(
   return selected;
 }
 
+function dedupeTraceLabelPointsByMinute(points) {
+  const seenMinutes = new Set();
+  return points
+    .slice()
+    .reverse()
+    .filter((point) => {
+      const timestampMs = Number(point?.timestampMs);
+      if (!Number.isFinite(timestampMs)) return true;
+      const minute = Math.floor(timestampMs / 60_000);
+      if (seenMinutes.has(minute)) return false;
+      seenMinutes.add(minute);
+      return true;
+    })
+    .reverse();
+}
+
 export function computeTraceGeometry({
   tracePoints = [],
   maxRenderPoints,
@@ -154,6 +170,8 @@ export function computeTraceGeometry({
     connectors,
     curve: segments[0]?.curve || connectors[0]?.curve || [],
     samplePoints: segments.flatMap((segment) => segment.samplePoints),
-    labelPoints: segments.flatMap((segment) => segment.labelPoints),
+    labelPoints: dedupeTraceLabelPointsByMinute(
+      segments.flatMap((segment) => segment.labelPoints),
+    ),
   };
 }
