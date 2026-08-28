@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.13",
+    version: "v3.16.14",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Airport pages now reveal progressively, preserve known airport context during in-app navigation without a page reload or zero-coordinate detour, and flight tracking surfaces nearby-airport context delivered in a separate realtime frame.",
-      zh: "机场页现在会渐进呈现，并在站内切换时保留已知机场信息，不再整页刷新或绕经零坐标；航班追踪也能正确显示由独立实时帧送达的附近机场信息。",
+      en: "Airport pages now reveal progressively, preserve stable known airport coordinates during in-app navigation without duplicate nearby subscriptions or a zero-coordinate detour, and flight tracking surfaces separately delivered nearby-airport context.",
+      zh: "机场页现在会渐进呈现，并在站内切换时稳定保留已知机场坐标，避免重复附近订阅或绕经零坐标；航班追踪也能正确显示独立送达的附近机场信息。",
     },
     highlights: [],
   },
