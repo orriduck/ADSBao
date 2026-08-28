@@ -10,6 +10,7 @@ import {
   scheduleAfterOverlayPaint,
   shouldReplayLoadingOverlayOnPageVisible,
   shouldShowAircraftLoadingOverlay,
+  shouldShowAircraftListLoading,
   shouldTriggerVisibilityRefreshOverlay,
 } from "./aircraftLoadingOverlayModel";
 
@@ -79,6 +80,33 @@ assert.equal(
   shouldShowAircraftLoadingOverlay({
     initialLoading: false,
     visibilityRefreshLoading: false,
+  }),
+  false,
+);
+
+assert.equal(
+  shouldShowAircraftListLoading({
+    aircraftLoading: true,
+    aircraftCount: 0,
+    entityFilter: "aircraft",
+  }),
+  true,
+);
+
+assert.equal(
+  shouldShowAircraftListLoading({
+    aircraftLoading: true,
+    aircraftCount: 0,
+    entityFilter: "airports",
+  }),
+  false,
+);
+
+assert.equal(
+  shouldShowAircraftListLoading({
+    aircraftLoading: true,
+    aircraftCount: 12,
+    entityFilter: "aircraft",
   }),
   false,
 );

@@ -13,6 +13,12 @@ type AircraftLoadingOverlayVisibilityOptions = {
   visibilityRefreshLoading?: boolean;
 };
 
+type AircraftListLoadingOptions = {
+  aircraftLoading?: boolean;
+  aircraftCount?: number;
+  entityFilter?: string;
+};
+
 type AircraftLoadingOverlayStateOptions = {
   mapReady?: boolean;
   feedLoading?: boolean;
@@ -85,6 +91,16 @@ export function shouldShowAircraftLoadingOverlay({
   visibilityRefreshLoading = false,
 }: AircraftLoadingOverlayVisibilityOptions = {}) {
   return Boolean(initialLoading || visibilityRefreshLoading);
+}
+
+export function shouldShowAircraftListLoading({
+  aircraftLoading = false,
+  aircraftCount = 0,
+  entityFilter = "all",
+}: AircraftListLoadingOptions = {}) {
+  return Boolean(
+    aircraftLoading && Number(aircraftCount) === 0 && entityFilter !== "airports",
+  );
 }
 
 export function resolveAircraftLoadingOverlayState({

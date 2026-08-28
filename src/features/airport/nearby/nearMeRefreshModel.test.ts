@@ -44,7 +44,7 @@ assert.equal(
     hasHydratedSidebar: true,
     shellLoading: true,
   }),
-  true,
+  false,
 );
 
 assert.equal(

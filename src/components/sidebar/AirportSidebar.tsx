@@ -41,6 +41,7 @@ export default function AirportSidebar({
   feedStatus = "live",
   feedSource = "",
   loadingStatus = "",
+  aircraftLoading = false,
   // When true the explorer is centered on the user (not an airport).
   // The identity hero swaps to a "Your location" header and the
   // metric cards collapse to weather + nearby traffic.
@@ -169,6 +170,7 @@ export default function AirportSidebar({
         onSelectAircraft={onSelectAircraft}
         onSelectAirport={onSelectAirport}
         fill={fillAircraftList}
+        aircraftLoading={aircraftLoading}
       />
     );
 

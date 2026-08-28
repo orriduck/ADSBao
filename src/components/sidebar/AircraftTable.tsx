@@ -54,6 +54,8 @@ import AircraftList from "./AircraftList";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
 import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
+import { SidebarLoadingRows } from "./SidebarLoadingSkeleton";
+import { shouldShowAircraftListLoading } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 
 type AircraftLike = Record<string, any>;
 type AirportLike = Record<string, any>;
@@ -71,6 +73,7 @@ function AircraftTable({
   onSelectAirport,
   suppressSelectedAircraftDistance = false,
   fill = true,
+  aircraftLoading = false,
 }) {
   const { t } = useI18n();
   const {
@@ -196,6 +199,11 @@ function AircraftTable({
   }, [filteredAirports, hasRouteEndpointAirports, listRows]);
   const hasEmptyResults =
     listRows.length === 0 && filteredAirports.length === 0;
+  const showAircraftListLoading = shouldShowAircraftListLoading({
+    aircraftLoading,
+    aircraftCount: aircraft.length,
+    entityFilter,
+  });
 
   const aircraftListResetKey = useMemo(
     () =>
@@ -232,6 +240,7 @@ function AircraftTable({
     <div
       className="aircraft-table-shell flex flex-col"
       data-empty-results={hasEmptyResults ? "true" : undefined}
+      data-aircraft-loading={showAircraftListLoading ? "true" : undefined}
     >
       <div className="aircraft-table-controls flex-none">
         <div className="aircraft-table-search-bar">
@@ -334,7 +343,11 @@ function AircraftTable({
         ) : null}
 
         <div className="aircraft-table-scroll-shell overflow-visible">
-          {hasEmptyResults ? (
+          {showAircraftListLoading ? (
+            <div role="status" aria-label={t("map.loadingAircraftAria")}>
+              <SidebarLoadingRows />
+            </div>
+          ) : hasEmptyResults ? (
             <div className="aircraft-table-empty-state app-panel-transition px-[var(--airport-sidebar-inset)] py-6 text-center text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-faint">
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")

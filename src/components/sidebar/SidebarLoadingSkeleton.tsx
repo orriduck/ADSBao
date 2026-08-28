@@ -135,18 +135,35 @@ export function SidebarLoadingContent() {
         <FilterPlaceholder valueWidth="w-16" />
       </div>
 
-      <div className="sidebar-loading-skeleton__rows">
-        {Array.from({ length: 9 }, (_, index) => (
-          <div className="sidebar-loading-skeleton__row" key={index}>
-            <Rail />
-            <span className="sidebar-loading-skeleton__row-copy">
-              <Placeholder className={index % 3 === 0 ? "w-16" : "w-20"} />
-              <Placeholder className="ml-auto w-10" />
-              <Placeholder className="w-11" />
-            </span>
-          </div>
-        ))}
-      </div>
+      <LoadingRows />
+    </div>
+  );
+}
+
+function LoadingRows() {
+  return (
+    <div className="sidebar-loading-skeleton__rows">
+      {Array.from({ length: 9 }, (_, index) => (
+        <div className="sidebar-loading-skeleton__row" key={index}>
+          <Rail />
+          <span className="sidebar-loading-skeleton__row-copy">
+            <Placeholder className={index % 3 === 0 ? "w-16" : "w-20"} />
+            <Placeholder className="ml-auto w-10" />
+            <Placeholder className="w-11" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function SidebarLoadingRows() {
+  return (
+    <div
+      aria-hidden="true"
+      className="sidebar-loading-skeleton sidebar-loading-skeleton--content"
+    >
+      <LoadingRows />
     </div>
   );
 }
