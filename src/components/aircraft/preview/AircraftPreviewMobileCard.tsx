@@ -94,30 +94,33 @@ export default function AircraftPreviewMobileCard({
                 </span>
               ) : null}
             </div>
-            <div className="mt-[5px] min-w-0 truncate font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
-              {origin && destination ? (
-                <span
-                  className={`notranslate inline-flex min-w-0 items-center gap-1.5 ${fadeClass}`}
-                  translate="no"
-                  style={style}
-                >
-                  {originLabel}
-                  <span aria-hidden="true" className="text-atc-dim">
-                    →
+            <div className="mt-[5px] flex min-w-0 items-center gap-1.5 font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
+              <span className="min-w-0 truncate">
+                {origin && destination ? (
+                  <span
+                    className={`notranslate inline-flex min-w-0 items-center gap-1.5 ${fadeClass}`}
+                    translate="no"
+                    style={style}
+                  >
+                    {originLabel}
+                    <span aria-hidden="true" className="text-atc-dim">
+                      →
+                    </span>
+                    {destinationLabel}
                   </span>
-                  {destinationLabel}
-                </span>
-              ) : (
-                <span className="italic text-atc-faint">
-                  {aircraft?.flightRouteLookupStatus === "pending"
-                    ? t("aircraft.loadingRoute")
-                    : aircraft?.flightRouteLookupStatus === "retrying"
-                      ? t("aircraft.retryingRoute")
-                      : aircraft?.flightRouteLookupStatus === "unavailable"
-                        ? t("aircraft.routeUnavailable")
-                        : t("aircraft.noRoute")}
-                </span>
-              )}
+                ) : (
+                  <span className="italic text-atc-faint">
+                    {aircraft?.flightRouteLookupStatus === "pending"
+                      ? t("aircraft.loadingRoute")
+                      : aircraft?.flightRouteLookupStatus === "retrying"
+                        ? t("aircraft.retryingRoute")
+                        : aircraft?.flightRouteLookupStatus === "unavailable"
+                          ? t("aircraft.routeUnavailable")
+                          : t("aircraft.noRoute")}
+                  </span>
+                )}
+              </span>
+              <RouteStatusDot status={aircraft?.flightRouteLookupStatus} />
             </div>
           </div>
         </div>
@@ -206,15 +209,50 @@ function TraceStatusDot({
         ? labels.error
         : labels.success;
 
+  return <PreviewAsyncStatusDot kind="trace" tone={tone} label={label} fading={state.phase === "fading"} />;
+}
+
+function RouteStatusDot({ status }: { status?: string }) {
+  const { t } = useI18n();
+  if (status !== "pending" && status !== "retrying" && status !== "unavailable") {
+    return null;
+  }
+  const error = status === "unavailable";
+  const label = error
+    ? t("aircraft.routeUnavailable")
+    : status === "retrying"
+      ? t("aircraft.retryingRoute")
+      : t("aircraft.loadingRoute");
+  return (
+    <PreviewAsyncStatusDot
+      kind="route"
+      tone={error ? "error" : "loading"}
+      label={label}
+    />
+  );
+}
+
+function PreviewAsyncStatusDot({
+  kind,
+  tone,
+  label,
+  fading = false,
+}: {
+  kind: "route" | "trace";
+  tone: "loading" | "success" | "error";
+  label: string;
+  fading?: boolean;
+}) {
   return (
     <span
       className={cn(
-        "mobile-trace-status-dot",
-        tone === "loading" && "mobile-trace-status-dot--loading",
-        tone === "success" && "mobile-trace-status-dot--success",
-        tone === "error" && "mobile-trace-status-dot--error",
-        state.phase === "fading" && "mobile-trace-status-dot--fading",
+        "preview-async-status-dot",
+        tone === "loading" && "preview-async-status-dot--loading",
+        tone === "success" && "preview-async-status-dot--success",
+        tone === "error" && "preview-async-status-dot--error",
+        fading && "preview-async-status-dot--fading",
       )}
+      data-indicator={kind}
       data-status={tone}
       aria-label={label}
       role="status"
