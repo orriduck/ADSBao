@@ -157,6 +157,9 @@ function FlightExplorerContent({ callsign }) {
     }),
     [callsign, location.state],
   );
+  useEffect(() => {
+    clearAllPreviewSelections();
+  }, [callsign, clearAllPreviewSelections]);
 
   const {
     run: trackingRun,
@@ -955,6 +958,7 @@ function FlightExplorerContent({ callsign }) {
     >
       <AircraftPreviewCard
         aircraft={selectedAircraft}
+        nearbyAircraft={aircraft}
         airport={selectedAirport}
         navaid={selectedNavaid}
         airspace={selectedAirspace}
