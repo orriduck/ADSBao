@@ -19,6 +19,7 @@ export function resolveAirportProfile({ icao = "", airport = null }: AirportExpl
     (useAirportDetails ? airport?.iata : "") ||
     airportFallback?.iata ||
     normalizedIcao;
+  const fallbackCoordinates = COORDS[normalizedIcao] || null;
 
   return {
     icao: normalizedIcao,
@@ -35,10 +36,23 @@ export function resolveAirportProfile({ icao = "", airport = null }: AirportExpl
       (useAirportDetails ? airport?.country : "") ||
       airportFallback?.country ||
       "",
-    lat: COORDS[normalizedIcao]?.[0] || (useAirportDetails ? airport?.lat : 0) || 0,
-    lon: COORDS[normalizedIcao]?.[1] || (useAirportDetails ? airport?.lon : 0) || 0,
+    lat: resolveAirportProfileCoordinate(
+      fallbackCoordinates?.[0],
+      useAirportDetails ? airport?.lat : null,
+    ),
+    lon: resolveAirportProfileCoordinate(
+      fallbackCoordinates?.[1],
+      useAirportDetails ? airport?.lon : null,
+    ),
     elevationFt: useAirportDetails ? airport?.elevationFt ?? null : null,
   };
+}
+
+function resolveAirportProfileCoordinate(fallbackValue: unknown, detailValue: unknown) {
+  const value = fallbackValue ?? detailValue;
+  if (value == null || value === "") return null;
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) ? coordinate : null;
 }
 
 function normalizeAirportProfileCode(value: unknown) {

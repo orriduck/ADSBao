@@ -183,7 +183,9 @@ export default function AircraftPreviewCard({
   // no-op so they don't bounce.
   const handleMobileTap = () => {
     if (!cardTrackHref || alreadyTracking) return;
-    navigate(cardTrackHref, { state: { aircraft, nearbyAircraft } });
+    navigate(cardTrackHref, {
+      state: isAirport ? { airport } : { aircraft, nearbyAircraft },
+    });
   };
 
   // Swipe up anywhere on screen while the mobile preview is showing →
