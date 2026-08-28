@@ -8,6 +8,7 @@ import { airportDirectoryClient } from "./airportDirectoryClient";
 
 const AIRPORT_DETAIL_STALE_TIME_MS = 5 * 60_000;
 const AIRPORT_CONTEXT_STALE_TIME_MS = 5 * 60_000;
+const AIRPORT_PROFILE_SEED_MAX_DRIFT_DEGREES = 0.02;
 
 export const airportProfileQueryKeys = {
   all: ["airport-profile"] as const,
@@ -66,21 +67,73 @@ export function resolveAirportProfileSeed({
   return null;
 }
 
+export function resolveAirportProfileCoordinates({
+  detail,
+  seedAirport = null,
+}: {
+  detail: any;
+  seedAirport?: any;
+}) {
+  const detailCoordinates = readAirportProfileCoordinates(detail);
+  const detailCode = airportProfileCode(detail);
+  if (!detailCode || airportProfileCode(seedAirport) !== detailCode) {
+    return detailCoordinates;
+  }
+  const seedCoordinates = readAirportProfileCoordinates(seedAirport);
+  if (seedCoordinates.lat == null || seedCoordinates.lon == null) {
+    return detailCoordinates;
+  }
+  if (detailCoordinates.lat == null || detailCoordinates.lon == null) {
+    return seedCoordinates;
+  }
+  const smallCoordinateDrift =
+    Math.abs(seedCoordinates.lat - detailCoordinates.lat) <=
+      AIRPORT_PROFILE_SEED_MAX_DRIFT_DEGREES &&
+    Math.abs(seedCoordinates.lon - detailCoordinates.lon) <=
+      AIRPORT_PROFILE_SEED_MAX_DRIFT_DEGREES;
+  return smallCoordinateDrift ? seedCoordinates : detailCoordinates;
+}
+
 export function mergeAirportProfile({
   detail,
   context,
   surfaceMap,
+  seedAirport = null,
 }: {
   detail: any;
   context?: any;
   surfaceMap?: any;
+  seedAirport?: any;
 }) {
   if (!detail) return null;
-  return {
+  const merged = {
     ...detail,
     ...(context || {}),
+  };
+  return {
+    ...merged,
+    ...resolveAirportProfileCoordinates({ detail: merged, seedAirport }),
     surfaceMap: surfaceMap ?? null,
   };
+}
+
+function readAirportProfileCoordinates(airport: any) {
+  return {
+    lat: normalizeAirportProfileCoordinate(airport?.lat, -90, 90),
+    lon: normalizeAirportProfileCoordinate(airport?.lon, -180, 180),
+  };
+}
+
+function normalizeAirportProfileCoordinate(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+) {
+  if (value == null || value === "") return null;
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) && coordinate >= minimum && coordinate <= maximum
+    ? coordinate
+    : null;
 }
 
 function isSeedForIcao(seedAirport: any, icao: string) {
@@ -165,8 +218,9 @@ export function useAirportProfileQueries({
         detail: detailQuery.data,
         context: contextQuery.data,
         surfaceMap,
+        seedAirport,
       }),
-    [contextQuery.data, detailQuery.data, surfaceMap],
+    [contextQuery.data, detailQuery.data, seedAirport, surfaceMap],
   );
 
   return {

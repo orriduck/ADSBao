@@ -5,6 +5,7 @@ import {
   mergeAirportProfile,
   normalizeAirportProfileIcao,
   normalizeAirportProfileLocale,
+  resolveAirportProfileCoordinates,
   resolveAirportProfileSeed,
 } from "./airportProfileQueries";
 
@@ -76,6 +77,31 @@ assert.equal(
     localAirport: localSeed,
   }),
   null,
+);
+
+assert.deepEqual(
+  resolveAirportProfileCoordinates({
+    detail: { icao: "KCLT", lat: 35.21318694, lon: -80.95137916 },
+    seedAirport: { icao: "KCLT", lat: 35.2140007, lon: -80.94309998 },
+  }),
+  { lat: 35.2140007, lon: -80.94309998 },
+  "small same-airport coordinate drift should keep the already-subscribed seed",
+);
+assert.deepEqual(
+  resolveAirportProfileCoordinates({
+    detail: { icao: "KCLT", lat: 35.21318694, lon: -80.95137916 },
+    seedAirport: { icao: "KCLT", lat: 36, lon: -81 },
+  }),
+  { lat: 35.21318694, lon: -80.95137916 },
+  "materially different seed coordinates should yield to resolved detail",
+);
+assert.deepEqual(
+  resolveAirportProfileCoordinates({
+    detail: { icao: "KCLT", lat: 35.21318694, lon: -80.95137916 },
+    seedAirport: { icao: "KPHL", lat: 39.8719, lon: -75.2411 },
+  }),
+  { lat: 35.21318694, lon: -80.95137916 },
+  "a seed for another airport must never influence the resolved profile",
 );
 
 console.log("airportProfileQueries.test.ts: ok");
