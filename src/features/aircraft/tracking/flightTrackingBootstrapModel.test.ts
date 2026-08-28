@@ -43,6 +43,22 @@ assert.deepEqual(
   nearbyAircraft.slice(0, 2),
 );
 
+const nextFlightAircraft = {
+  callsign: "AAL2404",
+  lat: 42.3,
+  lon: -71.2,
+  alt_baro: 7_500,
+};
+
+assert.deepEqual(
+  resolveTrackedFlightBootstrapNearbyAircraft({
+    callsign: "AAL2404",
+    navigationAircraft: nextFlightAircraft,
+    navigationNearbyAircraft: [aircraft, nextFlightAircraft],
+  }),
+  [aircraft, nextFlightAircraft],
+);
+
 assert.deepEqual(
   resolveTrackedFlightBootstrapNearbyAircraft({
     callsign: "JBU810",
