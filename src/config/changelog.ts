@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.10",
+    version: "v3.16.11",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Airport, direct-callsign, and flight-to-flight tracking keep their fast nearby-aircraft bootstrap, while selected aircraft resolve destination routes independently and preview cards show separate progress indicators for route and recent-trace requests.",
-      zh: "机场、直接呼号与航班互跳继续保留快速的附近飞机首屏；被选中的飞机会独立获取目的地航线，预览卡也会分别显示航线与近期航迹请求的进度指示。",
+      en: "Flight tracking now surfaces nearby-airport context even when it arrives in a separate realtime frame, while preserving the existing traffic fallback and the fast nearby-aircraft bootstrap across airport and callsign entry paths.",
+      zh: "航班追踪现在能正确显示由独立实时帧送达的附近机场信息，同时保留既有交通回退机制，以及机场和呼号入口的快速附近飞机首屏。",
     },
     highlights: [],
   },

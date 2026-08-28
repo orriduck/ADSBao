@@ -42,6 +42,13 @@ export function hasNearbyStreamPayload(data: unknown) {
   return hasNearbyAircraftPayload(data) || hasNearbyFocusPayload(data);
 }
 
+/** Context-only frames still need to reach consumers without marking traffic ready. */
+export function hasNearbyDeliverablePayload(data: unknown) {
+  return (
+    hasNearbyStreamPayload(data) || readNearbyAirportsUpdate(data) !== undefined
+  );
+}
+
 /** `undefined` means the frame intentionally omitted the static airport list. */
 export function readNearbyAirportsUpdate(data: unknown): unknown[] | undefined {
   if (!isRecord(data) || !Object.hasOwn(data, "nearbyAirports")) return undefined;
