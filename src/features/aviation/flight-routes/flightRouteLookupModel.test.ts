@@ -15,7 +15,11 @@ const first = resolvePendingRouteLookups({
   inFlight: new Set(),
   now: 0,
 });
-assert.deepEqual(first, ["DAL1576"]);
+assert.deepEqual(
+  first,
+  ["DAL1576", "UAL1195"],
+  "one route candidate must not prevent another explicit candidate from starting",
+);
 
 // `useFlightRoutes` advances its candidate version after this cache write.
 // The next pass must progress to the next active callsign, not repeat DAL1576.

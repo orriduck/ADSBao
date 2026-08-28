@@ -178,6 +178,7 @@ export function resolvePendingRouteLookups({
   routeContext = {},
   now = Date.now(),
 }: PendingRouteLookupOptions) {
+  const pending: string[] = [];
   for (const item of aircraft || []) {
     const callsign = normalizeCallsign(item?.callsign);
     if (!isLookupCallsign(callsign) || inFlight.has(callsign)) continue;
@@ -186,9 +187,9 @@ export function resolvePendingRouteLookups({
     // paid route lookup for the same callsign.
     if (buildRouteFromAircraftMetadata(item)) continue;
     if (getFreshRouteCacheEntry(cache, callsign, now, routeContext)) continue;
-    return [callsign];
+    pending.push(callsign);
   }
-  return [];
+  return pending;
 }
 
 export function filterRouteLookupStatuses<T extends string>(

@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.8",
+    version: "v3.16.9",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Airport- and flight-to-flight tracking now reuse the already-live nearby aircraft immediately, while direct callsign tracking shows its focal aircraft before regional context arrives; all paths then converge on fresh traffic while preserving incremental positions, refreshed traces, and attached destination routes.",
-      zh: "从机场或另一航班进入追踪时，现会立即复用刚刚仍在更新的附近飞机；直接输入呼号时，也会先显示目标机、再补齐区域机群。三种入口随后都会收敛到新鲜交通数据，并保留增量位置、刷新轨迹与贴合的目的地航线。",
+      en: "Airport, direct-callsign, and flight-to-flight tracking keep their fast nearby-aircraft bootstrap, while every explicitly selected aircraft now resolves its destination route independently instead of waiting behind another route retry.",
+      zh: "机场、直接呼号与航班互跳继续保留快速的附近飞机首屏；现在每架被明确选中的飞机都会独立获取目的地航线，不再被另一架飞机的航线重试阻塞。",
     },
     highlights: [],
   },
