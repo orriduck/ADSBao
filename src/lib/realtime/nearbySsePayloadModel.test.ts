@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   hasAircraftPayload,
   hasNearbyAircraftPayload,
+  hasNearbyDeliverablePayload,
   hasNearbyFocusPayload,
   hasNearbyStreamPayload,
   readNearbyAirportsUpdate,
@@ -21,5 +22,15 @@ assert.equal(
 );
 assert.equal(readNearbyAirportsUpdate(pending), undefined, "omission preserves cached airports");
 assert.deepEqual(readNearbyAirportsUpdate({ nearbyAirports: [] }), []);
+assert.equal(
+  hasNearbyDeliverablePayload({ nearbyAirports: [{ icao: "KBOS" }] }),
+  true,
+  "an airport-only context frame must reach consumers",
+);
+assert.equal(
+  hasNearbyStreamPayload({ nearbyAirports: [{ icao: "KBOS" }] }),
+  false,
+  "airport-only context must not count as live traffic",
+);
 
 console.log("nearbySsePayloadModel.test.ts ok");

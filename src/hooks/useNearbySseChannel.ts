@@ -5,7 +5,10 @@ import {
   type NearbySseRequest,
   type NearbySseState,
 } from "@/lib/realtime/nearbySseClient";
-import { hasNearbyStreamPayload } from "@/lib/realtime/nearbySsePayloadModel";
+import {
+  hasNearbyDeliverablePayload,
+  hasNearbyStreamPayload,
+} from "@/lib/realtime/nearbySsePayloadModel";
 import { shouldUseRealtimeFallback } from "@/lib/realtime/realtimeFallbackModel";
 
 const INITIAL_NEARBY_SSE_GRACE_MS = 8_000;
@@ -63,13 +66,15 @@ export function useNearbySseChannel({
         if (nextEvent.type === "nearby:status") {
           setStatusEvent(nextEvent);
         }
-        if (!hasNearbyStreamPayload(nextEvent.data)) return;
+        if (!hasNearbyDeliverablePayload(nextEvent.data)) return;
         // A retry-status frame may include a usable cached traffic snapshot.
         // Surface it through the data path while retaining status metadata for
         // the cached-feed indicator and next-retry UI.
         receivedForThisChannel = true;
         setEvent(nextEvent);
-        setGraceExpired(false);
+        if (hasNearbyStreamPayload(nextEvent.data)) {
+          setGraceExpired(false);
+        }
       },
       onState: setState,
     });
