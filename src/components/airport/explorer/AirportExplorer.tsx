@@ -671,6 +671,7 @@ function AirportExplorerContent({
         <Suspense fallback={null}>
           <AircraftPreviewCard
             aircraft={selection.selectedAircraft}
+            nearbyAircraft={traffic.aircraft}
             airport={selection.selectedAirport}
             navaid={selection.selectedNavaid}
             reportingPoint={selection.selectedReportingPoint}

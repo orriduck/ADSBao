@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import type { CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import FlightSidebar from "@/components/sidebar/FlightSidebar";
 import ExplorerMapMenu from "@/components/explorer/ExplorerMapMenu";
 import {
@@ -38,6 +38,10 @@ import {
   readTrackedFlightMetadata,
   writeTrackedFlightMetadata,
 } from "@/features/aircraft/tracking/trackedFlightMetadataStorage";
+import {
+  resolveTrackedFlightBootstrapAircraft,
+  resolveTrackedFlightBootstrapNearbyAircraft,
+} from "@/features/aircraft/tracking/flightTrackingBootstrapModel";
 
 import {
   ExplorerUiProvider,
@@ -94,6 +98,7 @@ export default function FlightExplorer({ callsign = "" }) {
 
 function FlightExplorerContent({ callsign }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useI18n();
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
   const {
@@ -137,6 +142,21 @@ function FlightExplorerContent({ callsign }) {
   // run began. Provider history is deliberately not part of either view.
   const [traceViewMode, setTraceViewMode] = useState(TRACE_VIEW_FULL);
   const pendingTraceFitRef = useRef(false);
+  const bootstrapAircraft = useMemo(
+    () => resolveTrackedFlightBootstrapAircraft({
+      callsign,
+      navigationAircraft: location.state?.aircraft,
+    }),
+    [callsign, location.state],
+  );
+  const bootstrapNearbyAircraft = useMemo(
+    () => resolveTrackedFlightBootstrapNearbyAircraft({
+      callsign,
+      navigationAircraft: location.state?.aircraft,
+      navigationNearbyAircraft: location.state?.nearbyAircraft,
+    }),
+    [callsign, location.state],
+  );
 
   const {
     run: trackingRun,
@@ -156,6 +176,8 @@ function FlightExplorerContent({ callsign }) {
     freshPositionBoundaryMs,
   } = useTrackedAircraft(callsign, {
     runStatus: trackingRun?.status,
+    bootstrapAircraft,
+    bootstrapNearbyAircraft,
   });
   const focalTraceRefreshKey = useTrackedFlightTraceRefreshKey({ lostSignal });
   const [cachedTrackedMetadata, setCachedTrackedMetadata] = useState(null);
