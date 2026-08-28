@@ -626,6 +626,7 @@ function AirportExplorerContent({
     metarRaw: weather.metarRaw,
     metarLoading: weather.metarLoading,
     aircraft: traffic.aircraft,
+    aircraftLoading: loadingOverlaySources.trafficLoading,
     airports: nearbyAirports.airports,
     // In near-me mode there's no airport identity, so airport-specific
     // frequencies stay empty and the metric grid only shows weather + nearby.
