@@ -8,7 +8,10 @@ import { shouldAcceptTrackedPositionFrame } from "../features/aircraft/tracking/
 import { fetchFreshTrackedAircraftPayload } from "../features/aircraft/tracking/freshTrackedAircraftRequest";
 import { normalizeRealtimeAircraftPayload } from "../features/aircraft/positions/normalizeRealtimePayload";
 import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel";
-import { buildNearbyCallsignRequest } from "../lib/realtime/nearbySseRequests";
+import {
+  buildNearbyCallsignRequest,
+  buildNearbyCoordinateRequest,
+} from "../lib/realtime/nearbySseRequests";
 import {
   hasNearbyAircraftPayload,
   hasNearbyFocusPayload,
@@ -49,8 +52,12 @@ export function useTrackedAircraft(
   callsign: unknown,
   {
     runStatus = "",
+    bootstrapAircraft = null,
+    bootstrapNearbyAircraft = null,
   }: {
     runStatus?: string;
+    bootstrapAircraft?: Record<string, any> | null;
+    bootstrapNearbyAircraft?: any[] | null;
   } = {},
 ) {
   const hasActiveQuery = Boolean(callsign);
@@ -58,6 +65,13 @@ export function useTrackedAircraft(
   const nearbyRequest = useMemo(
     () => buildNearbyCallsignRequest(normalizedCallsign),
     [normalizedCallsign],
+  );
+  const bootstrapRequest = useMemo(
+    () => buildNearbyCoordinateRequest({
+      lat: bootstrapAircraft?.lat,
+      lon: bootstrapAircraft?.lon,
+    }),
+    [bootstrapAircraft?.lat, bootstrapAircraft?.lon],
   );
   const realtime = useNearbySseChannel({
     request: nearbyRequest,
@@ -71,9 +85,17 @@ export function useTrackedAircraft(
   const [freshStartSettled, setFreshStartSettled] = useState(false);
   const [freshPositionBoundaryMs, setFreshPositionBoundaryMs] = useState<number | null>(null);
   const [pollVersion, setPollVersion] = useState(0);
-  const [nearbyAircraft, setNearbyAircraft] = useState<any[]>([]);
+  const [nearbyAircraft, setNearbyAircraft] = useState<any[]>(
+    () => bootstrapNearbyAircraft || [],
+  );
   const [nearbyAirports, setNearbyAirports] = useState<any[]>([]);
-  const [nearbyContextSettled, setNearbyContextSettled] = useState(false);
+  const [nearbyContextSettled, setNearbyContextSettled] = useState(
+    () => Boolean(bootstrapNearbyAircraft?.length),
+  );
+  const bootstrapRealtime = useNearbySseChannel({
+    request: bootstrapRequest,
+    enabled: hasActiveQuery && !nearbyContextSettled,
+  });
   const activeCallsignRef = useRef(normalizedCallsign);
   const acceptedPositionTimeRef = useRef<number | null>(null);
   const freshPositionBoundaryRef = useRef<number | null>(null);
@@ -164,9 +186,9 @@ export function useTrackedAircraft(
       setError(null);
       setSettled(false);
       setPollVersion(0);
-      setNearbyAircraft([]);
+      setNearbyAircraft(bootstrapNearbyAircraft || []);
       setNearbyAirports([]);
-      setNearbyContextSettled(false);
+      setNearbyContextSettled(Boolean(bootstrapNearbyAircraft?.length));
       setFreshStartSettled(false);
       acceptedPositionTimeRef.current = null;
       freshPositionBoundaryRef.current = null;
@@ -191,7 +213,7 @@ export function useTrackedAircraft(
       freshPositionBoundaryRef.current = null;
       setFreshPositionBoundaryMs(null);
     }
-  }, [callsign, normalizedCallsign]);
+  }, [bootstrapNearbyAircraft, callsign, normalizedCallsign]);
 
   // A tracked flight never adopts the airport list item's coordinate as its
   // current position. It begins with one no-store, paid-first callsign query;
@@ -219,6 +241,18 @@ export function useTrackedAircraft(
       active = false;
     };
   }, [applyTrackedPayload, normalizedCallsign]);
+
+  useEffect(() => {
+    const event = bootstrapRealtime.event;
+    if (!callsign || !event || !hasNearbyAircraftPayload(event.data)) return;
+    const fetchedAt = Date.parse(event.fetchedAt);
+    const receiveTime = Number.isFinite(fetchedAt) ? fetchedAt : Date.now();
+    setNearbyAircraft(normalizeNearbyAircraft(
+      (event.data as Record<string, any>)?.aircraft,
+      receiveTime,
+    ));
+    setNearbyContextSettled(true);
+  }, [bootstrapRealtime.event, callsign]);
 
   useEffect(() => {
     const event = realtime.event;

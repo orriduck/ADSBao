@@ -36,6 +36,7 @@ const PlaneHunterStudio = lazy(() => import("./PlaneHunterStudioModern"));
 
 export default function AircraftPreviewCard({
   aircraft = null,
+  nearbyAircraft = null,
   airport = null,
   navaid = null,
   reportingPoint = null,
@@ -182,7 +183,7 @@ export default function AircraftPreviewCard({
   // no-op so they don't bounce.
   const handleMobileTap = () => {
     if (!cardTrackHref || alreadyTracking) return;
-    navigate(cardTrackHref, { state: { aircraft } });
+    navigate(cardTrackHref, { state: { aircraft, nearbyAircraft } });
   };
 
   // Swipe up anywhere on screen while the mobile preview is showing →
