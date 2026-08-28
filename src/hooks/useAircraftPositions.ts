@@ -25,10 +25,6 @@ import { resolveRealtimeStatusLabel } from "../lib/realtime/realtimeStatusModel"
 import { useNearbySseChannel } from "./useNearbySseChannel";
 
 const MAX_AIRCRAFT_RANGE_NM = 250;
-// SSE subscribes immediately and normally provides the first traffic frame.
-// Give it a short head start before the HTTP seed request so a fresh airport
-// view does not duplicate the same upstream position query.
-const INITIAL_SSE_SNAPSHOT_GRACE_MS = 1_500;
 
 const normalizeAircraftRangeNm = (value: unknown) => {
   const number = Number(value);
@@ -195,61 +191,6 @@ export function useAircraftPositions(
     setChannelRefreshPending(false);
     setSettled(true);
   }, [hasActiveQuery, nearbyRequest?.channel, realtime.event]);
-
-  // A new airport view falls back to the ordinary private-service endpoint if
-  // SSE has not supplied its first frame shortly after subscription. SSE gets
-  // priority so the two paths do not hit the same upstream position source at
-  // once during startup.
-  useEffect(() => {
-    if (!hasActiveQuery || !channelRefreshPending) return undefined;
-
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      try {
-        const requestChannel = channelKey;
-        const realtimeRevisionAtStart = realtimeFrameRef.current.revision;
-        const client = createAircraftPositionClient();
-        const rawPayload = await client.fetchNearbyAircraft({
-          lat: queryLat,
-          lon: queryLon,
-          distNm,
-        });
-        if (
-          cancelled ||
-          channelKeyRef.current !== requestChannel ||
-          realtimeFrameRef.current.revision !== realtimeRevisionAtStart
-        ) {
-          return;
-        }
-        if (!hasAircraftPayload(rawPayload)) return;
-        const payload = normalizeRealtimeAircraftPayload(rawPayload);
-        const receiveTime = Date.now();
-        const snapshot = normalizeAircraftSnapshot({ json: payload, receiveTime });
-        const nextAircraft = traceTrackerRef.current.update(snapshot, receiveTime);
-        setAircraft(nextAircraft);
-        setFeedStatus(statusFromAircraftPayload(payload));
-        setFeedSource(sourceFromAircraftPayload(payload));
-        const statusUpdatedDate = resolveLastSuccessfulPositionDate(snapshot);
-        if (statusUpdatedDate) setLastUpdated(statusUpdatedDate);
-        setChannelRefreshPending(false);
-        setSettled(true);
-      } catch (error) {
-        if (!cancelled) console.warn("[aircraft-positions] initial snapshot failed", error);
-      }
-    }, INITIAL_SSE_SNAPSHOT_GRACE_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [
-    channelKey,
-    channelRefreshPending,
-    distNm,
-    hasActiveQuery,
-    queryLat,
-    queryLon,
-  ]);
 
   useEffect(() => {
     if (!hasActiveQuery || !realtime.fallbackActive) return undefined;

@@ -74,6 +74,23 @@ import { shouldUseRealtimeFallback } from "./realtimeFallbackModel";
   const fallback = shouldUseRealtimeFallback({
     available: true,
     connectionState: "live",
+    hasEvent: false,
+    graceExpired: true,
+    eventType: "nearby:snapshot",
+    hasEventData: false,
+  });
+
+  assert.equal(
+    fallback,
+    true,
+    "live SSE without traffic should use one HTTP fallback only after the grace window",
+  );
+}
+
+{
+  const fallback = shouldUseRealtimeFallback({
+    available: true,
+    connectionState: "live",
     hasEvent: true,
     graceExpired: false,
     eventType: "nearby:status",
