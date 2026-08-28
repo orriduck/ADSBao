@@ -118,6 +118,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
         {trackHref && !alreadyTracking ? (
           <Link
             to={trackHref}
+            state={{ airport }}
             className="aircraft-preview-card__track-btn"
             aria-label={`${t("preview.openAirport")} ${primaryCode}`}
           >

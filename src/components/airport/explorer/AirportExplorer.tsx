@@ -3,7 +3,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -56,14 +55,19 @@ import { useNotificationPermission } from "@/features/notifications/useNotificat
 import { useAirportProximityNotifier } from "@/features/notifications/useAirportProximityNotifier";
 import { useAircraftProximityNotifier } from "@/features/notifications/useAircraftProximityNotifier";
 import { mapSettingsToExplorerLayers } from "@/features/airport/map-settings/mapSettingsModel";
+import { resolveAirportExplorerMountKey } from "@/features/airport/explorer/airportExplorerUiModel";
 
 const AirportMap = lazy(() => import("@/components/map/AirportMap"));
 const AircraftPreviewCard = lazy(() => import("../../aircraft/preview/AircraftPreviewCard"));
 const HERE_FOCAL_MOTION_KEY = "here-device-location";
 
 export default function AirportExplorer(props) {
+  const mountKey = resolveAirportExplorerMountKey({
+    icao: props.icao,
+    mode: props.mode,
+  });
   return (
-    <ExplorerUiProvider>
+    <ExplorerUiProvider key={mountKey}>
       <AirportExplorerContent {...props} />
     </ExplorerUiProvider>
   );
@@ -150,18 +154,6 @@ function AirportExplorerContent({
   const nearMe = mode === "nearMe";
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
   const [nearMeSidebarHydrated, setNearMeSidebarHydrated] = useState(false);
-  // Airport → airport navigation does a HARD reload to the new URL (same policy
-  // as flight → flight): a reused map across an airport switch can get stuck not
-  // reloading tiles, so a clean mount per page is simpler and stable. Only the
-  // standard airport-detail mode (route /airport/:icao); nearMe follows the user
-  // location and must not reload as the nearest airport changes. Runs before
-  // paint, covers links AND browser back/forward.
-  const mountIcaoRef = useRef(icao);
-  useLayoutEffect(() => {
-    if (mode === "airport" && mountIcaoRef.current !== icao) {
-      window.location.reload();
-    }
-  }, [icao, mode]);
   const { t } = useI18n();
   const {
     desktopSidebarWidth,
@@ -220,6 +212,8 @@ function AirportExplorerContent({
     () => resolveAirportProfile({ icao, airport }),
     [icao, airport],
   );
+  const airportCoordinatesReady =
+    airportProfile.lat != null && airportProfile.lon != null;
   const recenterAirportMap = useCallback(() => {
     if (!airportMapInstance || airportProfile.lat == null || airportProfile.lon == null) {
       return;
@@ -739,7 +733,7 @@ function AirportExplorerContent({
             />
           )}
 
-          {mapSettingsReadyForUserLocation ? (
+          {mapSettingsReadyForUserLocation && airportCoordinatesReady ? (
             <Suspense fallback={<MapLoadingFallback />}>
               <AirportMap
               icao={airportProfile.icao}

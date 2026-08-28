@@ -3,14 +3,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AirportSearchPanel from "@/components/airport/search/AirportSearchPanel";
 import {
-  airportProfileCode,
   prefetchAirportProfile,
+  resolveAirportProfileSeed,
   useAirportProfileQueries,
 } from "@/features/airport/directory/airportProfileQueries";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { setLocaleSearchParam } from "@/features/app-shell/i18n/i18nModel";
 
-const AirportExplorer = lazy(() => import("@/components/airport/explorer/AirportExplorer"));
+const loadAirportExplorer = () =>
+  import("@/components/airport/explorer/AirportExplorer");
+const AirportExplorer = lazy(loadAirportExplorer);
 
 // Single client component shared between "/" and "/airport/[icao]" —
 // pathname drives which sub-screen renders, so back/forward, the
@@ -18,17 +20,21 @@ const AirportExplorer = lazy(() => import("@/components/airport/explorer/Airport
 // sync without manual history.pushState or popstate plumbing.
 export default function HomeScreen() {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
   const seedAirportRef = useRef(null);
   const pageLeavingRef = useRef(false);
+  const navigationAirport = location.state?.airport || null;
   const seededAirport = useMemo(
     () =>
-      airportProfileCode(seedAirportRef.current) === currentIcao
-        ? seedAirportRef.current
-        : null,
-    [currentIcao],
+      resolveAirportProfileSeed({
+        icao: currentIcao,
+        navigationAirport,
+        localAirport: seedAirportRef.current,
+      }),
+    [currentIcao, navigationAirport],
   );
   const {
     airport,
@@ -59,6 +65,10 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!currentIcao) seedAirportRef.current = null;
+  }, [currentIcao]);
+
+  useEffect(() => {
+    if (!currentIcao) void loadAirportExplorer();
   }, [currentIcao]);
 
   useEffect(() => {
@@ -93,10 +103,13 @@ export default function HomeScreen() {
     // without a flash while the resolveAirport effect re-fires off the
     // new pathname.
     seedAirportRef.current = selectedAirport;
-    navigate(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale));
+    navigate(setLocaleSearchParam(`/airport/${nextIcao}`, "", locale), {
+      state: { airport: selectedAirport },
+    });
   };
 
   const handlePrefetchAirport = (selectedAirport) => {
+    void loadAirportExplorer();
     const nextIcao = String(
       selectedAirport?.icao || selectedAirport?.code || "",
     ).toUpperCase();

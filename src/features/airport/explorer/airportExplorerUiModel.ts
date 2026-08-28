@@ -12,6 +12,15 @@ export const DEFAULT_AIRPORT_EXPLORER_UI_STATE = {
   ...DEFAULT_AIRCRAFT_FILTERS,
 };
 
+export function resolveAirportExplorerMountKey({
+  icao = "",
+  mode = "airport",
+}: Record<string, any> = {}) {
+  if (mode === "nearMe") return "nearMe";
+  const normalizedIcao = String(icao || "").trim().toUpperCase();
+  return `airport:${normalizedIcao || "unknown"}`;
+}
+
 export function resolveSelectedAirspaceIdForLayerVisibility({
   showAirspaces = true,
   selectedAirspaceId = "",

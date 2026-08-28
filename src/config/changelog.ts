@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 77;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.16.12",
+    version: "v3.16.13",
     kind: "feat",
     title: {
       en: "Tracking interface refinement",
       zh: "追踪界面精修",
     },
     summary: {
-      en: "Airport pages now reveal identity, weather, controls, and the map independently while nearby traffic loads inside its own list; flight tracking also surfaces nearby-airport context delivered in a separate realtime frame.",
-      zh: "机场页现在会独立呈现机场身份、天气、控件与地图，附近交通只在自身列表中加载；航班追踪也能正确显示由独立实时帧送达的附近机场信息。",
+      en: "Airport pages now reveal progressively, preserve known airport context during in-app navigation without a page reload or zero-coordinate detour, and flight tracking surfaces nearby-airport context delivered in a separate realtime frame.",
+      zh: "机场页现在会渐进呈现，并在站内切换时保留已知机场信息，不再整页刷新或绕经零坐标；航班追踪也能正确显示由独立实时帧送达的附近机场信息。",
     },
     highlights: [],
   },

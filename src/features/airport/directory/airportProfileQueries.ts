@@ -47,6 +47,25 @@ export function airportProfileCode(airport: any) {
   );
 }
 
+export function resolveAirportProfileSeed({
+  icao,
+  navigationAirport = null,
+  localAirport = null,
+}: {
+  icao: unknown;
+  navigationAirport?: any;
+  localAirport?: any;
+}) {
+  const normalizedIcao = normalizeAirportProfileIcao(icao);
+  if (airportProfileCode(navigationAirport) === normalizedIcao) {
+    return navigationAirport;
+  }
+  if (airportProfileCode(localAirport) === normalizedIcao) {
+    return localAirport;
+  }
+  return null;
+}
+
 export function mergeAirportProfile({
   detail,
   context,

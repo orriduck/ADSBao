@@ -5,6 +5,7 @@ import {
   mergeAirportProfile,
   normalizeAirportProfileIcao,
   normalizeAirportProfileLocale,
+  resolveAirportProfileSeed,
 } from "./airportProfileQueries";
 
 assert.equal(normalizeAirportProfileIcao(" kbos "), "KBOS");
@@ -49,5 +50,32 @@ assert.deepEqual(merged.nearbyAirports, [{ icao: "KOWD" }]);
 assert.deepEqual(merged.airspaces, [{ id: "bos-b" }]);
 assert.deepEqual(merged.surfaceMap, { airport: "KBOS", features: [] });
 assert.equal(mergeAirportProfile({ detail: null }), null);
+
+const navigationSeed = { icao: "KOWD", name: "Norwood Memorial", lat: 42.19, lon: -71.17 };
+const localSeed = { icao: "KBOS", name: "Boston Logan" };
+assert.equal(
+  resolveAirportProfileSeed({
+    icao: "KOWD",
+    navigationAirport: navigationSeed,
+    localAirport: localSeed,
+  }),
+  navigationSeed,
+);
+assert.equal(
+  resolveAirportProfileSeed({
+    icao: "KBOS",
+    navigationAirport: navigationSeed,
+    localAirport: localSeed,
+  }),
+  localSeed,
+);
+assert.equal(
+  resolveAirportProfileSeed({
+    icao: "KJFK",
+    navigationAirport: navigationSeed,
+    localAirport: localSeed,
+  }),
+  null,
+);
 
 console.log("airportProfileQueries.test.ts: ok");

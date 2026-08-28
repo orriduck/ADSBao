@@ -71,6 +71,10 @@ const localizedProfile = resolveAirportProfile({
 });
 assert.equal(localizedProfile.localizedName, "上海浦东国际机场");
 
+const unresolvedProfile = resolveAirportProfile({ icao: "KOWD" });
+assert.equal(unresolvedProfile.lat, null);
+assert.equal(unresolvedProfile.lon, null);
+
 const enriched = enrichAircraftWithRoutes({
   airportProfile: fallbackProfile,
   aircraft: [
