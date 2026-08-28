@@ -25,6 +25,12 @@ type FlightRouteHookContext = RouteContext & {
 
 export type RouteLookupStatus = "pending" | "retrying" | "unavailable";
 
+type RouteLookupJob = {
+  attempt: number;
+  controller: AbortController | null;
+  retryTimer: number | null;
+};
+
 const routeClient = createFlightRouteClient();
 
 function routeMetadataKey(value: unknown) {
@@ -61,8 +67,8 @@ function buildRouteCandidates(aircraft: AircraftRouteCandidate[]) {
 
 /**
  * Route data is a normal cached HTTP read. This hook intentionally owns its
- * retry timer: leaving a preview or changing callsign aborts the request and
- * clears the timer, so the private service never keeps a hidden route job.
+ * per-callsign retry jobs: leaving a preview aborts only that aircraft's work,
+ * while another selected aircraft can resolve without waiting for it.
  */
 export function useFlightRoutes(
   aircraft: AircraftRouteCandidate[],
@@ -70,6 +76,7 @@ export function useFlightRoutes(
 ) {
   const enabled = routeContextInput?.enabled !== false;
   const cacheRef = useRef(new Map<string, RouteCacheEntry>());
+  const jobsRef = useRef(new Map<string, RouteLookupJob>());
   const [version, setVersion] = useState(0);
   const [routeStatusByCallsign, setRouteStatusByCallsign] = useState<
     Record<string, RouteLookupStatus>
@@ -78,82 +85,98 @@ export function useFlightRoutes(
   const routeCandidates = useMemo(() => buildRouteCandidates(aircraft), [candidateKey]);
 
   useEffect(() => {
-    if (!enabled || routeCandidates.length === 0) return undefined;
+    const jobs = jobsRef.current;
+    const activeCallsigns = new Set(
+      routeCandidates.map((candidate) => candidate.callsign),
+    );
+
+    for (const [callsign, job] of jobs) {
+      if (enabled && activeCallsigns.has(callsign)) continue;
+      disposeRouteLookupJob(job);
+      jobs.delete(callsign);
+    }
+
+    if (!enabled || routeCandidates.length === 0) return;
     const cache = cacheRef.current;
-    const pending = resolvePendingRouteLookups({
+    const pendingCallsigns = resolvePendingRouteLookups({
       aircraft: routeCandidates,
       cache,
-      inFlight: new Set(),
+      inFlight: new Set(jobs.keys()),
       // The public endpoint is deliberately callsign-only. Context remains a
       // display concern and cannot split browser cache keys or server work.
       routeContext: {},
     });
-    const callsign = pending[0];
-    if (!callsign) return undefined;
 
-    let disposed = false;
-    let retryTimer: number | null = null;
-    let controller: AbortController | null = null;
-    let attempt = 0;
+    for (const callsign of pendingCallsigns) {
+      const job: RouteLookupJob = {
+        attempt: 0,
+        controller: null,
+        retryTimer: null,
+      };
+      jobs.set(callsign, job);
 
-    const finish = (route: FlightRoute | null, status?: RouteLookupStatus) => {
-      if (disposed) return;
-      writeRouteCacheEntry(cache, callsign, route, Date.now(), {});
-      setRouteStatusByCallsign((current) => {
-        const next = { ...current };
-        if (status) next[callsign] = status;
-        else delete next[callsign];
-        return next;
-      });
-      setVersion((current) => current + 1);
-    };
-
-    const lookup = async () => {
-      controller = new AbortController();
-      setRouteStatusByCallsign((current) => ({
-        ...current,
-        [callsign]: attempt === 0 ? "pending" : "retrying",
-      }));
-      try {
-        const route = await routeClient.fetchRoute(callsign, {
-          signal: controller.signal,
+      const finish = (route: FlightRoute | null, status?: RouteLookupStatus) => {
+        if (jobs.get(callsign) !== job) return;
+        jobs.delete(callsign);
+        writeRouteCacheEntry(cache, callsign, route, Date.now(), {});
+        setRouteStatusByCallsign((current) => {
+          const next = { ...current };
+          if (status) next[callsign] = status;
+          else delete next[callsign];
+          return next;
         });
-        finish(route);
-      } catch (error) {
-        if (disposed || controller.signal.aborted) return;
-        const status = error instanceof FlightRouteHttpError ? error.status : null;
-        if (!isTemporaryRouteFailure(status)) {
-          finish(null, "unavailable");
-          return;
-        }
-        const retryAfterMs =
-          error instanceof FlightRouteHttpError ? error.retryAfterMs : null;
-        const delay = resolveRouteRetryDelayMs({
-          attempt,
-          retryAfterMs,
-        });
-        attempt += 1;
+        setVersion((current) => current + 1);
+      };
+
+      const lookup = async () => {
+        job.controller = new AbortController();
         setRouteStatusByCallsign((current) => ({
           ...current,
-          [callsign]: "retrying",
+          [callsign]: job.attempt === 0 ? "pending" : "retrying",
         }));
-        retryTimer = window.setTimeout(() => {
-          retryTimer = null;
-          void lookup();
-        }, delay);
-      }
-    };
+        try {
+          const route = await routeClient.fetchRoute(callsign, {
+            signal: job.controller.signal,
+          });
+          finish(route);
+        } catch (error) {
+          if (jobs.get(callsign) !== job || job.controller.signal.aborted) return;
+          const status = error instanceof FlightRouteHttpError ? error.status : null;
+          if (!isTemporaryRouteFailure(status)) {
+            finish(null, "unavailable");
+            return;
+          }
+          const retryAfterMs =
+            error instanceof FlightRouteHttpError ? error.retryAfterMs : null;
+          const delay = resolveRouteRetryDelayMs({
+            attempt: job.attempt,
+            retryAfterMs,
+          });
+          job.attempt += 1;
+          setRouteStatusByCallsign((current) => ({
+            ...current,
+            [callsign]: "retrying",
+          }));
+          job.retryTimer = window.setTimeout(() => {
+            job.retryTimer = null;
+            void lookup();
+          }, delay);
+        }
+      };
 
-    void lookup();
-    return () => {
-      disposed = true;
-      controller?.abort();
-      if (retryTimer != null) window.clearTimeout(retryTimer);
-    };
-  // `finish` advances `version` after caching each result. Including it here
-  // lets the next uncached callsign run without waiting for a traffic update;
-  // the cache means that rerun cannot refetch a completed candidate.
-  }, [candidateKey, enabled, routeCandidates, version]);
+      void lookup();
+    }
+  }, [enabled, routeCandidates]);
+
+  useEffect(
+    () => () => {
+      for (const job of jobsRef.current.values()) {
+        disposeRouteLookupJob(job);
+      }
+      jobsRef.current.clear();
+    },
+    [],
+  );
 
   const routesByCallsign = useMemo(() => {
     void version;
@@ -180,4 +203,9 @@ export function useFlightRoutes(
       (status) => status === "pending" || status === "retrying",
     ).length,
   };
+}
+
+function disposeRouteLookupJob(job: RouteLookupJob) {
+  job.controller?.abort();
+  if (job.retryTimer != null) window.clearTimeout(job.retryTimer);
 }
