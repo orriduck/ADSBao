@@ -667,8 +667,15 @@ export function evaluateThreeOsmAcceptanceSession(
     session.trafficRenderedMax >= THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
     session.trafficCapacitySamples >= 1 &&
     session.fullOperationalTrafficCapacitySamples >= 1;
+  const basemapEvidenceComplete =
+    session.tilesRequestedMax >= 1 &&
+    session.tilesLoadedMax >= session.tilesRequestedMax;
+  const basemapFailureObserved =
+    session.tilesFailedMax > 0 || session.latest.basemap === "degraded";
   const basemapOk =
-    session.latest.basemap === "ready" && session.tilesFailedMax === 0;
+    basemapEvidenceComplete &&
+    session.latest.basemap === "ready" &&
+    session.tilesFailedMax === 0;
 
   const gates: ThreeOsmAcceptanceGate[] = [
     {
@@ -722,11 +729,14 @@ export function evaluateThreeOsmAcceptanceSession(
     },
     {
       id: "basemap",
-      status:
-        session.tilesFailedMax > 0 || session.latest.basemap === "degraded"
-          ? "fail"
-          : pendingOrPass(basemapOk, durationComplete),
-      evidence: `${session.latest.tileSource}/${session.latest.tileSourceOrigin}; ${session.latest.basemap}; ${session.tilesLoadedMax}/${session.tilesRequestedMax} loaded; ${session.tilesFailedMax} failed`,
+      status: basemapFailureObserved
+        ? "fail"
+        : basemapOk
+          ? pendingOrPass(true, durationComplete)
+          : durationComplete
+            ? "fail"
+            : "pending",
+      evidence: `${session.latest.tileSource}/${session.latest.tileSourceOrigin}; ${session.latest.basemap}; ${session.tilesLoadedMax}/${session.tilesRequestedMax} loaded; ${session.tilesFailedMax} failed; required=requested>0,loaded>=requested`,
     },
     {
       id: "webgl-recovery",

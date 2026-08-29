@@ -69,6 +69,10 @@ requires positive cache, texture, geometry, and shader-program observations;
 all-zero counters mean missing instrumentation, not a perfectly idle GPU.
 Missing resource evidence stays pending during the run and fails when the
 20-minute duration completes, while an observed limit breach fails immediately.
+The basemap gate likewise requires a nonzero requested tile set, a loaded count
+that reaches that request count, a final `ready` state, and zero observed tile
+failures. A `ready` label with `0/0` counters or a partial load can remain
+pending while the run is active, but fails when the duration completes.
 The operator must mark the phone's thermal state because browsers do not expose
 a trustworthy device-temperature API. The report can be shared or downloaded as
 JSON; it contains provider identity and state but never the tile URL or browser

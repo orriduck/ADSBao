@@ -188,6 +188,43 @@ assert.equal(
   "fail",
 );
 
+const basemapEvidenceMissing = createPassingCandidate();
+basemapEvidenceMissing.tilesRequestedMax = 0;
+basemapEvidenceMissing.tilesLoadedMax = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    basemapEvidenceMissing,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
+  ).gates.find((gate) => gate.id === "basemap")?.status,
+  "pending",
+);
+const basemapEvidenceMissingFinished = evaluateThreeOsmAcceptanceSession(
+  basemapEvidenceMissing,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+);
+assert.equal(basemapEvidenceMissingFinished.status, "failed");
+assert.equal(
+  basemapEvidenceMissingFinished.gates.find((gate) => gate.id === "basemap")
+    ?.status,
+  "fail",
+);
+assert.match(
+  basemapEvidenceMissingFinished.gates.find((gate) => gate.id === "basemap")
+    ?.evidence || "",
+  /0\/0 loaded; 0 failed; required=requested>0,loaded>=requested/,
+);
+
+const basemapLoadGap = createPassingCandidate();
+basemapLoadGap.tilesLoadedMax = basemapLoadGap.tilesRequestedMax - 1;
+basemapLoadGap.latest.basemap = "partial";
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    basemapLoadGap,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "basemap")?.status,
+  "fail",
+);
+
 sampleThreeOsmAcceptanceSession(passing, {
   nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
   wakeLockStatus: "error",
