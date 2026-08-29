@@ -17,7 +17,10 @@ import { airportDisplayCode } from "@/utils/airport";
 import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
 import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
-import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
+import {
+  buildRenderableAirportSurfaceFeatureCollection,
+  buildRunwayCenterlineCollection,
+} from "@/features/airport/map/runwayAnnotationModel";
 import {
   parseThreeOsmAccessibilityDebugOverrides,
   resolveThreeOsmAccessibilityPreferences,
@@ -84,6 +87,7 @@ type ThreeOsmPocProps = {
   airportCode?: string;
   nearbyAirports?: Array<Record<string, any>>;
   runwayMap?: Record<string, any> | null;
+  surfaceMap?: Record<string, any> | null;
   airspaces?: Array<Record<string, any>>;
   navaids?: Array<Record<string, any>>;
   navaidCounts?: Array<Record<string, any>>;
@@ -299,6 +303,7 @@ export default function ThreeOsmMapPoc({
   airportCode = "",
   nearbyAirports = [],
   runwayMap = null,
+  surfaceMap = null,
   airspaces = [],
   navaids = [],
   navaidCounts = [],
@@ -542,7 +547,15 @@ export default function ThreeOsmMapPoc({
 
   const centerLat = Number(center?.lat);
   const centerLon = Number(center?.lon);
-  const requestedTileZoom = clampThreeOsmZoom(zoom);
+  const debugZoomParam =
+    debugEnabled && typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("threeOsmZoom")
+      : null;
+  const debugZoom =
+    debugZoomParam === null ? Number.NaN : Number(debugZoomParam);
+  const requestedTileZoom = clampThreeOsmZoom(
+    Number.isFinite(debugZoom) ? debugZoom : zoom,
+  );
   const tileRadius = isCompact ? 1 : 2;
   const activeCameraFit = useThreeOsmCameraFitState({
     rootRef,
@@ -592,6 +605,10 @@ export default function ThreeOsmMapPoc({
   const runwayCollection = useMemo(
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
     [runwayMap],
+  );
+  const surfaceCollection = useMemo(
+    () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
+    [runwayMap, surfaceMap],
   );
   const airspaceFeatures = useMemo(
     () => buildAirspaceOverlayFeatures(airspaces),
@@ -1477,6 +1494,7 @@ export default function ThreeOsmMapPoc({
     const contextScene = createThreeOsmContextScene({
       airportCode,
       airports: visibleAirports,
+      surfaceCollection,
       runwayCollection,
       airspaceFeatures,
       showAirspaces,
@@ -1495,6 +1513,7 @@ export default function ThreeOsmMapPoc({
       userLocation,
       tileCenter,
       centerLat: sceneCenterLat,
+      zoom: tileZoom,
       theme,
       contrastMode,
       systemColors,
@@ -1523,6 +1542,38 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-runway-vertices",
       String(contextScene.runwayDiagnostics.vertices),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-visible",
+      contextScene.surfaceDiagnostics.visible ? "true" : "false",
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-aprons",
+      String(contextScene.surfaceDiagnostics.aprons),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-apron-triangles",
+      String(contextScene.surfaceDiagnostics.apronTriangles),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-taxiways",
+      String(contextScene.surfaceDiagnostics.taxiways),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-taxiway-segments",
+      String(contextScene.surfaceDiagnostics.taxiwaySegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-taxilanes",
+      String(contextScene.surfaceDiagnostics.taxilanes),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-taxilane-segments",
+      String(contextScene.surfaceDiagnostics.taxilaneSegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-surface-vertices",
+      String(contextScene.surfaceDiagnostics.vertices),
     );
     rootRef.current?.setAttribute(
       "data-poc-airspaces",
@@ -1594,6 +1645,7 @@ export default function ThreeOsmMapPoc({
     onSelectAirspace,
     reportingPoints,
     runwayCollection,
+    surfaceCollection,
     selectedAirportIcao,
     selectedCandidateWatchingSpotId,
     selectedAirspaceId,
@@ -1606,6 +1658,7 @@ export default function ThreeOsmMapPoc({
     systemColors,
     theme,
     tileCenter,
+    tileZoom,
     useNavaidCounts,
     userLocation,
     visibleAirports,
@@ -2100,6 +2153,7 @@ export default function ThreeOsmMapPoc({
       data-poc-fit-reason={activeCameraFit?.reason || "follow"}
       data-poc-fit-points={activeCameraFit?.pointCount || 0}
       data-poc-fit-zoom={activeCameraFit?.zoom || requestedTileZoom}
+      data-poc-zoom-source={Number.isFinite(debugZoom) ? "debug" : "control"}
       data-poc-fit-width-tiles={activeCameraFit?.framedWidthTiles.toFixed(3) || "0"}
       data-poc-fit-height-tiles={activeCameraFit?.framedHeightTiles.toFixed(3) || "0"}
       role="region"

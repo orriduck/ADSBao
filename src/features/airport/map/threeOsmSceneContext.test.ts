@@ -36,6 +36,30 @@ const context = createThreeOsmContextScene({
     { icao: "KOWD", iata: "OWD", lat: 42.19, lon: -71.17 },
     { icao: "KBAD", iata: "BAD", lat: null, lon: null },
   ],
+  surfaceCollection: {
+    features: [
+      {
+        properties: { kind: "apron" },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [-71.02, 42.36],
+            [-71.01, 42.36],
+            [-71.01, 42.37],
+            [-71.02, 42.37],
+            [-71.02, 42.36],
+          ]],
+        },
+      },
+      {
+        properties: { kind: "taxiway" },
+        geometry: {
+          type: "LineString",
+          coordinates: [[-71.02, 42.36], [-71.01, 42.365]],
+        },
+      },
+    ],
+  },
   runwayCollection: {
     features: [
       {
@@ -68,6 +92,7 @@ const context = createThreeOsmContextScene({
   userLocation: { lat: 42.37, lon: -71.01 },
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
+  zoom: 11,
   theme: "dark",
   contrastMode: "standard",
   selectedAirspaceId: "bos-class-b",
@@ -83,6 +108,16 @@ assert.deepEqual(context.counts, {
   userLocation: 1,
 });
 assert.deepEqual(context.runwayDiagnostics, { segments: 1, vertices: 6 });
+assert.deepEqual(context.surfaceDiagnostics, {
+  visible: true,
+  aprons: 1,
+  apronTriangles: 2,
+  taxiways: 1,
+  taxiwaySegments: 1,
+  taxilanes: 0,
+  taxilaneSegments: 0,
+  vertices: 36,
+});
 assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.labels.some((label) => label.text === "OWD" && label.selected));
@@ -90,6 +125,8 @@ assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.group.getObjectByName("three-osm-runway-halo"));
 assert.ok(context.group.getObjectByName("three-osm-runway-surfaces"));
+assert.ok(context.group.getObjectByName("three-osm-apron-fills"));
+assert.ok(context.group.getObjectByName("three-osm-taxiway-corridors"));
 assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));
 assert.equal(context.counts.selectedAirspaces, 1);
 assert.deepEqual(

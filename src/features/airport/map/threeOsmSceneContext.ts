@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { AIRPORT_MAP_ZOOM } from "@/config/aviation";
 import { airportDisplayCode } from "@/utils/airport";
 import { buildNavaidLabels } from "./navaidLabelModel";
 import { buildReportingPointLabels } from "./reportingPointLabelModel";
@@ -10,6 +11,7 @@ import {
 } from "./threeOsmAccessibilityPreferences";
 import { lonLatAltitudeToThreeOsmWorld, type TileCoordinate } from "./threeOsmProjection";
 import { createThreeOsmRunwayScene } from "./threeOsmRunwayScene";
+import { createThreeOsmSurfaceScene } from "./threeOsmSurfaceScene";
 
 export type ThreeOsmSceneLabel = {
   id: string;
@@ -206,6 +208,7 @@ export function resolveThreeOsmAirspaceHitIds(
 export function createThreeOsmContextScene({
   airportCode,
   airports,
+  surfaceCollection = null,
   runwayCollection,
   airspaceFeatures,
   showAirspaces,
@@ -224,6 +227,7 @@ export function createThreeOsmContextScene({
   userLocation,
   tileCenter,
   centerLat,
+  zoom = AIRPORT_MAP_ZOOM.approach,
   theme,
   contrastMode,
   systemColors = null,
@@ -232,6 +236,7 @@ export function createThreeOsmContextScene({
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
+  surfaceCollection?: Record<string, any> | null;
   runwayCollection: Record<string, any> | null;
   airspaceFeatures: Array<Record<string, any>>;
   showAirspaces: boolean;
@@ -250,6 +255,7 @@ export function createThreeOsmContextScene({
   userLocation: Record<string, any> | null;
   tileCenter: TileCoordinate;
   centerLat: number;
+  zoom?: number;
   theme: string;
   contrastMode: ThreeOsmContrastMode;
   systemColors?: ThreeOsmSystemColors | null;
@@ -264,6 +270,16 @@ export function createThreeOsmContextScene({
     contrastMode,
     systemColors,
   });
+
+  const surfaceScene = createThreeOsmSurfaceScene({
+    surfaceCollection,
+    tileCenter,
+    centerLat,
+    zoom,
+    palette,
+    contrastMode,
+  });
+  group.add(surfaceScene.group);
 
   const focalMarker = new THREE.Mesh(
     new THREE.CylinderGeometry(5, 5, 18, 12),
@@ -366,7 +382,6 @@ export function createThreeOsmContextScene({
     tileCenter,
     centerLat,
     palette,
-    contrastMode,
   });
   group.add(runwayScene.group);
 
@@ -611,6 +626,16 @@ export function createThreeOsmContextScene({
     runwayDiagnostics: {
       segments: runwayScene.segmentCount,
       vertices: runwayScene.vertexCount,
+    },
+    surfaceDiagnostics: {
+      visible: surfaceScene.visible,
+      aprons: surfaceScene.apronCount,
+      apronTriangles: surfaceScene.apronTriangles,
+      taxiways: surfaceScene.taxiwayCount,
+      taxiwaySegments: surfaceScene.taxiwaySegments,
+      taxilanes: surfaceScene.taxilaneCount,
+      taxilaneSegments: surfaceScene.taxilaneSegments,
+      vertices: surfaceScene.vertexCount,
     },
   };
 }

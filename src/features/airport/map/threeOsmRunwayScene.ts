@@ -1,8 +1,5 @@
 import * as THREE from "three";
-import type {
-  ThreeOsmContrastMode,
-  ThreeOsmVisualPalette,
-} from "./threeOsmAccessibilityPreferences";
+import type { ThreeOsmVisualPalette } from "./threeOsmAccessibilityPreferences";
 import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
@@ -128,13 +125,11 @@ export function createThreeOsmRunwayScene({
   tileCenter,
   centerLat,
   palette,
-  contrastMode,
 }: {
   runwayCollection: Record<string, any> | null;
   tileCenter: TileCoordinate;
   centerLat: number;
   palette: ThreeOsmVisualPalette;
-  contrastMode: ThreeOsmContrastMode;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-runway-corridors";
@@ -205,7 +200,7 @@ export function createThreeOsmRunwayScene({
       createRunwayMesh({
         positions: haloPositions,
         color: palette.inverse,
-        opacity: contrastMode === "standard" ? 0.9 : 1,
+        opacity: 1,
         name: "three-osm-runway-halo",
         renderOrder: 28,
       }),

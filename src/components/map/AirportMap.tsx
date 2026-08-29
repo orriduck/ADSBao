@@ -1083,6 +1083,7 @@ export default function AirportMap({
               airportCode={focalAirportDisplayCode}
               nearbyAirports={nearbyAirportLayerDisplay.airports}
               runwayMap={runwayMap}
+              surfaceMap={surfaceMap}
               airspaces={renderedAirspaces}
               navaids={renderedNavaids}
               navaidCounts={contextTiles.navaidCounts}

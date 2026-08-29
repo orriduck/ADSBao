@@ -28,7 +28,6 @@ const runwayScene = createThreeOsmRunwayScene({
     theme: "light",
     contrastMode: "standard",
   }),
-  contrastMode: "standard",
 });
 
 assert.equal(runwayScene.runwayCount, 1);
@@ -42,6 +41,9 @@ const surface = runwayScene.group.getObjectByName(
 const halo = runwayScene.group.getObjectByName("three-osm-runway-halo");
 assert.ok(surface instanceof THREE.Mesh);
 assert.ok(halo instanceof THREE.Mesh);
+assert.equal(surface.material.transparent, false);
+assert.equal(halo.material.transparent, false);
+assert.ok(surface.renderOrder > halo.renderOrder);
 const surfacePositions = surface.geometry.getAttribute("position");
 const haloPositions = halo.geometry.getAttribute("position");
 assert.equal(surfacePositions.count, 6);
