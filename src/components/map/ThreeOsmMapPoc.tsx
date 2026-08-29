@@ -45,6 +45,7 @@ import {
 } from "@/features/airport/map/threeOsmProjection";
 import {
   createThreeOsmContextScene,
+  resolveThreeOsmAirspaceHitIds,
   type ThreeOsmSceneLabel,
 } from "@/features/airport/map/threeOsmSceneContext";
 import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
@@ -84,10 +85,12 @@ type ThreeOsmPocProps = {
   selectedNavaidKey?: string;
   selectedReportingPointKey?: string;
   selectedCandidateWatchingSpotId?: string;
+  selectedAirspaceId?: string;
   focalAircraftId?: string;
   userLocation?: Record<string, any> | null;
   theme?: string;
   onSelectAircraft?: ((aircraftId: string) => void) | null;
+  onSelectAirspace?: ((airspaceId: string | string[]) => void) | null;
   onReady?: ((state: { ready: boolean; tilesLoaded: number }) => void) | null;
 };
 
@@ -249,10 +252,12 @@ export default function ThreeOsmMapPoc({
   selectedNavaidKey = "",
   selectedReportingPointKey = "",
   selectedCandidateWatchingSpotId = "",
+  selectedAirspaceId = "",
   focalAircraftId = "",
   userLocation = null,
   theme = "dark",
   onSelectAircraft = null,
+  onSelectAirspace = null,
   onReady = null,
 }: ThreeOsmPocProps) {
   const { locale, t } = useI18n();
@@ -283,11 +288,13 @@ export default function ThreeOsmMapPoc({
   const tileCacheMissCountRef = useRef(0);
   const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
+  const airspaceHitObjectRef = useRef<THREE.LineSegments | null>(null);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
+  const onSelectAirspaceRef = useRef(onSelectAirspace);
   const onReadyRef = useRef(onReady);
   const [isCompact, setIsCompact] = useState(
     () => typeof window !== "undefined" && window.matchMedia?.("(max-width: 700px)").matches,
@@ -330,6 +337,10 @@ export default function ThreeOsmMapPoc({
   useEffect(() => {
     onSelectAircraftRef.current = onSelectAircraft;
   }, [onSelectAircraft]);
+
+  useEffect(() => {
+    onSelectAirspaceRef.current = onSelectAirspace;
+  }, [onSelectAirspace]);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -795,27 +806,36 @@ export default function ThreeOsmMapPoc({
       }
       const camera = activeCameraRef.current;
       const batches = trafficBatchesRef.current;
-      if (
-        !camera ||
-        !batches.length ||
-        typeof onSelectAircraftRef.current !== "function"
-      ) {
-        return;
-      }
+      if (!camera) return;
       const bounds = canvas.getBoundingClientRect();
       pointer.set(
         ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
         -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
       );
       raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObjects(
-        batches.map((batch) => batch.mesh),
-        false,
-      )[0];
+      const hit =
+        batches.length && typeof onSelectAircraftRef.current === "function"
+          ? raycaster.intersectObjects(
+              batches.map((batch) => batch.mesh),
+              false,
+            )[0]
+          : null;
       const hitBatch = batches.find((batch) => batch.mesh === hit?.object);
       const id =
         hit?.instanceId == null ? "" : hitBatch?.items[hit.instanceId]?.id || "";
-      if (id) onSelectAircraftRef.current(id);
+      if (id) {
+        onSelectAircraftRef.current?.(id);
+        return;
+      }
+      const airspaceHitObject = airspaceHitObjectRef.current;
+      if (!airspaceHitObject || typeof onSelectAirspaceRef.current !== "function") {
+        return;
+      }
+      raycaster.params.Line.threshold = 6;
+      const airspaceIds = resolveThreeOsmAirspaceHitIds(
+        raycaster.intersectObject(airspaceHitObject, false),
+      );
+      if (airspaceIds.length) onSelectAirspaceRef.current(airspaceIds);
     };
     const handleContextLost = (event: Event) => {
       event.preventDefault();
@@ -886,6 +906,7 @@ export default function ThreeOsmMapPoc({
       }
       trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
+      airspaceHitObjectRef.current = null;
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
       renderer.dispose();
@@ -1077,10 +1098,12 @@ export default function ThreeOsmMapPoc({
       centerLat: sceneCenterLat,
       theme,
       locale,
+      selectedAirspaceId,
     });
     const { group } = contextScene;
     group.visible = isDebugLayerVisible(debugLayerMode, "context");
     contextGroupRef.current = group;
+    airspaceHitObjectRef.current = contextScene.airspaceHitObject;
     scene.add(group);
     contextLabelsRef.current = contextScene.labels;
     rootRef.current?.setAttribute(
@@ -1094,6 +1117,16 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-airspaces",
       String(contextScene.counts.airspaces),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-highlights",
+      String(contextScene.counts.selectedAirspaces),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-selectable",
+      contextScene.airspaceHitObject && typeof onSelectAirspace === "function"
+        ? "true"
+        : "false",
     );
     rootRef.current?.setAttribute(
       "data-poc-navaids",
@@ -1116,6 +1149,9 @@ export default function ThreeOsmMapPoc({
     return () => {
       disposeObject(group);
       if (contextGroupRef.current === group) contextGroupRef.current = null;
+      if (airspaceHitObjectRef.current === contextScene.airspaceHitObject) {
+        airspaceHitObjectRef.current = null;
+      }
       if (contextGroupRef.current == null) contextLabelsRef.current = [];
     };
   }, [
@@ -1128,9 +1164,11 @@ export default function ThreeOsmMapPoc({
     navaidCounts,
     navaids,
     locale,
+    onSelectAirspace,
     reportingPoints,
     runwayCollection,
     selectedCandidateWatchingSpotId,
+    selectedAirspaceId,
     selectedNavaidKey,
     selectedReportingPointKey,
     showAirspaces,

@@ -93,7 +93,11 @@ The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
 points, watcher locations, and user location. Context-tile loading no longer
 requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
-own bounds. Item three now includes pointer and keyboard picking,
+own bounds. Airspace boundaries remain one batched `LineSegments` object with
+a segment-to-airspace id map for raycasting; aircraft hits keep priority, while
+an airspace hit feeds the existing selection contract and adds only one selected
+boundary batch plus a high-priority identity/class label. Item three now
+includes pointer and keyboard picking,
 selected-aircraft styling, live selected traces, flight-page route geometry,
 and an accessible DOM summary of the visible map. Traffic now resolves five
 bounded operational silhouette families (`transport`, `heavy`, `light`,
@@ -251,6 +255,13 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   altitude units. Synthetic context coverage verified the Chinese `导航台`
   canvas label because the live local context payload did not consistently
   contain navaid counts during this check.
+- A real local KBOS context tile returned 30 visible airspaces. In context-only
+  Debug Mode, clicking the visible boundary selected `BOSTON CLASS E5`, changed
+  the POC diagnostic from zero to one airspace highlight, drew its solid selected
+  boundary and `BOSTON CLASS E5 · E` label, and synchronized the existing
+  Airspace preview with CTA, controlled access, Class E, 700 ft AGL–FL600, and
+  OpenAIP source. The temporarily enabled airspace preference was restored after
+  the check.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

@@ -1105,10 +1105,12 @@ export default function AirportMap({
               selectedNavaidKey={selectedNavaidKey}
               selectedReportingPointKey={selectedReportingPointKey}
               selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
+              selectedAirspaceId={selectedAirspaceId}
               focalAircraftId={focalAircraftId}
               userLocation={userLocation}
               theme={currentTheme}
               onSelectAircraft={onSelectAircraft}
+              onSelectAirspace={onSelectAirspace}
               onReady={handleThreeOsmPocReady}
             />
           </div>

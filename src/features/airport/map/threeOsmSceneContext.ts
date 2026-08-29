@@ -13,6 +13,7 @@ export type ThreeOsmSceneLabel = {
     | "aircraft"
     | "airport"
     | "focal-airport"
+    | "airspace"
     | "navaid"
     | "reporting"
     | "spot";
@@ -121,6 +122,24 @@ export function collectAirspaceLineCoordinates(geometry: Record<string, any> | n
   return [] as number[][][];
 }
 
+export function resolveThreeOsmAirspaceHitIds(
+  intersections: Array<{ index?: number | null; object?: THREE.Object3D }> = [],
+) {
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const intersection of intersections) {
+    const index = Number(intersection?.index);
+    if (!Number.isInteger(index) || index < 0) continue;
+    const segmentIds = intersection.object?.userData?.airspaceSegmentIds;
+    if (!Array.isArray(segmentIds)) continue;
+    const id = String(segmentIds[Math.floor(index / 2)] || "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
 export function createThreeOsmContextScene({
   airportCode,
   airports,
@@ -143,6 +162,7 @@ export function createThreeOsmContextScene({
   centerLat,
   theme,
   locale = "en",
+  selectedAirspaceId = "",
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -165,6 +185,7 @@ export function createThreeOsmContextScene({
   centerLat: number;
   theme: string;
   locale?: string;
+  selectedAirspaceId?: string;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -277,8 +298,17 @@ export function createThreeOsmContextScene({
   }
 
   const airspaceSegments: number[] = [];
+  const selectedAirspaceSegments: number[] = [];
+  const airspaceSegmentIds: string[] = [];
+  let selectedAirspaceCount = 0;
   if (showAirspaces) {
     for (const feature of airspaceFeatures) {
+      const featureId = String(feature?.properties?.id || "");
+      const selected = Boolean(featureId && featureId === selectedAirspaceId);
+      let minX = Infinity;
+      let minZ = Infinity;
+      let maxX = -Infinity;
+      let maxZ = -Infinity;
       for (const ring of collectAirspaceLineCoordinates(feature?.geometry)) {
         for (let index = 1; index < ring.length; index += 1) {
           const from = ring[index - 1];
@@ -297,10 +327,39 @@ export function createThreeOsmContextScene({
           });
           if (!fromPoint || !toPoint) continue;
           airspaceSegments.push(fromPoint.x, 2.4, fromPoint.z, toPoint.x, 2.4, toPoint.z);
+          airspaceSegmentIds.push(featureId);
+          minX = Math.min(minX, fromPoint.x, toPoint.x);
+          minZ = Math.min(minZ, fromPoint.z, toPoint.z);
+          maxX = Math.max(maxX, fromPoint.x, toPoint.x);
+          maxZ = Math.max(maxZ, fromPoint.z, toPoint.z);
+          if (selected) {
+            selectedAirspaceSegments.push(
+              fromPoint.x,
+              3.2,
+              fromPoint.z,
+              toPoint.x,
+              3.2,
+              toPoint.z,
+            );
+          }
         }
+      }
+      if (selected && Number.isFinite(minX) && Number.isFinite(minZ)) {
+        const name = String(feature?.properties?.name || "Airspace").trim();
+        const classLabel = String(feature?.properties?.classLabel || "").trim();
+        labels.push({
+          id: `airspace:${featureId}`,
+          text: classLabel ? `${name} · ${classLabel}` : name,
+          kind: "airspace",
+          position: new THREE.Vector3((minX + maxX) / 2, 8, (minZ + maxZ) / 2),
+          priority: 880,
+          selected: true,
+        });
+        selectedAirspaceCount += 1;
       }
     }
   }
+  let airspaceHitObject: THREE.LineSegments | null = null;
   if (airspaceSegments.length) {
     const airspaceGeometry = new THREE.BufferGeometry();
     airspaceGeometry.setAttribute(
@@ -319,7 +378,27 @@ export function createThreeOsmContextScene({
     );
     airspaceLines.computeLineDistances();
     airspaceLines.name = "three-osm-airspace-boundaries";
+    airspaceLines.userData.airspaceSegmentIds = airspaceSegmentIds;
     group.add(airspaceLines);
+    airspaceHitObject = airspaceLines;
+  }
+  if (selectedAirspaceSegments.length) {
+    const selectedGeometry = new THREE.BufferGeometry();
+    selectedGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(selectedAirspaceSegments, 3),
+    );
+    const selectedLines = new THREE.LineSegments(
+      selectedGeometry,
+      new THREE.LineBasicMaterial({
+        color: theme === "light" ? 0x242624 : 0xf5c542,
+        opacity: 1,
+        transparent: true,
+      }),
+    );
+    selectedLines.name = "three-osm-selected-airspace-boundary";
+    selectedLines.renderOrder = 46;
+    group.add(selectedLines);
   }
 
   const navaidItems: ContextPoint[] = !showNavaidMarkers
@@ -430,10 +509,12 @@ export function createThreeOsmContextScene({
   return {
     group,
     labels,
+    airspaceHitObject,
     counts: {
       airports: airports.length,
       runways: runwayCollection?.features?.length || 0,
       airspaces: showAirspaces ? airspaceFeatures.length : 0,
+      selectedAirspaces: selectedAirspaceCount,
       navaids: navaidCount,
       reportingPoints: reportingCount,
       spots: spotCount,

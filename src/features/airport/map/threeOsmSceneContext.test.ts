@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   collectAirspaceLineCoordinates,
   createThreeOsmContextScene,
+  resolveThreeOsmAirspaceHitIds,
 } from "./threeOsmSceneContext";
 import { lonLatToTileCoordinate } from "./threeOsmProjection";
 
@@ -42,7 +43,10 @@ const context = createThreeOsmContextScene({
       },
     ],
   },
-  airspaceFeatures: [{ geometry: { type: "Polygon", coordinates: [ring] } }],
+  airspaceFeatures: [{
+    properties: { id: "bos-class-b", name: "BOSTON CLASS B", classLabel: "B" },
+    geometry: { type: "Polygon", coordinates: [ring] },
+  }],
   showAirspaces: true,
   navaids: [{ id: "bos-vor", ident: "BOS", lat: 42.35, lon: -70.99 }],
   navaidCounts: [],
@@ -59,11 +63,13 @@ const context = createThreeOsmContextScene({
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
   theme: "dark",
+  selectedAirspaceId: "bos-class-b",
 });
 assert.deepEqual(context.counts, {
   airports: 1,
   runways: 1,
   airspaces: 1,
+  selectedAirspaces: 1,
   navaids: 1,
   reportingPoints: 1,
   spots: 1,
@@ -72,6 +78,16 @@ assert.deepEqual(context.counts, {
 assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
+assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
+assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));
+assert.equal(context.counts.selectedAirspaces, 1);
+assert.deepEqual(
+  resolveThreeOsmAirspaceHitIds([
+    { index: 0, object: context.airspaceHitObject || undefined },
+    { index: 2, object: context.airspaceHitObject || undefined },
+  ]),
+  ["bos-class-b"],
+);
 
 const chineseCounts = createThreeOsmContextScene({
   airportCode: "BOS",
