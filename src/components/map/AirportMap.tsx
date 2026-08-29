@@ -79,6 +79,7 @@ import {
   clampThreeOsmZoom,
   lonLatToTileCoordinate,
 } from "@/features/airport/map/threeOsmProjection";
+import { resolveThreeOsmAcceptanceOverlayProfile } from "@/features/airport/map/threeOsmAcceptanceProfile";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
@@ -180,14 +181,28 @@ export default function AirportMap({
 }: Record<string, any>) {
   const { locale, t } = useI18n();
   const { mapViewMode: viewMode } = useExplorerUi();
-  const threeOsmPocEnabled =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("threeOsmPoc") === "1";
+  const threeOsmSearchParams = new URLSearchParams(
+    typeof window === "undefined" ? "" : window.location.search,
+  );
+  const threeOsmPocEnabled = threeOsmSearchParams.get("threeOsmPoc") === "1";
+  const threeOsmDebugEnabled =
+    threeOsmPocEnabled && threeOsmSearchParams.get("threeOsmDebug") === "1";
+  const threeOsmAcceptanceEnabled =
+    threeOsmDebugEnabled &&
+    threeOsmSearchParams.get("threeOsmAcceptance") === "1";
   const threeOsmSoakEnabled =
-    threeOsmPocEnabled &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("threeOsmDebug") === "1" &&
-    new URLSearchParams(window.location.search).get("threeOsmSoak") === "1";
+    threeOsmDebugEnabled && threeOsmSearchParams.get("threeOsmSoak") === "1";
+  const operationalOverlayProfile = resolveThreeOsmAcceptanceOverlayProfile({
+    enabled: threeOsmAcceptanceEnabled,
+    settings: {
+      showAirspaces,
+      showNavaidMarkers,
+      showReportingPoints,
+      showCandidateWatchingSpots,
+      showCallsigns,
+    },
+  });
+  const operationalOverlaySettings = operationalOverlayProfile.settings;
   const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
@@ -895,9 +910,11 @@ export default function AirportMap({
     bounds: threeOsmContextViewport?.bounds,
     zoom: threeOsmContextViewport?.zoom,
     enabled: contextTileOverlays,
-    airspacesEnabled: showAirspaces,
-    navaidsEnabled: showNavaidMarkers && !useNavaidCountTiles,
-    navaidCountsEnabled: showNavaidMarkers && useNavaidCountTiles,
+    airspacesEnabled: operationalOverlaySettings.showAirspaces,
+    navaidsEnabled:
+      operationalOverlaySettings.showNavaidMarkers && !useNavaidCountTiles,
+    navaidCountsEnabled:
+      operationalOverlaySettings.showNavaidMarkers && useNavaidCountTiles,
     refreshKey: contextTileRefreshKey,
   });
   const renderedAirspaces = useMemo(() => {
@@ -1049,7 +1066,10 @@ export default function AirportMap({
       data-map-tiles-ready={effectiveMapTilesReady ? "true" : "false"}
       data-map-visual-ready={mapVisualReady ? "true" : "false"}
       data-map-loading-mode={loadingOverlayState.mode}
-      data-map-show-airspaces={showAirspaces ? "true" : "false"}
+      data-map-show-airspaces={
+        operationalOverlaySettings.showAirspaces ? "true" : "false"
+      }
+      data-map-operational-overlay-profile={operationalOverlayProfile.id}
       data-map-context-airspaces={contextTiles.airspaces.length}
       data-map-context-navaids={contextTiles.navaids.length}
       data-map-context-navaid-counts={contextTiles.navaidCounts.length}
@@ -1106,12 +1126,17 @@ export default function AirportMap({
               recenterSignal={threeOsmRecenterSignal}
               followsCenter={followsCenter}
               allowsMapInteraction={mapInteraction.allowsDragging}
-              showAirspaces={showAirspaces}
-              showNavaidMarkers={showNavaidMarkers}
+              showAirspaces={operationalOverlaySettings.showAirspaces}
+              showNavaidMarkers={operationalOverlaySettings.showNavaidMarkers}
               useNavaidCounts={useNavaidCountTiles}
-              showReportingPoints={showReportingPoints}
-              showCandidateWatchingSpots={showCandidateWatchingSpots}
-              showCallsigns={showCallsigns}
+              showReportingPoints={
+                operationalOverlaySettings.showReportingPoints
+              }
+              showCandidateWatchingSpots={
+                operationalOverlaySettings.showCandidateWatchingSpots
+              }
+              showCallsigns={operationalOverlaySettings.showCallsigns}
+              operationalOverlayProfile={operationalOverlayProfile.id}
               selectedAircraftId={selectedAircraftId}
               selectedAirportIcao={selectedAirportIcao}
               selectedNavaidKey={selectedNavaidKey}

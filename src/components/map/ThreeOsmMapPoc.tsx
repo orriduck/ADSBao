@@ -87,6 +87,7 @@ import {
   buildThreeOsmTrafficRenderSources,
   parseThreeOsmTrafficStressTarget,
 } from "@/features/airport/map/threeOsmTrafficStress";
+import { verifyThreeOsmOperationalOverlayProfile } from "@/features/airport/map/threeOsmAcceptanceProfile";
 
 type CameraMode = "2d" | "3d";
 
@@ -120,6 +121,7 @@ type ThreeOsmPocProps = {
   showReportingPoints?: boolean;
   showCandidateWatchingSpots?: boolean;
   showCallsigns?: boolean;
+  operationalOverlayProfile?: string;
   selectedAircraftId?: string;
   selectedAirportIcao?: string;
   selectedNavaidKey?: string;
@@ -352,6 +354,7 @@ export default function ThreeOsmMapPoc({
   showReportingPoints = false,
   showCandidateWatchingSpots = false,
   showCallsigns = true,
+  operationalOverlayProfile = "user",
   selectedAircraftId = "",
   selectedAirportIcao = "",
   selectedNavaidKey = "",
@@ -452,6 +455,17 @@ export default function ThreeOsmMapPoc({
         debugSearchParams.get("threeOsmStress"),
       )
     : null;
+  const verifiedOperationalOverlayProfile =
+    verifyThreeOsmOperationalOverlayProfile({
+      requestedProfile: operationalOverlayProfile,
+      settings: {
+        showAirspaces,
+        showNavaidMarkers,
+        showReportingPoints,
+        showCandidateWatchingSpots,
+        showCallsigns,
+      },
+    });
   const debugEnabledRef = useRef(debugEnabled);
   debugEnabledRef.current = debugEnabled;
   const accessibilityDebugOverrides = useMemo(
@@ -2330,6 +2344,12 @@ export default function ThreeOsmMapPoc({
       data-poc-debug-layer={debugLayerMode}
       data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
       data-poc-soak-mode-switches={soakModeSwitches}
+      data-poc-operational-overlay-profile={verifiedOperationalOverlayProfile}
+      data-poc-show-airspaces={showAirspaces ? "true" : "false"}
+      data-poc-show-navaids={showNavaidMarkers ? "true" : "false"}
+      data-poc-show-reporting-points={showReportingPoints ? "true" : "false"}
+      data-poc-show-spots={showCandidateWatchingSpots ? "true" : "false"}
+      data-poc-show-callsigns={showCallsigns ? "true" : "false"}
       data-poc-traffic-stress={
         trafficStressTarget == null ? "inactive" : trafficStressTarget
       }

@@ -166,6 +166,7 @@ export function useThreeOsmAcceptanceRecorder(input: {
           ? undefined
           : root.dataset.pocTrafficStress,
       ),
+      operationalOverlayProfile: root.dataset.pocOperationalOverlayProfile,
       basemap: root.dataset.pocBasemap,
       tileSource: root.dataset.pocTileSource,
       tileSourceOrigin: root.dataset.pocTileSourceConfigOrigin,
@@ -209,6 +210,12 @@ export function useThreeOsmAcceptanceRecorder(input: {
     );
     root.dataset.pocAcceptanceTrafficCapacitySamples = String(
       session.trafficCapacitySamples,
+    );
+    root.dataset.pocAcceptanceFullOperationalOverlaySamples = String(
+      session.fullOperationalOverlaySamples,
+    );
+    root.dataset.pocAcceptanceFullOperationalTrafficCapacitySamples = String(
+      session.fullOperationalTrafficCapacitySamples,
     );
     root.dataset.pocAcceptancePassedGates = String(
       nextEvaluation.gates.filter((gate) => gate.status === "pass").length,

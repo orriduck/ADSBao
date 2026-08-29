@@ -1,6 +1,7 @@
 import { THREE_OSM_AIRCRAFT_CAPACITY } from "./threeOsmTrafficStress";
+import { THREE_OSM_ACCEPTANCE_OVERLAY_PROFILE } from "./threeOsmAcceptanceProfile";
 
-export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 4;
+export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 5;
 export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
   "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
@@ -71,6 +72,7 @@ export type ThreeOsmAcceptanceSample = {
   trafficReal?: number;
   trafficSynthetic?: number;
   trafficStressTarget?: number;
+  operationalOverlayProfile?: string;
   usedJsHeapBytes?: number | null;
 };
 
@@ -112,6 +114,8 @@ export type ThreeOsmAcceptanceSession = {
   trafficSyntheticMax: number;
   trafficStressTargetMax: number;
   trafficCapacitySamples: number;
+  fullOperationalOverlaySamples: number;
+  fullOperationalTrafficCapacitySamples: number;
   usedJsHeapInitialBytes: number | null;
   usedJsHeapMinBytes: number | null;
   usedJsHeapMaxBytes: number | null;
@@ -129,6 +133,7 @@ export type ThreeOsmAcceptanceSession = {
     tileSourceOrigin: string;
     tileSourceConfig: string;
     visibility: string;
+    operationalOverlayProfile: string;
   };
 };
 
@@ -182,6 +187,8 @@ const ACCEPTANCE_SESSION_NUMBER_FIELDS = [
   "trafficSyntheticMax",
   "trafficStressTargetMax",
   "trafficCapacitySamples",
+  "fullOperationalOverlaySamples",
+  "fullOperationalTrafficCapacitySamples",
 ] as const;
 
 const ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS = [
@@ -216,6 +223,8 @@ const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
   "trafficSyntheticMax",
   "trafficStressTargetMax",
   "trafficCapacitySamples",
+  "fullOperationalOverlaySamples",
+  "fullOperationalTrafficCapacitySamples",
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -300,6 +309,8 @@ export function createThreeOsmAcceptanceSession(input: {
     trafficSyntheticMax: 0,
     trafficStressTargetMax: 0,
     trafficCapacitySamples: 0,
+    fullOperationalOverlaySamples: 0,
+    fullOperationalTrafficCapacitySamples: 0,
     usedJsHeapInitialBytes: null,
     usedJsHeapMinBytes: null,
     usedJsHeapMaxBytes: null,
@@ -317,6 +328,7 @@ export function createThreeOsmAcceptanceSession(input: {
       tileSourceOrigin: "unknown",
       tileSourceConfig: "unknown",
       visibility: "visible",
+      operationalOverlayProfile: "user",
     },
   };
 }
@@ -387,6 +399,10 @@ export function isThreeOsmAcceptanceSession(
         THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
         Number(session.trafficStressTargetMax) >=
           THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS)) &&
+    Number(session.fullOperationalTrafficCapacitySamples) <=
+      Number(session.trafficCapacitySamples) &&
+    Number(session.fullOperationalTrafficCapacitySamples) <=
+      Number(session.fullOperationalOverlaySamples) &&
     (latest.basemap === "loading" ||
       latest.basemap === "ready" ||
       latest.basemap === "partial" ||
@@ -402,7 +418,10 @@ export function isThreeOsmAcceptanceSession(
       latest.tileSourceConfig === "invalid") &&
     (latest.visibility === "visible" ||
       latest.visibility === "hidden" ||
-      latest.visibility === "prerender")
+      latest.visibility === "prerender") &&
+    (latest.operationalOverlayProfile === "user" ||
+      latest.operationalOverlayProfile ===
+        THREE_OSM_ACCEPTANCE_OVERLAY_PROFILE)
   );
 }
 
@@ -546,13 +565,21 @@ export function sampleThreeOsmAcceptanceSession(
     session.trafficStressTargetMax,
     sample.trafficStressTarget,
   );
-  if (
+  const fullOperationalOverlay =
+    sample.operationalOverlayProfile === THREE_OSM_ACCEPTANCE_OVERLAY_PROFILE;
+  if (fullOperationalOverlay) {
+    session.fullOperationalOverlaySamples += 1;
+  }
+  const trafficCapacitySample =
     finiteNumber(sample.trafficRendered) >=
       THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
     finiteNumber(sample.trafficStressTarget) >=
-      THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS
-  ) {
+      THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS;
+  if (trafficCapacitySample) {
     session.trafficCapacitySamples += 1;
+    if (fullOperationalOverlay) {
+      session.fullOperationalTrafficCapacitySamples += 1;
+    }
   }
 
   if (Number.isFinite(sample.usedJsHeapBytes)) {
@@ -588,6 +615,9 @@ export function sampleThreeOsmAcceptanceSession(
     tileSourceOrigin: sample.tileSourceOrigin || session.latest.tileSourceOrigin,
     tileSourceConfig: sample.tileSourceConfig || session.latest.tileSourceConfig,
     visibility: sample.visibility || session.latest.visibility,
+    operationalOverlayProfile:
+      sample.operationalOverlayProfile ||
+      session.latest.operationalOverlayProfile,
   };
   return session;
 }
@@ -622,7 +652,8 @@ export function evaluateThreeOsmAcceptanceSession(
     session.trafficStressTargetMax >=
       THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
     session.trafficRenderedMax >= THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
-    session.trafficCapacitySamples >= 1;
+    session.trafficCapacitySamples >= 1 &&
+    session.fullOperationalTrafficCapacitySamples >= 1;
   const basemapOk =
     session.latest.basemap === "ready" && session.tilesFailedMax === 0;
 
@@ -709,7 +740,7 @@ export function evaluateThreeOsmAcceptanceSession(
           : durationComplete
             ? "fail"
             : "pending",
-      evidence: `scene max=${session.renderSceneMaxMs.toFixed(1)}ms; long task max=${session.longTaskMaxMs.toFixed(1)}ms; count=${session.longTaskCountMax}; traffic=${session.trafficRenderedMax}/${THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS}; requested=${session.trafficStressTargetMax}; simultaneous samples=${session.trafficCapacitySamples}`,
+      evidence: `scene max=${session.renderSceneMaxMs.toFixed(1)}ms; long task max=${session.longTaskMaxMs.toFixed(1)}ms; count=${session.longTaskCountMax}; traffic=${session.trafficRenderedMax}/${THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS}; requested=${session.trafficStressTargetMax}; simultaneous samples=${session.trafficCapacitySamples}; full-overlay capacity=${session.fullOperationalTrafficCapacitySamples}`,
     },
     {
       id: "thermal",
@@ -763,7 +794,7 @@ export function buildThreeOsmAcceptanceReport(
       wakeLock:
         "Screen wake-lock state is recorded as operator-assistance evidence. It does not add or replace any of the 11 acceptance gates.",
       trafficCapacity:
-        "Rendered, real, synthetic, requested stress-target maxima, and simultaneous requested/rendered capacity samples are recorded inside the existing render-stability gate. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
+        "Rendered, real, synthetic, requested stress-target maxima, simultaneous requested/rendered capacity samples, and full-operational-overlay capacity samples are recorded inside the existing render-stability gate. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
     },
   };
 }

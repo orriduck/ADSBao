@@ -47,6 +47,10 @@ live-aircraft summary or the normal map path.
 
 Add `&threeOsmAcceptance=1` with Debug Mode, the 250-target stress harness, and
 soak mode on a physical iPhone to start a session-scoped acceptance record. The
+acceptance route applies a `full-operational` overlay profile: airspace,
+navaids, reporting points, photo locations, and callsigns are enabled for the
+run without writing those choices back to the user's saved map preferences.
+The
 record survives ordinary page reloads so a document/runtime restart becomes
 failure evidence rather than silently starting a clean timer. It records the
 20-minute wall clock, real touch pointer interactions, background/foreground
@@ -55,7 +59,8 @@ bounded GPU counters, Long Tasks, and JavaScript heap samples when the browser
 exposes them. It also records the maximum rendered, live, synthetic, and
 requested stress-target counts. The existing render-stability gate requires
 both requested and rendered maxima to reach 250, with at least one sample where
-they reach that capacity simultaneously, before the 20-minute session can pass.
+they reach that capacity simultaneously under the full-operational profile,
+before the 20-minute session can pass.
 The live/synthetic split remains explanatory evidence and does not create a
 twelfth gate. The operator must mark the phone's thermal state because browsers
 do not expose a trustworthy device-temperature API. The report can be shared
@@ -514,8 +519,18 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   time peaked at 23.3 ms, horizontal overflow remained zero, and the console
   recorded no errors. The acceptance recorder captured rendered, live,
   synthetic, and requested-target maxima plus simultaneous-capacity sample
-  count. Render stability now requires a requested and rendered total of at
-  least 250 in the same sample, without changing the eleven gates.
+  count. The acceptance-only full-operational profile enables every existing
+  operational layer without mutating saved preferences. Render stability now
+  requires a requested and rendered total of at least 250 in the same
+  full-profile sample, without changing the eleven gates.
+  Browser comparison with the same saved settings showed the ordinary POC as
+  `profile=user`, airspace disabled, and zero rendered airspaces. The acceptance
+  URL verified all five overlay flags as enabled, reported
+  `profile=full-operational`, loaded 14–29 real KBOS airspaces across refreshes,
+  kept 250 traffic targets, accumulated full-overlay capacity samples, and had
+  zero horizontal overflow or console errors. Zero-count navaid, reporting,
+  or photo-location payloads remain honest source state rather than fabricated
+  acceptance data.
   This is desktop capacity evidence only; the emitted physical-device URL now
   includes the same stress flag so gate four can be tested honestly on an
   iPhone.

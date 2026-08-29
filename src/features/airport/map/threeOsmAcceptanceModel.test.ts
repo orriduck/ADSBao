@@ -68,6 +68,7 @@ function createPassingCandidate() {
     trafficReal: 183,
     trafficSynthetic: 67,
     trafficStressTarget: 250,
+    operationalOverlayProfile: "full-operational",
     basemap: "ready",
     tileSource: "licensed-raster",
     tileSourceOrigin: "runtime",
@@ -106,6 +107,9 @@ assert.equal(passing.trafficRealMax, 183);
 assert.equal(passing.trafficSyntheticMax, 67);
 assert.equal(passing.trafficStressTargetMax, 250);
 assert.equal(passing.trafficCapacitySamples, 1);
+assert.equal(passing.fullOperationalOverlaySamples, 1);
+assert.equal(passing.fullOperationalTrafficCapacitySamples, 1);
+assert.equal(passing.latest.operationalOverlayProfile, "full-operational");
 assert.equal(THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS, 250);
 
 sampleThreeOsmAcceptanceSession(passing, {
@@ -126,6 +130,7 @@ const missingTrafficStress = createPassingCandidate();
 missingTrafficStress.trafficRenderedMax = 0;
 missingTrafficStress.trafficStressTargetMax = 0;
 missingTrafficStress.trafficCapacitySamples = 0;
+missingTrafficStress.fullOperationalTrafficCapacitySamples = 0;
 const missingTrafficEarly = evaluateThreeOsmAcceptanceSession(
   missingTrafficStress,
   start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
@@ -153,6 +158,7 @@ assert.match(
 
 const separateTrafficMaxima = createPassingCandidate();
 separateTrafficMaxima.trafficCapacitySamples = 0;
+separateTrafficMaxima.fullOperationalTrafficCapacitySamples = 0;
 assert.equal(
   evaluateThreeOsmAcceptanceSession(
     separateTrafficMaxima,
@@ -164,6 +170,7 @@ assert.equal(
 const insufficientRenderedTraffic = createPassingCandidate();
 insufficientRenderedTraffic.trafficRenderedMax = 249;
 insufficientRenderedTraffic.trafficCapacitySamples = 0;
+insufficientRenderedTraffic.fullOperationalTrafficCapacitySamples = 0;
 assert.equal(
   evaluateThreeOsmAcceptanceSession(
     insufficientRenderedTraffic,
@@ -175,6 +182,7 @@ assert.equal(
 const insufficientRequestedTraffic = createPassingCandidate();
 insufficientRequestedTraffic.trafficStressTargetMax = 249;
 insufficientRequestedTraffic.trafficCapacitySamples = 0;
+insufficientRequestedTraffic.fullOperationalTrafficCapacitySamples = 0;
 assert.equal(
   evaluateThreeOsmAcceptanceSession(
     insufficientRequestedTraffic,
@@ -182,6 +190,33 @@ assert.equal(
   ).gates.find((gate) => gate.id === "render-stability")?.status,
   "fail",
 );
+
+const missingFullOperationalProfile = createPassingCandidate();
+missingFullOperationalProfile.fullOperationalTrafficCapacitySamples = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    missingFullOperationalProfile,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "render-stability")?.status,
+  "fail",
+);
+
+const userProfileCapacity = createThreeOsmAcceptanceSession({
+  sessionId: "session-user-profile",
+  route: "/airport/KBOS",
+  nowMs: start,
+  documentBootId: "document-user-profile",
+  device,
+});
+sampleThreeOsmAcceptanceSession(userProfileCapacity, {
+  nowMs: start + 1_000,
+  trafficRendered: 250,
+  trafficStressTarget: 250,
+  operationalOverlayProfile: "user",
+});
+assert.equal(userProfileCapacity.trafficCapacitySamples, 1);
+assert.equal(userProfileCapacity.fullOperationalOverlaySamples, 0);
+assert.equal(userProfileCapacity.fullOperationalTrafficCapacitySamples, 0);
 
 const restarted = createPassingCandidate();
 registerThreeOsmAcceptanceDocumentBoot(

@@ -67,6 +67,7 @@ function createPassingReport(tileSource = "licensed-raster") {
     trafficReal: 183,
     trafficSynthetic: 67,
     trafficStressTarget: 250,
+    operationalOverlayProfile: "full-operational",
     basemap: "ready",
     tileSource,
     tileSourceOrigin: tileSource === "osm-standard" ? "build" : "runtime",
@@ -101,6 +102,7 @@ assert.equal(osmConfiguredCheck.requirementFailures.length, 1);
 const insufficientCapacityReport = structuredClone(createPassingReport());
 insufficientCapacityReport.session.trafficRenderedMax = 249;
 insufficientCapacityReport.session.trafficCapacitySamples = 0;
+insufficientCapacityReport.session.fullOperationalTrafficCapacitySamples = 0;
 insufficientCapacityReport.evaluation = evaluateThreeOsmAcceptanceSession(
   insufficientCapacityReport.session,
   finishedAt,
@@ -113,6 +115,26 @@ assert.equal(insufficientCapacityResult.accepted, false);
 assert.equal(insufficientCapacityResult.evaluation?.status, "failed");
 assert.equal(
   insufficientCapacityResult.evaluation?.gates.find(
+    (gate) => gate.id === "render-stability",
+  )?.status,
+  "fail",
+);
+
+const missingFullProfileReport = structuredClone(createPassingReport());
+missingFullProfileReport.session.fullOperationalOverlaySamples = 0;
+missingFullProfileReport.session.fullOperationalTrafficCapacitySamples = 0;
+missingFullProfileReport.session.latest.operationalOverlayProfile = "user";
+missingFullProfileReport.evaluation = evaluateThreeOsmAcceptanceSession(
+  missingFullProfileReport.session,
+  finishedAt,
+);
+const missingFullProfileResult = verifyThreeOsmAcceptanceReport(
+  missingFullProfileReport,
+);
+assert.equal(missingFullProfileResult.valid, true);
+assert.equal(missingFullProfileResult.accepted, false);
+assert.equal(
+  missingFullProfileResult.evaluation?.gates.find(
     (gate) => gate.id === "render-stability",
   )?.status,
   "fail",
@@ -150,6 +172,13 @@ const impossibleCapacityEvidence = structuredClone(createPassingReport());
 impossibleCapacityEvidence.session.trafficRenderedMax = 249;
 assert.equal(
   isThreeOsmAcceptanceSession(impossibleCapacityEvidence.session),
+  false,
+);
+
+const impossibleFullOverlayEvidence = structuredClone(createPassingReport());
+impossibleFullOverlayEvidence.session.fullOperationalOverlaySamples = 0;
+assert.equal(
+  isThreeOsmAcceptanceSession(impossibleFullOverlayEvidence.session),
   false,
 );
 
@@ -193,7 +222,7 @@ try {
   );
   assert.match(
     configuredCli.stdout,
-    /traffic capacity: rendered=250; real=183; synthetic=67; target=250; simultaneous samples=1 \(render-stability evidence\)/,
+    /traffic capacity: rendered=250; real=183; synthetic=67; target=250; simultaneous samples=1; full-overlay capacity=1 \(render-stability evidence\)/,
   );
   assert.doesNotMatch(configuredCli.stdout, /MUST_NOT_BE_PRINTED/);
 
