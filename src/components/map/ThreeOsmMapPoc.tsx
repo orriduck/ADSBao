@@ -25,7 +25,10 @@ import {
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
-import { THREE_OSM_STANDARD_TILE_SOURCE } from "@/features/airport/map/threeOsmTileSource";
+import {
+  THREE_OSM_DEBUG_FAILURE_TILE_SOURCE,
+  THREE_OSM_STANDARD_TILE_SOURCE,
+} from "@/features/airport/map/threeOsmTileSource";
 import {
   buildVisibleTileGrid,
   clampThreeOsmZoom,
@@ -83,6 +86,7 @@ type ThreeOsmPocProps = {
 
 const MAX_AIRCRAFT = 220;
 const MAX_TILE_TEXTURES = 72;
+const TILE_RETRY_DELAY_MS = 30_000;
 const AIRCRAFT_COLOR_DARK = 0xf0eee7;
 const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
 const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
@@ -98,6 +102,8 @@ type TrafficRenderItem = {
   emphasis: ThreeOsmAircraftEmphasis;
   highlightIndex: number | null;
 };
+
+type BasemapState = "loading" | "ready" | "partial" | "degraded";
 
 function disposeObject(object: THREE.Object3D | null) {
   if (!object) return;
@@ -217,6 +223,16 @@ export default function ThreeOsmMapPoc({
   const [isCompact, setIsCompact] = useState(
     () => typeof window !== "undefined" && window.matchMedia?.("(max-width: 700px)").matches,
   );
+  const [basemapState, setBasemapState] = useState<BasemapState>("loading");
+  const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
+  const debugEnabled =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
+  const activeTileSource =
+    debugEnabled &&
+    new URLSearchParams(window.location.search).get("threeOsmTiles") === "fail"
+      ? THREE_OSM_DEBUG_FAILURE_TILE_SOURCE
+      : THREE_OSM_STANDARD_TILE_SOURCE;
 
   useEffect(() => {
     onSelectAircraftRef.current = onSelectAircraft;
@@ -324,11 +340,17 @@ export default function ThreeOsmMapPoc({
       powerPreference: "high-performance",
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    root.dataset.pocContextLossExtension = renderer.extensions.has(
+      "WEBGL_lose_context",
+    )
+      ? "available"
+      : "unavailable";
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
     const maxAnisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
     const tileTextureCache = new BoundedTileResourceCache<THREE.Texture>({
       maxEntries: MAX_TILE_TEXTURES,
+      retryErrorsAfterMs: TILE_RETRY_DELAY_MS,
       load: (url) =>
         new Promise((resolve, reject) => {
           loader.load(
@@ -679,6 +701,8 @@ export default function ThreeOsmMapPoc({
     let failedCount = 0;
     let settledCount = 0;
     let readySent = false;
+    let retryTimeout = 0;
+    setBasemapState("loading");
     rootRef.current?.setAttribute("data-poc-tiles-loaded", "0");
     rootRef.current?.setAttribute("data-poc-tiles-failed", "0");
     const publishReady = () => {
@@ -687,6 +711,22 @@ export default function ThreeOsmMapPoc({
       onReadyRef.current?.({ ready: true, tilesLoaded: loadedCount });
     };
     const timeout = window.setTimeout(publishReady, 1_500);
+    const publishBasemapState = () => {
+      if (disposed || settledCount < visibleTiles.length) return;
+      const nextState: BasemapState =
+        failedCount === 0
+          ? "ready"
+          : loadedCount > 0
+            ? "partial"
+            : "degraded";
+      setBasemapState(nextState);
+      if (failedCount > 0) {
+        retryTimeout = window.setTimeout(
+          () => setTileRetryEpoch((epoch) => epoch + 1),
+          TILE_RETRY_DELAY_MS,
+        );
+      }
+    };
 
     const releases: Array<() => void> = [];
     const publishCacheStats = () => {
@@ -733,6 +773,7 @@ export default function ThreeOsmMapPoc({
         settledCount += 1;
         rootRef.current?.setAttribute("data-poc-tiles-loaded", String(loadedCount));
         publishReady();
+        publishBasemapState();
         publishCacheStats();
         requestRenderRef.current();
       };
@@ -744,11 +785,12 @@ export default function ThreeOsmMapPoc({
           String(failedCount),
         );
         if (settledCount >= visibleTiles.length) publishReady();
+        publishBasemapState();
         publishCacheStats();
         requestRenderRef.current();
       };
       const handle = textureCache.acquire(
-        THREE_OSM_STANDARD_TILE_SOURCE.buildUrl(tile),
+        activeTileSource.buildUrl(tile),
         { ready: settleReady, error: settleError },
       );
       if (handle.cacheHit) tileCacheHitCountRef.current += 1;
@@ -766,11 +808,21 @@ export default function ThreeOsmMapPoc({
     return () => {
       disposed = true;
       window.clearTimeout(timeout);
+      window.clearTimeout(retryTimeout);
       releases.forEach((release) => release());
       disposeTileGroup(group);
       if (tileGroupRef.current === group) tileGroupRef.current = null;
     };
-  }, [sceneCenterLat, sceneCenterLon, theme, tileCenter, tileZoom, visibleTiles]);
+  }, [
+    activeTileSource,
+    sceneCenterLat,
+    sceneCenterLon,
+    theme,
+    tileCenter,
+    tileRetryEpoch,
+    tileZoom,
+    visibleTiles,
+  ]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -1192,12 +1244,28 @@ export default function ThreeOsmMapPoc({
     viewMode,
   });
 
+  const handleSimulateContextRecovery = () => {
+    const renderer = rendererRef.current;
+    if (!renderer) return;
+    const root = rootRef.current;
+    if (root) {
+      root.dataset.pocContextDebugRequests = String(
+        Number(root.dataset.pocContextDebugRequests || 0) + 1,
+      );
+    }
+    renderer.forceContextLoss();
+    window.setTimeout(() => rendererRef.current?.forceContextRestore(), 300);
+  };
+
   return (
     <div
       ref={rootRef}
       className="three-osm-poc absolute inset-0 overflow-hidden"
       data-poc-engine="three-osm"
       data-poc-mode={viewMode}
+      data-poc-debug={debugEnabled ? "true" : "false"}
+      data-poc-tile-source={activeTileSource.id}
+      data-poc-basemap={basemapState}
       data-poc-runtime-id={runtimeIdRef.current}
       data-poc-keyboard-targets={accessibleAircraft.length}
       data-poc-fit-active={activeCameraFit ? "true" : "false"}
@@ -1245,7 +1313,7 @@ export default function ThreeOsmMapPoc({
         </ul>
       </div>
 
-      <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm">
+      <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm md:left-[312px]">
         <strong className="block text-[11px] font-semibold text-[#f5c542]">
           Three + OSM / POC
         </strong>
@@ -1255,16 +1323,37 @@ export default function ThreeOsmMapPoc({
         <span className="mt-0.5 block text-white/50">
           {visibleTiles.length} tiles · {visibleAircraft.length} targets · {visibleAirports.length} airports · z{tileZoom}
         </span>
+        {basemapState === "partial" || basemapState === "degraded" ? (
+          <span className="mt-1 block normal-case tracking-normal text-[#f5c542]" role="status">
+            Basemap {basemapState} · operational overlays remain
+          </span>
+        ) : null}
+        {debugEnabled ? (
+          <button
+            type="button"
+            className="pointer-events-auto mt-2 border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
+            aria-label="Simulate WebGL context loss"
+            onClick={handleSimulateContextRecovery}
+          >
+            Simulate GPU reset
+          </button>
+        ) : null}
       </div>
 
-      <a
-        className="absolute bottom-1 right-2 z-10 text-[10px] text-white/75 underline decoration-white/30 underline-offset-2"
-        href="https://www.openstreetmap.org/copyright"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {THREE_OSM_STANDARD_TILE_SOURCE.attribution}
-      </a>
+      {activeTileSource === THREE_OSM_STANDARD_TILE_SOURCE ? (
+        <a
+          className="absolute bottom-1 right-2 z-10 text-[10px] text-white/75 underline decoration-white/30 underline-offset-2"
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {activeTileSource.attribution}
+        </a>
+      ) : (
+        <span className="pointer-events-none absolute bottom-1 right-2 z-10 text-[10px] text-white/55">
+          {activeTileSource.attribution}
+        </span>
+      )}
     </div>
   );
 }

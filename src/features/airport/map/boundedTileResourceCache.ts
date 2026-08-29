@@ -9,6 +9,7 @@ type CacheEntry<T> = {
   status: CacheStatus;
   value: T | null;
   lastUsed: number;
+  failedAt: number | null;
   consumers: Map<symbol, CacheListener<T>>;
 };
 
@@ -29,6 +30,8 @@ export class BoundedTileResourceCache<T> {
       maxEntries: number;
       load: (key: string) => Promise<T>;
       dispose: (value: T) => void;
+      retryErrorsAfterMs?: number;
+      now?: () => number;
     },
   ) {}
 
@@ -44,7 +47,20 @@ export class BoundedTileResourceCache<T> {
         release: () => {},
       };
     }
-    const existing = this.entries.get(key);
+    let existing = this.entries.get(key);
+    const retryErrorsAfterMs = Math.max(
+      0,
+      this.options.retryErrorsAfterMs ?? Number.POSITIVE_INFINITY,
+    );
+    if (
+      existing?.status === "error" &&
+      existing.consumers.size === 0 &&
+      existing.failedAt != null &&
+      this.now() - existing.failedAt >= retryErrorsAfterMs
+    ) {
+      this.entries.delete(key);
+      existing = undefined;
+    }
     const cacheHit = Boolean(existing);
     const entry = existing || this.createEntry(key);
     entry.lastUsed = ++this.clock;
@@ -94,6 +110,7 @@ export class BoundedTileResourceCache<T> {
       status: "pending",
       value: null,
       lastUsed: ++this.clock,
+      failedAt: null,
       consumers: new Map(),
     };
     this.entries.set(key, entry);
@@ -105,12 +122,14 @@ export class BoundedTileResourceCache<T> {
         }
         entry.status = "ready";
         entry.value = value;
+        entry.failedAt = null;
         entry.consumers.forEach((listener) => listener.ready?.(value));
         this.prune();
       },
       () => {
         if (this.disposed) return;
         entry.status = "error";
+        entry.failedAt = this.now();
         entry.consumers.forEach((listener) => listener.error?.());
         this.prune();
       },
@@ -132,5 +151,9 @@ export class BoundedTileResourceCache<T> {
       this.entries.delete(key);
       if (entry.value) this.options.dispose(entry.value);
     }
+  }
+
+  private now() {
+    return this.options.now?.() ?? Date.now();
   }
 }

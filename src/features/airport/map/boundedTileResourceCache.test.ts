@@ -39,4 +39,38 @@ cache.disposeAll();
 assert.equal(cache.snapshot().size, 0);
 assert.deepEqual(disposed.sort(), ["texture:a", "texture:b", "texture:c"]);
 
+let now = 1_000;
+let retryLoads = 0;
+const retryCache = new BoundedTileResourceCache<string>({
+  maxEntries: 2,
+  retryErrorsAfterMs: 30_000,
+  now: () => now,
+  load: async () => {
+    retryLoads += 1;
+    if (retryLoads === 1) throw new Error("temporary tile outage");
+    return "recovered-texture";
+  },
+  dispose: () => {},
+});
+const failed = retryCache.acquire("retry-tile");
+await Promise.resolve();
+failed.release();
+assert.equal(retryLoads, 1);
+
+now += 29_999;
+const beforeTtl = retryCache.acquire("retry-tile");
+assert.equal(beforeTtl.cacheHit, true);
+assert.equal(beforeTtl.status, "error");
+beforeTtl.release();
+assert.equal(retryLoads, 1);
+
+now += 1;
+const retried = retryCache.acquire("retry-tile");
+assert.equal(retried.cacheHit, false);
+await Promise.resolve();
+assert.equal(retryLoads, 2);
+assert.equal(retryCache.snapshot().ready, 1);
+retried.release();
+retryCache.disposeAll();
+
 console.log("boundedTileResourceCache.test.ts ok");

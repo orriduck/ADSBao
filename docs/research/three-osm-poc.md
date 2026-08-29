@@ -27,6 +27,11 @@ Open an airport or flight route with `?threeOsmPoc=1`, for example:
 
 `http://localhost:3000/airport/KBOS?threeOsmPoc=1`
 
+POC-only recovery controls are available with `&threeOsmDebug=1`. Add
+`&threeOsmTiles=fail` to replace the raster provider with a guaranteed failing
+same-origin source and verify the degraded-basemap path without changing the
+operational overlays.
+
 The query flag replaces both visible map modes with one Three.js scene:
 
 - 2D uses `OrthographicCamera`.
@@ -50,6 +55,9 @@ The query flag replaces both visible map modes with one Three.js scene:
 - WebGL context loss drops map readiness without discarding the bounded CPU-side
   tile cache; restoration re-uploads retained textures/materials and requests a
   fresh frame.
+- Failed tiles remain on a neutral plane while aircraft, labels, runways, and
+  other operational geometry continue rendering. Error entries retry at a
+  bounded 30-second cadence rather than on every render or interaction.
 - The map exposes draw-call, triangle, texture, tile, aircraft, pixel-ratio,
   and camera-profile diagnostics as `data-poc-*` attributes.
 
@@ -91,8 +99,10 @@ tracking inherits the existing locked-camera contract, so Follow/trace controls
 rather than direct gestures own its framing. The raster URL and attribution now
 sit behind a replaceable source contract, and the bounded cache explicitly
 disposes evicted or unmounted textures. The runtime now handles WebGL context
-loss/restoration and exposes failed-tile counts, but provider fallback and a
-real-device long-session acceptance run remain incomplete.
+loss/restoration, exposes a POC-only GPU reset control, and has an explicit
+provider-outage mode with a neutral fallback and bounded retry. A production
+provider decision and a real-device long-session acceptance run remain
+incomplete.
 
 ## Proposed architecture if the POC graduates
 
@@ -150,8 +160,9 @@ boundary. Camera changes do not rebuild aircraft, traces, or tile ownership.
 - Touch controls must be tuned as a map, not left at generic OrbitControls
   defaults. One-finger pan, two-finger zoom/rotate, and selection-vs-drag
   thresholds need device testing.
-- WebGL context loss, GPU memory under long sessions, and background-tab
-  recovery need explicit acceptance tests.
+- Browser-injected WebGL context loss/restoration now passes without rebuilding
+  the runtime. GPU memory under long sessions and real-device background-tab
+  recovery still need explicit acceptance tests.
 
 ## Graduation gates
 
