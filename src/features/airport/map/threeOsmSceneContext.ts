@@ -20,6 +20,7 @@ export type ThreeOsmSceneLabel = {
     | "aircraft"
     | "airport"
     | "focal-airport"
+    | "runway"
     | "airspace"
     | "navaid"
     | "reporting"
@@ -210,6 +211,7 @@ export function createThreeOsmContextScene({
   airports,
   surfaceCollection = null,
   runwayCollection,
+  runwayEndLabels = [],
   airspaceFeatures,
   showAirspaces,
   navaids,
@@ -238,6 +240,7 @@ export function createThreeOsmContextScene({
   airports: Array<Record<string, any>>;
   surfaceCollection?: Record<string, any> | null;
   runwayCollection: Record<string, any> | null;
+  runwayEndLabels?: Array<Record<string, any>>;
   airspaceFeatures: Array<Record<string, any>>;
   showAirspaces: boolean;
   navaids: Array<Record<string, any>>;
@@ -384,6 +387,29 @@ export function createThreeOsmContextScene({
     palette,
   });
   group.add(runwayScene.group);
+
+  let runwayEndCount = 0;
+  for (const item of runwayEndLabels) {
+    const lat = finiteCoordinate(item?.lat);
+    const lon = finiteCoordinate(item?.lon);
+    const ident = String(item?.ident || "").trim().toUpperCase();
+    if (lat === null || lon === null || !ident) continue;
+    const point = lonLatAltitudeToThreeOsmWorld({
+      lon,
+      lat,
+      center: tileCenter,
+      centerLat,
+    });
+    if (!point) continue;
+    labels.push({
+      id: `runway:${String(item?.key || `${ident}-${runwayEndCount}`)}`,
+      text: ident,
+      kind: "runway",
+      position: new THREE.Vector3(point.x, 6, point.z),
+      priority: 780,
+    });
+    runwayEndCount += 1;
+  }
 
   const airspaceSegments: number[] = [];
   const selectedAirspaceSegments: number[] = [];
@@ -616,6 +642,7 @@ export function createThreeOsmContextScene({
     counts: {
       airports: airportCount,
       runways: runwayScene.runwayCount,
+      runwayEnds: runwayEndCount,
       airspaces: showAirspaces ? airspaceFeatures.length : 0,
       selectedAirspaces: selectedAirspaceCount,
       navaids: navaidResult.count,

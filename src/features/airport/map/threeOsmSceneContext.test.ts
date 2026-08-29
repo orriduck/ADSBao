@@ -72,6 +72,15 @@ const context = createThreeOsmContextScene({
       },
     ],
   },
+  runwayEndLabels: [
+    {
+      key: "04R/22L-04R",
+      ident: "04R",
+      lat: 42.35404,
+      lon: -71.010352,
+    },
+    { key: "invalid", ident: "", lat: null, lon: null },
+  ],
   airspaceFeatures: [{
     properties: { id: "bos-class-b", name: "BOSTON CLASS B", classLabel: "B" },
     geometry: { type: "Polygon", coordinates: [ring] },
@@ -100,6 +109,7 @@ const context = createThreeOsmContextScene({
 assert.deepEqual(context.counts, {
   airports: 1,
   runways: 1,
+  runwayEnds: 1,
   airspaces: 1,
   selectedAirspaces: 1,
   navaids: 1,
@@ -121,6 +131,11 @@ assert.deepEqual(context.surfaceDiagnostics, {
 assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.labels.some((label) => label.text === "OWD" && label.selected));
+assert.ok(
+  context.labels.some(
+    (label) => label.kind === "runway" && label.text === "04R",
+  ),
+);
 assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.group.getObjectByName("three-osm-runway-halo"));

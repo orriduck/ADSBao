@@ -15,11 +15,14 @@ import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmIntera
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { airportDisplayCode } from "@/utils/airport";
 import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
+import { ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import {
   buildRenderableAirportSurfaceFeatureCollection,
   buildRunwayCenterlineCollection,
+  buildRunwayEndLabels,
+  buildRunwayMapFromSurfaceMap,
 } from "@/features/airport/map/runwayAnnotationModel";
 import {
   parseThreeOsmAccessibilityDebugOverrides,
@@ -606,6 +609,15 @@ export default function ThreeOsmMapPoc({
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
     [runwayMap],
   );
+  const runwayEndLabels = useMemo(
+    () => {
+      if (Number(tileZoom) < ZOOM_DETAIL) return [];
+      return buildRunwayEndLabels(
+        buildRunwayMapFromSurfaceMap(surfaceMap, runwayMap) || runwayMap,
+      );
+    },
+    [runwayMap, surfaceMap, tileZoom],
+  );
   const surfaceCollection = useMemo(
     () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
     [runwayMap, surfaceMap],
@@ -909,7 +921,7 @@ export default function ThreeOsmMapPoc({
         const font =
           label.kind === "focal-airport"
             ? `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`
-            : label.kind === "airport"
+            : label.kind === "airport" || label.kind === "runway"
               ? `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`
               : `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         context.font = font;
@@ -943,7 +955,7 @@ export default function ThreeOsmMapPoc({
           context.fillRect(label.left, label.top, label.width, label.height);
           context.fillStyle = visualPalette.label.focalText;
           context.font = `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
-        } else if (style.kind === "airport") {
+        } else if (style.kind === "airport" || style.kind === "runway") {
           context.fillStyle = visualPalette.label.background;
           context.fillRect(label.left, label.top, label.width, label.height);
           context.strokeStyle = visualPalette.label.border;
@@ -1496,6 +1508,7 @@ export default function ThreeOsmMapPoc({
       airports: visibleAirports,
       surfaceCollection,
       runwayCollection,
+      runwayEndLabels,
       airspaceFeatures,
       showAirspaces,
       navaids,
@@ -1542,6 +1555,10 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-runway-vertices",
       String(contextScene.runwayDiagnostics.vertices),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-runway-labels",
+      String(contextScene.counts.runwayEnds),
     );
     rootRef.current?.setAttribute(
       "data-poc-surface-visible",
@@ -1645,6 +1662,7 @@ export default function ThreeOsmMapPoc({
     onSelectAirspace,
     reportingPoints,
     runwayCollection,
+    runwayEndLabels,
     surfaceCollection,
     selectedAirportIcao,
     selectedCandidateWatchingSpotId,
