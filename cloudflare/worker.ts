@@ -1,3 +1,5 @@
+import { buildRuntimeEnvAssignment } from "../src/platform/env/runtimeEnv";
+
 export type Env = CloudflareWorkerEnv;
 
 const PROXIED_PREFIXES = ["/api/", "/events/"] as const;
@@ -16,9 +18,17 @@ export function buildRuntimeEnvScript(env: Env) {
     VITE_NEW_RELIC_BROWSER_APP_ID: env.VITE_NEW_RELIC_BROWSER_APP_ID || "",
     VITE_NEW_RELIC_BROWSER_LICENSE_KEY:
       env.VITE_NEW_RELIC_BROWSER_LICENSE_KEY || "",
+    VITE_THREE_OSM_RASTER_SOURCE_ID:
+      env.VITE_THREE_OSM_RASTER_SOURCE_ID || "",
+    VITE_THREE_OSM_RASTER_URL_TEMPLATE:
+      env.VITE_THREE_OSM_RASTER_URL_TEMPLATE || "",
+    VITE_THREE_OSM_RASTER_ATTRIBUTION:
+      env.VITE_THREE_OSM_RASTER_ATTRIBUTION || "",
+    VITE_THREE_OSM_RASTER_ATTRIBUTION_URL:
+      env.VITE_THREE_OSM_RASTER_ATTRIBUTION_URL || "",
   };
 
-  return `window.__ADSBAO_ENV__ = Object.assign({}, window.__ADSBAO_ENV__, ${JSON.stringify(runtimeEnv)});\n`;
+  return buildRuntimeEnvAssignment(runtimeEnv);
 }
 
 function noStoreHeaders(contentType: string) {

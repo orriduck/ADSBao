@@ -17,9 +17,17 @@ const runtimeScript = buildRuntimeEnvScript({
   VITE_NEW_RELIC_ACCOUNT_ID: "123",
   VITE_NEW_RELIC_BROWSER_APP_ID: "456",
   VITE_NEW_RELIC_BROWSER_LICENSE_KEY: 'quote"safe',
+  VITE_THREE_OSM_RASTER_SOURCE_ID: "licensed-raster",
+  VITE_THREE_OSM_RASTER_URL_TEMPLATE:
+    "https://tiles.example.test/{z}/{x}/{y}.png?key=public",
+  VITE_THREE_OSM_RASTER_ATTRIBUTION: "Example Maps",
+  VITE_THREE_OSM_RASTER_ATTRIBUTION_URL:
+    "https://example.test/attribution",
 });
 assert.match(runtimeScript, /VITE_NEW_RELIC_ACCOUNT_ID/);
 assert.match(runtimeScript, /quote\\"safe/);
+assert.match(runtimeScript, /VITE_THREE_OSM_RASTER_URL_TEMPLATE/);
+assert.match(runtimeScript, /licensed-raster/);
 
 let assetRequest: Request | string | URL | null = null;
 const env: Env = {

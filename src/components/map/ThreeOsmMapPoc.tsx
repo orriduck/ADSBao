@@ -48,11 +48,11 @@ import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
 import { buildReportingPointLabels } from "@/features/airport/map/reportingPointLabelModel";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
-  createConfiguredThreeOsmTileSource,
   THREE_OSM_CONFIG_UNAVAILABLE_TILE_SOURCE,
   THREE_OSM_DEBUG_FAILURE_TILE_SOURCE,
   THREE_OSM_STANDARD_TILE_SOURCE,
 } from "@/features/airport/map/threeOsmTileSource";
+import { createEnvironmentThreeOsmTileSource } from "@/features/airport/map/threeOsmRuntimeTileSource";
 import {
   buildVisibleTileGrid,
   clampThreeOsmZoom,
@@ -442,7 +442,7 @@ export default function ThreeOsmMapPoc({
   );
   const configuredTileSource = useMemo(
     () =>
-      createConfiguredThreeOsmTileSource({
+      createEnvironmentThreeOsmTileSource({
         id: import.meta.env.VITE_THREE_OSM_RASTER_SOURCE_ID,
         urlTemplate: import.meta.env.VITE_THREE_OSM_RASTER_URL_TEMPLATE,
         attribution: import.meta.env.VITE_THREE_OSM_RASTER_ATTRIBUTION,
@@ -2238,6 +2238,7 @@ export default function ThreeOsmMapPoc({
       data-poc-tile-source-requested={requestedTileSource}
       data-poc-tile-source={activeTileSource.id}
       data-poc-tile-source-config={configuredTileSource.status}
+      data-poc-tile-source-config-origin={configuredTileSource.origin}
       data-poc-basemap={basemapState}
       data-poc-runtime-id={runtimeIdRef.current}
       data-poc-keyboard-targets={accessibleAircraft.length}

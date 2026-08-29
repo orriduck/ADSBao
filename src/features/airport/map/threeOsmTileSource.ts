@@ -17,7 +17,7 @@ export type ThreeOsmConfiguredTileSourceState =
       source: null;
     };
 
-type ThreeOsmConfiguredTileSourceInput = {
+export type ThreeOsmConfiguredTileSourceInput = {
   id?: unknown;
   urlTemplate?: unknown;
   attribution?: unknown;

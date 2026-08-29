@@ -99,10 +99,9 @@ continue in this order rather than polishing the 3D treatment first:
 With items one through four now substantially represented in the branch, the
 remaining priority is: (1) a real iPhone-class 20-minute touch/background/
 thermal run, (2) a licensed raster provider trial through the existing adapter,
-(3) live-data interaction checks for navaids and photo locations after airport
-and reporting-point selection, then (4) additional vector-cartography or
-aesthetic depth. More visual polish should not move ahead of the first two
-graduation risks.
+then (3) additional vector-cartography or aesthetic depth. Real navaid and
+photo-location interaction checks are now complete. More visual polish should
+not move ahead of the first two graduation risks.
 
 While the first two gates require external hardware or provider authorization,
 the next local-only cartography sequence is: runway approach direction,
@@ -234,9 +233,13 @@ No provider credential is committed or requested by the POC. A browser key,
 domain restriction, quota alert, and provider-specific attribution must be in
 place before a hosted source is exercised.
 
-The branch now has a provider-neutral trial boundary. Put the following values
-in ignored `.env.local` (never in a query string or committed file), restart the
-local Vite process so it reads them, then use
+The branch now has a provider-neutral trial boundary. Deployed Cloudflare hosts
+read the following browser-visible values from the no-store `/runtime-env.js`
+response, so changing a Worker binding and reloading the page does not require
+rebuilding or releasing the application bundle. Local Vite work can use the
+same names in ignored `.env.local` as a build-time fallback; Cloudflare local
+preview can use ignored `.dev.vars.preview`. Never put the values in a query
+string or committed file. Enable the source with
 `?threeOsmPoc=1&threeOsmTiles=configured`:
 
 ```dotenv
@@ -248,12 +251,16 @@ VITE_THREE_OSM_RASTER_ATTRIBUTION_URL=https://provider.example.test/attribution
 
 The adapter accepts only HTTPS templates containing all three `{z}`, `{x}`, and
 `{y}` tokens, requires a valid HTTPS attribution URL, and exposes only the
-source id/config state through diagnostics. If `configured` is requested while
-the configuration is absent or invalid, the basemap deliberately enters the
-degraded path instead of silently falling back to OSM and producing a false
-provider-validation result. As with any client-rendered map, a configured key
-is delivered to the browser; it must therefore be a provider-authorized public
-browser key with domain restrictions, not a server secret.
+source id, config state, and `runtime`/`build` origin through diagnostics. The
+four runtime values switch atomically: if any runtime field is present, no
+missing field is backfilled from an older build-time provider. If `configured`
+is requested while the runtime group is partial, absent, or invalid, the
+basemap deliberately enters the degraded path instead of silently falling back
+to OSM and producing a false provider-validation result. The service worker
+also keeps `/runtime-env.js` network-only. As with any client-rendered map, a
+configured key is delivered to the browser; it must therefore be a
+provider-authorized public browser key with domain restrictions, not a server
+secret.
 
 ## Local performance evidence
 
@@ -408,6 +415,18 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   remaining location name at 28 characters; the accessible selection list and
   preview keep the full source text. This reduced KJFK label obstruction with
   zero horizontal overflow without weakening the selection contract.
+- Configured raster providers now use the existing no-store Cloudflare
+  `/runtime-env.js` control plane instead of depending only on build-time Vite
+  values. A page reload can therefore adopt changed Worker bindings without an
+  application-bundle release. The four provider fields switch as one group;
+  partial runtime input cannot combine with an older embedded source. A local
+  no-key OSM smoke source proved `origin=runtime`, 25/25 tiles loaded, zero
+  failures, correct attribution, and zero horizontal overflow. A deliberate
+  one-field runtime input proved the opposite path: `configured-unavailable`,
+  25/25 failed, degraded basemap, and live aircraft still visible. Restoring
+  the empty local runtime file returned default OSM to 25/25 ready while the
+  explicit configured entry remained honestly degraded. This validates the
+  runtime control/failure boundary only; it is not a licensed-provider trial.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

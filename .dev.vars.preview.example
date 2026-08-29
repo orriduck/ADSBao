@@ -3,3 +3,10 @@ ADSBAO_SERVICE_ORIGIN="http://localhost:8082"
 VITE_NEW_RELIC_ACCOUNT_ID=""
 VITE_NEW_RELIC_BROWSER_APP_ID=""
 VITE_NEW_RELIC_BROWSER_LICENSE_KEY=""
+
+# Optional Three+OSM POC browser-visible raster provider. Values are emitted
+# through /runtime-env.js; use only a provider-authorized public browser key.
+VITE_THREE_OSM_RASTER_SOURCE_ID=""
+VITE_THREE_OSM_RASTER_URL_TEMPLATE=""
+VITE_THREE_OSM_RASTER_ATTRIBUTION=""
+VITE_THREE_OSM_RASTER_ATTRIBUTION_URL=""

@@ -11,6 +11,10 @@ import {
   shouldPrecacheViteChunk,
 } from "./src/features/app-shell/pwaCachePolicy";
 import { buildCloudflareHeadersFile } from "./src/config/securityHeaders";
+import {
+  ADSBAO_OFFLINE_TILE_RUNTIME_ENV,
+  buildRuntimeEnvAssignment,
+} from "./src/platform/env/runtimeEnv";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("./package.json", import.meta.url), "utf8"),
@@ -168,13 +172,16 @@ function buildAdsbaoServiceWorkerSource({
   cacheName: string;
   precacheUrls: string[];
 }) {
+  const runtimeEnvFallback = buildRuntimeEnvAssignment(
+    ADSBAO_OFFLINE_TILE_RUNTIME_ENV,
+  );
   return `const CACHE_NAME = ${JSON.stringify(cacheName)};
 const CACHE_PREFIX = "adsbao-static-";
 const PRECACHE_URLS = ${JSON.stringify(precacheUrls, null, 2)};
 const OFFLINE_NAVIGATION_PATHS = ${JSON.stringify(ADSBAO_OFFLINE_NAVIGATION_PATHS)};
 const NETWORK_ONLY_PATHS = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PATHS)};
 const NETWORK_ONLY_PREFIXES = ${JSON.stringify(ADSBAO_NETWORK_ONLY_PREFIXES)};
-const RUNTIME_ENV_FALLBACK = "window.__ADSBAO_ENV__ = Object.assign({}, window.__ADSBAO_ENV__, {});\\n";
+const RUNTIME_ENV_FALLBACK = ${JSON.stringify(runtimeEnvFallback)};
 
 function cleanNavigationPath(pathname) {
   return pathname.replace(/\\/+$/, "") || "/";
