@@ -174,6 +174,11 @@ export default function AirportMap({
   const threeOsmPocEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("threeOsmPoc") === "1";
+  const threeOsmSoakEnabled =
+    threeOsmPocEnabled &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("threeOsmDebug") === "1" &&
+    new URLSearchParams(window.location.search).get("threeOsmSoak") === "1";
   const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
@@ -192,6 +197,10 @@ export default function AirportMap({
   viewModeRef.current = viewMode;
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [threeOsmPocReady, setThreeOsmPocReady] = useState(false);
+  const [threeOsmSoakState, setThreeOsmSoakState] = useState<{
+    viewMode: "2d" | "3d";
+    switches: number;
+  }>({ viewMode: "2d", switches: 0 });
   const [visualContentReady, setVisualContentReady] = useState(false);
   const [initialVisualReady, setInitialVisualReady] = useState(false);
   const [deferredFocalCutoffReached, setDeferredFocalCutoffReached] =
@@ -203,6 +212,20 @@ export default function AirportMap({
   });
   const [currentTheme, setCurrentTheme] = useState(() => resolveCurrentTheme());
   const compactRunwayAnnotations = Number(zoom) <= AIRPORT_MAP_ZOOM.approach;
+  const threeOsmPocViewMode = threeOsmSoakEnabled
+    ? threeOsmSoakState.viewMode
+    : viewMode;
+
+  useEffect(() => {
+    if (!threeOsmSoakEnabled) return undefined;
+    const interval = window.setInterval(() => {
+      setThreeOsmSoakState((current) => ({
+        viewMode: current.viewMode === "2d" ? "3d" : "2d",
+        switches: current.switches + 1,
+      }));
+    }, 7_000);
+    return () => window.clearInterval(interval);
+  }, [threeOsmSoakEnabled]);
   const mapInteraction = useMemo(
     () => resolveAirportMapInteraction(mapInteractionMode),
     [mapInteractionMode],
@@ -1053,7 +1076,8 @@ export default function AirportMap({
             <ThreeOsmMapPoc
               center={focalCenter || initialCenter}
               zoom={zoom}
-              viewMode={viewMode}
+              viewMode={threeOsmPocViewMode}
+              soakModeSwitches={threeOsmSoakState.switches}
               aircraft={visibleAircraft}
               airportCode={focalAirportDisplayCode}
               nearbyAirports={nearbyAirportLayerDisplay.airports}

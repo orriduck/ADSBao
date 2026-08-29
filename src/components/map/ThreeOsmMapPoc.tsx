@@ -50,6 +50,7 @@ type ThreeOsmPocProps = {
   center?: { lat?: unknown; lon?: unknown } | null;
   zoom?: unknown;
   viewMode?: CameraMode;
+  soakModeSwitches?: number;
   aircraft?: Array<Record<string, any>>;
   airportCode?: string;
   nearbyAirports?: Array<Record<string, any>>;
@@ -104,6 +105,57 @@ type TrafficRenderItem = {
 };
 
 type BasemapState = "loading" | "ready" | "partial" | "degraded";
+type DebugLayerMode = "all" | "basemap" | "context" | "traffic" | "flight";
+
+const DEBUG_LAYER_MODES: DebugLayerMode[] = [
+  "all",
+  "basemap",
+  "context",
+  "traffic",
+  "flight",
+];
+
+function resolveDebugLayerMode(value: string | null): DebugLayerMode {
+  return DEBUG_LAYER_MODES.includes(value as DebugLayerMode)
+    ? (value as DebugLayerMode)
+    : "all";
+}
+
+function isDebugLayerVisible(
+  mode: DebugLayerMode,
+  layer: Exclude<DebugLayerMode, "all">,
+) {
+  return mode === "all" || mode === layer;
+}
+
+function configureThreeOsmControls({
+  controls,
+  camera,
+  viewMode,
+  allowsMapInteraction,
+}: {
+  controls: OrbitControls;
+  camera: THREE.OrthographicCamera | THREE.PerspectiveCamera;
+  viewMode: CameraMode;
+  allowsMapInteraction: boolean;
+}) {
+  controls.object = camera;
+  controls.target.set(0, 0, 0);
+  controls.enableDamping = false;
+  controls.enableRotate = viewMode === "3d" && allowsMapInteraction;
+  controls.enablePan = allowsMapInteraction;
+  controls.enableZoom = allowsMapInteraction;
+  controls.screenSpacePanning = viewMode === "2d";
+  controls.minDistance = 180;
+  controls.maxDistance = 1_600;
+  controls.minZoom = 0.5;
+  controls.maxZoom = 4;
+  controls.maxPolarAngle = Math.PI / 2.15;
+  controls.touches.ONE = THREE.TOUCH.PAN;
+  controls.touches.TWO =
+    viewMode === "3d" ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
+  controls.update();
+}
 
 function disposeObject(object: THREE.Object3D | null) {
   if (!object) return;
@@ -153,6 +205,7 @@ export default function ThreeOsmMapPoc({
   center = null,
   zoom = 10,
   viewMode = "2d",
+  soakModeSwitches = 0,
   aircraft = [],
   airportCode = "",
   nearbyAirports = [],
@@ -199,6 +252,8 @@ export default function ThreeOsmMapPoc({
   const perspectiveCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const activeCameraRef = useRef<THREE.Camera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const controlsCreateCountRef = useRef(0);
+  const controlsCameraSwapCountRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
@@ -225,6 +280,15 @@ export default function ThreeOsmMapPoc({
   );
   const [basemapState, setBasemapState] = useState<BasemapState>("loading");
   const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
+  const [debugLayerMode, setDebugLayerMode] = useState<DebugLayerMode>(() =>
+    typeof window === "undefined"
+      ? "all"
+      : resolveDebugLayerMode(
+          new URLSearchParams(window.location.search).get("threeOsmLayers"),
+        ),
+  );
+  const debugLayerModeRef = useRef(debugLayerMode);
+  debugLayerModeRef.current = debugLayerMode;
   const debugEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
@@ -340,6 +404,24 @@ export default function ThreeOsmMapPoc({
       powerPreference: "high-performance",
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const webGlContext = renderer.getContext();
+    const webGlDebugInfo = webGlContext.getExtension(
+      "WEBGL_debug_renderer_info",
+    );
+    root.dataset.pocWebglVersion = renderer.capabilities.isWebGL2
+      ? "webgl2"
+      : "webgl1";
+    root.dataset.pocWebglRenderer = webGlDebugInfo
+      ? String(
+          webGlContext.getParameter(webGlDebugInfo.UNMASKED_RENDERER_WEBGL),
+        )
+      : "unavailable";
+    root.dataset.pocWebglVendor = webGlDebugInfo
+      ? String(webGlContext.getParameter(webGlDebugInfo.UNMASKED_VENDOR_WEBGL))
+      : "unavailable";
+    root.dataset.pocMaxTextureSize = String(
+      renderer.capabilities.maxTextureSize,
+    );
     root.dataset.pocContextLossExtension = renderer.extensions.has(
       "WEBGL_lose_context",
     )
@@ -376,6 +458,16 @@ export default function ThreeOsmMapPoc({
     rendererRef.current = renderer;
 
     let frameId = 0;
+    let renderCount = 0;
+    let maxRenderDurationMs = 0;
+    let maxTrafficRenderDurationMs = 0;
+    let maxSceneRenderDurationMs = 0;
+    let maxLabelRenderDurationMs = 0;
+    let slowSceneRenderCount = 0;
+    let longTaskCount = 0;
+    let longTaskTotalMs = 0;
+    let longTaskMaxMs = 0;
+    let longTaskObserver: PerformanceObserver | null = null;
     const projected = new THREE.Vector3();
     const instanceMatrix = new THREE.Matrix4();
     const instanceScale = new THREE.Vector3();
@@ -449,7 +541,15 @@ export default function ThreeOsmMapPoc({
       const pixelRatio = Math.max(1, labelCanvas.width / width);
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
-      const labels = [...contextLabelsRef.current, ...trafficLabelsRef.current];
+      const debugMode = debugLayerModeRef.current;
+      const labels = [
+        ...(isDebugLayerVisible(debugMode, "context")
+          ? contextLabelsRef.current
+          : []),
+        ...(isDebugLayerVisible(debugMode, "traffic")
+          ? trafficLabelsRef.current
+          : []),
+      ];
       const styleById = new Map<string, ThreeOsmSceneLabel>();
       const candidates = labels.flatMap((label) => {
         projected.copy(label.position).project(camera);
@@ -536,17 +636,73 @@ export default function ThreeOsmMapPoc({
       frameId = 0;
       const camera = activeCameraRef.current;
       if (!camera) return;
+      const startedAt = performance.now();
       resizeTrafficInstances(camera);
+      const trafficReadyAt = performance.now();
       renderer.render(scene, camera);
+      const sceneRenderedAt = performance.now();
       drawLabels(camera);
+      const renderDurationMs = performance.now() - startedAt;
+      const trafficRenderDurationMs = trafficReadyAt - startedAt;
+      const sceneRenderDurationMs = sceneRenderedAt - trafficReadyAt;
+      const labelRenderDurationMs = performance.now() - sceneRenderedAt;
+      renderCount += 1;
+      maxRenderDurationMs = Math.max(maxRenderDurationMs, renderDurationMs);
+      maxTrafficRenderDurationMs = Math.max(
+        maxTrafficRenderDurationMs,
+        trafficRenderDurationMs,
+      );
+      maxSceneRenderDurationMs = Math.max(
+        maxSceneRenderDurationMs,
+        sceneRenderDurationMs,
+      );
+      maxLabelRenderDurationMs = Math.max(
+        maxLabelRenderDurationMs,
+        labelRenderDurationMs,
+      );
+      if (sceneRenderDurationMs >= 50) slowSceneRenderCount += 1;
       root.dataset.pocDrawCalls = String(renderer.info.render.calls);
       root.dataset.pocTriangles = String(renderer.info.render.triangles);
       root.dataset.pocTextures = String(renderer.info.memory.textures);
+      root.dataset.pocGeometries = String(renderer.info.memory.geometries);
+      root.dataset.pocPrograms = String(renderer.info.programs?.length || 0);
+      root.dataset.pocRenderCount = String(renderCount);
+      root.dataset.pocRenderLastMs = renderDurationMs.toFixed(2);
+      root.dataset.pocRenderMaxMs = maxRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderTrafficMs = trafficRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderTrafficMaxMs = maxTrafficRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderSceneMs = sceneRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderSceneMaxMs = maxSceneRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderLabelsMs = labelRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderLabelsMaxMs = maxLabelRenderDurationMs.toFixed(2);
+      root.dataset.pocRenderSlowSceneCount = String(slowSceneRenderCount);
     };
     const requestRender = () => {
       if (!frameId) frameId = window.requestAnimationFrame(render);
     };
     requestRenderRef.current = requestRender;
+
+    root.dataset.pocLongTaskSupport = PerformanceObserver.supportedEntryTypes?.includes(
+      "longtask",
+    )
+      ? "available"
+      : "unavailable";
+    root.dataset.pocLongTaskCount = "0";
+    root.dataset.pocLongTaskTotalMs = "0.00";
+    root.dataset.pocLongTaskMaxMs = "0.00";
+    if (root.dataset.pocLongTaskSupport === "available") {
+      longTaskObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          longTaskCount += 1;
+          longTaskTotalMs += entry.duration;
+          longTaskMaxMs = Math.max(longTaskMaxMs, entry.duration);
+        }
+        root.dataset.pocLongTaskCount = String(longTaskCount);
+        root.dataset.pocLongTaskTotalMs = longTaskTotalMs.toFixed(2);
+        root.dataset.pocLongTaskMaxMs = longTaskMaxMs.toFixed(2);
+      });
+      longTaskObserver.observe({ type: "longtask" });
+    }
 
     const resize = () => {
       const width = Math.max(1, root.clientWidth);
@@ -576,6 +732,24 @@ export default function ThreeOsmMapPoc({
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(root);
     resize();
+
+    const handleVisibilityChange = () => {
+      root.dataset.pocVisibility = document.visibilityState;
+      if (document.visibilityState === "hidden") {
+        root.dataset.pocBackgroundCycles = String(
+          Number(root.dataset.pocBackgroundCycles || 0) + 1,
+        );
+        return;
+      }
+      root.dataset.pocForegroundRestores = String(
+        Number(root.dataset.pocForegroundRestores || 0) + 1,
+      );
+      requestRender();
+    };
+    root.dataset.pocVisibility = document.visibilityState;
+    root.dataset.pocBackgroundCycles = "0";
+    root.dataset.pocForegroundRestores = "0";
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -646,9 +820,15 @@ export default function ThreeOsmMapPoc({
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       canvas.removeEventListener("webglcontextrestored", handleContextRestored);
       resizeObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      longTaskObserver?.disconnect();
       if (frameId) window.cancelAnimationFrame(frameId);
-      controlsRef.current?.dispose();
-      controlsRef.current = null;
+      const controls = controlsRef.current;
+      if (controls) {
+        controls.removeEventListener("change", requestRender);
+        controls.dispose();
+        controlsRef.current = null;
+      }
       disposeTileGroup(tileGroupRef.current);
       disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
@@ -691,6 +871,7 @@ export default function ThreeOsmMapPoc({
     disposeTileGroup(tileGroupRef.current);
     const group = new THREE.Group();
     group.name = "osm-raster-tile-grid";
+    group.visible = isDebugLayerVisible(debugLayerMode, "basemap");
     tileGroupRef.current = group;
     scene.add(group);
 
@@ -815,6 +996,7 @@ export default function ThreeOsmMapPoc({
     };
   }, [
     activeTileSource,
+    debugLayerMode,
     sceneCenterLat,
     sceneCenterLon,
     theme,
@@ -833,7 +1015,6 @@ export default function ThreeOsmMapPoc({
     ) {
       return;
     }
-
     disposeObject(contextGroupRef.current);
     const contextScene = createThreeOsmContextScene({
       airportCode,
@@ -858,6 +1039,7 @@ export default function ThreeOsmMapPoc({
       theme,
     });
     const { group } = contextScene;
+    group.visible = isDebugLayerVisible(debugLayerMode, "context");
     contextGroupRef.current = group;
     scene.add(group);
     contextLabelsRef.current = contextScene.labels;
@@ -900,6 +1082,7 @@ export default function ThreeOsmMapPoc({
     airspaceFeatures,
     airportCode,
     candidateWatchingSpots,
+    debugLayerMode,
     sceneCenterLat,
     sceneCenterLon,
     navaidCounts,
@@ -930,9 +1113,12 @@ export default function ThreeOsmMapPoc({
       return;
     }
 
+    const trafficUpdateStartedAt = performance.now();
+
     disposeObject(trafficGroupRef.current);
     const group = new THREE.Group();
     group.name = "three-osm-operational-traffic";
+    group.visible = isDebugLayerVisible(debugLayerMode, "traffic");
     trafficGroupRef.current = group;
     scene.add(group);
 
@@ -1105,10 +1291,23 @@ export default function ThreeOsmMapPoc({
       "data-poc-aircraft-visual",
       "instanced-silhouette-v2",
     );
+    const trafficUpdateDurationMs = performance.now() - trafficUpdateStartedAt;
+    const root = rootRef.current;
+    if (root) {
+      root.dataset.pocTrafficUpdateLastMs = trafficUpdateDurationMs.toFixed(2);
+      root.dataset.pocTrafficUpdateMaxMs = Math.max(
+        Number(root.dataset.pocTrafficUpdateMaxMs || 0),
+        trafficUpdateDurationMs,
+      ).toFixed(2);
+      root.dataset.pocTrafficRebuilds = String(
+        Number(root.dataset.pocTrafficRebuilds || 0) + 1,
+      );
+    }
     requestRenderRef.current();
   }, [
     sceneCenterLat,
     sceneCenterLon,
+    debugLayerMode,
     focalAircraftId,
     selectedAircraftId,
     showCallsigns,
@@ -1131,6 +1330,7 @@ export default function ThreeOsmMapPoc({
       theme,
     });
     traceGroupRef.current = traceScene.group;
+    traceScene.group.visible = isDebugLayerVisible(debugLayerMode, "flight");
     scene.add(traceScene.group);
     rootRef.current?.setAttribute("data-poc-traces", String(traceScene.traceCount));
     rootRef.current?.setAttribute(
@@ -1143,7 +1343,7 @@ export default function ThreeOsmMapPoc({
       disposeObject(traceScene.group);
       if (traceGroupRef.current === traceScene.group) traceGroupRef.current = null;
     };
-  }, [sceneCenterLat, theme, tileCenter, traces]);
+  }, [debugLayerMode, sceneCenterLat, theme, tileCenter, traces]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -1157,6 +1357,7 @@ export default function ThreeOsmMapPoc({
       theme,
     });
     routeGroupRef.current = routeScene.group;
+    routeScene.group.visible = isDebugLayerVisible(debugLayerMode, "flight");
     scene.add(routeScene.group);
     rootRef.current?.setAttribute(
       "data-poc-route-points",
@@ -1168,7 +1369,7 @@ export default function ThreeOsmMapPoc({
       disposeObject(routeScene.group);
       if (routeGroupRef.current === routeScene.group) routeGroupRef.current = null;
     };
-  }, [routePath, sceneCenterLat, theme, tileCenter]);
+  }, [debugLayerMode, routePath, sceneCenterLat, theme, tileCenter]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1177,7 +1378,6 @@ export default function ThreeOsmMapPoc({
     const perspectiveCamera = perspectiveCameraRef.current;
     if (!canvas || !root || !orthographicCamera || !perspectiveCamera) return;
 
-    controlsRef.current?.dispose();
     const camera = viewMode === "3d" ? perspectiveCamera : orthographicCamera;
     activeCameraRef.current = camera;
 
@@ -1193,34 +1393,29 @@ export default function ThreeOsmMapPoc({
       orthographicCamera.updateProjectionMatrix();
     }
 
-    const controls = new OrbitControls(camera, canvas);
-    controls.target.set(0, 0, 0);
-    controls.enableDamping = false;
-    controls.enableRotate = viewMode === "3d" && allowsMapInteraction;
-    controls.enablePan = allowsMapInteraction;
-    controls.enableZoom = allowsMapInteraction;
-    controls.screenSpacePanning = viewMode === "2d";
-    controls.minDistance = 180;
-    controls.maxDistance = 1_600;
-    controls.minZoom = 0.5;
-    controls.maxZoom = 4;
-    controls.maxPolarAngle = Math.PI / 2.15;
-    controls.touches.ONE = THREE.TOUCH.PAN;
-    controls.touches.TWO =
-      viewMode === "3d" ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
-    controls.addEventListener("change", requestRenderRef.current);
-    controls.update();
-    controlsRef.current = controls;
+    let controls = controlsRef.current;
+    if (!controls) {
+      controls = new OrbitControls(camera, canvas);
+      controls.addEventListener("change", requestRenderRef.current);
+      controlsRef.current = controls;
+      controlsCreateCountRef.current += 1;
+    } else {
+      controlsCameraSwapCountRef.current += 1;
+    }
+    configureThreeOsmControls({
+      controls,
+      camera,
+      viewMode,
+      allowsMapInteraction,
+    });
     root.dataset.pocCamera = viewMode === "3d" ? "perspective" : "orthographic";
+    root.dataset.pocControlsCreates = String(controlsCreateCountRef.current);
+    root.dataset.pocControlsCameraSwaps = String(
+      controlsCameraSwapCountRef.current,
+    );
     root.dataset.pocInteraction = allowsMapInteraction ? "bounded" : "locked";
     requestRenderRef.current();
-
-    return () => {
-      controls.removeEventListener("change", requestRenderRef.current);
-      controls.dispose();
-      if (controlsRef.current === controls) controlsRef.current = null;
-    };
-  }, [allowsMapInteraction, viewMode]);
+  }, [allowsMapInteraction, theme, viewMode]);
 
   useThreeOsmCameraFraming({
     rootRef,
@@ -1264,6 +1459,9 @@ export default function ThreeOsmMapPoc({
       data-poc-engine="three-osm"
       data-poc-mode={viewMode}
       data-poc-debug={debugEnabled ? "true" : "false"}
+      data-poc-debug-layer={debugLayerMode}
+      data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
+      data-poc-soak-mode-switches={soakModeSwitches}
       data-poc-tile-source={activeTileSource.id}
       data-poc-basemap={basemapState}
       data-poc-runtime-id={runtimeIdRef.current}
@@ -1329,14 +1527,28 @@ export default function ThreeOsmMapPoc({
           </span>
         ) : null}
         {debugEnabled ? (
-          <button
-            type="button"
-            className="pointer-events-auto mt-2 border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
-            aria-label="Simulate WebGL context loss"
-            onClick={handleSimulateContextRecovery}
-          >
-            Simulate GPU reset
-          </button>
+          <div className="pointer-events-auto mt-2 flex max-w-56 flex-wrap gap-1 normal-case tracking-normal">
+            {DEBUG_LAYER_MODES.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"
+                data-active={debugLayerMode === mode}
+                aria-label={`Show ${mode} POC layers`}
+                onClick={() => setDebugLayerMode(mode)}
+              >
+                {mode}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
+              aria-label="Simulate WebGL context loss"
+              onClick={handleSimulateContextRecovery}
+            >
+              Simulate GPU reset
+            </button>
+          </div>
         ) : null}
       </div>
 

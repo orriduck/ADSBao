@@ -32,6 +32,12 @@ POC-only recovery controls are available with `&threeOsmDebug=1`. Add
 same-origin source and verify the degraded-basemap path without changing the
 operational overlays.
 
+Add `&threeOsmSoak=1` alongside Debug Mode to switch only the POC camera between
+2D and 3D every seven seconds. The harness does not write the user's saved map
+mode and exists only to support long-session resource and render diagnostics.
+Debug Mode can also isolate `all`, `basemap`, `context`, `traffic`, or `flight`
+scene groups without replacing the renderer or camera.
+
 The query flag replaces both visible map modes with one Three.js scene:
 
 - 2D uses `OrthographicCamera`.
@@ -52,14 +58,18 @@ The query flag replaces both visible map modes with one Three.js scene:
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
 - Rendering is event-driven: resize, camera interaction, live traffic changes,
   or tile completion request a frame. There is no permanent animation loop.
+- Orthographic and perspective modes reuse one `OrbitControls` instance and
+  retarget it to the active camera, avoiding listener/allocation churn during
+  repeated mode changes.
 - WebGL context loss drops map readiness without discarding the bounded CPU-side
   tile cache; restoration re-uploads retained textures/materials and requests a
   fresh frame.
 - Failed tiles remain on a neutral plane while aircraft, labels, runways, and
   other operational geometry continue rendering. Error entries retry at a
   bounded 30-second cadence rather than on every render or interaction.
-- The map exposes draw-call, triangle, texture, tile, aircraft, pixel-ratio,
-  and camera-profile diagnostics as `data-poc-*` attributes.
+- The map exposes draw-call, triangle, texture, geometry, shader-program,
+  render-duration/count, Long Task, background/foreground, tile, aircraft,
+  pixel-ratio, and camera-profile diagnostics as `data-poc-*` attributes.
 
 ## Implementation order
 
@@ -130,6 +140,71 @@ tile source adapter + bounded LRU cache
 
 The scene model, not React components or a map library, becomes the ownership
 boundary. Camera changes do not rebuild aircraft, traces, or tile ownership.
+
+## Tile-provider direction
+
+The current `tile.openstreetmap.org` source remains development-only. The
+[OSMF tile policy](https://operations.osmfoundation.org/policies/tiles/) calls
+the service best-effort with no SLA, prohibits bulk download/prefetch, requires
+cache and attribution compliance, and explicitly recommends a switchable URL.
+The POC's bounded current-view requests are appropriate for research, but the
+community service is not a production availability contract.
+
+The next provider step should preserve the renderer experiment rather than add
+a vector-map engine at the same time:
+
+1. Evaluate a licensed 256px raster XYZ source through the existing adapter.
+   [MapTiler Cloud](https://www.maptiler.com/cloud/pricing/) is a concrete fit:
+   its non-commercial Free plan currently includes 100,000 requests/month and
+   standard raster XYZ tiles, while third-party renderers are billed per tile.
+   The free service pauses at quota and has no SLA, so it is suitable for a
+   limited branch trial, not an unmeasured production default. Its
+   [terms](https://www.maptiler.com/terms/cloud/) require direct end-user
+   requests unless proxy use is separately approved.
+2. Keep self-hosted PMTiles on Cloudflare R2 as the control-oriented follow-up,
+   not the immediate raster substitution. The
+   [Protomaps planet archive](https://docs.protomaps.com/basemaps/downloads) is
+   currently roughly 120 GB and is a vector basemap; adopting it would also
+   require the MVT/style/glyph/collision work deliberately excluded from this
+   POC. Protomaps recommends R2 for PMTiles range requests, and
+   [R2 pricing](https://developers.cloudflare.com/r2/pricing/) has no egress
+   charge but still meters storage and reads.
+
+No provider credential is committed or requested by the POC. A browser key,
+domain restriction, quota alert, and provider-specific attribution must be in
+place before a hosted source is exercised.
+
+## Local performance evidence
+
+The current branch has a measured mobile-size browser baseline, but not a real
+phone acceptance result. At a 390×844 viewport with DPR capped to 1.25, Chrome
+reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
+
+- A 20 minute 16 second clean camera soak completed 174 automatic 2D/3D
+  switches and 928 renders in one runtime. Nine tiles stayed loaded; GPU
+  resources stayed at 7 textures, 8 geometries, and 9 shader programs while
+  live traffic varied around the 220-target cap.
+- Three scene submissions exceeded 50 ms during one JavaScript garbage
+  collection cycle around minute 16; the maximum was 205.6 ms and those three
+  Long Tasks totaled 421 ms. Heap samples oscillated rather than growing
+  monotonically, including a 194.1 MB to 173.5 MB collection. Current canvas
+  listener inspection remained fixed at 11 listeners.
+- Debug isolation showed the raster basemap at approximately 0.1 ms, traffic at
+  6.9 ms, context at 14 ms, and the recombined scene at 32.3 ms in the sampled
+  steady frames, with no Long Tasks in those isolation windows.
+- `OrbitControls` now survives camera changes. A follow-up five-minute run made
+  42 camera retargets and 225 renders with zero new controls instances, slow
+  scenes, Long Tasks, or console errors. That shorter run did not include a
+  complete heap collection cycle, so it proves allocation-path removal but not
+  a reduced long-session memory maximum.
+- Same-size production KBOS remains the semantic visual baseline: it currently
+  has more mature type-aware aircraft, airspace, and watching-spot context,
+  while the POC's larger silhouettes and bounded label collision are easier to
+  scan. Different live context payloads prevent a parity claim.
+
+This browser evidence clears the next architecture iteration, not the real
+device gate. A 20-minute iPhone-class run with background/foreground cycles,
+touch gestures, and device memory/thermal observation is still required.
 
 ## What this can simplify
 
