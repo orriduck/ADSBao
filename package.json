@@ -17,6 +17,8 @@
     "debug:device": "tsx scripts/local-debug.ts --service --device",
     "debug:device:status": "tsx scripts/local-debug.ts --service --device --no-start",
     "debug:device:configured": "tsx scripts/local-debug.ts --service --device --configured-tiles --restart",
+    "debug:device:report": "tsx scripts/verify-three-osm-acceptance.ts",
+    "debug:device:report:configured": "tsx scripts/verify-three-osm-acceptance.ts --configured-tiles",
     "cloudflare:check": "pnpm build && wrangler deploy --env=\"\" --dry-run && wrangler deploy --env preview --dry-run",
     "cloudflare:dev": "pnpm build && CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false wrangler dev --env preview --port 8787",
     "cloudflare:deploy:preview": "pnpm build && wrangler deploy --env preview",

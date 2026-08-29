@@ -59,6 +59,12 @@ URL. A failed LAN probe is a real precondition failure: resolve macOS Local
 Network/firewall access or Wi-Fi client isolation rather than bypassing it with
 an unrequested public tunnel.
 
+After the phone exports its JSON report, verify the evidence by recomputing the
+eleven gates with `pnpm debug:device:report -- <report.json>`. For the licensed
+raster gate, use `pnpm debug:device:report:configured -- <report.json>` so an
+otherwise passing default-OSM run cannot satisfy the provider requirement. The
+verifier must not print the report body or browser-visible provider values.
+
 ## Product constraints
 
 - Route lookup is one private-service contract; no browser-side provider

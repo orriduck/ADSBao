@@ -1,4 +1,6 @@
 export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 1;
+export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
+  "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
 export const THREE_OSM_ACCEPTANCE_MIN_TOUCH_INTERACTIONS = 10;
 export const THREE_OSM_ACCEPTANCE_MIN_MODE_SWITCHES = 150;
@@ -125,6 +127,87 @@ export type ThreeOsmAcceptanceEvaluation = {
   gates: ThreeOsmAcceptanceGate[];
 };
 
+const ACCEPTANCE_SESSION_NUMBER_FIELDS = [
+  "startedAtMs",
+  "updatedAtMs",
+  "touchInteractions",
+  "backgroundCycles",
+  "foregroundRestores",
+  "modeSwitchesMax",
+  "renderCountMax",
+  "renderSceneMaxMs",
+  "slowSceneCountMax",
+  "longTaskCountMax",
+  "longTaskTotalMsMax",
+  "longTaskMaxMs",
+  "texturesMax",
+  "geometriesMax",
+  "programsMax",
+  "tileCacheSizeMax",
+  "tilesRequestedMax",
+  "tilesLoadedMax",
+  "tilesFailedMax",
+  "contextLossesMax",
+  "contextRestoresMax",
+] as const;
+
+const ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS = [
+  "thermalAssessedAtMs",
+  "foregroundRecoveryLastMs",
+  "foregroundRecoveryMaxMs",
+  "usedJsHeapInitialBytes",
+  "usedJsHeapMinBytes",
+  "usedJsHeapMaxBytes",
+  "usedJsHeapLastBytes",
+] as const;
+
+const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
+  "touchInteractions",
+  "backgroundCycles",
+  "foregroundRestores",
+  "modeSwitchesMax",
+  "renderCountMax",
+  "slowSceneCountMax",
+  "longTaskCountMax",
+  "texturesMax",
+  "geometriesMax",
+  "programsMax",
+  "tileCacheSizeMax",
+  "tilesRequestedMax",
+  "tilesLoadedMax",
+  "tilesFailedMax",
+  "contextLossesMax",
+  "contextRestoresMax",
+] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function isNonNegativeFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isNullableNonNegativeFiniteNumber(value: unknown) {
+  return value === null || isNonNegativeFiniteNumber(value);
+}
+
+function isBoundedPlainText(value: unknown, maxLength: number) {
+  if (typeof value !== "string" || value.length > maxLength) return false;
+  return [...value].every((character) => {
+    const codePoint = character.codePointAt(0) || 0;
+    return codePoint > 31 && codePoint !== 127;
+  });
+}
+
+function isUniqueStringArray(value: unknown, allowEmpty: boolean) {
+  if (!Array.isArray(value) || (!allowEmpty && value.length === 0)) return false;
+  if (!value.every((item) => typeof item === "string" && item.length > 0)) {
+    return false;
+  }
+  return new Set(value).size === value.length;
+}
+
 function finiteNumber(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -191,15 +274,63 @@ export function createThreeOsmAcceptanceSession(input: {
 export function isThreeOsmAcceptanceSession(
   value: unknown,
 ): value is ThreeOsmAcceptanceSession {
-  if (!value || typeof value !== "object") return false;
-  const session = value as Partial<ThreeOsmAcceptanceSession>;
+  if (!isRecord(value)) return false;
+  const session = value;
+  const device = session.device;
+  const latest = session.latest;
+  if (!isRecord(device) || !isRecord(latest)) return false;
+
   return (
     session.schemaVersion === THREE_OSM_ACCEPTANCE_SCHEMA_VERSION &&
-    typeof session.sessionId === "string" &&
-    typeof session.route === "string" &&
-    Number.isFinite(session.startedAtMs) &&
-    Array.isArray(session.documentBootIds) &&
-    Array.isArray(session.runtimeIds)
+    typeof session.sessionId === "string" && session.sessionId.length > 0 &&
+    typeof session.route === "string" && session.route.startsWith("/") &&
+    ACCEPTANCE_SESSION_NUMBER_FIELDS.every((field) =>
+      isNonNegativeFiniteNumber(session[field]),
+    ) &&
+    ACCEPTANCE_SESSION_INTEGER_FIELDS.every((field) =>
+      Number.isInteger(session[field]),
+    ) &&
+    Number(session.updatedAtMs) >= Number(session.startedAtMs) &&
+    ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS.every((field) =>
+      isNullableNonNegativeFiniteNumber(session[field]),
+    ) &&
+    isUniqueStringArray(session.documentBootIds, false) &&
+    isUniqueStringArray(session.runtimeIds, true) &&
+    (session.physicalDeviceAssessment === "unreviewed" ||
+      session.physicalDeviceAssessment === "confirmed") &&
+    (session.thermalAssessment === "unreviewed" ||
+      session.thermalAssessment === "acceptable" ||
+      session.thermalAssessment === "uncomfortable") &&
+    isBoundedPlainText(device.userAgent, 1_000) &&
+    isBoundedPlainText(device.platform, 80) &&
+    isNonNegativeFiniteNumber(device.maxTouchPoints) &&
+    Number.isInteger(device.maxTouchPoints) &&
+    isNonNegativeFiniteNumber(device.viewportWidth) &&
+    Number(device.viewportWidth) > 0 &&
+    isNonNegativeFiniteNumber(device.viewportHeight) &&
+    Number(device.viewportHeight) > 0 &&
+    isNonNegativeFiniteNumber(device.devicePixelRatio) &&
+    Number(device.devicePixelRatio) > 0 &&
+    typeof device.physicalIPhoneCandidate === "boolean" &&
+    device.physicalIPhoneCandidate ===
+      (/iPhone/i.test(String(device.userAgent)) &&
+        Number(device.maxTouchPoints) > 0) &&
+    (latest.basemap === "loading" ||
+      latest.basemap === "ready" ||
+      latest.basemap === "partial" ||
+      latest.basemap === "degraded") &&
+    typeof latest.tileSource === "string" &&
+    /^[a-z0-9][a-z0-9-]{0,39}$/.test(latest.tileSource) &&
+    (latest.tileSourceOrigin === "unknown" ||
+      latest.tileSourceOrigin === "runtime" ||
+      latest.tileSourceOrigin === "build") &&
+    (latest.tileSourceConfig === "unknown" ||
+      latest.tileSourceConfig === "ready" ||
+      latest.tileSourceConfig === "missing" ||
+      latest.tileSourceConfig === "invalid") &&
+    (latest.visibility === "visible" ||
+      latest.visibility === "hidden" ||
+      latest.visibility === "prerender")
   );
 }
 
@@ -498,7 +629,7 @@ export function buildThreeOsmAcceptanceReport(
   nowMs: number,
 ) {
   return {
-    kind: "adsbao-three-osm-real-device-acceptance",
+    kind: THREE_OSM_ACCEPTANCE_REPORT_KIND,
     schemaVersion: THREE_OSM_ACCEPTANCE_SCHEMA_VERSION,
     generatedAt: new Date(nowMs).toISOString(),
     evaluation: evaluateThreeOsmAcceptanceSession(session, nowMs),

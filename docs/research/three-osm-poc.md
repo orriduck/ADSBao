@@ -73,6 +73,25 @@ and prints only their count—not their values or tile URL. Open only the emitte
 acceptance URL. On an insecure HTTP LAN origin, report sharing may fall back to
 downloading the JSON file; that does not change the eleven acceptance gates.
 
+Verify an exported report from the repository rather than trusting its saved
+verdict:
+
+```bash
+pnpm debug:device:report -- /path/to/adsbao-three-osm-acceptance-ID.json
+pnpm debug:device:report:configured -- /path/to/adsbao-three-osm-acceptance-ID.json
+```
+
+The first command recomputes all eleven gates from a structurally validated
+KBOS session and exits zero only for a passing report. The second additionally
+requires a ready, non-OSM configured provider from the runtime/build adapter;
+an OSM or configured-unavailable report remains structurally valid but cannot
+satisfy that extra requirement. Exported and recomputed evaluations must match,
+and the report timestamp must follow the final sample. The verifier prints only
+gate evidence and provider identity/state, never the report body, provider URL,
+or browser key. This makes the handoff reproducible; it cannot cryptographically
+prove physical possession, so the operator's explicit iPhone and thermal
+confirmations remain required evidence.
+
 The query flag replaces both visible map modes with one Three.js scene:
 
 - 2D uses `OrthographicCamera`.
