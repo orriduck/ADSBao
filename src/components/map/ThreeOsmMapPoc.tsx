@@ -12,6 +12,7 @@ import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFram
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
 import {
@@ -24,8 +25,8 @@ import {
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
+import { THREE_OSM_STANDARD_TILE_SOURCE } from "@/features/airport/map/threeOsmTileSource";
 import {
-  buildOsmRasterTileUrl,
   buildVisibleTileGrid,
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
@@ -81,6 +82,7 @@ type ThreeOsmPocProps = {
 };
 
 const MAX_AIRCRAFT = 220;
+const MAX_TILE_TEXTURES = 72;
 const AIRCRAFT_COLOR_DARK = 0xf0eee7;
 const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
 const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
@@ -113,6 +115,27 @@ function disposeObject(object: THREE.Object3D | null) {
       material.dispose?.();
     });
   });
+  object.removeFromParent();
+}
+
+function disposeTileGroup(object: THREE.Object3D | null) {
+  if (!object) return;
+  const geometries = new Set<THREE.BufferGeometry>();
+  object.traverse((child: any) => {
+    if (child.geometry) geometries.add(child.geometry);
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : child.material
+        ? [child.material]
+        : [];
+    materials.forEach(
+      (material: THREE.Material & { map?: THREE.Texture | null }) => {
+        material.map = null;
+        material.dispose();
+      },
+    );
+  });
+  geometries.forEach((geometry) => geometry.dispose());
   object.removeFromParent();
 }
 
@@ -175,6 +198,11 @@ export default function ThreeOsmMapPoc({
   const trafficGroupRef = useRef<THREE.Group | null>(null);
   const traceGroupRef = useRef<THREE.Group | null>(null);
   const routeGroupRef = useRef<THREE.Group | null>(null);
+  const tileTextureCacheRef = useRef<BoundedTileResourceCache<THREE.Texture> | null>(
+    null,
+  );
+  const tileCacheHitCountRef = useRef(0);
+  const tileCacheMissCountRef = useRef(0);
   const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficHaloMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
@@ -296,6 +324,27 @@ export default function ThreeOsmMapPoc({
       powerPreference: "high-performance",
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+    const maxAnisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    const tileTextureCache = new BoundedTileResourceCache<THREE.Texture>({
+      maxEntries: MAX_TILE_TEXTURES,
+      load: (url) =>
+        new Promise((resolve, reject) => {
+          loader.load(
+            url,
+            (texture) => {
+              texture.colorSpace = THREE.SRGBColorSpace;
+              texture.anisotropy = maxAnisotropy;
+              resolve(texture);
+            },
+            undefined,
+            reject,
+          );
+        }),
+      dispose: (texture) => texture.dispose(),
+    });
+    tileTextureCacheRef.current = tileTextureCache;
 
     const orthographicCamera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
     const perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 1, 6_000);
@@ -541,7 +590,7 @@ export default function ThreeOsmMapPoc({
       if (frameId) window.cancelAnimationFrame(frameId);
       controlsRef.current?.dispose();
       controlsRef.current = null;
-      disposeObject(tileGroupRef.current);
+      disposeTileGroup(tileGroupRef.current);
       disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
       disposeObject(traceGroupRef.current);
@@ -551,6 +600,10 @@ export default function ThreeOsmMapPoc({
       trafficGroupRef.current = null;
       traceGroupRef.current = null;
       routeGroupRef.current = null;
+      tileTextureCache.disposeAll();
+      if (tileTextureCacheRef.current === tileTextureCache) {
+        tileTextureCacheRef.current = null;
+      }
       trafficMeshRef.current = null;
       trafficHaloMeshRef.current = null;
       trafficHighlightMeshRef.current = null;
@@ -576,15 +629,14 @@ export default function ThreeOsmMapPoc({
       return undefined;
     }
 
-    disposeObject(tileGroupRef.current);
+    disposeTileGroup(tileGroupRef.current);
     const group = new THREE.Group();
     group.name = "osm-raster-tile-grid";
     tileGroupRef.current = group;
     scene.add(group);
 
-    const loader = new THREE.TextureLoader();
-    loader.setCrossOrigin("anonymous");
-    const maxAnisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+    const textureCache = tileTextureCacheRef.current;
+    if (!textureCache) return undefined;
     let disposed = false;
     let loadedCount = 0;
     let settledCount = 0;
@@ -597,16 +649,30 @@ export default function ThreeOsmMapPoc({
     };
     const timeout = window.setTimeout(publishReady, 1_500);
 
+    const releases: Array<() => void> = [];
+    const publishCacheStats = () => {
+      const stats = textureCache.snapshot();
+      rootRef.current?.setAttribute("data-poc-tile-cache-size", String(stats.size));
+      rootRef.current?.setAttribute("data-poc-tile-cache-ready", String(stats.ready));
+      rootRef.current?.setAttribute(
+        "data-poc-tile-cache-hits",
+        String(tileCacheHitCountRef.current),
+      );
+      rootRef.current?.setAttribute(
+        "data-poc-tile-cache-misses",
+        String(tileCacheMissCountRef.current),
+      );
+    };
+    const tileGeometry = new THREE.PlaneGeometry(
+      THREE_OSM_TILE_SIZE + 0.25,
+      THREE_OSM_TILE_SIZE + 0.25,
+    );
     visibleTiles.forEach((tile) => {
       const material = new THREE.MeshBasicMaterial({
         color: theme === "light" ? 0xffffff : 0x7a7a76,
         side: THREE.DoubleSide,
       });
-      const geometry = new THREE.PlaneGeometry(
-        THREE_OSM_TILE_SIZE + 0.25,
-        THREE_OSM_TILE_SIZE + 0.25,
-      );
-      const mesh = new THREE.Mesh(geometry, material);
+      const mesh = new THREE.Mesh(tileGeometry, material);
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.set(
         shortestWrappedTileDelta(
@@ -620,28 +686,34 @@ export default function ThreeOsmMapPoc({
       mesh.userData.tile = tile;
       group.add(mesh);
 
-      const texture = loader.load(
-        buildOsmRasterTileUrl(tile),
-        () => {
-          if (disposed) return;
-          texture.colorSpace = THREE.SRGBColorSpace;
-          texture.anisotropy = maxAnisotropy;
-          material.map = texture;
-          material.needsUpdate = true;
-          loadedCount += 1;
-          settledCount += 1;
-          rootRef.current?.setAttribute("data-poc-tiles-loaded", String(loadedCount));
-          publishReady();
-          requestRenderRef.current();
-        },
-        undefined,
-        () => {
-          settledCount += 1;
-          if (settledCount >= visibleTiles.length) publishReady();
-          requestRenderRef.current();
-        },
+      const settleReady = (texture: THREE.Texture) => {
+        if (disposed) return;
+        material.map = texture;
+        material.needsUpdate = true;
+        loadedCount += 1;
+        settledCount += 1;
+        rootRef.current?.setAttribute("data-poc-tiles-loaded", String(loadedCount));
+        publishReady();
+        publishCacheStats();
+        requestRenderRef.current();
+      };
+      const settleError = () => {
+        settledCount += 1;
+        if (settledCount >= visibleTiles.length) publishReady();
+        publishCacheStats();
+        requestRenderRef.current();
+      };
+      const handle = textureCache.acquire(
+        THREE_OSM_STANDARD_TILE_SOURCE.buildUrl(tile),
+        { ready: settleReady, error: settleError },
       );
+      if (handle.cacheHit) tileCacheHitCountRef.current += 1;
+      else tileCacheMissCountRef.current += 1;
+      releases.push(handle.release);
+      if (handle.status === "ready" && handle.value) settleReady(handle.value);
+      else if (handle.status === "error") settleError();
     });
+    publishCacheStats();
 
     rootRef.current?.setAttribute("data-poc-tile-zoom", String(tileZoom));
     rootRef.current?.setAttribute("data-poc-tiles-requested", String(visibleTiles.length));
@@ -650,7 +722,8 @@ export default function ThreeOsmMapPoc({
     return () => {
       disposed = true;
       window.clearTimeout(timeout);
-      disposeObject(group);
+      releases.forEach((release) => release());
+      disposeTileGroup(group);
       if (tileGroupRef.current === group) tileGroupRef.current = null;
     };
   }, [sceneCenterLat, sceneCenterLon, theme, tileCenter, tileZoom, visibleTiles]);
@@ -1146,7 +1219,7 @@ export default function ThreeOsmMapPoc({
         target="_blank"
         rel="noreferrer"
       >
-        © OpenStreetMap contributors
+        {THREE_OSM_STANDARD_TILE_SOURCE.attribution}
       </a>
     </div>
   );

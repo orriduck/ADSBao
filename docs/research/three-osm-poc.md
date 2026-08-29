@@ -41,7 +41,9 @@ The query flag replaces both visible map modes with one Three.js scene:
   can also pass their existing great-circle route model into a dashed Three.js
   route and destination marker without rebuilding route ownership in the map.
 - Desktop requests only a 5×5 current-view tile grid; compact layouts request
-  3×3. There is no prefetch, offline archive, or background scan.
+  3×3. A 72-entry LRU deduplicates in-flight loads and retains only recent GPU
+  textures across adjacent grid changes. There is no prefetch, offline archive,
+  or background scan.
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
 - Rendering is event-driven: resize, camera interaction, live traffic changes,
   or tile completion request a frame. There is no permanent animation loop.
@@ -83,7 +85,9 @@ replacing the runtime, and guards full-route endpoints when live route data
 exists. Airport exploration now clamps the 2D/3D ground footprint to the loaded
 tile grid and derives its minimum orthographic zoom from that coverage. Flight
 tracking inherits the existing locked-camera contract, so Follow/trace controls
-rather than direct gestures own its framing. A tile adapter/cache and long-session
+rather than direct gestures own its framing. The raster URL and attribution now
+sit behind a replaceable source contract, and the bounded cache explicitly
+disposes evicted or unmounted textures. Provider outage fallback and long-session
 recovery remain the next incomplete operational boundary.
 
 ## Proposed architecture if the POC graduates
