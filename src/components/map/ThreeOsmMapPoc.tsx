@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
+import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import {
   buildOsmRasterTileUrl,
   buildVisibleTileGrid,
@@ -10,6 +12,7 @@ import {
   lonLatToTileCoordinate,
   THREE_OSM_TILE_SIZE,
 } from "@/features/airport/map/threeOsmProjection";
+import { airportDisplayCode } from "@/utils/airport";
 
 type CameraMode = "2d" | "3d";
 
@@ -18,6 +21,10 @@ type ThreeOsmPocProps = {
   zoom?: unknown;
   viewMode?: CameraMode;
   aircraft?: Array<Record<string, any>>;
+  airportCode?: string;
+  nearbyAirports?: Array<Record<string, any>>;
+  runwayMap?: Record<string, any> | null;
+  showCallsigns?: boolean;
   selectedAircraftId?: string;
   focalAircraftId?: string;
   theme?: string;
@@ -28,7 +35,24 @@ type ThreeOsmPocProps = {
 const MAX_AIRCRAFT = 220;
 const AIRCRAFT_COLOR_DARK = 0xf0eee7;
 const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
-const SELECTED_COLOR = 0xf5c542;
+const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
+const SELECTED_AIRCRAFT_COLOR_LIGHT = 0x414341;
+const FOCAL_AIRPORT_COLOR = 0xf5c542;
+
+type SceneLabel = {
+  id: string;
+  text: string;
+  kind: "aircraft" | "airport" | "focal-airport";
+  position: THREE.Vector3;
+  priority: number;
+  selected?: boolean;
+};
+
+type TrafficRenderItem = {
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  selected: boolean;
+};
 
 function disposeObject(object: THREE.Object3D | null) {
   if (!object) return;
@@ -77,6 +101,10 @@ export default function ThreeOsmMapPoc({
   zoom = 10,
   viewMode = "2d",
   aircraft = [],
+  airportCode = "",
+  nearbyAirports = [],
+  runwayMap = null,
+  showCallsigns = true,
   selectedAircraftId = "",
   focalAircraftId = "",
   theme = "dark",
@@ -88,6 +116,7 @@ export default function ThreeOsmMapPoc({
     `three-osm-${Math.random().toString(36).slice(2, 10)}`,
   );
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const labelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const orthographicCameraRef = useRef<THREE.OrthographicCamera | null>(null);
@@ -95,9 +124,13 @@ export default function ThreeOsmMapPoc({
   const activeCameraRef = useRef<THREE.Camera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const tileGroupRef = useRef<THREE.Group | null>(null);
+  const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
   const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficIdsRef = useRef<string[]>([]);
+  const trafficRenderItemsRef = useRef<TrafficRenderItem[]>([]);
+  const trafficLabelsRef = useRef<SceneLabel[]>([]);
+  const contextLabelsRef = useRef<SceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
@@ -141,11 +174,20 @@ export default function ThreeOsmMapPoc({
         .slice(0, MAX_AIRCRAFT),
     [aircraft],
   );
+  const visibleAirports = useMemo(
+    () => nearbyAirports.filter((item) => isFiniteCoordinate(item?.lat, item?.lon)),
+    [nearbyAirports],
+  );
+  const runwayCollection = useMemo(
+    () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
+    [runwayMap],
+  );
 
   useEffect(() => {
     const root = rootRef.current;
     const canvas = canvasRef.current;
-    if (!root || !canvas) return undefined;
+    const labelCanvas = labelCanvasRef.current;
+    if (!root || !canvas || !labelCanvas) return undefined;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(theme === "light" ? 0xd8d8d5 : 0x101111);
@@ -165,11 +207,130 @@ export default function ThreeOsmMapPoc({
     rendererRef.current = renderer;
 
     let frameId = 0;
+    const projected = new THREE.Vector3();
+    const instanceMatrix = new THREE.Matrix4();
+    const instanceScale = new THREE.Vector3();
+    const resizeTrafficInstances = (camera: THREE.Camera) => {
+      const mesh = trafficMeshRef.current;
+      if (!mesh) return;
+      const viewportHeight = Math.max(1, root.clientHeight);
+      for (const [index, item] of trafficRenderItemsRef.current.entries()) {
+        let worldPerPixel = 1;
+        if (camera instanceof THREE.PerspectiveCamera) {
+          const distance = camera.position.distanceTo(item.position);
+          worldPerPixel =
+            (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * distance) /
+            viewportHeight;
+        } else if (camera instanceof THREE.OrthographicCamera) {
+          worldPerPixel =
+            (camera.top - camera.bottom) / (camera.zoom * viewportHeight);
+        }
+        const screenScale = Math.max(0.08, worldPerPixel * 1.75);
+        instanceScale.setScalar(screenScale * (item.selected ? 1.35 : 1));
+        instanceMatrix.compose(item.position, item.quaternion, instanceScale);
+        mesh.setMatrixAt(index, instanceMatrix);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    };
+    const drawLabels = (camera: THREE.Camera) => {
+      const context = labelCanvas.getContext("2d");
+      if (!context) return;
+      const width = Math.max(1, root.clientWidth);
+      const height = Math.max(1, root.clientHeight);
+      const pixelRatio = Math.max(1, labelCanvas.width / width);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      context.clearRect(0, 0, width, height);
+      const labels = [...contextLabelsRef.current, ...trafficLabelsRef.current];
+      const styleById = new Map<string, SceneLabel>();
+      const candidates = labels.flatMap((label) => {
+        projected.copy(label.position).project(camera);
+        if (
+          projected.z < -1 ||
+          projected.z > 1 ||
+          projected.x < -1.08 ||
+          projected.x > 1.08 ||
+          projected.y < -1.08 ||
+          projected.y > 1.08
+        ) {
+          return [];
+        }
+        const x = ((projected.x + 1) / 2) * width;
+        const y = ((1 - projected.y) / 2) * height;
+        const font =
+          label.kind === "focal-airport"
+            ? "700 12px Figtree, sans-serif"
+            : label.kind === "airport"
+              ? "700 10px Figtree, sans-serif"
+              : "600 9px Figtree, sans-serif";
+        context.font = font;
+        styleById.set(label.id, label);
+        return [
+          {
+            id: label.id,
+            text: label.text,
+            x,
+            y,
+            width: Math.ceil(context.measureText(label.text).width) + 12,
+            height: label.kind === "focal-airport" ? 22 : 18,
+            priority: label.priority,
+          },
+        ];
+      });
+      const compact = width <= 700;
+      const placed = layoutThreeOsmLabels(candidates, {
+        viewportWidth: width,
+        viewportHeight: height,
+        maxLabels: compact ? 24 : root.dataset.pocMode === "3d" ? 38 : 54,
+        reservedTop: compact ? 92 : 70,
+        reservedBottom: compact ? 64 : 24,
+      });
+
+      for (const label of placed) {
+        const style = styleById.get(label.id);
+        if (!style) continue;
+        if (style.kind === "focal-airport") {
+          context.fillStyle = "#f5c542";
+          context.fillRect(label.left, label.top, label.width, label.height);
+          context.fillStyle = "#101111";
+          context.font = "700 12px Figtree, sans-serif";
+        } else if (style.kind === "airport") {
+          context.fillStyle = theme === "light" ? "rgba(255,255,255,.94)" : "rgba(0,0,0,.88)";
+          context.fillRect(label.left, label.top, label.width, label.height);
+          context.strokeStyle = theme === "light" ? "rgba(0,0,0,.32)" : "rgba(255,255,255,.35)";
+          context.strokeRect(label.left + 0.5, label.top + 0.5, label.width - 1, label.height - 1);
+          context.fillStyle = theme === "light" ? "#111211" : "#f2f0e9";
+          context.font = "700 10px Figtree, sans-serif";
+        } else {
+          context.fillStyle = style.selected
+            ? theme === "light"
+              ? "rgba(65,67,65,.94)"
+              : "rgba(183,186,183,.92)"
+            : theme === "light"
+              ? "rgba(255,255,255,.86)"
+              : "rgba(0,0,0,.74)";
+          context.fillRect(label.left, label.top, label.width, label.height);
+          context.fillStyle = style.selected
+            ? theme === "light"
+              ? "#ffffff"
+              : "#111211"
+            : theme === "light"
+              ? "#171817"
+              : "#f0eee7";
+          context.font = "600 9px Figtree, sans-serif";
+        }
+        context.textBaseline = "middle";
+        context.fillText(label.text, label.left + 6, label.top + label.height / 2 + 0.5);
+      }
+      root.dataset.pocLabelsVisible = String(placed.length);
+    };
     const render = () => {
       frameId = 0;
       const camera = activeCameraRef.current;
       if (!camera) return;
+      resizeTrafficInstances(camera);
       renderer.render(scene, camera);
+      drawLabels(camera);
       root.dataset.pocDrawCalls = String(renderer.info.render.calls);
       root.dataset.pocTriangles = String(renderer.info.render.triangles);
       root.dataset.pocTextures = String(renderer.info.memory.textures);
@@ -189,6 +350,8 @@ export default function ThreeOsmMapPoc({
       );
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
+      labelCanvas.width = Math.max(1, Math.floor(width * pixelRatio));
+      labelCanvas.height = Math.max(1, Math.floor(height * pixelRatio));
 
       const aspect = width / height;
       const halfHeight = 300;
@@ -242,10 +405,15 @@ export default function ThreeOsmMapPoc({
       controlsRef.current?.dispose();
       controlsRef.current = null;
       disposeObject(tileGroupRef.current);
+      disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
       tileGroupRef.current = null;
+      contextGroupRef.current = null;
       trafficGroupRef.current = null;
       trafficMeshRef.current = null;
+      trafficRenderItemsRef.current = [];
+      trafficLabelsRef.current = [];
+      contextLabelsRef.current = [];
       renderer.dispose();
       rendererRef.current = null;
       sceneRef.current = null;
@@ -340,6 +508,155 @@ export default function ThreeOsmMapPoc({
       return;
     }
 
+    disposeObject(contextGroupRef.current);
+    const group = new THREE.Group();
+    group.name = "three-osm-operational-context";
+    contextGroupRef.current = group;
+    scene.add(group);
+
+    const labels: SceneLabel[] = [];
+    const focalMarker = new THREE.Mesh(
+      new THREE.CylinderGeometry(5, 5, 18, 12),
+      new THREE.MeshBasicMaterial({ color: FOCAL_AIRPORT_COLOR }),
+    );
+    focalMarker.position.set(0, 9, 0);
+    group.add(focalMarker);
+    const focalRing = new THREE.Mesh(
+      new THREE.RingGeometry(8, 10, 28),
+      new THREE.MeshBasicMaterial({
+        color: FOCAL_AIRPORT_COLOR,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.9,
+      }),
+    );
+    focalRing.rotation.x = -Math.PI / 2;
+    focalRing.position.y = 1.5;
+    group.add(focalRing);
+    if (airportCode) {
+      labels.push({
+        id: `focal-airport:${airportCode}`,
+        text: airportCode,
+        kind: "focal-airport",
+        position: new THREE.Vector3(0, 24, 0),
+        priority: 1_000,
+      });
+    }
+
+    const airportGeometry = new THREE.OctahedronGeometry(4, 0);
+    const airportMaterial = new THREE.MeshBasicMaterial({
+      color: theme === "light" ? 0x252725 : 0xe4e1d8,
+    });
+    const airportMesh = new THREE.InstancedMesh(
+      airportGeometry,
+      airportMaterial,
+      visibleAirports.length,
+    );
+    const airportMatrix = new THREE.Matrix4();
+    const airportPosition = new THREE.Vector3();
+    visibleAirports.forEach((item, index) => {
+      const point = lonLatAltitudeToThreeOsmWorld({
+        lon: item?.lon,
+        lat: item?.lat,
+        center: tileCenter,
+        centerLat,
+      });
+      if (!point) return;
+      airportPosition.set(point.x, 5, point.z);
+      airportMatrix.makeTranslation(airportPosition);
+      airportMesh.setMatrixAt(index, airportMatrix);
+      const code = airportDisplayCode(item);
+      if (code) {
+        labels.push({
+          id: `airport:${code}:${index}`,
+          text: code,
+          kind: "airport",
+          position: airportPosition.clone().setY(10),
+          priority: 650 - Math.hypot(point.x, point.z) / 10,
+        });
+      }
+    });
+    airportMesh.instanceMatrix.needsUpdate = true;
+    airportMesh.computeBoundingSphere();
+    group.add(airportMesh);
+
+    const runwaySegments: number[] = [];
+    for (const feature of runwayCollection?.features || []) {
+      const coordinates = feature?.geometry?.coordinates;
+      if (!Array.isArray(coordinates)) continue;
+      for (let index = 1; index < coordinates.length; index += 1) {
+        const from = coordinates[index - 1];
+        const to = coordinates[index];
+        const fromPoint = lonLatAltitudeToThreeOsmWorld({
+          lon: from?.[0],
+          lat: from?.[1],
+          center: tileCenter,
+          centerLat,
+        });
+        const toPoint = lonLatAltitudeToThreeOsmWorld({
+          lon: to?.[0],
+          lat: to?.[1],
+          center: tileCenter,
+          centerLat,
+        });
+        if (!fromPoint || !toPoint) continue;
+        runwaySegments.push(
+          fromPoint.x,
+          1.8,
+          fromPoint.z,
+          toPoint.x,
+          1.8,
+          toPoint.z,
+        );
+      }
+    }
+    if (runwaySegments.length) {
+      const runwayGeometry = new THREE.BufferGeometry();
+      runwayGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(runwaySegments, 3),
+      );
+      group.add(
+        new THREE.LineSegments(
+          runwayGeometry,
+          new THREE.LineBasicMaterial({
+            color: theme === "light" ? 0x1d1e1d : 0xf4f1e8,
+            opacity: 0.95,
+            transparent: true,
+          }),
+        ),
+      );
+    }
+
+    contextLabelsRef.current = labels;
+    rootRef.current?.setAttribute("data-poc-airports", String(visibleAirports.length));
+    rootRef.current?.setAttribute(
+      "data-poc-runways",
+      String(runwayCollection?.features?.length || 0),
+    );
+    requestRenderRef.current();
+
+    return () => {
+      disposeObject(group);
+      if (contextGroupRef.current === group) contextGroupRef.current = null;
+      if (contextGroupRef.current == null) contextLabelsRef.current = [];
+    };
+  }, [
+    airportCode,
+    centerLat,
+    centerLon,
+    runwayCollection,
+    theme,
+    tileCenter,
+    visibleAirports,
+  ]);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene || !Number.isFinite(centerLat) || !Number.isFinite(centerLon)) {
+      return;
+    }
+
     disposeObject(trafficGroupRef.current);
     const group = new THREE.Group();
     group.name = "three-osm-operational-traffic";
@@ -358,7 +675,9 @@ export default function ThreeOsmMapPoc({
     const scale = new THREE.Vector3();
     const yAxis = new THREE.Vector3(0, 1, 0);
     const ids: string[] = [];
+    const renderItems: TrafficRenderItem[] = [];
     const stems: number[] = [];
+    const labels: SceneLabel[] = [];
 
     visibleAircraft.forEach((item, index) => {
       const point = lonLatAltitudeToThreeOsmWorld({
@@ -379,11 +698,37 @@ export default function ThreeOsmMapPoc({
       scale.setScalar(selected ? 1.65 : 1);
       matrix.compose(position, quaternion, scale);
       mesh.setMatrixAt(index, matrix);
+      renderItems.push({
+        position: position.clone(),
+        quaternion: quaternion.clone(),
+        selected,
+      });
       mesh.setColorAt(
         index,
-        new THREE.Color(selected ? SELECTED_COLOR : theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK),
+        new THREE.Color(
+          selected
+            ? theme === "light"
+              ? SELECTED_AIRCRAFT_COLOR_LIGHT
+              : SELECTED_AIRCRAFT_COLOR_DARK
+            : theme === "light"
+              ? AIRCRAFT_COLOR_LIGHT
+              : AIRCRAFT_COLOR_DARK,
+        ),
       );
       if (point.y > 3) stems.push(point.x, 0.5, point.z, point.x, point.y, point.z);
+      const callsign = String(
+        item?.callsign || item?.flight || item?.registration || id || "",
+      ).trim();
+      if (callsign && (showCallsigns || selected)) {
+        labels.push({
+          id: `aircraft:${id || index}`,
+          text: callsign,
+          kind: "aircraft",
+          position: position.clone().add(new THREE.Vector3(0, 5, 0)),
+          priority: selected ? 900 : 300 - Math.hypot(point.x, point.z) / 12,
+          selected,
+        });
+      }
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
@@ -391,6 +736,8 @@ export default function ThreeOsmMapPoc({
     group.add(mesh);
     trafficMeshRef.current = mesh;
     trafficIdsRef.current = ids;
+    trafficRenderItemsRef.current = renderItems;
+    trafficLabelsRef.current = labels;
 
     if (stems.length) {
       const stemGeometry = new THREE.BufferGeometry();
@@ -403,16 +750,18 @@ export default function ThreeOsmMapPoc({
       group.add(new THREE.LineSegments(stemGeometry, stemMaterial));
     }
 
-    const beacon = new THREE.Mesh(
-      new THREE.CylinderGeometry(5, 5, 20, 12),
-      new THREE.MeshBasicMaterial({ color: SELECTED_COLOR }),
-    );
-    beacon.position.set(0, 10, 0);
-    group.add(beacon);
-
     rootRef.current?.setAttribute("data-poc-aircraft", String(visibleAircraft.length));
     requestRenderRef.current();
-  }, [centerLat, centerLon, focalAircraftId, selectedAircraftId, theme, tileCenter, visibleAircraft]);
+  }, [
+    centerLat,
+    centerLon,
+    focalAircraftId,
+    selectedAircraftId,
+    showCallsigns,
+    theme,
+    tileCenter,
+    visibleAircraft,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -480,6 +829,16 @@ export default function ThreeOsmMapPoc({
         className="block h-full w-full touch-none"
         aria-label={`${viewMode === "3d" ? "3D perspective" : "2D orthographic"} airport map proof of concept`}
       />
+      <canvas
+        ref={labelCanvasRef}
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        aria-hidden="true"
+      />
+      <span className="sr-only">
+        {airportCode
+          ? `${airportCode} map with ${visibleAircraft.length} aircraft, ${visibleAirports.length} nearby airports, and ${runwayCollection?.features?.length || 0} runways.`
+          : `Map with ${visibleAircraft.length} aircraft and ${visibleAirports.length} nearby airports.`}
+      </span>
 
       <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm">
         <strong className="block text-[11px] font-semibold text-[#f5c542]">
@@ -489,7 +848,7 @@ export default function ThreeOsmMapPoc({
           {viewMode === "3d" ? "Perspective altitude scene" : "Orthographic operations scene"}
         </span>
         <span className="mt-0.5 block text-white/50">
-          {visibleTiles.length} tiles · {visibleAircraft.length} targets · z{tileZoom}
+          {visibleTiles.length} tiles · {visibleAircraft.length} targets · {visibleAirports.length} airports · z{tileZoom}
         </span>
       </div>
 

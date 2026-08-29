@@ -33,6 +33,9 @@ The query flag replaces both visible map modes with one Three.js scene:
 - 3D uses `PerspectiveCamera`.
 - The scene, OSM tile grid, aircraft instances, altitude stems, selection
   raycaster, and GPU resource lifecycle are shared.
+- A shared projected-label canvas now provides collision-bounded aircraft and
+  airport identifiers in both camera modes. Nearby-airport markers and focal
+  runway centerlines live in the same geospatial scene.
 - Desktop requests only a 5×5 current-view tile grid; compact layouts request
   3×3. There is no prefetch, offline archive, or background scan.
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
@@ -40,6 +43,28 @@ The query flag replaces both visible map modes with one Three.js scene:
   or tile completion request a frame. There is no permanent animation loop.
 - The map exposes draw-call, triangle, texture, tile, aircraft, pixel-ratio,
   and camera-profile diagnostics as `data-poc-*` attributes.
+
+## Implementation order
+
+The production KBOS comparison makes the dependency order clear. Work should
+continue in this order rather than polishing the 3D treatment first:
+
+1. **Operational legibility:** shared callsign/airport labels, focal identity,
+   collision bounds, and constant-screen-size aircraft in both cameras.
+2. **Geographic semantics:** runway geometry, nearby airports, airspaces,
+   navaids, reporting points, watcher locations, and user position.
+3. **Selection and trace:** unified picking, selected-state semantics, selected
+   trace and route geometry, keyboard access, and an accessible DOM summary.
+4. **Map interaction parity:** bounded pan/zoom, recenter/follow behavior,
+   fit-to-trace, saved camera state, touch tuning, and context loss recovery.
+5. **Tile architecture:** provider adapter, bounded LRU cache, failure fallback,
+   attribution enforcement, and production-safe terms/capacity.
+6. **Measured optimization:** real-device 20-minute sessions, frame/long-task
+   budgets, memory stability, and only then additional visual depth or effects.
+
+The first item is implemented in the branch POC. The focal runways and nearby
+airport scene objects begin item two; the remaining operational overlays are
+still intentionally incomplete.
 
 ## Proposed architecture if the POC graduates
 

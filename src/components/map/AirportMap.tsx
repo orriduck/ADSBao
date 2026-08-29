@@ -1029,6 +1029,10 @@ export default function AirportMap({
               zoom={zoom}
               viewMode={viewMode}
               aircraft={visibleAircraft}
+              airportCode={focalAirportDisplayCode}
+              nearbyAirports={nearbyAirportLayerDisplay.airports}
+              runwayMap={runwayMap}
+              showCallsigns={showCallsigns}
               selectedAircraftId={selectedAircraftId}
               focalAircraftId={focalAircraftId}
               theme={currentTheme}
