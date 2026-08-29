@@ -82,6 +82,7 @@ const ThreeAltitudeLayer = lazy(() => import("./ThreeAltitudeLayer"));
 const NativeOperationalLayers = lazy(
   () => import("./NativeOperationalLayers"),
 );
+const ThreeOsmMapPoc = lazy(() => import("./ThreeOsmMapPoc"));
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -159,6 +160,9 @@ export default function AirportMap({
 }: Record<string, any>) {
   const { locale, t } = useI18n();
   const { mapViewMode: viewMode } = useExplorerUi();
+  const threeOsmPocEnabled =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("threeOsmPoc") === "1";
   const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
@@ -176,6 +180,7 @@ export default function AirportMap({
   const [nativeMapInstance, setNativeMapInstance] = useState<any>(null);
   viewModeRef.current = viewMode;
   const [mapTilesReady, setMapTilesReady] = useState(false);
+  const [threeOsmPocReady, setThreeOsmPocReady] = useState(false);
   const [visualContentReady, setVisualContentReady] = useState(false);
   const [initialVisualReady, setInitialVisualReady] = useState(false);
   const [deferredFocalCutoffReached, setDeferredFocalCutoffReached] =
@@ -250,6 +255,7 @@ export default function AirportMap({
       !nativeMapEl.current ||
       mapRef.current ||
       nativeMapRef.current ||
+      threeOsmPocEnabled ||
       !initialCenter
     ) return undefined;
     const nativeMap = new maplibregl.Map({
@@ -397,7 +403,7 @@ export default function AirportMap({
       setNativeMapInstance(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canInitializeMap]);
+  }, [canInitializeMap, threeOsmPocEnabled]);
 
   useEffect(() => {
     if (!nativeMapInstance) return;
@@ -750,6 +756,10 @@ export default function AirportMap({
       setVisualContentReady(true);
       return undefined;
     }
+    if (threeOsmPocEnabled) {
+      setVisualContentReady(threeOsmPocReady);
+      return undefined;
+    }
     if (!mapInstance) {
       setVisualContentReady(false);
       return undefined;
@@ -800,6 +810,8 @@ export default function AirportMap({
   }, [
     initialVisualReady,
     mapInstance,
+    threeOsmPocEnabled,
+    threeOsmPocReady,
     visualRequirementKey,
     visualRequirements,
   ]);
@@ -897,16 +909,22 @@ export default function AirportMap({
   const nearbyAirportLayerDisplay = resolveNearbyAirportLayerDisplay({
     nearbyAirports,
   });
+  const mapRuntimeCreated = threeOsmPocEnabled
+    ? threeOsmPocReady
+    : Boolean(mapInstance);
+  const effectiveMapTilesReady = threeOsmPocEnabled
+    ? threeOsmPocReady
+    : mapTilesReady;
   const mapVisualReady = resolveMapVisualReady({
-    mapCreated: Boolean(mapInstance),
-    tilesReady: mapTilesReady,
+    mapCreated: mapRuntimeCreated,
+    tilesReady: effectiveMapTilesReady,
     aircraftMarkersRequired: visualRequirements.aircraftMarkersRequired,
     aircraftMarkersReady: visualContentReady,
     traceRequired: visualRequirements.traceRequired,
     traceReady: visualContentReady,
   });
   const overlayMapReady =
-    Boolean(mapInstance) &&
+    mapRuntimeCreated &&
     (initialVisualReady || mapVisualReady) &&
     // For the flight page (deferUntilFocal), the map isn't "ready to reveal"
     // until it actually has a focal center to show. Without this, once tiles
@@ -961,12 +979,16 @@ export default function AirportMap({
   const handleMapTileReadinessChange = useCallback((state) => {
     setMapTilesReady(Boolean(state?.ready));
   }, []);
+  const handleThreeOsmPocReady = useCallback((state) => {
+    setThreeOsmPocReady(Boolean(state?.ready));
+  }, []);
 
   return (
     <div
       className="relative h-full w-full bg-atc-bg"
       data-map-view-mode={viewMode}
-      data-map-tiles-ready={mapTilesReady ? "true" : "false"}
+      data-map-engine={threeOsmPocEnabled ? "three-osm-poc" : "legacy-split"}
+      data-map-tiles-ready={effectiveMapTilesReady ? "true" : "false"}
       data-map-visual-ready={mapVisualReady ? "true" : "false"}
       data-map-loading-mode={loadingOverlayState.mode}
       data-map-show-airspaces={showAirspaces ? "true" : "false"}
@@ -979,16 +1001,43 @@ export default function AirportMap({
         ref={nativeMapEl}
         className="airport-map-native absolute inset-0 h-full w-full"
         aria-hidden={!mapVisible}
+        style={{ display: threeOsmPocEnabled ? "none" : undefined }}
       />
       <div
         ref={mapEl}
         className="airport-map-surface absolute inset-0 h-full w-full"
         aria-hidden={!mapVisible}
         style={{
+          display: threeOsmPocEnabled ? "none" : undefined,
           opacity: mapVisible && viewMode === "2d" ? 1 : 0,
-          pointerEvents: mapVisible && viewMode === "2d" ? undefined : "none",
+          pointerEvents:
+            mapVisible && viewMode === "2d" ? undefined : "none",
         }}
       />
+
+      {threeOsmPocEnabled && initialCenter && (
+        <Suspense fallback={null}>
+          <div
+            className="absolute inset-0"
+            style={{
+              opacity: mapVisible ? 1 : 0,
+              pointerEvents: mapVisible ? undefined : "none",
+            }}
+          >
+            <ThreeOsmMapPoc
+              center={focalCenter || initialCenter}
+              zoom={zoom}
+              viewMode={viewMode}
+              aircraft={visibleAircraft}
+              selectedAircraftId={selectedAircraftId}
+              focalAircraftId={focalAircraftId}
+              theme={currentTheme}
+              onSelectAircraft={onSelectAircraft}
+              onReady={handleThreeOsmPocReady}
+            />
+          </div>
+        </Suspense>
+      )}
 
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
