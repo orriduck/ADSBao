@@ -55,7 +55,9 @@ iPhone result: the exported user agent/touch evidence is only a candidate
 signal and the operator still confirms the hardware. Use **Reset report** at
 the start of the physical run, perform at least ten touch interactions and one
 background/foreground cycle, then mark the observed thermal state after the
-20-minute timer completes and export the report.
+20-minute timer completes and export the report. Expand **Gate details** during
+the run to inspect each gate's live status and evidence; pending and failed
+requirements remain visible without covering the map when the list is closed.
 
 Before opening the page on a physical phone, run `pnpm debug:device` for the
 default OSM source. It prints a key-free private-LAN acceptance URL only after

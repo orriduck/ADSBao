@@ -164,6 +164,20 @@ const DEBUG_LAYER_MODES: DebugLayerMode[] = [
   "flight",
 ];
 
+const ACCEPTANCE_GATE_LABEL_KEYS = {
+  duration: "map.poc.acceptanceGateDuration",
+  "physical-iphone": "map.poc.acceptanceGatePhysicalIPhone",
+  touch: "map.poc.acceptanceGateTouch",
+  "mode-switches": "map.poc.acceptanceGateModeSwitches",
+  "background-recovery": "map.poc.acceptanceGateBackgroundRecovery",
+  "runtime-continuity": "map.poc.acceptanceGateRuntimeContinuity",
+  basemap: "map.poc.acceptanceGateBasemap",
+  "webgl-recovery": "map.poc.acceptanceGateWebglRecovery",
+  "resource-bounds": "map.poc.acceptanceGateResourceBounds",
+  "render-stability": "map.poc.acceptanceGateRenderStability",
+  thermal: "map.poc.acceptanceGateThermal",
+} as const;
+
 function resolveDebugLayerMode(value: string | null): DebugLayerMode {
   return DEBUG_LAYER_MODES.includes(value as DebugLayerMode)
     ? (value as DebugLayerMode)
@@ -2453,6 +2467,51 @@ export default function ThreeOsmMapPoc({
                     })}
                   </span>
                 ) : null}
+                <details
+                  className="w-full border-t border-white/15 pt-1 text-[9px] text-white"
+                  data-poc-acceptance-gates="true"
+                >
+                  <summary className="cursor-pointer select-none py-0.5 text-white/75 marker:text-white/45">
+                    {t("map.poc.acceptanceGateDetails", {
+                      failed: acceptanceRecorder.evaluation.gates.filter(
+                        (gate) => gate.status === "fail",
+                      ).length,
+                      pending: acceptanceRecorder.evaluation.gates.filter(
+                        (gate) => gate.status === "pending",
+                      ).length,
+                    })}
+                  </summary>
+                  <ul className="mt-1 max-h-44 space-y-1 overflow-y-auto overscroll-contain border-t border-white/10 pt-1 normal-case">
+                    {acceptanceRecorder.evaluation.gates.map((gate) => (
+                      <li
+                        key={gate.id}
+                        className="grid grid-cols-[42px_minmax(0,1fr)] gap-x-1 border-b border-white/10 pb-1 last:border-b-0"
+                        data-poc-acceptance-gate={gate.id}
+                        data-status={gate.status}
+                      >
+                        <span
+                          className={
+                            gate.status === "fail"
+                              ? "text-red-300"
+                              : gate.status === "pass"
+                                ? "text-white"
+                                : "text-white/50"
+                          }
+                        >
+                          {gate.status}
+                        </span>
+                        <span className="min-w-0 break-words text-white/70">
+                          <strong className="font-medium text-white">
+                            {t(ACCEPTANCE_GATE_LABEL_KEYS[gate.id])}
+                          </strong>
+                          <span className="block text-white/55">
+                            {gate.evidence}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               </div>
             ) : null}
             {!acceptanceEnabled &&
