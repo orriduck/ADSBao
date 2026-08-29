@@ -12,6 +12,7 @@ import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFram
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
 import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
@@ -19,9 +20,11 @@ import {
   createThreeOsmAircraftGeometry,
   createThreeOsmAircraftSelectionGeometry,
   resolveThreeOsmAircraftEmphasis,
+  resolveThreeOsmAircraftFamily,
   resolveThreeOsmAircraftScale,
   THREE_OSM_AIRCRAFT_SCREEN_SCALE,
   type ThreeOsmAircraftEmphasis,
+  type ThreeOsmAircraftFamily,
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
@@ -100,10 +103,19 @@ const AIRCRAFT_HALO_COLOR_DARK = 0x20211f;
 const AIRCRAFT_HALO_COLOR_LIGHT = 0xf7f5ef;
 
 type TrafficRenderItem = {
+  id: string;
   position: THREE.Vector3;
   quaternion: THREE.Quaternion;
   emphasis: ThreeOsmAircraftEmphasis;
+  sizeScale: number;
   highlightIndex: number | null;
+};
+
+type TrafficRenderBatch = {
+  family: ThreeOsmAircraftFamily;
+  mesh: THREE.InstancedMesh;
+  haloMesh: THREE.InstancedMesh;
+  items: TrafficRenderItem[];
 };
 
 type BasemapState = "loading" | "ready" | "partial" | "degraded";
@@ -266,11 +278,8 @@ export default function ThreeOsmMapPoc({
   );
   const tileCacheHitCountRef = useRef(0);
   const tileCacheMissCountRef = useRef(0);
-  const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
-  const trafficHaloMeshRef = useRef<THREE.InstancedMesh | null>(null);
+  const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
-  const trafficIdsRef = useRef<string[]>([]);
-  const trafficRenderItemsRef = useRef<TrafficRenderItem[]>([]);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
@@ -491,32 +500,33 @@ export default function ThreeOsmMapPoc({
     const highlightPosition = new THREE.Vector3();
     const identityQuaternion = new THREE.Quaternion();
     const resizeTrafficInstances = (camera: THREE.Camera) => {
-      const mesh = trafficMeshRef.current;
-      const haloMesh = trafficHaloMeshRef.current;
       const highlightMesh = trafficHighlightMeshRef.current;
-      if (!mesh) return;
+      const batches = trafficBatchesRef.current;
+      if (!batches.length) return;
       const viewportHeight = Math.max(1, root.clientHeight);
-      for (const [index, item] of trafficRenderItemsRef.current.entries()) {
-        let worldPerPixel = 1;
-        if (camera instanceof THREE.PerspectiveCamera) {
-          const distance = camera.position.distanceTo(item.position);
-          worldPerPixel =
-            (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * distance) /
-            viewportHeight;
-        } else if (camera instanceof THREE.OrthographicCamera) {
-          worldPerPixel =
-            (camera.top - camera.bottom) / (camera.zoom * viewportHeight);
-        }
-        const screenScale = Math.max(
-          0.08,
-          worldPerPixel * THREE_OSM_AIRCRAFT_SCREEN_SCALE,
-        );
-        instanceScale.setScalar(
-          screenScale * resolveThreeOsmAircraftScale(item.emphasis),
-        );
-        instanceMatrix.compose(item.position, item.quaternion, instanceScale);
-        mesh.setMatrixAt(index, instanceMatrix);
-        if (haloMesh) {
+      for (const batch of batches) {
+        for (const [index, item] of batch.items.entries()) {
+          let worldPerPixel = 1;
+          if (camera instanceof THREE.PerspectiveCamera) {
+            const distance = camera.position.distanceTo(item.position);
+            worldPerPixel =
+              (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * distance) /
+              viewportHeight;
+          } else if (camera instanceof THREE.OrthographicCamera) {
+            worldPerPixel =
+              (camera.top - camera.bottom) / (camera.zoom * viewportHeight);
+          }
+          const screenScale = Math.max(
+            0.08,
+            worldPerPixel * THREE_OSM_AIRCRAFT_SCREEN_SCALE,
+          );
+          instanceScale.setScalar(
+            screenScale *
+              item.sizeScale *
+              resolveThreeOsmAircraftScale(item.emphasis),
+          );
+          instanceMatrix.compose(item.position, item.quaternion, instanceScale);
+          batch.mesh.setMatrixAt(index, instanceMatrix);
           instanceScale.multiplyScalar(1.2);
           highlightPosition.copy(item.position);
           highlightPosition.y -= Math.max(0.08, worldPerPixel * 0.35);
@@ -525,25 +535,23 @@ export default function ThreeOsmMapPoc({
             item.quaternion,
             instanceScale,
           );
-          haloMesh.setMatrixAt(index, instanceMatrix);
+          batch.haloMesh.setMatrixAt(index, instanceMatrix);
+          if (highlightMesh && item.highlightIndex != null) {
+            instanceScale.setScalar(screenScale * item.sizeScale * 1.48);
+            highlightPosition.copy(item.position);
+            highlightPosition.y += Math.max(0.08, worldPerPixel * 0.35);
+            instanceMatrix.compose(
+              highlightPosition,
+              identityQuaternion,
+              instanceScale,
+            );
+            highlightMesh.setMatrixAt(item.highlightIndex, instanceMatrix);
+          }
         }
-        if (highlightMesh && item.highlightIndex != null) {
-          instanceScale.setScalar(screenScale * 1.48);
-          highlightPosition.copy(item.position);
-          highlightPosition.y += Math.max(0.08, worldPerPixel * 0.35);
-          instanceMatrix.compose(
-            highlightPosition,
-            identityQuaternion,
-            instanceScale,
-          );
-          highlightMesh.setMatrixAt(item.highlightIndex, instanceMatrix);
-        }
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingSphere();
-      if (haloMesh) {
-        haloMesh.instanceMatrix.needsUpdate = true;
-        haloMesh.computeBoundingSphere();
+        batch.mesh.instanceMatrix.needsUpdate = true;
+        batch.mesh.computeBoundingSphere();
+        batch.haloMesh.instanceMatrix.needsUpdate = true;
+        batch.haloMesh.computeBoundingSphere();
       }
       if (highlightMesh) {
         highlightMesh.instanceMatrix.needsUpdate = true;
@@ -780,17 +788,27 @@ export default function ThreeOsmMapPoc({
         return;
       }
       const camera = activeCameraRef.current;
-      const mesh = trafficMeshRef.current;
-      if (!camera || !mesh || typeof onSelectAircraftRef.current !== "function") return;
+      const batches = trafficBatchesRef.current;
+      if (
+        !camera ||
+        !batches.length ||
+        typeof onSelectAircraftRef.current !== "function"
+      ) {
+        return;
+      }
       const bounds = canvas.getBoundingClientRect();
       pointer.set(
         ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
         -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
       );
       raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObject(mesh, false)[0];
+      const hit = raycaster.intersectObjects(
+        batches.map((batch) => batch.mesh),
+        false,
+      )[0];
+      const hitBatch = batches.find((batch) => batch.mesh === hit?.object);
       const id =
-        hit?.instanceId == null ? "" : trafficIdsRef.current[hit.instanceId] || "";
+        hit?.instanceId == null ? "" : hitBatch?.items[hit.instanceId]?.id || "";
       if (id) onSelectAircraftRef.current(id);
     };
     const handleContextLost = (event: Event) => {
@@ -860,10 +878,8 @@ export default function ThreeOsmMapPoc({
       if (tileTextureCacheRef.current === tileTextureCache) {
         tileTextureCacheRef.current = null;
       }
-      trafficMeshRef.current = null;
-      trafficHaloMeshRef.current = null;
+      trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
-      trafficRenderItemsRef.current = [];
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
       renderer.dispose();
@@ -1139,29 +1155,19 @@ export default function ThreeOsmMapPoc({
     trafficGroupRef.current = group;
     scene.add(group);
 
-    const geometry = createThreeOsmAircraftGeometry();
-    const material = new THREE.MeshBasicMaterial({
+    const aircraftMaterial = new THREE.MeshBasicMaterial({
       color: theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK,
       side: THREE.DoubleSide,
       depthTest: false,
       depthWrite: false,
     });
-    const mesh = new THREE.InstancedMesh(geometry, material, visibleAircraft.length);
-    mesh.renderOrder = 52;
-    const haloMesh = new THREE.InstancedMesh(
-      geometry.clone(),
-      new THREE.MeshBasicMaterial({
-        color:
-          theme === "light"
-            ? AIRCRAFT_HALO_COLOR_LIGHT
-            : AIRCRAFT_HALO_COLOR_DARK,
-        side: THREE.DoubleSide,
-        depthTest: false,
-        depthWrite: false,
-      }),
-      visibleAircraft.length,
-    );
-    haloMesh.renderOrder = 51;
+    const haloMaterial = new THREE.MeshBasicMaterial({
+      color:
+        theme === "light" ? AIRCRAFT_HALO_COLOR_LIGHT : AIRCRAFT_HALO_COLOR_DARK,
+      side: THREE.DoubleSide,
+      depthTest: false,
+      depthWrite: false,
+    });
     const highlightedAircraftCount = visibleAircraft.reduce((count, item) => {
       const id = getAircraftIdentity(item);
       return id && (id === selectedAircraftId || id === focalAircraftId)
@@ -1188,10 +1194,21 @@ export default function ThreeOsmMapPoc({
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3();
     const yAxis = new THREE.Vector3(0, 1, 0);
-    const ids: string[] = [];
-    const renderItems: TrafficRenderItem[] = [];
+    const familyItems = new Map<
+      ThreeOsmAircraftFamily,
+      TrafficRenderItem[]
+    >();
     const stems: number[] = [];
     const labels: ThreeOsmSceneLabel[] = [];
+    const standardColor = new THREE.Color(
+      theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK,
+    );
+    const selectedColor = new THREE.Color(
+      theme === "light" ? SELECTED_AIRCRAFT_COLOR_LIGHT : SELECTED_AIRCRAFT_COLOR_DARK,
+    );
+    const focalColor = new THREE.Color(
+      theme === "light" ? FOCAL_AIRCRAFT_COLOR_LIGHT : FOCAL_AIRCRAFT_COLOR_DARK,
+    );
     let highlightIndex = 0;
 
     visibleAircraft.forEach((item, index) => {
@@ -1203,7 +1220,6 @@ export default function ThreeOsmMapPoc({
         centerLat: sceneCenterLat,
       });
       const id = getAircraftIdentity(item);
-      ids.push(id);
       if (!point) return;
 
       const emphasis = resolveThreeOsmAircraftEmphasis({
@@ -1215,45 +1231,22 @@ export default function ThreeOsmMapPoc({
       const heading = Number(item?.track ?? item?.heading ?? 0) || 0;
       position.set(point.x, Math.max(2.5, point.y), point.z);
       quaternion.setFromAxisAngle(yAxis, (-heading * Math.PI) / 180);
-      scale.setScalar(resolveThreeOsmAircraftScale(emphasis));
-      matrix.compose(position, quaternion, scale);
-      mesh.setMatrixAt(index, matrix);
-      haloMesh.setMatrixAt(index, matrix);
       const itemHighlightIndex = selected ? highlightIndex++ : null;
-      renderItems.push({
+      const family = resolveThreeOsmAircraftFamily(item);
+      const batchItems = familyItems.get(family) || [];
+      batchItems.push({
+        id,
         position: position.clone(),
         quaternion: quaternion.clone(),
         emphasis,
+        sizeScale: resolveAircraftSizeScale(item),
         highlightIndex: itemHighlightIndex,
       });
-      mesh.setColorAt(
-        index,
-        new THREE.Color(
-          emphasis === "focal"
-            ? theme === "light"
-              ? FOCAL_AIRCRAFT_COLOR_LIGHT
-              : FOCAL_AIRCRAFT_COLOR_DARK
-            : emphasis === "selected"
-            ? theme === "light"
-              ? SELECTED_AIRCRAFT_COLOR_LIGHT
-              : SELECTED_AIRCRAFT_COLOR_DARK
-            : theme === "light"
-              ? AIRCRAFT_COLOR_LIGHT
-              : AIRCRAFT_COLOR_DARK,
-        ),
-      );
+      familyItems.set(family, batchItems);
       if (highlightMesh && itemHighlightIndex != null) {
         highlightMesh.setColorAt(
           itemHighlightIndex,
-          new THREE.Color(
-            emphasis === "focal"
-              ? theme === "light"
-                ? FOCAL_AIRCRAFT_COLOR_LIGHT
-                : FOCAL_AIRCRAFT_COLOR_DARK
-              : theme === "light"
-                ? SELECTED_AIRCRAFT_COLOR_LIGHT
-                : SELECTED_AIRCRAFT_COLOR_DARK,
-          ),
+          emphasis === "focal" ? focalColor : selectedColor,
         );
       }
       if (point.y > 3) stems.push(point.x, 0.5, point.z, point.x, point.y, point.z);
@@ -1271,21 +1264,56 @@ export default function ThreeOsmMapPoc({
         });
       }
     });
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    haloMesh.instanceMatrix.needsUpdate = true;
+
+    const trafficBatches: TrafficRenderBatch[] = [];
+    for (const [family, items] of familyItems) {
+      const geometry = createThreeOsmAircraftGeometry(family);
+      const mesh = new THREE.InstancedMesh(geometry, aircraftMaterial, items.length);
+      mesh.name = `three-osm-aircraft-${family}`;
+      mesh.renderOrder = 52;
+      const haloMesh = new THREE.InstancedMesh(
+        geometry,
+        haloMaterial,
+        items.length,
+      );
+      haloMesh.name = `three-osm-aircraft-halo-${family}`;
+      haloMesh.renderOrder = 51;
+      items.forEach((item, index) => {
+        scale.setScalar(
+          item.sizeScale * resolveThreeOsmAircraftScale(item.emphasis),
+        );
+        matrix.compose(item.position, item.quaternion, scale);
+        mesh.setMatrixAt(index, matrix);
+        haloMesh.setMatrixAt(index, matrix);
+        mesh.setColorAt(
+          index,
+          item.emphasis === "focal"
+            ? focalColor
+            : item.emphasis === "selected"
+              ? selectedColor
+              : standardColor,
+        );
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      haloMesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingSphere();
+      haloMesh.computeBoundingSphere();
+      group.add(haloMesh);
+      group.add(mesh);
+      trafficBatches.push({
+        family,
+        mesh,
+        haloMesh,
+        items,
+      });
+    }
+
     if (highlightMesh?.instanceColor) highlightMesh.instanceColor.needsUpdate = true;
-    mesh.computeBoundingSphere();
-    haloMesh.computeBoundingSphere();
     highlightMesh?.computeBoundingSphere();
-    group.add(haloMesh);
-    group.add(mesh);
     if (highlightMesh) group.add(highlightMesh);
-    trafficMeshRef.current = mesh;
-    trafficHaloMeshRef.current = haloMesh;
+    trafficBatchesRef.current = trafficBatches;
     trafficHighlightMeshRef.current = highlightMesh;
-    trafficIdsRef.current = ids;
-    trafficRenderItemsRef.current = renderItems;
     trafficLabelsRef.current = labels;
 
     if (stems.length) {
@@ -1306,7 +1334,17 @@ export default function ThreeOsmMapPoc({
     );
     rootRef.current?.setAttribute(
       "data-poc-aircraft-visual",
-      "instanced-silhouette-v2",
+      "instanced-family-silhouette-v3",
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-batches",
+      String(trafficBatches.length),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-families",
+      trafficBatches
+        .map((batch) => `${batch.family}:${batch.items.length}`)
+        .join(","),
     );
     const trafficUpdateDurationMs = performance.now() - trafficUpdateStartedAt;
     const root = rootRef.current;

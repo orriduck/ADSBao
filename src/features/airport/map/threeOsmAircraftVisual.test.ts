@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   createThreeOsmAircraftGeometry,
   resolveThreeOsmAircraftEmphasis,
+  resolveThreeOsmAircraftFamily,
   resolveThreeOsmAircraftScale,
 } from "./threeOsmAircraftVisual";
 
@@ -37,11 +38,39 @@ assert.ok(
     resolveThreeOsmAircraftScale("selected"),
 );
 
+assert.equal(resolveThreeOsmAircraftFamily({ category: "A3" }), "transport");
+assert.equal(resolveThreeOsmAircraftFamily({ type: "B77W" }), "heavy");
+assert.equal(resolveThreeOsmAircraftFamily({ category: "A1" }), "light");
+assert.equal(resolveThreeOsmAircraftFamily({ type: "H60" }), "rotorcraft");
+assert.equal(
+  resolveThreeOsmAircraftFamily({ category: "A6", type: "F16" }),
+  "high-performance",
+);
+assert.equal(resolveThreeOsmAircraftFamily({ type: "unknown" }), "transport");
+
 const geometry = createThreeOsmAircraftGeometry();
 const bounds = geometry.boundingBox;
 assert.ok(bounds);
 assert.ok(bounds.max.z - bounds.min.z > bounds.max.x - bounds.min.x);
 assert.ok(geometry.getAttribute("position").count > 12);
 geometry.dispose();
+
+const heavyGeometry = createThreeOsmAircraftGeometry("heavy");
+const transportGeometry = createThreeOsmAircraftGeometry("transport");
+const rotorcraftGeometry = createThreeOsmAircraftGeometry("rotorcraft");
+assert.ok(heavyGeometry.boundingBox);
+assert.ok(transportGeometry.boundingBox);
+assert.ok(rotorcraftGeometry.boundingBox);
+assert.ok(
+  heavyGeometry.boundingBox.max.x - heavyGeometry.boundingBox.min.x >
+    transportGeometry.boundingBox.max.x - transportGeometry.boundingBox.min.x,
+);
+assert.ok(
+  rotorcraftGeometry.boundingBox.max.x - rotorcraftGeometry.boundingBox.min.x >
+    rotorcraftGeometry.boundingBox.max.z - rotorcraftGeometry.boundingBox.min.z,
+);
+heavyGeometry.dispose();
+transportGeometry.dispose();
+rotorcraftGeometry.dispose();
 
 console.log("threeOsmAircraftVisual.test.ts ok");

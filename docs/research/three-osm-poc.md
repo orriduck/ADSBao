@@ -95,10 +95,13 @@ points, watcher locations, and user location. Context-tile loading no longer
 requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
 own bounds. Item three now includes pointer and keyboard picking,
 selected-aircraft styling, live selected traces, flight-page route geometry,
-and an accessible DOM summary of the visible map. Traffic now uses a recognizable
-low-poly aircraft silhouette, a second instanced contrast pass, and a bounded
-selection-ring batch; focal and secondary selection semantics remain distinct
-without creating per-aircraft scene objects. Route and recorded-trace camera
+and an accessible DOM summary of the visible map. Traffic now resolves five
+bounded operational silhouette families (`transport`, `heavy`, `light`,
+`rotorcraft`, and `high-performance`) from the existing ICAO type/category
+fields. Each active family uses one fill and one contrast InstancedMesh, with
+the existing ADS-B wake-category scale and one bounded selection-ring batch;
+focal and secondary selection semantics remain distinct without creating
+per-aircraft scene objects. Route and recorded-trace camera
 fitting consumes the existing product signals: it chooses a bounded tile zoom
 from the geographic envelope and actual viewport aspect, frames the same
 geometry with either camera, handles dateline wrapping, restores Follow without
@@ -218,10 +221,18 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   scenes, Long Tasks, or console errors. That shorter run did not include a
   complete heap collection cycle, so it proves allocation-path removal but not
   a reduced long-session memory maximum.
+- Type-aware traffic batching produced four active families for the sampled
+  KBOS payload. Sharing each family's geometry between fill and halo reduced a
+  traffic-only scene from 9 to 5 geometries; a matched 45-second window made 18
+  traffic rebuilds with a 1.0 ms maximum, zero slow scenes, and one 51 ms Long
+  Task. A pre-sharing window had three Long Tasks and nine geometries, so the
+  allocation path improved, but this short comparison is not a replacement for
+  the real-device long-session gate.
 - Same-size production KBOS remains the semantic visual baseline: it currently
-  has more mature type-aware aircraft, airspace, and watching-spot context,
-  while the POC's larger silhouettes and bounded label collision are easier to
-  scan. Different live context payloads prevent a parity claim.
+  has per-model aircraft SVGs plus more airspace and watching-spot context.
+  The POC now carries coarse family/wake semantics, and its larger silhouettes
+  and bounded label collision are easier to scan, but this is not per-model
+  parity. Different live context payloads also prevent a broader parity claim.
 
 This browser evidence clears the next architecture iteration, not the real
 device gate. A 20-minute iPhone-class run with background/foreground cycles,
@@ -231,8 +242,8 @@ touch gestures, and device memory/thermal observation is still required.
 
 - One geographic projection and one camera state instead of Leaflet/MapLibre
   synchronization.
-- One aircraft geometry and picking path instead of Leaflet canvas hit tests,
-  MapLibre DOM markers, and a separate Three custom layer.
+- One bounded family-batch and picking path instead of Leaflet canvas hit
+  tests, MapLibre DOM markers, and a separate Three custom layer.
 - Real altitude, trace, runway, and airspace geometry can share the same depth
   and clipping rules.
 - `InstancedMesh` reduces draw calls for repeated aircraft geometry.
