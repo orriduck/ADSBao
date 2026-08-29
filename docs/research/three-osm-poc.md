@@ -280,6 +280,15 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   saved scope and returned 2D zoom to `1.000`. Same-size production KBOS kept
   the same airport center and operational range but, as expected, retained the
   richer vector-cartography and per-model aircraft baseline.
+- A fresh local KBOS accessibility-tree inspection exposed the POC as a named
+  region with a mode-specific description, a live aircraft/airport/runway
+  summary, keyboard-selection instructions, a bounded first-aircraft list, and
+  linked OSM attribution. The renderer remains request-driven and camera
+  damping is disabled, so the POC does not add an autonomous camera-animation
+  loop. The available browser surface could not emulate reduced-motion,
+  increased-contrast, or forced-colors media preferences; those preference
+  modes therefore remain an explicit external acceptance gate rather than a
+  claimed browser pass.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes
