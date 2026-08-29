@@ -5,6 +5,7 @@ import {
   createThreeOsmContextScene,
   resolveThreeOsmAirspaceHitIds,
   resolveThreeOsmContextScreenHit,
+  resolveThreeOsmSpotMapLabel,
 } from "./threeOsmSceneContext";
 import { lonLatToTileCoordinate } from "./threeOsmProjection";
 
@@ -29,6 +30,16 @@ assert.deepEqual(
   collectAirspaceLineCoordinates({ type: "LineString", coordinates: ring }),
   [],
 );
+
+assert.equal(
+  resolveThreeOsmSpotMapLabel("Taxi Holding Area at Cargo Plaza - 13L arrivals"),
+  "Taxi Holding Area at Cargo…",
+);
+assert.equal(
+  resolveThreeOsmSpotMapLabel("AVIS Car Rental - 13L arrivals"),
+  "AVIS Car Rental",
+);
+assert.equal(resolveThreeOsmSpotMapLabel("北侧观景台 - 午后顺光"), "北侧观景台");
 
 const context = createThreeOsmContextScene({
   airportCode: "BOS",

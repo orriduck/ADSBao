@@ -22,6 +22,8 @@ export default function HomeScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const { pathname } = location;
+  const threeOsmDebug =
+    new URLSearchParams(location.search).get("threeOsmDebug") === "1";
   const { locale } = useI18n();
   const currentIcao = normalizePathIcao(pathname);
   const seedAirportRef = useRef(null);
@@ -140,7 +142,19 @@ export default function HomeScreen() {
   }
 
   return (
-    <div className="min-h-dvh">
+    <div
+      className="min-h-dvh"
+      {...(threeOsmDebug
+        ? {
+            "data-airport-context-status": contextQuery.status,
+            "data-airport-context-fetch-status": contextQuery.fetchStatus,
+            "data-airport-context-navaids":
+              contextQuery.data?.nearbyNavaids?.length ?? 0,
+            "data-airport-profile-navaids":
+              airport?.nearbyNavaids?.length ?? 0,
+          }
+        : {})}
+    >
       <AirportExplorer
         icao={currentIcao}
         airport={airport}

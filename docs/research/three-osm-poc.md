@@ -395,6 +395,19 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   the real-device performance gate. Production KBOS remained the visual-density
   baseline, while its wider live camera scale prevented a pixel-identical
   airport-detail comparison.
+- Live context selection now has browser evidence beyond fixture coverage.
+  A fresh local KJFK profile hydrated 12 real OpenAIP navaids end to end; the
+  POC selected JFK VOR-DME in both cameras and retained the existing preview
+  semantics (KENNEDY, 115.9 MHz, elevation, and source-backed identity). The
+  local Go service currently has no KJFK photo locations, so a second local
+  Vite process used the same branch while read-only proxying the public
+  production API. Its 16 real photo locations remained selectable in 2D and
+  3D, and the selected Cargo Plaza location retained its full name, distance,
+  source, safety disclaimer, and Go action in the DOM preview. Map-only photo
+  labels now remove the descriptive suffix after a spaced dash and cap the
+  remaining location name at 28 characters; the accessible selection list and
+  preview keep the full source text. This reduced KJFK label obstruction with
+  zero horizontal overflow without weakening the selection contract.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

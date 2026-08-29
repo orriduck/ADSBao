@@ -43,6 +43,22 @@ type ContextPoint = {
   priority: number;
 };
 
+const THREE_OSM_SPOT_MAP_LABEL_MAX_CHARACTERS = 28;
+
+export function resolveThreeOsmSpotMapLabel(value: unknown) {
+  const fullLabel = String(value || "Spot").trim().replace(/\s+/g, " ");
+  const locationLabel =
+    fullLabel.split(/\s+[—–-]\s+/, 1)[0]?.trim() || fullLabel;
+  const characters = Array.from(locationLabel);
+  if (characters.length <= THREE_OSM_SPOT_MAP_LABEL_MAX_CHARACTERS) {
+    return locationLabel;
+  }
+  return `${characters
+    .slice(0, THREE_OSM_SPOT_MAP_LABEL_MAX_CHARACTERS - 1)
+    .join("")
+    .trimEnd()}…`;
+}
+
 export type ThreeOsmContextSelection = {
   kind: "airport" | "navaid" | "reporting" | "spot";
   id: string;
@@ -603,13 +619,13 @@ export function createThreeOsmContextScene({
 
   const spotItems: ContextPoint[] = showCandidateWatchingSpots
     ? candidateWatchingSpots.flatMap((item, index) => {
-        const label = String(item?.name || item?.title || "Spot").trim();
-        if (!label) return [];
+        const fullLabel = String(item?.name || item?.title || "Spot").trim();
+        if (!fullLabel) return [];
         const selectionId = String(item?.id || "").trim();
         const id = selectionId || `spot-${index}`;
         return [{
           id,
-          label,
+          label: resolveThreeOsmSpotMapLabel(fullLabel),
           lat: item?.lat,
           lon: item?.lon,
           kind: "spot" as const,

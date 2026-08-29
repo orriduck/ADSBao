@@ -2241,6 +2241,9 @@ export default function ThreeOsmMapPoc({
       data-poc-basemap={basemapState}
       data-poc-runtime-id={runtimeIdRef.current}
       data-poc-keyboard-targets={accessibleAircraft.length}
+      data-poc-navaid-input={navaids.length}
+      data-poc-navaid-count-input={navaidCounts.length}
+      data-poc-use-navaid-counts={useNavaidCounts ? "true" : "false"}
       data-poc-fit-active={activeCameraFit ? "true" : "false"}
       data-poc-fit-reason={activeCameraFit?.reason || "follow"}
       data-poc-fit-points={activeCameraFit?.pointCount || 0}
