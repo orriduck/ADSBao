@@ -1,4 +1,4 @@
-export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 2;
+export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 3;
 export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
   "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
@@ -63,6 +63,10 @@ export type ThreeOsmAcceptanceSample = {
   tileSourceConfig?: string;
   visibility?: string;
   wakeLockStatus?: ThreeOsmWakeLockStatus;
+  trafficRendered?: number;
+  trafficReal?: number;
+  trafficSynthetic?: number;
+  trafficStressTarget?: number;
   usedJsHeapBytes?: number | null;
 };
 
@@ -99,6 +103,10 @@ export type ThreeOsmAcceptanceSession = {
   tilesFailedMax: number;
   contextLossesMax: number;
   contextRestoresMax: number;
+  trafficRenderedMax: number;
+  trafficRealMax: number;
+  trafficSyntheticMax: number;
+  trafficStressTargetMax: number;
   usedJsHeapInitialBytes: number | null;
   usedJsHeapMinBytes: number | null;
   usedJsHeapMaxBytes: number | null;
@@ -164,6 +172,10 @@ const ACCEPTANCE_SESSION_NUMBER_FIELDS = [
   "tilesFailedMax",
   "contextLossesMax",
   "contextRestoresMax",
+  "trafficRenderedMax",
+  "trafficRealMax",
+  "trafficSyntheticMax",
+  "trafficStressTargetMax",
 ] as const;
 
 const ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS = [
@@ -193,6 +205,10 @@ const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
   "tilesFailedMax",
   "contextLossesMax",
   "contextRestoresMax",
+  "trafficRenderedMax",
+  "trafficRealMax",
+  "trafficSyntheticMax",
+  "trafficStressTargetMax",
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -272,6 +288,10 @@ export function createThreeOsmAcceptanceSession(input: {
     tilesFailedMax: 0,
     contextLossesMax: 0,
     contextRestoresMax: 0,
+    trafficRenderedMax: 0,
+    trafficRealMax: 0,
+    trafficSyntheticMax: 0,
+    trafficStressTargetMax: 0,
     usedJsHeapInitialBytes: null,
     usedJsHeapMinBytes: null,
     usedJsHeapMaxBytes: null,
@@ -500,6 +520,19 @@ export function sampleThreeOsmAcceptanceSession(
     session.contextRestoresMax,
     sample.contextRestores,
   );
+  session.trafficRenderedMax = maxValue(
+    session.trafficRenderedMax,
+    sample.trafficRendered,
+  );
+  session.trafficRealMax = maxValue(session.trafficRealMax, sample.trafficReal);
+  session.trafficSyntheticMax = maxValue(
+    session.trafficSyntheticMax,
+    sample.trafficSynthetic,
+  );
+  session.trafficStressTargetMax = maxValue(
+    session.trafficStressTargetMax,
+    sample.trafficStressTarget,
+  );
 
   if (Number.isFinite(sample.usedJsHeapBytes)) {
     const heapBytes = Number(sample.usedJsHeapBytes);
@@ -697,6 +730,8 @@ export function buildThreeOsmAcceptanceReport(
         "The user agent and touch capability identify an iPhone candidate; the operator must still confirm this report came from physical hardware.",
       wakeLock:
         "Screen wake-lock state is recorded as operator-assistance evidence. It does not add or replace any of the 11 acceptance gates.",
+      trafficCapacity:
+        "Rendered, real, synthetic, and requested stress-target maxima are recorded as capacity evidence. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
     },
   };
 }

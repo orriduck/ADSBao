@@ -158,6 +158,14 @@ export function useThreeOsmAcceptanceRecorder(input: {
       tilesFailed: numericDatasetValue(root.dataset.pocTilesFailed),
       contextLosses: numericDatasetValue(root.dataset.pocContextLosses),
       contextRestores: numericDatasetValue(root.dataset.pocContextRestores),
+      trafficRendered: numericDatasetValue(root.dataset.pocAircraft),
+      trafficReal: numericDatasetValue(root.dataset.pocAircraftReal),
+      trafficSynthetic: numericDatasetValue(root.dataset.pocAircraftSynthetic),
+      trafficStressTarget: numericDatasetValue(
+        root.dataset.pocTrafficStress === "inactive"
+          ? undefined
+          : root.dataset.pocTrafficStress,
+      ),
       basemap: root.dataset.pocBasemap,
       tileSource: root.dataset.pocTileSource,
       tileSourceOrigin: root.dataset.pocTileSourceConfigOrigin,
@@ -188,6 +196,16 @@ export function useThreeOsmAcceptanceRecorder(input: {
     );
     root.dataset.pocAcceptanceWakeLockErrorSamples = String(
       session.wakeLock.errorSamples,
+    );
+    root.dataset.pocAcceptanceTrafficRenderedMax = String(
+      session.trafficRenderedMax,
+    );
+    root.dataset.pocAcceptanceTrafficRealMax = String(session.trafficRealMax);
+    root.dataset.pocAcceptanceTrafficSyntheticMax = String(
+      session.trafficSyntheticMax,
+    );
+    root.dataset.pocAcceptanceTrafficStressTargetMax = String(
+      session.trafficStressTargetMax,
     );
     root.dataset.pocAcceptancePassedGates = String(
       nextEvaluation.gates.filter((gate) => gate.status === "pass").length,

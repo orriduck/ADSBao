@@ -667,6 +667,8 @@ const zhCN = {
       scene2d: "正交运行场景",
       scene3d: "透视高度场景",
       stats: "{tiles} 张瓦片 · {aircraft} 架飞机 · {airports} 个机场 · z{zoom}",
+      trafficStressStatus:
+        "调试负载 {target} · {real} 架实时 + {synthetic} 架合成",
       basemapDegraded: "底图状态：{state} · 运行图层仍保持显示",
       showLayersAria: "显示 {layer} POC 图层",
       selectContextAria: "选择 {context} POC 地图要素",

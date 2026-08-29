@@ -676,6 +676,8 @@ const en = {
       scene2d: "Orthographic operations scene",
       scene3d: "Perspective altitude scene",
       stats: "{tiles} tiles · {aircraft} targets · {airports} airports · z{zoom}",
+      trafficStressStatus:
+        "Debug load {target} · {real} live + {synthetic} synthetic",
       basemapDegraded: "Basemap {state} · operational overlays remain",
       showLayersAria: "Show {layer} POC layers",
       selectContextAria: "Select {context} POC context",

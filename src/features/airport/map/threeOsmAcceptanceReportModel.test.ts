@@ -62,6 +62,10 @@ function createPassingReport(tileSource = "licensed-raster") {
     tilesFailed: 0,
     contextLosses: 1,
     contextRestores: 1,
+    trafficRendered: 250,
+    trafficReal: 183,
+    trafficSynthetic: 67,
+    trafficStressTarget: 250,
     basemap: "ready",
     tileSource,
     tileSourceOrigin: tileSource === "osm-standard" ? "build" : "runtime",
@@ -158,6 +162,10 @@ try {
   assert.match(
     configuredCli.stdout,
     /screen awake helper: active; active samples=1; error samples=0 \(not a gate\)/,
+  );
+  assert.match(
+    configuredCli.stdout,
+    /traffic capacity: rendered=250; real=183; synthetic=67; target=250 \(not a gate\)/,
   );
   assert.doesNotMatch(configuredCli.stdout, /MUST_NOT_BE_PRINTED/);
 

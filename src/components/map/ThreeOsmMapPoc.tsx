@@ -82,6 +82,11 @@ import {
 } from "@/features/airport/map/threeOsmContextInteraction";
 import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
 import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
+import {
+  THREE_OSM_AIRCRAFT_CAPACITY,
+  buildThreeOsmTrafficRenderSources,
+  parseThreeOsmTrafficStressTarget,
+} from "@/features/airport/map/threeOsmTrafficStress";
 
 type CameraMode = "2d" | "3d";
 
@@ -136,7 +141,6 @@ type ThreeOsmPocProps = {
   onReady?: ((state: { ready: boolean; tilesLoaded: number }) => void) | null;
 };
 
-const MAX_AIRCRAFT = 220;
 const MAX_TILE_TEXTURES = 72;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
@@ -436,13 +440,18 @@ export default function ThreeOsmMapPoc({
   );
   const debugLayerModeRef = useRef(debugLayerMode);
   debugLayerModeRef.current = debugLayerMode;
-  const debugEnabled =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
+  const debugSearchParams = new URLSearchParams(
+    typeof window === "undefined" ? "" : window.location.search,
+  );
+  const debugEnabled = debugSearchParams.get("threeOsmDebug") === "1";
   const acceptanceEnabled =
     debugEnabled &&
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("threeOsmAcceptance") === "1";
+    debugSearchParams.get("threeOsmAcceptance") === "1";
+  const trafficStressTarget = debugEnabled
+    ? parseThreeOsmTrafficStressTarget(
+        debugSearchParams.get("threeOsmStress"),
+      )
+    : null;
   const debugEnabledRef = useRef(debugEnabled);
   debugEnabledRef.current = debugEnabled;
   const accessibilityDebugOverrides = useMemo(
@@ -631,8 +640,21 @@ export default function ThreeOsmMapPoc({
     () =>
       aircraft
         .filter((item) => isFiniteCoordinate(item?.lat, item?.lon))
-        .slice(0, MAX_AIRCRAFT),
+        .slice(0, THREE_OSM_AIRCRAFT_CAPACITY),
     [aircraft],
+  );
+  const trafficSources = useMemo(
+    () =>
+      buildThreeOsmTrafficRenderSources({
+        aircraft: visibleAircraft,
+        center: { lat: sceneCenterLat, lon: sceneCenterLon },
+        stressTarget: trafficStressTarget,
+      }),
+    [sceneCenterLat, sceneCenterLon, trafficStressTarget, visibleAircraft],
+  );
+  const syntheticTrafficCount = trafficSources.reduce(
+    (count, source) => count + (source.synthetic ? 1 : 0),
+    0,
   );
   const visibleAirports = useMemo(
     () => nearbyAirports.filter((item) => isFiniteCoordinate(item?.lat, item?.lon)),
@@ -1818,9 +1840,11 @@ export default function ThreeOsmMapPoc({
       depthTest: false,
       depthWrite: false,
     });
-    const highlightedAircraftCount = visibleAircraft.reduce((count, item) => {
-      const id = getAircraftIdentity(item);
-      return id && (id === selectedAircraftId || id === focalAircraftId)
+    const highlightedAircraftCount = trafficSources.reduce((count, source) => {
+      const id = source.selectionId;
+      return !source.synthetic &&
+        id &&
+        (id === selectedAircraftId || id === focalAircraftId)
         ? count + 1
         : count;
     }, 0);
@@ -1861,7 +1885,8 @@ export default function ThreeOsmMapPoc({
     );
     let highlightIndex = 0;
 
-    visibleAircraft.forEach((item, index) => {
+    trafficSources.forEach((source, index) => {
+      const { aircraft: item } = source;
       const point = lonLatAltitudeToThreeOsmWorld({
         lon: item?.lon,
         lat: item?.lat,
@@ -1869,14 +1894,16 @@ export default function ThreeOsmMapPoc({
         center: tileCenter,
         centerLat: sceneCenterLat,
       });
-      const id = getAircraftIdentity(item);
+      const id = source.selectionId;
       if (!point) return;
 
-      const emphasis = resolveThreeOsmAircraftEmphasis({
-        id,
-        selectedAircraftId,
-        focalAircraftId,
-      });
+      const emphasis = source.synthetic
+        ? "standard"
+        : resolveThreeOsmAircraftEmphasis({
+            id,
+            selectedAircraftId,
+            focalAircraftId,
+          });
       const selected = emphasis !== "standard";
       const heading = Number(item?.track ?? item?.heading ?? 0) || 0;
       position.set(point.x, Math.max(2.5, point.y), point.z);
@@ -1905,7 +1932,7 @@ export default function ThreeOsmMapPoc({
       ).trim();
       if (callsign && (showCallsigns || selected)) {
         labels.push({
-          id: `aircraft:${id || index}`,
+          id: `aircraft:${source.renderKey || id || index}`,
           text: callsign,
           kind: "aircraft",
           position: position.clone().add(new THREE.Vector3(0, 5, 0)),
@@ -1977,7 +2004,19 @@ export default function ThreeOsmMapPoc({
       group.add(new THREE.LineSegments(stemGeometry, stemMaterial));
     }
 
-    rootRef.current?.setAttribute("data-poc-aircraft", String(visibleAircraft.length));
+    rootRef.current?.setAttribute("data-poc-aircraft", String(trafficSources.length));
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-real",
+      String(visibleAircraft.length),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-synthetic",
+      String(syntheticTrafficCount),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-traffic-stress",
+      trafficStressTarget == null ? "inactive" : String(trafficStressTarget),
+    );
     rootRef.current?.setAttribute(
       "data-poc-aircraft-highlights",
       String(highlightedAircraftCount),
@@ -2018,7 +2057,10 @@ export default function ThreeOsmMapPoc({
     showCallsigns,
     tileCenter,
     visualPalette,
-    visibleAircraft,
+    syntheticTrafficCount,
+    trafficSources,
+    trafficStressTarget,
+    visibleAircraft.length,
   ]);
 
   useEffect(() => {
@@ -2288,6 +2330,9 @@ export default function ThreeOsmMapPoc({
       data-poc-debug-layer={debugLayerMode}
       data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
       data-poc-soak-mode-switches={soakModeSwitches}
+      data-poc-traffic-stress={
+        trafficStressTarget == null ? "inactive" : trafficStressTarget
+      }
       data-poc-tile-source-requested={requestedTileSource}
       data-poc-tile-source={activeTileSource.id}
       data-poc-tile-source-config={configuredTileSource.status}
@@ -2385,11 +2430,24 @@ export default function ThreeOsmMapPoc({
         <span className="mt-0.5 block text-white/50">
           {t("map.poc.stats", {
             tiles: visibleTiles.length,
-            aircraft: visibleAircraft.length,
+            aircraft: trafficSources.length,
             airports: visibleAirports.length,
             zoom: tileZoom,
           })}
         </span>
+        {trafficStressTarget != null ? (
+          <span
+            className="mt-0.5 block normal-case tracking-normal text-[#f5c542]"
+            data-poc-traffic-stress-status="active"
+            role="status"
+          >
+            {t("map.poc.trafficStressStatus", {
+              target: trafficStressTarget,
+              real: visibleAircraft.length,
+              synthetic: syntheticTrafficCount,
+            })}
+          </span>
+        ) : null}
         {basemapState === "partial" || basemapState === "degraded" ? (
           <span className="mt-1 block normal-case tracking-normal text-[#f5c542]" role="status">
             {t("map.poc.basemapDegraded", { state: basemapState })}

@@ -63,6 +63,10 @@ function createPassingCandidate() {
     tilesFailed: 0,
     contextLosses: 1,
     contextRestores: 1,
+    trafficRendered: 250,
+    trafficReal: 183,
+    trafficSynthetic: 67,
+    trafficStressTarget: 250,
     basemap: "ready",
     tileSource: "licensed-raster",
     tileSourceOrigin: "runtime",
@@ -96,6 +100,10 @@ assert.deepEqual(passing.wakeLock, {
   pendingSamples: 0,
   errorSamples: 0,
 });
+assert.equal(passing.trafficRenderedMax, 250);
+assert.equal(passing.trafficRealMax, 183);
+assert.equal(passing.trafficSyntheticMax, 67);
+assert.equal(passing.trafficStressTargetMax, 250);
 
 sampleThreeOsmAcceptanceSession(passing, {
   nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,

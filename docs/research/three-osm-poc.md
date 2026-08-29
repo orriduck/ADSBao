@@ -38,16 +38,26 @@ mode and exists only to support long-session resource and render diagnostics.
 Debug Mode can also isolate `all`, `basemap`, `context`, `traffic`, or `flight`
 scene groups without replacing the renderer or camera.
 
-Add `&threeOsmAcceptance=1` with Debug Mode and soak mode on a physical iPhone
-to start a session-scoped acceptance record. The record survives ordinary page
-reloads so a document/runtime restart becomes failure evidence rather than
-silently starting a clean timer. It records the 20-minute wall clock, real
-touch pointer interactions, background/foreground render recovery, camera-mode
-switches, tile/provider state, WebGL recovery, bounded GPU counters, Long Tasks,
-and JavaScript heap samples when the browser exposes them. The operator must
-mark the phone's thermal state because browsers do not expose a trustworthy
-device-temperature API. The report can be shared or downloaded as JSON; it
-contains provider identity and state but never the tile URL or browser key.
+Add `&threeOsmStress=250` in Debug Mode to exercise the graduation target of
+250 aircraft instances. The harness keeps every available live aircraft and
+deterministically fills the remaining GPU and label workload with clearly
+reported synthetic clones. Those clones exist only in the POC renderer, select
+their original live aircraft when tapped, and never enter the accessible
+live-aircraft summary or the normal map path.
+
+Add `&threeOsmAcceptance=1` with Debug Mode, the 250-target stress harness, and
+soak mode on a physical iPhone to start a session-scoped acceptance record. The
+record survives ordinary page reloads so a document/runtime restart becomes
+failure evidence rather than silently starting a clean timer. It records the
+20-minute wall clock, real touch pointer interactions, background/foreground
+render recovery, camera-mode switches, tile/provider state, WebGL recovery,
+bounded GPU counters, Long Tasks, and JavaScript heap samples when the browser
+exposes them. It also records the maximum rendered, live, synthetic, and
+requested stress-target counts as non-gating capacity evidence. The operator
+must mark the phone's thermal state because browsers do not expose a
+trustworthy device-temperature API. The report can be shared or downloaded as
+JSON; it contains provider identity and state but never the tile URL or browser
+key.
 
 The acceptance verdict remains `incomplete` until all eleven gates pass. A
 desktop viewport or emulated user agent cannot be reported as the physical
@@ -60,9 +70,10 @@ the run to inspect each gate's live status and evidence; pending and failed
 requirements remain visible without covering the map when the list is closed.
 The same panel exposes the browser screen-wake-lock state and an explicit
 enable/retry control so an operator does not accidentally invalidate the long
-run by letting the phone sleep. Wake-lock samples are included in the exported
-session as operator-assistance evidence, but they deliberately do not create a
-twelfth gate or excuse the required background/foreground cycle.
+run by letting the phone sleep. Wake-lock and traffic-capacity samples are
+included in the exported session as operator-assistance evidence, but they
+deliberately do not create a twelfth gate or excuse the required
+background/foreground cycle.
 
 Before opening the page on a physical phone, run `pnpm debug:device` for the
 default OSM source. It prints a key-free private-LAN acceptance URL only after
@@ -161,8 +172,10 @@ With items one through four now substantially represented in the branch, the
 remaining priority is: (1) a real iPhone-class 20-minute touch/background/
 thermal run, (2) a licensed raster provider trial through the existing adapter,
 then (3) additional vector-cartography or aesthetic depth. Real navaid and
-photo-location interaction checks are now complete. More visual polish should
-not move ahead of the first two graduation risks.
+photo-location interaction checks are now complete. The Debug-only 250-target
+capacity harness now makes the first run reproducible, but desktop evidence
+does not clear its real-device gate. More visual polish should not move ahead
+of the first two graduation risks.
 
 While the first two gates require external hardware or provider authorization,
 the next local-only cartography sequence is: runway approach direction,
@@ -488,6 +501,18 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   the empty local runtime file returned default OSM to 25/25 ready while the
   explicit configured entry remained honestly degraded. This validates the
   runtime control/failure boundary only; it is not a licensed-provider trial.
+- The Debug-only `threeOsmStress=250` harness closes the former 220-target test
+  ceiling without inventing normal-map traffic. At a 390×844 local KBOS
+  viewport, the scene held 250 instances from 163 live and 87 synthetic targets
+  in four family batches; live updates shifted that split while preserving the
+  total. Label collision stayed capped at 24, selecting a live target created
+  exactly one highlight, traffic rebuild time peaked at 3.4 ms, scene render
+  time peaked at 23.3 ms, horizontal overflow remained zero, and the console
+  recorded no errors. The acceptance recorder captured rendered, live,
+  synthetic, and requested-target maxima without changing the eleven gates.
+  This is desktop capacity evidence only; the emitted physical-device URL now
+  includes the same stress flag so gate four can be tested honestly on an
+  iPhone.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes
