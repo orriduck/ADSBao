@@ -46,9 +46,22 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 77;
+export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.17.0",
+    kind: "feat",
+    title: {
+      en: "Spatial map interaction",
+      zh: "空间地图交互",
+    },
+    summary: {
+      en: "Airport maps now combine a native MapLibre base with operational overlays, an optional Three.js altitude view, synchronized 2D and 3D cameras, and more tactile sidebar and mobile-card gestures across responsive layouts.",
+      zh: "机场地图现在结合原生 MapLibre 底图与运行导视图层，提供可选的 Three.js 高度视图、同步的 2D 与 3D 相机，并在响应式布局中加入更具触感的侧边栏和移动卡片手势。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.16.15",
     kind: "feat",
@@ -59,19 +72,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     summary: {
       en: "Airport pages now reveal progressively, preserve stable known coordinates without duplicate nearby subscriptions or a zero-coordinate detour, avoid parallel HTTP traffic requests while a healthy SSE startup is pending, and surface separately delivered nearby-airport context in flight tracking.",
       zh: "机场页现在会渐进呈现，稳定保留已知坐标并避免重复附近订阅或绕经零坐标；健康 SSE 启动等待期间也不再并行请求 HTTP 航空流量，航班追踪则能正确显示独立送达的附近机场信息。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v3.15.2",
-    kind: "feat",
-    title: {
-      en: "Wayfinding clarity",
-      zh: "导视清晰度",
-    },
-    summary: {
-      en: "A grayscale-and-yellow wayfinding refresh sharpens aircraft, stabilizes nearby lists, and gives Plane Studio a calmer camera and capture-review interface.",
-      zh: "灰黄导视更新提升飞机清晰度、稳定附近列表，并让 Plane Studio 的拍摄与成片审核界面更清晰克制。",
     },
     highlights: [],
   },

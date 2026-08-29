@@ -162,6 +162,211 @@
     --plane-hunter-card-clearance: calc(290px + max(16px, var(--app-bottom-safe-area)));
 }
 
+/* Neutral technical material -------------------------------------------------
+   Hardware construction without imitating another product's typography or
+   palette. Fixed content remains flat; rails and floating controls alone carry
+   the restrained edge response. */
+.airport-map-kit .sidebar-shell {
+    --atc-material-edge-high: color-mix(in oklab, var(--atc-text) 13%, transparent);
+    --atc-material-edge-low: color-mix(in oklab, var(--atc-text) 22%, transparent);
+    --atc-material-grain: color-mix(in oklab, var(--atc-text) 1.35%, transparent);
+    background-color: var(--airport-wayfinding-column-bg);
+    background-image: radial-gradient(circle at 1px 1px, var(--atc-material-grain) 0.55px, transparent 0.75px);
+    background-size: 4px 4px;
+}
+
+.airport-map-kit .wayfinding-rail,
+.airport-map-kit .aircraft-table-row-glyph,
+.airport-map-kit .aircraft-table-filter-rail {
+    box-shadow:
+        inset 0 1px 0 var(--atc-material-edge-high),
+        inset 0 -1px 0 var(--atc-material-edge-low);
+}
+
+.airport-map-kit .wayfinding-rail-glyph,
+.airport-map-kit .aircraft-table-row-glyph > svg {
+    transition:
+        transform var(--motion-ui-fast) var(--motion-ease-out),
+        opacity var(--motion-ui-fast) var(--motion-ease-out);
+}
+
+.airport-map-kit button:active .wayfinding-rail-glyph,
+.airport-map-kit [role="button"]:active .wayfinding-rail-glyph,
+.airport-map-kit .aircraft-table-card:active .aircraft-table-row-glyph > svg {
+    opacity: 0.78;
+    transform: translate3d(0, 1px, 0) scale(0.96);
+}
+
+.airport-map-kit [data-ui="toolbar"],
+.airport-map-kit [data-ui="mobile-preview-card"],
+.airport-map-kit .map-settings-sheet,
+.airport-map-kit [role="dialog"] {
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 16%, transparent),
+        inset 0 -1px 0 color-mix(in oklab, black 18%, transparent),
+        var(--atc-control-shadow);
+}
+
+.sidebar-shell[data-mobile-overlay="true"] {
+    touch-action: pan-y;
+    transform: translate3d(var(--sidebar-swipe-x, 0px), 0, 0);
+    transition:
+        transform var(--motion-ui-med) var(--motion-ease-out),
+        opacity var(--motion-ui-med) var(--motion-ease-out);
+    will-change: transform;
+}
+
+.sidebar-shell[data-mobile-overlay="true"][data-swipe-active="true"] {
+    opacity: clamp(0.72, calc(1 - var(--sidebar-swipe-x, 0px) / 1200), 1);
+    transition: none;
+}
+
+[data-ui="mobile-preview-card"] {
+    translate: 0 var(--mobile-preview-drag-y, 0px);
+    transition:
+        translate var(--motion-ui-med) var(--motion-ease-out),
+        border-color var(--motion-ui-fast) var(--motion-ease-out);
+}
+
+[data-ui="mobile-preview-card"][data-dragging="true"] {
+    transition: none;
+}
+
+[data-ui="mobile-preview-card"][data-dragging="true"] .mobile-preview-grabber__bar {
+    transform: scaleX(1.18);
+}
+
+.airport-map-native,
+.airport-map-native .maplibregl-map,
+.airport-map-native .maplibregl-canvas-container,
+.airport-map-native canvas {
+    height: 100%;
+    width: 100%;
+}
+
+.airport-map-surface,
+.airport-map-surface .leaflet-container,
+.airport-map-surface .leaflet-pane,
+.airport-map-surface .leaflet-map-pane {
+    background: transparent !important;
+}
+
+.airport-map-surface {
+    transition: opacity 220ms var(--motion-ease-out);
+}
+
+.map-view-mode {
+    position: absolute;
+    z-index: var(--z-map-controls, 580);
+    right: 12px;
+    bottom: calc(var(--app-bottom-dock-offset, 0px) + 12px);
+    display: grid;
+    grid-template-columns: repeat(2, 36px);
+    height: 36px;
+    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
+    background: color-mix(in oklab, var(--atc-bg) 94%, transparent);
+    box-shadow:
+        inset 0 1px 0 color-mix(in oklab, white 24%, transparent),
+        inset 0 -1px 0 color-mix(in oklab, black 18%, transparent),
+        0 8px 24px color-mix(in oklab, black 14%, transparent);
+    backdrop-filter: blur(12px) saturate(0.85);
+}
+
+.map-view-mode button {
+    border: 0;
+    border-right: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    background: transparent;
+    color: color-mix(in oklab, var(--atc-text) 58%, transparent);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition:
+        color var(--motion-ui-fast) var(--motion-ease-out),
+        background-color var(--motion-ui-fast) var(--motion-ease-out),
+        transform 120ms var(--motion-ease-out);
+}
+
+.map-view-mode button:last-child {
+    border-right: 0;
+}
+
+.map-view-mode button.is-active {
+    background: color-mix(in oklab, var(--atc-text) 10%, transparent);
+    color: var(--atc-text);
+    box-shadow: inset 0 -2px 0 var(--atc-signal-accent);
+}
+
+.map-view-mode button:active {
+    transform: translateY(1px);
+}
+
+.native-map-airport-marker {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    height: 25px;
+    border: 1px solid color-mix(in oklab, black 34%, transparent);
+    color: #171713;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 760;
+    line-height: 1;
+    letter-spacing: 0.045em;
+    filter: drop-shadow(0 5px 9px color-mix(in oklab, black 28%, transparent));
+    pointer-events: none;
+}
+
+.native-map-airport-marker::after {
+    position: absolute;
+    left: -1px;
+    bottom: -8px;
+    width: 1px;
+    height: 8px;
+    background: color-mix(in oklab, var(--atc-text) 62%, transparent);
+    content: "";
+}
+
+.native-map-airport-marker__signal,
+.native-map-airport-marker__label {
+    display: grid;
+    place-items: center;
+}
+
+.native-map-airport-marker__signal {
+    width: 24px;
+    background: color-mix(in oklab, var(--atc-signal-accent) 72%, #f3d448);
+    box-shadow: inset -1px 0 0 color-mix(in oklab, black 20%, transparent);
+}
+
+.native-map-airport-marker__label {
+    min-width: 42px;
+    padding-inline: 8px;
+    background: color-mix(in oklab, var(--atc-signal-accent) 84%, #f3d448);
+}
+
+@media (min-width: 768px) {
+    .map-view-mode {
+        right: 16px;
+        bottom: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-shell[data-mobile-overlay="true"],
+    [data-ui="mobile-preview-card"],
+    .airport-map-kit .wayfinding-rail-glyph,
+    .airport-map-kit .aircraft-table-row-glyph > svg {
+        transition: none;
+    }
+
+    .airport-map-surface,
+    .map-view-mode button {
+        transition: none;
+    }
+}
+
 :root {
     --motion-ui-fast: 200ms;
     --motion-ui-med: 240ms;
@@ -2067,6 +2272,10 @@ body:has(.dither-page-shell) {
 }
 
 .airport-map-surface.leaflet-container {
+    /* The native MapLibre canvas now owns the basemap. Leaflet is a transparent
+       operational overlay in 2D; an opaque chart-paper background here would
+       cover every native road, coastline, and label underneath it. */
+    background: transparent !important;
     /* Lock map surface against all browser touch gestures so mobile Safari
        can't rubber-band the document and expose white edges. The swipe-to-
        dismiss preview-card gesture listens on the document separately. */

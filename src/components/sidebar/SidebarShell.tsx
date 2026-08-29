@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type React from "react";
 import { Home, Map } from "lucide-react";
 import LanguageSwitch from "@/components/app-shell/LanguageSwitch";
@@ -61,6 +61,72 @@ export default function SidebarShell({
   const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(
     null,
   );
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swiping, setSwiping] = useState(false);
+  const swipeRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    lastX: number;
+    lastAt: number;
+    velocityX: number;
+    axis: "pending" | "horizontal" | "vertical";
+  } | null>(null);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isMobileOverlay || !onClose || event.pointerType === "mouse") return;
+    swipeRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastX: event.clientX,
+      lastAt: event.timeStamp,
+      velocityX: 0,
+      axis: "pending",
+    };
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - swipe.startX;
+    const deltaY = event.clientY - swipe.startY;
+    if (swipe.axis === "pending") {
+      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 8) return;
+      swipe.axis =
+        deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY) * 1.15
+          ? "horizontal"
+          : "vertical";
+      if (swipe.axis === "horizontal") {
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        setSwiping(true);
+      }
+    }
+    if (swipe.axis !== "horizontal") return;
+    const elapsed = Math.max(1, event.timeStamp - swipe.lastAt);
+    swipe.velocityX = (event.clientX - swipe.lastX) / elapsed;
+    swipe.lastX = event.clientX;
+    swipe.lastAt = event.timeStamp;
+    setSwipeOffset(Math.max(0, deltaX));
+    event.preventDefault();
+  };
+
+  const finishSwipe = (event: React.PointerEvent<HTMLDivElement>) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.pointerId !== event.pointerId) return;
+    swipeRef.current = null;
+    if (swipe.axis === "horizontal") {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      const width = event.currentTarget.getBoundingClientRect().width || 1;
+      const shouldClose = swipeOffset >= width * 0.25 || swipe.velocityX >= 0.5;
+      setSwiping(false);
+      setSwipeOffset(0);
+      if (shouldClose) onClose?.();
+      return;
+    }
+    setSwiping(false);
+    setSwipeOffset(0);
+  };
 
   const panelClasses = [
     "sidebar-shell flex h-full flex-col border-r border-atc-line-strong bg-transparent",
@@ -85,6 +151,16 @@ export default function SidebarShell({
       ref={setScrollElement}
       className={panelClasses}
       data-mobile-overlay={isMobileOverlay ? "true" : undefined}
+      data-swipe-active={swiping ? "true" : undefined}
+      style={
+        isMobileOverlay
+          ? ({ "--sidebar-swipe-x": `${swipeOffset}px` } as React.CSSProperties)
+          : undefined
+      }
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={finishSwipe}
+      onPointerCancel={finishSwipe}
     >
       {isMobileOverlay ? (
         <div className="sidebar-top-dock">
