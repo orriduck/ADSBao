@@ -72,13 +72,16 @@ points, watcher locations, and user location. Context-tile loading no longer
 requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
 own bounds. Item three now includes pointer and keyboard picking,
 selected-aircraft styling, live selected traces, flight-page route geometry,
-and an accessible DOM summary of the visible map. Route and recorded-trace
-camera fitting now consumes the existing product signals: it chooses a bounded
-tile zoom from the geographic envelope and actual viewport aspect, frames the
-same geometry with either camera, handles dateline wrapping, restores Follow
-without replacing the runtime, and guards full-route endpoints when live route
-data exists. A stronger selected-state/aircraft silhouette, bounded interaction,
-and long-session recovery remain the next incomplete operational boundary.
+and an accessible DOM summary of the visible map. Traffic now uses a recognizable
+low-poly aircraft silhouette, a second instanced contrast pass, and a bounded
+selection-ring batch; focal and secondary selection semantics remain distinct
+without creating per-aircraft scene objects. Route and recorded-trace camera
+fitting consumes the existing product signals: it chooses a bounded tile zoom
+from the geographic envelope and actual viewport aspect, frames the same
+geometry with either camera, handles dateline wrapping, restores Follow without
+replacing the runtime, and guards full-route endpoints when live route data
+exists. Bounded interaction, a tile adapter/cache, and long-session recovery
+remain the next incomplete operational boundary.
 
 ## Proposed architecture if the POC graduates
 

@@ -13,6 +13,14 @@ import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFit
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
+import {
+  createThreeOsmAircraftGeometry,
+  createThreeOsmAircraftSelectionGeometry,
+  resolveThreeOsmAircraftEmphasis,
+  resolveThreeOsmAircraftScale,
+  THREE_OSM_AIRCRAFT_SCREEN_SCALE,
+  type ThreeOsmAircraftEmphasis,
+} from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
@@ -75,11 +83,16 @@ const AIRCRAFT_COLOR_DARK = 0xf0eee7;
 const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
 const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
 const SELECTED_AIRCRAFT_COLOR_LIGHT = 0x414341;
+const FOCAL_AIRCRAFT_COLOR_DARK = 0xe8893f;
+const FOCAL_AIRCRAFT_COLOR_LIGHT = 0xcf6a1e;
+const AIRCRAFT_HALO_COLOR_DARK = 0x20211f;
+const AIRCRAFT_HALO_COLOR_LIGHT = 0xf7f5ef;
 
 type TrafficRenderItem = {
   position: THREE.Vector3;
   quaternion: THREE.Quaternion;
-  selected: boolean;
+  emphasis: ThreeOsmAircraftEmphasis;
+  highlightIndex: number | null;
 };
 
 function disposeObject(object: THREE.Object3D | null) {
@@ -99,25 +112,6 @@ function disposeObject(object: THREE.Object3D | null) {
     });
   });
   object.removeFromParent();
-}
-
-function createAircraftGeometry() {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(
-      [
-        0, 0.8, -7,
-        -3.8, 0, 4.8,
-        0, 0, 2.4,
-        3.8, 0, 4.8,
-      ],
-      3,
-    ),
-  );
-  geometry.setIndex([0, 1, 2, 0, 2, 3]);
-  geometry.computeVertexNormals();
-  return geometry;
 }
 
 function isFiniteCoordinate(lat: unknown, lon: unknown) {
@@ -179,6 +173,8 @@ export default function ThreeOsmMapPoc({
   const traceGroupRef = useRef<THREE.Group | null>(null);
   const routeGroupRef = useRef<THREE.Group | null>(null);
   const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
+  const trafficHaloMeshRef = useRef<THREE.InstancedMesh | null>(null);
+  const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficIdsRef = useRef<string[]>([]);
   const trafficRenderItemsRef = useRef<TrafficRenderItem[]>([]);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
@@ -309,8 +305,12 @@ export default function ThreeOsmMapPoc({
     const projected = new THREE.Vector3();
     const instanceMatrix = new THREE.Matrix4();
     const instanceScale = new THREE.Vector3();
+    const highlightPosition = new THREE.Vector3();
+    const identityQuaternion = new THREE.Quaternion();
     const resizeTrafficInstances = (camera: THREE.Camera) => {
       const mesh = trafficMeshRef.current;
+      const haloMesh = trafficHaloMeshRef.current;
+      const highlightMesh = trafficHighlightMeshRef.current;
       if (!mesh) return;
       const viewportHeight = Math.max(1, root.clientHeight);
       for (const [index, item] of trafficRenderItemsRef.current.entries()) {
@@ -324,13 +324,48 @@ export default function ThreeOsmMapPoc({
           worldPerPixel =
             (camera.top - camera.bottom) / (camera.zoom * viewportHeight);
         }
-        const screenScale = Math.max(0.08, worldPerPixel * 1.75);
-        instanceScale.setScalar(screenScale * (item.selected ? 1.35 : 1));
+        const screenScale = Math.max(
+          0.08,
+          worldPerPixel * THREE_OSM_AIRCRAFT_SCREEN_SCALE,
+        );
+        instanceScale.setScalar(
+          screenScale * resolveThreeOsmAircraftScale(item.emphasis),
+        );
         instanceMatrix.compose(item.position, item.quaternion, instanceScale);
         mesh.setMatrixAt(index, instanceMatrix);
+        if (haloMesh) {
+          instanceScale.multiplyScalar(1.2);
+          highlightPosition.copy(item.position);
+          highlightPosition.y -= Math.max(0.08, worldPerPixel * 0.35);
+          instanceMatrix.compose(
+            highlightPosition,
+            item.quaternion,
+            instanceScale,
+          );
+          haloMesh.setMatrixAt(index, instanceMatrix);
+        }
+        if (highlightMesh && item.highlightIndex != null) {
+          instanceScale.setScalar(screenScale * 1.48);
+          highlightPosition.copy(item.position);
+          highlightPosition.y += Math.max(0.08, worldPerPixel * 0.35);
+          instanceMatrix.compose(
+            highlightPosition,
+            identityQuaternion,
+            instanceScale,
+          );
+          highlightMesh.setMatrixAt(item.highlightIndex, instanceMatrix);
+        }
       }
       mesh.instanceMatrix.needsUpdate = true;
       mesh.computeBoundingSphere();
+      if (haloMesh) {
+        haloMesh.instanceMatrix.needsUpdate = true;
+        haloMesh.computeBoundingSphere();
+      }
+      if (highlightMesh) {
+        highlightMesh.instanceMatrix.needsUpdate = true;
+        highlightMesh.computeBoundingSphere();
+      }
     };
     const drawLabels = (camera: THREE.Camera) => {
       const context = labelCanvas.getContext("2d");
@@ -514,6 +549,8 @@ export default function ThreeOsmMapPoc({
       traceGroupRef.current = null;
       routeGroupRef.current = null;
       trafficMeshRef.current = null;
+      trafficHaloMeshRef.current = null;
+      trafficHighlightMeshRef.current = null;
       trafficRenderItemsRef.current = [];
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
@@ -727,12 +764,50 @@ export default function ThreeOsmMapPoc({
     trafficGroupRef.current = group;
     scene.add(group);
 
-    const geometry = createAircraftGeometry();
+    const geometry = createThreeOsmAircraftGeometry();
     const material = new THREE.MeshBasicMaterial({
       color: theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK,
       side: THREE.DoubleSide,
+      depthTest: false,
+      depthWrite: false,
     });
     const mesh = new THREE.InstancedMesh(geometry, material, visibleAircraft.length);
+    mesh.renderOrder = 52;
+    const haloMesh = new THREE.InstancedMesh(
+      geometry.clone(),
+      new THREE.MeshBasicMaterial({
+        color:
+          theme === "light"
+            ? AIRCRAFT_HALO_COLOR_LIGHT
+            : AIRCRAFT_HALO_COLOR_DARK,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        depthWrite: false,
+      }),
+      visibleAircraft.length,
+    );
+    haloMesh.renderOrder = 51;
+    const highlightedAircraftCount = visibleAircraft.reduce((count, item) => {
+      const id = getAircraftIdentity(item);
+      return id && (id === selectedAircraftId || id === focalAircraftId)
+        ? count + 1
+        : count;
+    }, 0);
+    const highlightMesh = highlightedAircraftCount
+      ? new THREE.InstancedMesh(
+          createThreeOsmAircraftSelectionGeometry(),
+          new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.88,
+            depthTest: false,
+            depthWrite: false,
+          }),
+          highlightedAircraftCount,
+        )
+      : null;
+    if (highlightMesh) highlightMesh.renderOrder = 53;
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
     const quaternion = new THREE.Quaternion();
@@ -742,6 +817,7 @@ export default function ThreeOsmMapPoc({
     const renderItems: TrafficRenderItem[] = [];
     const stems: number[] = [];
     const labels: ThreeOsmSceneLabel[] = [];
+    let highlightIndex = 0;
 
     visibleAircraft.forEach((item, index) => {
       const point = lonLatAltitudeToThreeOsmWorld({
@@ -755,22 +831,34 @@ export default function ThreeOsmMapPoc({
       ids.push(id);
       if (!point) return;
 
-      const selected = id === selectedAircraftId || id === focalAircraftId;
+      const emphasis = resolveThreeOsmAircraftEmphasis({
+        id,
+        selectedAircraftId,
+        focalAircraftId,
+      });
+      const selected = emphasis !== "standard";
       const heading = Number(item?.track ?? item?.heading ?? 0) || 0;
       position.set(point.x, Math.max(2.5, point.y), point.z);
       quaternion.setFromAxisAngle(yAxis, (-heading * Math.PI) / 180);
-      scale.setScalar(selected ? 1.65 : 1);
+      scale.setScalar(resolveThreeOsmAircraftScale(emphasis));
       matrix.compose(position, quaternion, scale);
       mesh.setMatrixAt(index, matrix);
+      haloMesh.setMatrixAt(index, matrix);
+      const itemHighlightIndex = selected ? highlightIndex++ : null;
       renderItems.push({
         position: position.clone(),
         quaternion: quaternion.clone(),
-        selected,
+        emphasis,
+        highlightIndex: itemHighlightIndex,
       });
       mesh.setColorAt(
         index,
         new THREE.Color(
-          selected
+          emphasis === "focal"
+            ? theme === "light"
+              ? FOCAL_AIRCRAFT_COLOR_LIGHT
+              : FOCAL_AIRCRAFT_COLOR_DARK
+            : emphasis === "selected"
             ? theme === "light"
               ? SELECTED_AIRCRAFT_COLOR_LIGHT
               : SELECTED_AIRCRAFT_COLOR_DARK
@@ -779,6 +867,20 @@ export default function ThreeOsmMapPoc({
               : AIRCRAFT_COLOR_DARK,
         ),
       );
+      if (highlightMesh && itemHighlightIndex != null) {
+        highlightMesh.setColorAt(
+          itemHighlightIndex,
+          new THREE.Color(
+            emphasis === "focal"
+              ? theme === "light"
+                ? FOCAL_AIRCRAFT_COLOR_LIGHT
+                : FOCAL_AIRCRAFT_COLOR_DARK
+              : theme === "light"
+                ? SELECTED_AIRCRAFT_COLOR_LIGHT
+                : SELECTED_AIRCRAFT_COLOR_DARK,
+          ),
+        );
+      }
       if (point.y > 3) stems.push(point.x, 0.5, point.z, point.x, point.y, point.z);
       const callsign = String(
         item?.callsign || item?.flight || item?.registration || id || "",
@@ -796,9 +898,17 @@ export default function ThreeOsmMapPoc({
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    haloMesh.instanceMatrix.needsUpdate = true;
+    if (highlightMesh?.instanceColor) highlightMesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
+    haloMesh.computeBoundingSphere();
+    highlightMesh?.computeBoundingSphere();
+    group.add(haloMesh);
     group.add(mesh);
+    if (highlightMesh) group.add(highlightMesh);
     trafficMeshRef.current = mesh;
+    trafficHaloMeshRef.current = haloMesh;
+    trafficHighlightMeshRef.current = highlightMesh;
     trafficIdsRef.current = ids;
     trafficRenderItemsRef.current = renderItems;
     trafficLabelsRef.current = labels;
@@ -815,6 +925,14 @@ export default function ThreeOsmMapPoc({
     }
 
     rootRef.current?.setAttribute("data-poc-aircraft", String(visibleAircraft.length));
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-highlights",
+      String(highlightedAircraftCount),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-visual",
+      "instanced-silhouette-v2",
+    );
     requestRenderRef.current();
   }, [
     sceneCenterLat,
