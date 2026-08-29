@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   resolveThreeOsmCameraFrame,
+  resolveThreeOsmDefaultPerspectiveFrame,
   resolveThreeOsmFitViewport,
 } from "./threeOsmCameraFit";
 
@@ -56,5 +57,34 @@ const perspective = resolveThreeOsmCameraFrame({
 assert.ok(perspective);
 assert.equal(perspective.target.y, 0);
 assert.ok(perspective.distance > 700);
+assert.equal(perspective.position.x, perspective.target.x);
+assert.ok(perspective.position.y - perspective.target.y > perspective.position.z - perspective.target.z);
+
+const desktopDefault = resolveThreeOsmDefaultPerspectiveFrame({
+  aspect: 16 / 9,
+  tileRadius: 2,
+});
+const mobileDefault = resolveThreeOsmDefaultPerspectiveFrame({
+  aspect: 390 / 844,
+  tileRadius: 1,
+});
+assert.equal(desktopDefault.position.x, 0);
+assert.equal(mobileDefault.position.x, 0);
+assert.equal(desktopDefault.elevationDegrees, 60);
+assert.equal(mobileDefault.elevationDegrees, 60);
+assert.ok(desktopDefault.position.z > 0);
+assert.ok(mobileDefault.position.z > 0);
+assert.ok(desktopDefault.position.y > desktopDefault.position.z);
+assert.ok(mobileDefault.position.y > mobileDefault.position.z);
+assert.ok(desktopDefault.up.y > 0);
+assert.ok(desktopDefault.up.z < 0);
+assert.ok(
+  Math.abs(
+    desktopDefault.direction.y * desktopDefault.up.y +
+      desktopDefault.direction.z * desktopDefault.up.z,
+  ) < 0.0001,
+);
+assert.ok(desktopDefault.distance > mobileDefault.distance);
+assert.ok(mobileDefault.distance >= 300);
 
 console.log("threeOsmCameraFit.test.ts ok");

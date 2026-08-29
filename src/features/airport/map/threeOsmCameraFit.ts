@@ -4,6 +4,7 @@ import {
   tileXToLongitude,
   tileYToLatitude,
   THREE_OSM_MIN_ZOOM,
+  THREE_OSM_TILE_SIZE,
   type TileCoordinate,
   type ThreeOsmWorldPoint,
 } from "./threeOsmProjection";
@@ -142,6 +143,69 @@ function finiteWorldPoints(points: ThreeOsmWorldPoint[]) {
   );
 }
 
+const THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS = (60 * Math.PI) / 180;
+
+function threeOsmPerspectiveDirection() {
+  return {
+    x: 0,
+    y: Math.sin(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
+    z: Math.cos(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
+  };
+}
+
+function threeOsmPerspectiveUp() {
+  return {
+    x: 0,
+    y: Math.cos(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
+    z: -Math.sin(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
+  };
+}
+
+export function resolveThreeOsmDefaultPerspectiveFrame({
+  aspect = 1,
+  tileRadius = 2,
+}: {
+  aspect?: unknown;
+  tileRadius?: unknown;
+}) {
+  const safeAspect = Math.max(0.35, Number(aspect) || 1);
+  const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
+  const tileHalfSpan = (radius + 0.5) * THREE_OSM_TILE_SIZE;
+  const verticalFov = (45 * Math.PI) / 180;
+  const verticalHalfFov = verticalFov / 2;
+  const horizontalFov = 2 * Math.atan(Math.tan(verticalHalfFov) * safeAspect);
+  const farGroundFactor =
+    Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS) /
+      Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS - verticalHalfFov) -
+    1;
+  let horizontalDistance = (tileHalfSpan * 0.9) / farGroundFactor;
+  let height =
+    horizontalDistance * Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS);
+  let distance = Math.hypot(horizontalDistance, height);
+  const horizontalDistanceLimit =
+    (tileHalfSpan * 0.9) / Math.max(0.05, Math.tan(horizontalFov / 2));
+  if (distance > horizontalDistanceLimit) {
+    const scale = horizontalDistanceLimit / distance;
+    horizontalDistance *= scale;
+    height *= scale;
+    distance *= scale;
+  }
+  const direction = threeOsmPerspectiveDirection();
+  const position = {
+    x: 0,
+    y: Math.max(260, height),
+    z: Math.max(150, horizontalDistance),
+  };
+  return {
+    target: { x: 0, y: 0, z: 0 },
+    position,
+    direction,
+    up: threeOsmPerspectiveUp(),
+    distance: Math.hypot(position.y, position.z),
+    elevationDegrees: 60,
+  };
+}
+
 export function resolveThreeOsmCameraFrame({
   points = [],
   mode = "2d",
@@ -174,6 +238,7 @@ export function resolveThreeOsmCameraFrame({
     return {
       target,
       position: { x: target.x, y: 900, z: target.z + 0.01 },
+      up: { x: 0, y: 0, z: -1 },
       orthographicZoom: Math.min(
         4,
         Math.max(0.18, Math.min((600 * safeAspect) / paddedWidth, 600 / paddedHeight)),
@@ -190,12 +255,7 @@ export function resolveThreeOsmCameraFrame({
   const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * safeAspect);
   const limitingFov = Math.min(verticalFov, horizontalFov);
   const distance = Math.max(260, (radius / Math.sin(limitingFov / 2)) * 1.14);
-  const directionLength = Math.hypot(440, 360, 520);
-  const direction = {
-    x: 440 / directionLength,
-    y: 360 / directionLength,
-    z: 520 / directionLength,
-  };
+  const direction = threeOsmPerspectiveDirection();
   return {
     target,
     position: {
@@ -203,6 +263,7 @@ export function resolveThreeOsmCameraFrame({
       y: target.y + direction.y * distance,
       z: target.z + direction.z * distance,
     },
+    up: threeOsmPerspectiveUp(),
     orthographicZoom: 1,
     distance,
   };

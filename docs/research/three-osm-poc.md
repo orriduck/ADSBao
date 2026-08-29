@@ -106,8 +106,12 @@ fitting consumes the existing product signals: it chooses a bounded tile zoom
 from the geographic envelope and actual viewport aspect, frames the same
 geometry with either camera, handles dateline wrapping, restores Follow without
 replacing the runtime, and guards full-route endpoints when live route data
-exists. Airport exploration now clamps the 2D/3D ground footprint to the loaded
-tile grid and derives its minimum orthographic zoom from that coverage. Flight
+exists. The default perspective camera also derives distance from the loaded
+tile radius and actual aspect. It uses a 60-degree elevation and a projected
+north-up vector instead of the former shallow diagonal pose, keeping the tile
+plane centered and readable on portrait screens. Airport exploration now
+clamps the 2D/3D ground footprint to the loaded tile grid and derives its
+minimum orthographic zoom from that coverage. Flight
 tracking inherits the existing locked-camera contract, so Follow/trace controls
 rather than direct gestures own its framing. The raster URL and attribution now
 sit behind a replaceable source contract, and the bounded cache explicitly
@@ -228,6 +232,12 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   Task. A pre-sharing window had three Long Tasks and nine geometries, so the
   allocation path improved, but this short comparison is not a replacement for
   the real-device long-session gate.
+- Coverage-aware default 3D framing rendered the 390×844 scene at a 549.8 world
+  distance with 9 tiles and the 1280×720 scene at 781.3 with 25 tiles. Both kept
+  north-up text, airport-centered coverage, zero horizontal overflow, and zero
+  slow scenes; a 3D→2D return kept the same runtime and removed the
+  perspective-only diagnostics. These are browser visual checks, not touch or
+  thermal evidence.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

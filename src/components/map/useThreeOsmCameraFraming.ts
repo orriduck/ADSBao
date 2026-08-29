@@ -2,7 +2,10 @@ import { useEffect, useRef, type MutableRefObject, type RefObject } from "react"
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { ThreeOsmActiveCameraFit } from "./useThreeOsmCameraFitState";
-import { resolveThreeOsmCameraFrame } from "@/features/airport/map/threeOsmCameraFit";
+import {
+  resolveThreeOsmCameraFrame,
+  resolveThreeOsmDefaultPerspectiveFrame,
+} from "@/features/airport/map/threeOsmCameraFit";
 import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
@@ -18,6 +21,7 @@ export function useThreeOsmCameraFraming({
   sceneCenterLat,
   viewMode,
   keepRouteInView,
+  tileRadius,
 }: {
   rootRef: RefObject<HTMLElement | null>;
   activeCameraRef: MutableRefObject<THREE.Camera | null>;
@@ -28,6 +32,7 @@ export function useThreeOsmCameraFraming({
   sceneCenterLat: number;
   viewMode: "2d" | "3d";
   keepRouteInView: boolean;
+  tileRadius: number;
 }) {
   const applyCameraFitRef = useRef<() => void>(() => {});
 
@@ -44,16 +49,27 @@ export function useThreeOsmCameraFraming({
       controls.minZoom = 0.5;
       controls.maxZoom = 4;
       if (camera instanceof THREE.PerspectiveCamera) {
-        camera.position.set(440, 360, 520);
+        const frame = resolveThreeOsmDefaultPerspectiveFrame({
+          aspect: root.clientWidth / Math.max(1, root.clientHeight),
+          tileRadius,
+        });
+        camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+        camera.up.set(frame.up.x, frame.up.y, frame.up.z);
         camera.near = 1;
         camera.far = 6_000;
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
+        controls.minDistance = Math.max(100, frame.distance * 0.35);
+        controls.maxDistance = Math.max(1_600, frame.distance * 2.5);
+        root.dataset.pocDefaultPerspectiveDistance = frame.distance.toFixed(1);
+        root.dataset.pocDefaultPerspectiveElevation = String(frame.elevationDegrees);
       } else if (camera instanceof THREE.OrthographicCamera) {
         camera.position.set(0, 900, 0.01);
         camera.zoom = 1;
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
+        root.removeAttribute("data-poc-default-perspective-distance");
+        root.removeAttribute("data-poc-default-perspective-elevation");
       }
       controls.update();
       root.dataset.pocFitCamera = "default";
@@ -112,6 +128,7 @@ export function useThreeOsmCameraFraming({
         root.dataset.pocFitOrthoZoom = frame.orthographicZoom.toFixed(3);
         root.removeAttribute("data-poc-fit-distance");
       } else if (camera instanceof THREE.PerspectiveCamera) {
+        if (frame.up) camera.up.set(frame.up.x, frame.up.y, frame.up.z);
         camera.near = Math.max(0.5, frame.distance / 2_000);
         camera.far = Math.max(6_000, frame.distance * 5);
         camera.updateProjectionMatrix();
@@ -123,6 +140,8 @@ export function useThreeOsmCameraFraming({
       camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
       controls.update();
       root.dataset.pocFitCamera = viewMode;
+      root.removeAttribute("data-poc-default-perspective-distance");
+      root.removeAttribute("data-poc-default-perspective-elevation");
       requestRenderRef.current();
     };
     applyCameraFitRef.current = applyFit;
@@ -140,6 +159,7 @@ export function useThreeOsmCameraFraming({
     rootRef,
     sceneCenterLat,
     tileCenter,
+    tileRadius,
     viewMode,
   ]);
 

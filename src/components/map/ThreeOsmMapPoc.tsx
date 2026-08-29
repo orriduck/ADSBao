@@ -1482,6 +1482,7 @@ export default function ThreeOsmMapPoc({
     sceneCenterLat,
     viewMode,
     keepRouteInView,
+    tileRadius,
   });
 
   useThreeOsmInteractionBounds({
