@@ -61,7 +61,7 @@ export function useThreeOsmCameraFraming({
         camera.far = 6_000;
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
-        controls.minDistance = Math.max(100, frame.distance * 0.35);
+        controls.minDistance = Math.max(100, frame.distance * 0.2);
         controls.maxDistance = Math.max(1_600, frame.distance * 2.5);
         root.dataset.pocDefaultPerspectiveDistance = frame.distance.toFixed(1);
         root.dataset.pocDefaultPerspectiveElevation = String(frame.elevationDegrees);

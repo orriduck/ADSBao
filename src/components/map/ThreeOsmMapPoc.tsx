@@ -60,10 +60,16 @@ import {
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
   lonLatToTileCoordinate,
-  shortestWrappedTileDelta,
-  THREE_OSM_TILE_SIZE,
   type TileCoordinate,
 } from "@/features/airport/map/threeOsmProjection";
+import {
+  resolveThreeOsmCameraScale,
+  resolveThreeOsmContinuousLod,
+  resolveThreeOsmLodBounds,
+  resolveThreeOsmSettledLod,
+  resolveThreeOsmSourceTileTransform,
+  THREE_OSM_LOD_SETTLE_MS,
+} from "@/features/airport/map/threeOsmCameraLod";
 import {
   captureThreeOsmCameraSnapshot,
   restoreThreeOsmCameraSnapshot,
@@ -438,6 +444,14 @@ export default function ThreeOsmMapPoc({
   const previousFollowsCenterRef = useRef(followsCenter);
   const controlsCreateCountRef = useRef(0);
   const controlsCameraSwapCountRef = useRef(0);
+  const cameraLodByModeRef = useRef<Partial<Record<CameraMode, number>>>({});
+  const cameraLodReferenceRef = useRef<{
+    scopeKey: string;
+    mode: CameraMode;
+    sceneZoom: number;
+    scale: number;
+  } | null>(null);
+  const cameraLodSettleTimerRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
   const rasterTileMaterialsRef = useRef<
     Array<{
@@ -484,6 +498,11 @@ export default function ThreeOsmMapPoc({
     "disabled" | "loading" | "ready" | "partial" | "degraded"
   >("disabled");
   const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
+  const [cameraLodState, setCameraLodState] = useState<{
+    scopeKey: string;
+    mode: CameraMode;
+    zoom: number;
+  }>({ scopeKey: "", mode: viewMode, zoom: 10 });
   const [acceptanceResetArmedAtMs, setAcceptanceResetArmedAtMs] = useState<
     number | null
   >(null);
@@ -795,11 +814,28 @@ export default function ThreeOsmMapPoc({
     allowsMapInteraction ? "interactive" : "locked",
     recenterSignal,
   ].join(":");
+  const lodBounds = resolveThreeOsmLodBounds(tileZoom);
+  const sourceTileZoom =
+    cameraLodState.scopeKey === cameraStateScopeKey &&
+    cameraLodState.mode === viewMode
+      ? Math.min(
+          lodBounds.maxZoom,
+          Math.max(lodBounds.minZoom, cameraLodState.zoom),
+        )
+      : tileZoom;
   const visibleTiles = useMemo(
     () => buildVisibleTileGrid(tileCenter, tileRadius),
     [tileCenter, tileRadius],
   );
-  const vectorTileZoom = Math.min(14, Math.max(10, tileZoom));
+  const sourceTileCenter = useMemo(
+    () => lonLatToTileCoordinate(sceneCenterLon, sceneCenterLat, sourceTileZoom),
+    [sceneCenterLat, sceneCenterLon, sourceTileZoom],
+  );
+  const rasterTiles = useMemo(
+    () => buildVisibleTileGrid(sourceTileCenter, tileRadius),
+    [sourceTileCenter, tileRadius],
+  );
+  const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
   const vectorTileCenter = useMemo(
     () =>
       lonLatToTileCoordinate(
@@ -830,13 +866,13 @@ export default function ThreeOsmMapPoc({
     [vectorTiles],
   );
   const vectorContextActive =
-    vectorContextEnabled && tileZoom >= 10 && Boolean(vectorTileTemplate);
+    vectorContextEnabled && sourceTileZoom >= 10 && Boolean(vectorTileTemplate);
   const rasterComposition = useMemo(
     () =>
       resolveThreeOsmRasterComposition({
         vectorEnabled: vectorContextEnabled,
         vectorState: vectorContextState,
-        zoom: tileZoom,
+        zoom: sourceTileZoom,
         layerMode: debugLayerMode,
         theme,
         contrastMode,
@@ -846,7 +882,7 @@ export default function ThreeOsmMapPoc({
       contrastMode,
       debugLayerMode,
       theme,
-      tileZoom,
+      sourceTileZoom,
       vectorContextEnabled,
       vectorContextState,
       visualPalette.background,
@@ -1703,7 +1739,7 @@ export default function ThreeOsmMapPoc({
     };
     const timeout = window.setTimeout(publishReady, 1_500);
     const publishBasemapState = () => {
-      if (disposed || settledCount < visibleTiles.length) return;
+      if (disposed || settledCount < rasterTiles.length) return;
       const nextState: BasemapState =
         failedCount === 0
           ? "ready"
@@ -1744,11 +1780,16 @@ export default function ThreeOsmMapPoc({
         String(tileCacheMissCountRef.current),
       );
     };
+    const sourceTileTransform = resolveThreeOsmSourceTileTransform({
+      tile: rasterTiles[0] || sourceTileCenter,
+      sourceCenter: sourceTileCenter,
+      sceneZoom: tileZoom,
+    });
     const tileGeometry = new THREE.PlaneGeometry(
-      THREE_OSM_TILE_SIZE + 0.25,
-      THREE_OSM_TILE_SIZE + 0.25,
+      sourceTileTransform.worldSize + sourceTileTransform.seamGuard,
+      sourceTileTransform.worldSize + sourceTileTransform.seamGuard,
     );
-    visibleTiles.forEach((tile) => {
+    rasterTiles.forEach((tile) => {
       const material = new THREE.MeshBasicMaterial({
         color: contrastMode === "standard"
           ? theme === "light"
@@ -1770,15 +1811,12 @@ export default function ThreeOsmMapPoc({
       tileMaterials.push({ material, vectorCovered });
       const mesh = new THREE.Mesh(tileGeometry, material);
       mesh.rotation.x = -Math.PI / 2;
-      mesh.position.set(
-        shortestWrappedTileDelta(
-          tile.x + 0.5,
-          tileCenter.x,
-          tileCenter.z,
-        ) * THREE_OSM_TILE_SIZE,
-        0,
-        (tile.y + 0.5 - tileCenter.y) * THREE_OSM_TILE_SIZE,
-      );
+      const transform = resolveThreeOsmSourceTileTransform({
+        tile,
+        sourceCenter: sourceTileCenter,
+        sceneZoom: tileZoom,
+      });
+      mesh.position.set(transform.x, 0, transform.z);
       mesh.userData.tile = tile;
       group.add(mesh);
 
@@ -1801,7 +1839,7 @@ export default function ThreeOsmMapPoc({
           "data-poc-tiles-failed",
           String(failedCount),
         );
-        if (settledCount >= visibleTiles.length) publishReady();
+        if (settledCount >= rasterTiles.length) publishReady();
         publishBasemapState();
         publishCacheStats();
         requestRenderRef.current();
@@ -1818,8 +1856,10 @@ export default function ThreeOsmMapPoc({
     });
     publishCacheStats();
 
-    rootRef.current?.setAttribute("data-poc-tile-zoom", String(tileZoom));
-    rootRef.current?.setAttribute("data-poc-tiles-requested", String(visibleTiles.length));
+    rootRef.current?.setAttribute("data-poc-scene-zoom", String(tileZoom));
+    rootRef.current?.setAttribute("data-poc-tile-zoom", String(sourceTileZoom));
+    rootRef.current?.setAttribute("data-poc-source-zoom", String(sourceTileZoom));
+    rootRef.current?.setAttribute("data-poc-tiles-requested", String(rasterTiles.length));
     rootRef.current?.setAttribute(
       "data-poc-raster-vector-covered-tiles",
       String(tileMaterials.filter((item) => item.vectorCovered).length),
@@ -1845,16 +1885,17 @@ export default function ThreeOsmMapPoc({
     activeTileSource,
     contrastMode,
     debugLayerMode,
+    rasterTiles,
     sceneCenterLat,
     sceneCenterLon,
+    sourceTileCenter,
+    sourceTileZoom,
     theme,
-    tileCenter,
     tileRetryEpoch,
     tileZoom,
     visualPalette,
     vectorContextEnabled,
     vectorTileKeys,
-    visibleTiles,
   ]);
 
   useEffect(() => {
@@ -2809,6 +2850,133 @@ export default function ThreeOsmMapPoc({
     restoredCameraModeRef,
   });
 
+  useEffect(() => {
+    const root = rootRef.current;
+    const camera = activeCameraRef.current;
+    const controls = controlsRef.current;
+    window.clearTimeout(cameraLodSettleTimerRef.current);
+    if (!root || !camera || !controls) return undefined;
+
+    const bounds = resolveThreeOsmLodBounds(tileZoom);
+    const readScale = () =>
+      resolveThreeOsmCameraScale({
+        mode: viewMode,
+        orthographicZoom:
+          camera instanceof THREE.OrthographicCamera ? camera.zoom : undefined,
+        distance:
+          camera instanceof THREE.PerspectiveCamera
+            ? camera.position.distanceTo(controls.target)
+            : undefined,
+      });
+    const initialScale = readScale();
+    if (initialScale == null) return undefined;
+
+    const previousReference = cameraLodReferenceRef.current;
+    const scopeChanged =
+      previousReference?.scopeKey !== cameraStateScopeKey;
+    if (scopeChanged) cameraLodByModeRef.current = {};
+
+    if (
+      activeCameraFit ||
+      !allowsMapInteraction ||
+      bounds.minZoom === bounds.maxZoom
+    ) {
+      cameraLodByModeRef.current[viewMode] = tileZoom;
+      cameraLodReferenceRef.current = {
+        scopeKey: cameraStateScopeKey,
+        mode: viewMode,
+        sceneZoom: tileZoom,
+        scale: initialScale,
+      };
+      setCameraLodState((current) =>
+        current.scopeKey === cameraStateScopeKey &&
+        current.mode === viewMode &&
+        current.zoom === tileZoom
+          ? current
+          : { scopeKey: cameraStateScopeKey, mode: viewMode, zoom: tileZoom },
+      );
+      root.dataset.pocLod = activeCameraFit ? "fit-locked" : "fixed";
+      root.dataset.pocLodPending = "false";
+      root.dataset.pocLodContinuous = tileZoom.toFixed(3);
+      return undefined;
+    }
+
+    const currentZoom = cameraLodByModeRef.current[viewMode] ?? tileZoom;
+    cameraLodByModeRef.current[viewMode] = currentZoom;
+    const referenceScale = initialScale / 2 ** (currentZoom - tileZoom);
+    cameraLodReferenceRef.current = {
+      scopeKey: cameraStateScopeKey,
+      mode: viewMode,
+      sceneZoom: tileZoom,
+      scale: referenceScale,
+    };
+    setCameraLodState((current) =>
+      current.scopeKey === cameraStateScopeKey &&
+      current.mode === viewMode &&
+      current.zoom === currentZoom
+        ? current
+        : { scopeKey: cameraStateScopeKey, mode: viewMode, zoom: currentZoom },
+    );
+    root.dataset.pocLod = "camera-driven";
+    root.dataset.pocLodPending = "false";
+    root.dataset.pocLodContinuous = tileZoom.toFixed(3);
+
+    const readContinuousZoom = () => {
+      const scale = readScale();
+      if (scale == null) return tileZoom;
+      return resolveThreeOsmContinuousLod({
+        sceneZoom: tileZoom,
+        referenceScale,
+        currentScale: scale,
+      });
+    };
+    const settle = () => {
+      const continuousZoom = readContinuousZoom();
+      const previousZoom = cameraLodByModeRef.current[viewMode] ?? tileZoom;
+      const nextZoom = resolveThreeOsmSettledLod({
+        continuousZoom,
+        currentZoom: previousZoom,
+        minZoom: bounds.minZoom,
+        maxZoom: bounds.maxZoom,
+      });
+      root.dataset.pocLodContinuous = continuousZoom.toFixed(3);
+      root.dataset.pocLodPending = "false";
+      if (nextZoom === previousZoom) return;
+      cameraLodByModeRef.current[viewMode] = nextZoom;
+      root.dataset.pocLodTransitions = String(
+        Number(root.dataset.pocLodTransitions || 0) + 1,
+      );
+      setCameraLodState({
+        scopeKey: cameraStateScopeKey,
+        mode: viewMode,
+        zoom: nextZoom,
+      });
+    };
+    const scheduleSettle = () => {
+      const continuousZoom = readContinuousZoom();
+      root.dataset.pocLodContinuous = continuousZoom.toFixed(3);
+      root.dataset.pocLodPending = "true";
+      window.clearTimeout(cameraLodSettleTimerRef.current);
+      cameraLodSettleTimerRef.current = window.setTimeout(
+        settle,
+        THREE_OSM_LOD_SETTLE_MS,
+      );
+    };
+    controls.addEventListener("change", scheduleSettle);
+    controls.addEventListener("end", scheduleSettle);
+    return () => {
+      controls.removeEventListener("change", scheduleSettle);
+      controls.removeEventListener("end", scheduleSettle);
+      window.clearTimeout(cameraLodSettleTimerRef.current);
+    };
+  }, [
+    activeCameraFit,
+    allowsMapInteraction,
+    cameraStateScopeKey,
+    tileZoom,
+    viewMode,
+  ]);
+
   useThreeOsmInteractionBounds({
     rootRef,
     activeCameraRef,
@@ -2879,6 +3047,41 @@ export default function ThreeOsmMapPoc({
     window.setTimeout(() => rendererRef.current?.forceContextRestore(), 300);
   };
 
+  const handleDebugCameraScale = (factor: number) => {
+    const camera = activeCameraRef.current;
+    const controls = controlsRef.current;
+    const root = rootRef.current;
+    if (!camera || !controls || !Number.isFinite(factor) || factor <= 0) return;
+    if (camera instanceof THREE.OrthographicCamera) {
+      camera.zoom = THREE.MathUtils.clamp(
+        camera.zoom * factor,
+        controls.minZoom,
+        controls.maxZoom,
+      );
+      camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.PerspectiveCamera) {
+      const offset = camera.position.clone().sub(controls.target);
+      const distance = THREE.MathUtils.clamp(
+        offset.length() / factor,
+        controls.minDistance,
+        controls.maxDistance,
+      );
+      if (offset.lengthSq() > 0) {
+        camera.position.copy(
+          controls.target.clone().add(offset.normalize().multiplyScalar(distance)),
+        );
+      }
+    }
+    controls.update();
+    controls.dispatchEvent({ type: "end" });
+    if (root) {
+      root.dataset.pocLodDebugRequests = String(
+        Number(root.dataset.pocLodDebugRequests || 0) + 1,
+      );
+    }
+    requestRenderRef.current();
+  };
+
   return (
     <div
       ref={rootRef}
@@ -2902,6 +3105,8 @@ export default function ThreeOsmMapPoc({
       data-poc-route-workload-destination={routeWorkload.destinationId}
       data-poc-vector-context-enabled={vectorContextEnabled ? "true" : "false"}
       data-poc-vector-context-state={vectorContextState}
+      data-poc-scene-zoom={tileZoom}
+      data-poc-source-zoom={sourceTileZoom}
       data-poc-raster-composition={rasterComposition.mode}
       data-poc-raster-wash={rasterComposition.washStrength.toFixed(3)}
       data-poc-raster-context-only-wash={
@@ -3012,10 +3217,10 @@ export default function ThreeOsmMapPoc({
         </span>
         <span className="mt-0.5 block text-white/50">
           {t("map.poc.stats", {
-            tiles: visibleTiles.length,
+            tiles: rasterTiles.length,
             aircraft: trafficSources.length,
             airports: visibleAirports.length,
-            zoom: tileZoom,
+            zoom: sourceTileZoom,
           })}
         </span>
         {trafficStressTarget != null ? (
@@ -3052,6 +3257,22 @@ export default function ThreeOsmMapPoc({
                 {mode}
               </button>
             ))}
+            <button
+              type="button"
+              className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
+              aria-label="Zoom camera out for LOD test"
+              onClick={() => handleDebugCameraScale(0.5)}
+            >
+              LOD −
+            </button>
+            <button
+              type="button"
+              className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
+              aria-label="Zoom camera in for LOD test"
+              onClick={() => handleDebugCameraScale(2)}
+            >
+              LOD +
+            </button>
             <button
               type="button"
               className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
