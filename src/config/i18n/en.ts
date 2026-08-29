@@ -681,6 +681,13 @@ const en = {
       selectContextAria: "Select {context} POC context",
       simulateGpuResetAria: "Simulate WebGL context loss",
       simulateGpuReset: "Simulate GPU reset",
+      acceptanceStatus: "Acceptance {elapsed} / 20:00 · {status} · {passed}/{total}",
+      acceptancePhysicalIPhone: "Physical iPhone",
+      acceptanceThermalOk: "Thermal OK",
+      acceptanceThermalHot: "Too hot",
+      acceptanceExport: "Export report",
+      acceptanceReset: "Reset report",
+      acceptanceExportState: "Report {state}",
     },
   },
   mapLayers: {

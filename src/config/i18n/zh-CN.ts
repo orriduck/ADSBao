@@ -672,6 +672,13 @@ const zhCN = {
       selectContextAria: "选择 {context} POC 地图要素",
       simulateGpuResetAria: "模拟 WebGL 上下文丢失",
       simulateGpuReset: "模拟 GPU 重置",
+      acceptanceStatus: "验收 {elapsed} / 20:00 · {status} · {passed}/{total}",
+      acceptancePhysicalIPhone: "确认实体 iPhone",
+      acceptanceThermalOk: "温度可接受",
+      acceptanceThermalHot: "过热",
+      acceptanceExport: "导出报告",
+      acceptanceReset: "重置报告",
+      acceptanceExportState: "报告状态：{state}",
     },
   },
   mapLayers: {

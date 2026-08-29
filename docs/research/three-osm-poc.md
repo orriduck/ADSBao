@@ -38,6 +38,25 @@ mode and exists only to support long-session resource and render diagnostics.
 Debug Mode can also isolate `all`, `basemap`, `context`, `traffic`, or `flight`
 scene groups without replacing the renderer or camera.
 
+Add `&threeOsmAcceptance=1` with Debug Mode and soak mode on a physical iPhone
+to start a session-scoped acceptance record. The record survives ordinary page
+reloads so a document/runtime restart becomes failure evidence rather than
+silently starting a clean timer. It records the 20-minute wall clock, real
+touch pointer interactions, background/foreground render recovery, camera-mode
+switches, tile/provider state, WebGL recovery, bounded GPU counters, Long Tasks,
+and JavaScript heap samples when the browser exposes them. The operator must
+mark the phone's thermal state because browsers do not expose a trustworthy
+device-temperature API. The report can be shared or downloaded as JSON; it
+contains provider identity and state but never the tile URL or browser key.
+
+The acceptance verdict remains `incomplete` until all eleven gates pass. A
+desktop viewport or emulated user agent cannot be reported as the physical
+iPhone result: the exported user agent/touch evidence is only a candidate
+signal and the operator still confirms the hardware. Use **Reset report** at
+the start of the physical run, perform at least ten touch interactions and one
+background/foreground cycle, then mark the observed thermal state after the
+20-minute timer completes and export the report.
+
 The query flag replaces both visible map modes with one Three.js scene:
 
 - 2D uses `OrthographicCamera`.

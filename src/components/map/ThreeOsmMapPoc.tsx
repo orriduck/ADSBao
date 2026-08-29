@@ -12,6 +12,7 @@ import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFraming";
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
+import { useThreeOsmAcceptanceRecorder } from "@/components/map/useThreeOsmAcceptanceRecorder";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { airportDisplayCode } from "@/utils/airport";
 import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
@@ -412,6 +413,10 @@ export default function ThreeOsmMapPoc({
   const debugEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
+  const acceptanceEnabled =
+    debugEnabled &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("threeOsmAcceptance") === "1";
   const debugEnabledRef = useRef(debugEnabled);
   debugEnabledRef.current = debugEnabled;
   const accessibilityDebugOverrides = useMemo(
@@ -2211,6 +2216,18 @@ export default function ThreeOsmMapPoc({
     viewMode,
   });
 
+  const acceptanceRecorder = useThreeOsmAcceptanceRecorder({
+    enabled: acceptanceEnabled,
+    rootRef,
+    canvasRef,
+    runtimeId: runtimeIdRef.current,
+  });
+
+  const acceptanceElapsedSeconds = Math.floor(
+    (acceptanceRecorder.evaluation?.elapsedMs || 0) / 1_000,
+  );
+  const acceptanceElapsed = `${String(Math.floor(acceptanceElapsedSeconds / 60)).padStart(2, "0")}:${String(acceptanceElapsedSeconds % 60).padStart(2, "0")}`;
+
   const handleSimulateContextRecovery = () => {
     const renderer = rendererRef.current;
     if (!renderer) return;
@@ -2364,7 +2381,82 @@ export default function ThreeOsmMapPoc({
             >
               {t("map.poc.simulateGpuReset")}
             </button>
-            {(debugLayerMode === "all" || debugLayerMode === "context") &&
+            {acceptanceEnabled && acceptanceRecorder.evaluation ? (
+              <div
+                className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1"
+                data-poc-acceptance-controls="true"
+              >
+                <span className="w-full text-[9px] text-white/75" role="status">
+                  {t("map.poc.acceptanceStatus", {
+                    elapsed: acceptanceElapsed,
+                    status: acceptanceRecorder.evaluation.status,
+                    passed: acceptanceRecorder.evaluation.gates.filter(
+                      (gate) => gate.status === "pass",
+                    ).length,
+                    total: acceptanceRecorder.evaluation.gates.length,
+                  })}
+                </span>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"
+                  data-active={
+                    rootRef.current?.dataset.pocAcceptancePhysicalDevice ===
+                    "confirmed"
+                  }
+                  onClick={acceptanceRecorder.confirmPhysicalDevice}
+                >
+                  {t("map.poc.acceptancePhysicalIPhone")}
+                </button>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"
+                  data-active={
+                    rootRef.current?.dataset.pocAcceptanceThermal === "acceptable"
+                  }
+                  onClick={() =>
+                    acceptanceRecorder.setThermalAssessment("acceptable")
+                  }
+                >
+                  {t("map.poc.acceptanceThermalOk")}
+                </button>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-red-400 data-[active=true]:text-red-300"
+                  data-active={
+                    rootRef.current?.dataset.pocAcceptanceThermal ===
+                    "uncomfortable"
+                  }
+                  onClick={() =>
+                    acceptanceRecorder.setThermalAssessment("uncomfortable")
+                  }
+                >
+                  {t("map.poc.acceptanceThermalHot")}
+                </button>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white"
+                  onClick={() => void acceptanceRecorder.exportReport()}
+                >
+                  {t("map.poc.acceptanceExport")}
+                </button>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white"
+                  onClick={acceptanceRecorder.reset}
+                >
+                  {t("map.poc.acceptanceReset")}
+                </button>
+                {acceptanceRecorder.exportState !== "idle" ? (
+                  <span className="w-full text-[9px] text-white/60">
+                    {t("map.poc.acceptanceExportState", {
+                      state: acceptanceRecorder.exportState,
+                    })}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            {!acceptanceEnabled &&
+            (debugLayerMode === "all" || debugLayerMode === "context") &&
             debugContextTargets.length ? (
               <div className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1">
                 {debugContextTargets.map((item) => (
