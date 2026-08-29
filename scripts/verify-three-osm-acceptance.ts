@@ -56,6 +56,9 @@ function main() {
     console.log(
       `- configured provider: ${verification.configuredProvider ? "yes" : "no"}${options.requireConfiguredTiles ? " (required)" : ""}`,
     );
+    console.log(
+      `- screen awake helper: ${verification.session.wakeLock.latestStatus}; active samples=${verification.session.wakeLock.activeSamples}; error samples=${verification.session.wakeLock.errorSamples} (not a gate)`,
+    );
   }
   if (verification.evaluation) {
     console.log("");

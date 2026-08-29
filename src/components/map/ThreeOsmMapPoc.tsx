@@ -13,6 +13,7 @@ import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFram
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { useThreeOsmAcceptanceRecorder } from "@/components/map/useThreeOsmAcceptanceRecorder";
+import type { WakeLockState } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { airportDisplayCode } from "@/utils/airport";
 import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
@@ -122,6 +123,9 @@ type ThreeOsmPocProps = {
   selectedAirspaceId?: string;
   focalAircraftId?: string;
   userLocation?: Record<string, any> | null;
+  wakeLockState?: WakeLockState;
+  onToggleWakeLock?: (() => void) | null;
+  onRequestWakeLock?: (() => void) | null;
   theme?: string;
   onSelectAircraft?: ((aircraftId: string) => void) | null;
   onSelectAirport?: ((airportIcao: string) => void) | null;
@@ -352,6 +356,14 @@ export default function ThreeOsmMapPoc({
   selectedAirspaceId = "",
   focalAircraftId = "",
   userLocation = null,
+  wakeLockState = {
+    supported: false,
+    active: false,
+    pending: false,
+    error: null,
+  },
+  onToggleWakeLock = null,
+  onRequestWakeLock = null,
   theme = "dark",
   onSelectAircraft = null,
   onSelectAirport = null,
@@ -2230,11 +2242,21 @@ export default function ThreeOsmMapPoc({
     viewMode,
   });
 
+  const acceptanceWakeLockStatus = !wakeLockState.supported
+    ? "unsupported"
+    : wakeLockState.active
+      ? "active"
+      : wakeLockState.pending
+        ? "pending"
+        : wakeLockState.error
+          ? "error"
+          : "inactive";
   const acceptanceRecorder = useThreeOsmAcceptanceRecorder({
     enabled: acceptanceEnabled,
     rootRef,
     canvasRef,
     runtimeId: runtimeIdRef.current,
+    wakeLockStatus: acceptanceWakeLockStatus,
   });
 
   const acceptanceElapsedSeconds = Math.floor(
@@ -2410,6 +2432,45 @@ export default function ThreeOsmMapPoc({
                     total: acceptanceRecorder.evaluation.gates.length,
                   })}
                 </span>
+                <span
+                  className="w-full text-[9px] text-white/70"
+                  data-poc-acceptance-wake-lock={acceptanceWakeLockStatus}
+                  role="status"
+                >
+                  {t("map.poc.acceptanceWakeLockStatus", {
+                    status: acceptanceWakeLockStatus === "unsupported"
+                      ? t("map.poc.acceptanceWakeLockUnsupported")
+                      : acceptanceWakeLockStatus === "active"
+                        ? t("map.poc.acceptanceWakeLockActive")
+                        : acceptanceWakeLockStatus === "pending"
+                          ? t("map.poc.acceptanceWakeLockPending")
+                          : acceptanceWakeLockStatus === "error"
+                            ? t("map.poc.acceptanceWakeLockError")
+                            : t("map.poc.acceptanceWakeLockInactive"),
+                  })}
+                </span>
+                <button
+                  type="button"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542] disabled:cursor-not-allowed disabled:opacity-45"
+                  data-active={wakeLockState.active}
+                  disabled={
+                    !wakeLockState.supported ||
+                    wakeLockState.pending ||
+                    (!wakeLockState.active && !onRequestWakeLock) ||
+                    (wakeLockState.active && !onToggleWakeLock)
+                  }
+                  onClick={
+                    wakeLockState.active
+                      ? onToggleWakeLock || undefined
+                      : onRequestWakeLock || undefined
+                  }
+                >
+                  {wakeLockState.active
+                    ? t("map.poc.acceptanceWakeLockDisable")
+                    : wakeLockState.error
+                      ? t("map.poc.acceptanceWakeLockRetry")
+                      : t("map.poc.acceptanceWakeLockEnable")}
+                </button>
                 <button
                   type="button"
                   className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"

@@ -198,7 +198,7 @@ function AirportExplorerContent({
     setUserLocationPreferences,
   } = useExplorerUi();
   const [nearMeUserLocationHidden, setNearMeUserLocationHidden] = useState(false);
-  const [wakeLockState, toggleWakeLock] = useWakeLock();
+  const [wakeLockState, toggleWakeLock, requestWakeLock] = useWakeLock();
   const [navigationSpotId, setNavigationSpotId] = useState("");
   const [airportMapInstance, setAirportMapInstance] = useState(null);
   const [threeOsmRecenterSignal, setThreeOsmRecenterSignal] = useState(0);
@@ -793,6 +793,9 @@ function AirportExplorerContent({
               loadingOverlayActive={loadingOverlayActive}
               loadingOverlaySources={loadingOverlaySources}
               userLocation={effectiveUserLocation}
+              wakeLockState={wakeLockState}
+              onToggleWakeLock={toggleWakeLock}
+              onRequestWakeLock={requestWakeLock}
               onMapInstanceChange={setAirportMapInstance}
               onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.AirportExploration}

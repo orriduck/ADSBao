@@ -67,6 +67,7 @@ function createPassingReport(tileSource = "licensed-raster") {
     tileSourceOrigin: tileSource === "osm-standard" ? "build" : "runtime",
     tileSourceConfig: "ready",
     visibility: "visible",
+    wakeLockStatus: "active",
   });
   return buildThreeOsmAcceptanceReport(session, finishedAt);
 }
@@ -116,6 +117,10 @@ const invalidMetric = structuredClone(createPassingReport());
 invalidMetric.session.texturesMax = Number.NaN;
 assert.equal(isThreeOsmAcceptanceSession(invalidMetric.session), false);
 
+const invalidWakeLockEvidence = structuredClone(createPassingReport());
+invalidWakeLockEvidence.session.wakeLock.activeSamples = -1;
+assert.equal(isThreeOsmAcceptanceSession(invalidWakeLockEvidence.session), false);
+
 const mismatchedDevice = structuredClone(createPassingReport());
 mismatchedDevice.session.device.userAgent = "Mozilla/5.0 (Macintosh)";
 assert.equal(isThreeOsmAcceptanceSession(mismatchedDevice.session), false);
@@ -150,6 +155,10 @@ try {
   assert.equal(configuredCli.status, 0, configuredCli.stderr);
   assert.match(configuredCli.stdout, /acceptance: passed/);
   assert.match(configuredCli.stdout, /configured provider: yes \(required\)/);
+  assert.match(
+    configuredCli.stdout,
+    /screen awake helper: active; active samples=1; error samples=0 \(not a gate\)/,
+  );
   assert.doesNotMatch(configuredCli.stdout, /MUST_NOT_BE_PRINTED/);
 
   const osmPath = join(tempDir, "osm.json");

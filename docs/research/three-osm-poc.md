@@ -58,6 +58,11 @@ background/foreground cycle, then mark the observed thermal state after the
 20-minute timer completes and export the report. Expand **Gate details** during
 the run to inspect each gate's live status and evidence; pending and failed
 requirements remain visible without covering the map when the list is closed.
+The same panel exposes the browser screen-wake-lock state and an explicit
+enable/retry control so an operator does not accidentally invalidate the long
+run by letting the phone sleep. Wake-lock samples are included in the exported
+session as operator-assistance evidence, but they deliberately do not create a
+twelfth gate or excuse the required background/foreground cycle.
 
 Before opening the page on a physical phone, run `pnpm debug:device` for the
 default OSM source. It prints a key-free private-LAN acceptance URL only after

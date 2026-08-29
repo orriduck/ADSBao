@@ -13,6 +13,7 @@ import {
   setThreeOsmAcceptanceThermalAssessment,
   type ThreeOsmAcceptanceSession,
   type ThreeOsmThermalAssessment,
+  type ThreeOsmWakeLockStatus,
 } from "@/features/airport/map/threeOsmAcceptanceModel";
 
 const DOCUMENT_BOOT_ID = `document-${Math.random().toString(36).slice(2, 10)}`;
@@ -112,8 +113,9 @@ export function useThreeOsmAcceptanceRecorder(input: {
   rootRef: RefObject<HTMLDivElement | null>;
   canvasRef: RefObject<HTMLCanvasElement | null>;
   runtimeId: string;
+  wakeLockStatus: ThreeOsmWakeLockStatus;
 }) {
-  const { enabled, rootRef, canvasRef, runtimeId } = input;
+  const { enabled, rootRef, canvasRef, runtimeId, wakeLockStatus } = input;
   const route = typeof window === "undefined" ? "" : window.location.pathname;
   const storageKey = `adsbao:three-osm-acceptance:${
     typeof window === "undefined" ? "server" : window.location.pathname
@@ -121,6 +123,8 @@ export function useThreeOsmAcceptanceRecorder(input: {
   const sessionRef = useRef<ThreeOsmAcceptanceSession | null>(null);
   const foregroundRenderProbeRef = useRef<number | null>(null);
   const runtimeRegisteredRef = useRef(false);
+  const wakeLockStatusRef = useRef(wakeLockStatus);
+  wakeLockStatusRef.current = wakeLockStatus;
   const [evaluation, setEvaluation] = useState<ReturnType<
     typeof evaluateThreeOsmAcceptanceSession
   > | null>(null);
@@ -159,6 +163,7 @@ export function useThreeOsmAcceptanceRecorder(input: {
       tileSourceOrigin: root.dataset.pocTileSourceConfigOrigin,
       tileSourceConfig: root.dataset.pocTileSourceConfig,
       visibility: document.visibilityState,
+      wakeLockStatus: wakeLockStatusRef.current,
       usedJsHeapBytes: Number.isFinite(memory?.usedJSHeapSize)
         ? Number(memory?.usedJSHeapSize)
         : null,
@@ -177,6 +182,13 @@ export function useThreeOsmAcceptanceRecorder(input: {
     root.dataset.pocAcceptanceRuntimes = String(session.runtimeIds.length);
     root.dataset.pocAcceptanceThermal = session.thermalAssessment;
     root.dataset.pocAcceptancePhysicalDevice = session.physicalDeviceAssessment;
+    root.dataset.pocAcceptanceWakeLock = session.wakeLock.latestStatus;
+    root.dataset.pocAcceptanceWakeLockActiveSamples = String(
+      session.wakeLock.activeSamples,
+    );
+    root.dataset.pocAcceptanceWakeLockErrorSamples = String(
+      session.wakeLock.errorSamples,
+    );
     root.dataset.pocAcceptancePassedGates = String(
       nextEvaluation.gates.filter((gate) => gate.status === "pass").length,
     );

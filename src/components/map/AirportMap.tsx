@@ -165,6 +165,14 @@ export default function AirportMap({
   loadingOverlaySources = {},
   flightTerminalReason = "",
   userLocation = null,
+  wakeLockState = {
+    supported: false,
+    active: false,
+    pending: false,
+    error: null,
+  },
+  onToggleWakeLock = null,
+  onRequestWakeLock = null,
   onMapInstanceChange = null,
   onMainContentLoadingChange = null,
   mapInteractionMode = AirportMapInteractionMode.AirportExploration,
@@ -1112,6 +1120,9 @@ export default function AirportMap({
               selectedAirspaceId={selectedAirspaceId}
               focalAircraftId={focalAircraftId}
               userLocation={userLocation}
+              wakeLockState={wakeLockState}
+              onToggleWakeLock={onToggleWakeLock}
+              onRequestWakeLock={onRequestWakeLock}
               theme={currentTheme}
               onSelectAircraft={onSelectAircraft}
               onSelectAirport={onSelectAirport}

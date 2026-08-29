@@ -68,6 +68,7 @@ function createPassingCandidate() {
     tileSourceOrigin: "runtime",
     tileSourceConfig: "ready",
     visibility: "visible",
+    wakeLockStatus: "active",
     usedJsHeapBytes: 173_500_000,
   });
   return session;
@@ -88,6 +89,27 @@ const passed = evaluateThreeOsmAcceptanceSession(
 );
 assert.equal(passed.status, "passed");
 assert.equal(passed.gates.every((gate) => gate.status === "pass"), true);
+assert.deepEqual(passing.wakeLock, {
+  latestStatus: "active",
+  activeSamples: 1,
+  inactiveSamples: 0,
+  pendingSamples: 0,
+  errorSamples: 0,
+});
+
+sampleThreeOsmAcceptanceSession(passing, {
+  nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
+  wakeLockStatus: "error",
+});
+assert.equal(passing.wakeLock.latestStatus, "error");
+assert.equal(passing.wakeLock.errorSamples, 1);
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    passing,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
+  ).gates.length,
+  11,
+);
 
 const restarted = createPassingCandidate();
 registerThreeOsmAcceptanceDocumentBoot(

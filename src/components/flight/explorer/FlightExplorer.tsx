@@ -135,7 +135,7 @@ function FlightExplorerContent({ callsign }) {
     resumeMapFollow,
     mapFollowsAircraft,
   } = useExplorerUi();
-  const [wakeLockState, toggleWakeLock] = useWakeLock();
+  const [wakeLockState, toggleWakeLock, requestWakeLock] = useWakeLock();
   // Both views render the same actively-recorded tracking run. They only
   // differ in viewport scope: Full trace frames origin → destination, while
   // All recorded points frames the observations captured since this tracking
@@ -1073,6 +1073,9 @@ function FlightExplorerContent({ callsign }) {
               loadingOverlaySources={loadingOverlaySources}
               flightTerminalReason={flightTerminalReason}
               userLocation={userLocationLayer.userLocation}
+              wakeLockState={wakeLockState}
+              onToggleWakeLock={toggleWakeLock}
+              onRequestWakeLock={requestWakeLock}
               onMainContentLoadingChange={setMapMainContentLoading}
               mapInteractionMode={AirportMapInteractionMode.FlightTracking}
               >

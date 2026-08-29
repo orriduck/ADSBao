@@ -1,4 +1,4 @@
-export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 1;
+export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 2;
 export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
   "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
@@ -20,6 +20,13 @@ export type ThreeOsmThermalAssessment =
 export type ThreeOsmPhysicalDeviceAssessment = "unreviewed" | "confirmed";
 
 export type ThreeOsmAcceptanceGateStatus = "pass" | "pending" | "fail";
+
+export type ThreeOsmWakeLockStatus =
+  | "unsupported"
+  | "inactive"
+  | "pending"
+  | "active"
+  | "error";
 
 export type ThreeOsmAcceptanceDevice = {
   userAgent: string;
@@ -55,6 +62,7 @@ export type ThreeOsmAcceptanceSample = {
   tileSourceOrigin?: string;
   tileSourceConfig?: string;
   visibility?: string;
+  wakeLockStatus?: ThreeOsmWakeLockStatus;
   usedJsHeapBytes?: number | null;
 };
 
@@ -95,6 +103,13 @@ export type ThreeOsmAcceptanceSession = {
   usedJsHeapMinBytes: number | null;
   usedJsHeapMaxBytes: number | null;
   usedJsHeapLastBytes: number | null;
+  wakeLock: {
+    latestStatus: ThreeOsmWakeLockStatus;
+    activeSamples: number;
+    inactiveSamples: number;
+    pendingSamples: number;
+    errorSamples: number;
+  };
   latest: {
     basemap: string;
     tileSource: string;
@@ -261,6 +276,13 @@ export function createThreeOsmAcceptanceSession(input: {
     usedJsHeapMinBytes: null,
     usedJsHeapMaxBytes: null,
     usedJsHeapLastBytes: null,
+    wakeLock: {
+      latestStatus: "unsupported",
+      activeSamples: 0,
+      inactiveSamples: 0,
+      pendingSamples: 0,
+      errorSamples: 0,
+    },
     latest: {
       basemap: "loading",
       tileSource: "unknown",
@@ -278,7 +300,10 @@ export function isThreeOsmAcceptanceSession(
   const session = value;
   const device = session.device;
   const latest = session.latest;
-  if (!isRecord(device) || !isRecord(latest)) return false;
+  const wakeLock = session.wakeLock;
+  if (!isRecord(device) || !isRecord(latest) || !isRecord(wakeLock)) {
+    return false;
+  }
 
   return (
     session.schemaVersion === THREE_OSM_ACCEPTANCE_SCHEMA_VERSION &&
@@ -315,6 +340,20 @@ export function isThreeOsmAcceptanceSession(
     device.physicalIPhoneCandidate ===
       (/iPhone/i.test(String(device.userAgent)) &&
         Number(device.maxTouchPoints) > 0) &&
+    (wakeLock.latestStatus === "unsupported" ||
+      wakeLock.latestStatus === "inactive" ||
+      wakeLock.latestStatus === "pending" ||
+      wakeLock.latestStatus === "active" ||
+      wakeLock.latestStatus === "error") &&
+    [
+      wakeLock.activeSamples,
+      wakeLock.inactiveSamples,
+      wakeLock.pendingSamples,
+      wakeLock.errorSamples,
+    ].every(
+      (count) =>
+        isNonNegativeFiniteNumber(count) && Number.isInteger(Number(count)),
+    ) &&
     (latest.basemap === "loading" ||
       latest.basemap === "ready" ||
       latest.basemap === "partial" ||
@@ -474,6 +513,19 @@ export function sampleThreeOsmAcceptanceSession(
       heapBytes,
     );
     session.usedJsHeapLastBytes = heapBytes;
+  }
+
+  if (sample.wakeLockStatus) {
+    session.wakeLock.latestStatus = sample.wakeLockStatus;
+    if (sample.wakeLockStatus === "active") {
+      session.wakeLock.activeSamples += 1;
+    } else if (sample.wakeLockStatus === "inactive") {
+      session.wakeLock.inactiveSamples += 1;
+    } else if (sample.wakeLockStatus === "pending") {
+      session.wakeLock.pendingSamples += 1;
+    } else if (sample.wakeLockStatus === "error") {
+      session.wakeLock.errorSamples += 1;
+    }
   }
 
   session.latest = {
@@ -643,6 +695,8 @@ export function buildThreeOsmAcceptanceReport(
           : "JavaScript heap values are non-standard browser diagnostics and are evidence, not a device-wide memory measurement.",
       device:
         "The user agent and touch capability identify an iPhone candidate; the operator must still confirm this report came from physical hardware.",
+      wakeLock:
+        "Screen wake-lock state is recorded as operator-assistance evidence. It does not add or replace any of the 11 acceptance gates.",
     },
   };
 }
