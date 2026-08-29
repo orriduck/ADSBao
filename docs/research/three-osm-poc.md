@@ -53,9 +53,13 @@ failure evidence rather than silently starting a clean timer. It records the
 render recovery, camera-mode switches, tile/provider state, WebGL recovery,
 bounded GPU counters, Long Tasks, and JavaScript heap samples when the browser
 exposes them. It also records the maximum rendered, live, synthetic, and
-requested stress-target counts as non-gating capacity evidence. The operator
-must mark the phone's thermal state because browsers do not expose a
-trustworthy device-temperature API. The report can be shared or downloaded as
+requested stress-target counts. The existing render-stability gate requires
+both requested and rendered maxima to reach 250, with at least one sample where
+they reach that capacity simultaneously, before the 20-minute session can pass.
+The live/synthetic split remains explanatory evidence and does not create a
+twelfth gate. The operator must mark the phone's thermal state because browsers
+do not expose a trustworthy device-temperature API. The report can be shared
+or downloaded as
 JSON; it contains provider identity and state but never the tile URL or browser
 key.
 
@@ -509,7 +513,9 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   exactly one highlight, traffic rebuild time peaked at 3.4 ms, scene render
   time peaked at 23.3 ms, horizontal overflow remained zero, and the console
   recorded no errors. The acceptance recorder captured rendered, live,
-  synthetic, and requested-target maxima without changing the eleven gates.
+  synthetic, and requested-target maxima plus simultaneous-capacity sample
+  count. Render stability now requires a requested and rendered total of at
+  least 250 in the same sample, without changing the eleven gates.
   This is desktop capacity evidence only; the emitted physical-device URL now
   includes the same stress flag so gate four can be tested honestly on an
   iPhone.

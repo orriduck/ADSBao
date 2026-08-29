@@ -60,7 +60,7 @@ function main() {
       `- screen awake helper: ${verification.session.wakeLock.latestStatus}; active samples=${verification.session.wakeLock.activeSamples}; error samples=${verification.session.wakeLock.errorSamples} (not a gate)`,
     );
     console.log(
-      `- traffic capacity: rendered=${verification.session.trafficRenderedMax}; real=${verification.session.trafficRealMax}; synthetic=${verification.session.trafficSyntheticMax}; target=${verification.session.trafficStressTargetMax} (not a gate)`,
+      `- traffic capacity: rendered=${verification.session.trafficRenderedMax}; real=${verification.session.trafficRealMax}; synthetic=${verification.session.trafficSyntheticMax}; target=${verification.session.trafficStressTargetMax}; simultaneous samples=${verification.session.trafficCapacitySamples} (render-stability evidence)`,
     );
   }
   if (verification.evaluation) {

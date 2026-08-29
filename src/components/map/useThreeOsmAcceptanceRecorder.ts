@@ -207,6 +207,9 @@ export function useThreeOsmAcceptanceRecorder(input: {
     root.dataset.pocAcceptanceTrafficStressTargetMax = String(
       session.trafficStressTargetMax,
     );
+    root.dataset.pocAcceptanceTrafficCapacitySamples = String(
+      session.trafficCapacitySamples,
+    );
     root.dataset.pocAcceptancePassedGates = String(
       nextEvaluation.gates.filter((gate) => gate.status === "pass").length,
     );

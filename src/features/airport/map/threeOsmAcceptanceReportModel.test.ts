@@ -7,6 +7,7 @@ import {
   THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
   buildThreeOsmAcceptanceReport,
   createThreeOsmAcceptanceSession,
+  evaluateThreeOsmAcceptanceSession,
   isThreeOsmAcceptanceSession,
   recordThreeOsmAcceptanceBackground,
   recordThreeOsmAcceptanceForeground,
@@ -97,6 +98,26 @@ assert.equal(osmConfiguredCheck.valid, true);
 assert.equal(osmConfiguredCheck.accepted, false);
 assert.equal(osmConfiguredCheck.requirementFailures.length, 1);
 
+const insufficientCapacityReport = structuredClone(createPassingReport());
+insufficientCapacityReport.session.trafficRenderedMax = 249;
+insufficientCapacityReport.session.trafficCapacitySamples = 0;
+insufficientCapacityReport.evaluation = evaluateThreeOsmAcceptanceSession(
+  insufficientCapacityReport.session,
+  finishedAt,
+);
+const insufficientCapacityResult = verifyThreeOsmAcceptanceReport(
+  insufficientCapacityReport,
+);
+assert.equal(insufficientCapacityResult.valid, true);
+assert.equal(insufficientCapacityResult.accepted, false);
+assert.equal(insufficientCapacityResult.evaluation?.status, "failed");
+assert.equal(
+  insufficientCapacityResult.evaluation?.gates.find(
+    (gate) => gate.id === "render-stability",
+  )?.status,
+  "fail",
+);
+
 const tampered = structuredClone(createPassingReport());
 tampered.evaluation.status = "failed";
 const tamperedResult = verifyThreeOsmAcceptanceReport(tampered);
@@ -124,6 +145,13 @@ assert.equal(isThreeOsmAcceptanceSession(invalidMetric.session), false);
 const invalidWakeLockEvidence = structuredClone(createPassingReport());
 invalidWakeLockEvidence.session.wakeLock.activeSamples = -1;
 assert.equal(isThreeOsmAcceptanceSession(invalidWakeLockEvidence.session), false);
+
+const impossibleCapacityEvidence = structuredClone(createPassingReport());
+impossibleCapacityEvidence.session.trafficRenderedMax = 249;
+assert.equal(
+  isThreeOsmAcceptanceSession(impossibleCapacityEvidence.session),
+  false,
+);
 
 const mismatchedDevice = structuredClone(createPassingReport());
 mismatchedDevice.session.device.userAgent = "Mozilla/5.0 (Macintosh)";
@@ -165,7 +193,7 @@ try {
   );
   assert.match(
     configuredCli.stdout,
-    /traffic capacity: rendered=250; real=183; synthetic=67; target=250 \(not a gate\)/,
+    /traffic capacity: rendered=250; real=183; synthetic=67; target=250; simultaneous samples=1 \(render-stability evidence\)/,
   );
   assert.doesNotMatch(configuredCli.stdout, /MUST_NOT_BE_PRINTED/);
 

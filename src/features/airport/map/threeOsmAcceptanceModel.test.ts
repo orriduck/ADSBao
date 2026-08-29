@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS,
   createThreeOsmAcceptanceSession,
   evaluateThreeOsmAcceptanceSession,
   recordThreeOsmAcceptanceBackground,
@@ -104,6 +105,8 @@ assert.equal(passing.trafficRenderedMax, 250);
 assert.equal(passing.trafficRealMax, 183);
 assert.equal(passing.trafficSyntheticMax, 67);
 assert.equal(passing.trafficStressTargetMax, 250);
+assert.equal(passing.trafficCapacitySamples, 1);
+assert.equal(THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS, 250);
 
 sampleThreeOsmAcceptanceSession(passing, {
   nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
@@ -117,6 +120,67 @@ assert.equal(
     start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
   ).gates.length,
   11,
+);
+
+const missingTrafficStress = createPassingCandidate();
+missingTrafficStress.trafficRenderedMax = 0;
+missingTrafficStress.trafficStressTargetMax = 0;
+missingTrafficStress.trafficCapacitySamples = 0;
+const missingTrafficEarly = evaluateThreeOsmAcceptanceSession(
+  missingTrafficStress,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
+);
+assert.equal(
+  missingTrafficEarly.gates.find((gate) => gate.id === "render-stability")
+    ?.status,
+  "pending",
+);
+const missingTrafficFinished = evaluateThreeOsmAcceptanceSession(
+  missingTrafficStress,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+);
+assert.equal(missingTrafficFinished.status, "failed");
+assert.equal(
+  missingTrafficFinished.gates.find((gate) => gate.id === "render-stability")
+    ?.status,
+  "fail",
+);
+assert.match(
+  missingTrafficFinished.gates.find((gate) => gate.id === "render-stability")
+    ?.evidence || "",
+  /traffic=0\/250; requested=0; simultaneous samples=0/,
+);
+
+const separateTrafficMaxima = createPassingCandidate();
+separateTrafficMaxima.trafficCapacitySamples = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    separateTrafficMaxima,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "render-stability")?.status,
+  "fail",
+);
+
+const insufficientRenderedTraffic = createPassingCandidate();
+insufficientRenderedTraffic.trafficRenderedMax = 249;
+insufficientRenderedTraffic.trafficCapacitySamples = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    insufficientRenderedTraffic,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "render-stability")?.status,
+  "fail",
+);
+
+const insufficientRequestedTraffic = createPassingCandidate();
+insufficientRequestedTraffic.trafficStressTargetMax = 249;
+insufficientRequestedTraffic.trafficCapacitySamples = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    insufficientRequestedTraffic,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "render-stability")?.status,
+  "fail",
 );
 
 const restarted = createPassingCandidate();

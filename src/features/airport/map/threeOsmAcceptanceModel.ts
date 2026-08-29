@@ -1,4 +1,6 @@
-export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 3;
+import { THREE_OSM_AIRCRAFT_CAPACITY } from "./threeOsmTrafficStress";
+
+export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 4;
 export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
   "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
@@ -11,6 +13,8 @@ export const THREE_OSM_ACCEPTANCE_MAX_TILE_CACHE_SIZE = 72;
 export const THREE_OSM_ACCEPTANCE_MAX_TEXTURES = 80;
 export const THREE_OSM_ACCEPTANCE_MAX_GEOMETRIES = 32;
 export const THREE_OSM_ACCEPTANCE_MAX_PROGRAMS = 24;
+export const THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS =
+  THREE_OSM_AIRCRAFT_CAPACITY;
 
 export type ThreeOsmThermalAssessment =
   | "unreviewed"
@@ -107,6 +111,7 @@ export type ThreeOsmAcceptanceSession = {
   trafficRealMax: number;
   trafficSyntheticMax: number;
   trafficStressTargetMax: number;
+  trafficCapacitySamples: number;
   usedJsHeapInitialBytes: number | null;
   usedJsHeapMinBytes: number | null;
   usedJsHeapMaxBytes: number | null;
@@ -176,6 +181,7 @@ const ACCEPTANCE_SESSION_NUMBER_FIELDS = [
   "trafficRealMax",
   "trafficSyntheticMax",
   "trafficStressTargetMax",
+  "trafficCapacitySamples",
 ] as const;
 
 const ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS = [
@@ -209,6 +215,7 @@ const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
   "trafficRealMax",
   "trafficSyntheticMax",
   "trafficStressTargetMax",
+  "trafficCapacitySamples",
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -292,6 +299,7 @@ export function createThreeOsmAcceptanceSession(input: {
     trafficRealMax: 0,
     trafficSyntheticMax: 0,
     trafficStressTargetMax: 0,
+    trafficCapacitySamples: 0,
     usedJsHeapInitialBytes: null,
     usedJsHeapMinBytes: null,
     usedJsHeapMaxBytes: null,
@@ -374,6 +382,11 @@ export function isThreeOsmAcceptanceSession(
       (count) =>
         isNonNegativeFiniteNumber(count) && Number.isInteger(Number(count)),
     ) &&
+    (Number(session.trafficCapacitySamples) === 0 ||
+      (Number(session.trafficRenderedMax) >=
+        THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
+        Number(session.trafficStressTargetMax) >=
+          THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS)) &&
     (latest.basemap === "loading" ||
       latest.basemap === "ready" ||
       latest.basemap === "partial" ||
@@ -533,6 +546,14 @@ export function sampleThreeOsmAcceptanceSession(
     session.trafficStressTargetMax,
     sample.trafficStressTarget,
   );
+  if (
+    finiteNumber(sample.trafficRendered) >=
+      THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
+    finiteNumber(sample.trafficStressTarget) >=
+      THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS
+  ) {
+    session.trafficCapacitySamples += 1;
+  }
 
   if (Number.isFinite(sample.usedJsHeapBytes)) {
     const heapBytes = Number(sample.usedJsHeapBytes);
@@ -597,6 +618,11 @@ export function evaluateThreeOsmAcceptanceSession(
   const renderingOk =
     session.longTaskMaxMs <= THREE_OSM_ACCEPTANCE_MAX_LONG_TASK_MS &&
     session.renderSceneMaxMs <= THREE_OSM_ACCEPTANCE_MAX_SCENE_RENDER_MS;
+  const trafficCapacityOk =
+    session.trafficStressTargetMax >=
+      THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
+    session.trafficRenderedMax >= THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS &&
+    session.trafficCapacitySamples >= 1;
   const basemapOk =
     session.latest.basemap === "ready" && session.tilesFailedMax === 0;
 
@@ -676,8 +702,14 @@ export function evaluateThreeOsmAcceptanceSession(
     },
     {
       id: "render-stability",
-      status: renderingOk ? pendingOrPass(true, durationComplete) : "fail",
-      evidence: `scene max=${session.renderSceneMaxMs.toFixed(1)}ms; long task max=${session.longTaskMaxMs.toFixed(1)}ms; count=${session.longTaskCountMax}`,
+      status: !renderingOk
+        ? "fail"
+        : trafficCapacityOk
+          ? pendingOrPass(true, durationComplete)
+          : durationComplete
+            ? "fail"
+            : "pending",
+      evidence: `scene max=${session.renderSceneMaxMs.toFixed(1)}ms; long task max=${session.longTaskMaxMs.toFixed(1)}ms; count=${session.longTaskCountMax}; traffic=${session.trafficRenderedMax}/${THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS}; requested=${session.trafficStressTargetMax}; simultaneous samples=${session.trafficCapacitySamples}`,
     },
     {
       id: "thermal",
@@ -731,7 +763,7 @@ export function buildThreeOsmAcceptanceReport(
       wakeLock:
         "Screen wake-lock state is recorded as operator-assistance evidence. It does not add or replace any of the 11 acceptance gates.",
       trafficCapacity:
-        "Rendered, real, synthetic, and requested stress-target maxima are recorded as capacity evidence. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
+        "Rendered, real, synthetic, requested stress-target maxima, and simultaneous requested/rendered capacity samples are recorded inside the existing render-stability gate. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
     },
   };
 }
