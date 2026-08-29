@@ -639,7 +639,9 @@ export function evaluateThreeOsmAcceptanceSession(
   const backgroundTooSlow =
     session.foregroundRecoveryMaxMs != null &&
     session.foregroundRecoveryMaxMs > THREE_OSM_ACCEPTANCE_MAX_FOREGROUND_RECOVERY_MS;
-  const contextBalanced = session.contextLossesMax === session.contextRestoresMax;
+  const contextRecoveryExercised =
+    session.contextLossesMax >= 1 &&
+    session.contextLossesMax === session.contextRestoresMax;
   const resourceBoundsOk =
     session.tileCacheSizeMax <= THREE_OSM_ACCEPTANCE_MAX_TILE_CACHE_SIZE &&
     session.texturesMax <= THREE_OSM_ACCEPTANCE_MAX_TEXTURES &&
@@ -717,12 +719,12 @@ export function evaluateThreeOsmAcceptanceSession(
     },
     {
       id: "webgl-recovery",
-      status: contextBalanced
+      status: contextRecoveryExercised
         ? pendingOrPass(true, durationComplete)
         : durationComplete
           ? "fail"
           : "pending",
-      evidence: `${session.contextLossesMax} lost / ${session.contextRestoresMax} restored`,
+      evidence: `${session.contextLossesMax} lost / ${session.contextRestoresMax} restored; required>=1`,
     },
     {
       id: "resource-bounds",

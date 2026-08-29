@@ -62,9 +62,11 @@ both requested and rendered maxima to reach 250, with at least one sample where
 they reach that capacity simultaneously under the full-operational profile,
 before the 20-minute session can pass.
 The live/synthetic split remains explanatory evidence and does not create a
-twelfth gate. The operator must mark the phone's thermal state because browsers
-do not expose a trustworthy device-temperature API. The report can be shared
-or downloaded as
+twelfth gate. The WebGL recovery gate requires at least one real context-loss
+event and a matching restore; an untouched `0 lost / 0 restored` session cannot
+pass merely because the counters are balanced. The operator must mark the
+phone's thermal state because browsers do not expose a trustworthy
+device-temperature API. The report can be shared or downloaded as
 JSON; it contains provider identity and state but never the tile URL or browser
 key.
 
@@ -76,8 +78,10 @@ the start of the physical run; resetting requires a second confirmation within
 eight seconds so an accidental tap cannot erase a long session. Perform at
 least ten touch interactions and one background/foreground cycle. The thermal
 controls remain disabled until the 20-minute timer completes; then mark the
-observed thermal state and export the report. Expand **Gate details** during the
-run to inspect each gate's live status and evidence; pending and failed
+observed thermal state and export the report. Use **Simulate GPU reset** once
+during the run and wait for the gate evidence to show matching lost/restored
+counts. Expand **Gate details** during the run to inspect each gate's live status
+and evidence; pending and failed
 requirements remain visible without covering the map when the list is closed.
 The same panel exposes the browser screen-wake-lock state and an explicit
 enable/retry control so an operator does not accidentally invalidate the long

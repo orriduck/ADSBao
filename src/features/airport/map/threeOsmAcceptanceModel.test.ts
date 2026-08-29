@@ -112,6 +112,44 @@ assert.equal(passing.fullOperationalTrafficCapacitySamples, 1);
 assert.equal(passing.latest.operationalOverlayProfile, "full-operational");
 assert.equal(THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS, 250);
 
+const recoveryNotExercised = createPassingCandidate();
+recoveryNotExercised.contextLossesMax = 0;
+recoveryNotExercised.contextRestoresMax = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    recoveryNotExercised,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
+  ).gates.find((gate) => gate.id === "webgl-recovery")?.status,
+  "pending",
+);
+const recoveryNotExercisedFinished = evaluateThreeOsmAcceptanceSession(
+  recoveryNotExercised,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+);
+assert.equal(recoveryNotExercisedFinished.status, "failed");
+assert.equal(
+  recoveryNotExercisedFinished.gates.find(
+    (gate) => gate.id === "webgl-recovery",
+  )?.status,
+  "fail",
+);
+assert.match(
+  recoveryNotExercisedFinished.gates.find(
+    (gate) => gate.id === "webgl-recovery",
+  )?.evidence || "",
+  /0 lost \/ 0 restored; required>=1/,
+);
+
+const recoveryIncomplete = createPassingCandidate();
+recoveryIncomplete.contextRestoresMax = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    recoveryIncomplete,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "webgl-recovery")?.status,
+  "fail",
+);
+
 sampleThreeOsmAcceptanceSession(passing, {
   nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
   wakeLockStatus: "error",
