@@ -72,6 +72,17 @@ const context = createThreeOsmContextScene({
       },
     ],
   },
+  runwayApproachVisualization: {
+    kind: "approach-lines",
+    data: {
+      features: [{
+        geometry: {
+          type: "LineString",
+          coordinates: [[-71.02, 42.36], [-71.05, 42.37]],
+        },
+      }],
+    },
+  },
   runwayEndLabels: [
     {
       key: "04R/22L-04R",
@@ -118,6 +129,9 @@ assert.deepEqual(context.counts, {
   userLocation: 1,
 });
 assert.deepEqual(context.runwayDiagnostics, { segments: 1, vertices: 6 });
+assert.equal(context.runwayApproachDiagnostics.kind, "approach-lines");
+assert.equal(context.runwayApproachDiagnostics.features, 1);
+assert.ok(context.runwayApproachDiagnostics.dashes > 0);
 assert.deepEqual(context.surfaceDiagnostics, {
   visible: true,
   aprons: 1,
@@ -140,6 +154,7 @@ assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.group.getObjectByName("three-osm-runway-halo"));
 assert.ok(context.group.getObjectByName("three-osm-runway-surfaces"));
+assert.ok(context.group.getObjectByName("three-osm-runway-approach-lines"));
 assert.ok(context.group.getObjectByName("three-osm-apron-fills"));
 assert.ok(context.group.getObjectByName("three-osm-taxiway-corridors"));
 assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));

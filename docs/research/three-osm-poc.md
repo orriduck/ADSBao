@@ -104,6 +104,14 @@ and reporting-point selection, then (4) additional vector-cartography or
 aesthetic depth. More visual polish should not move ahead of the first two
 graduation risks.
 
+While the first two gates require external hardware or provider authorization,
+the next local-only cartography sequence is: runway approach direction,
+dark-theme airport ground lighting, then only measured building or terrain
+depth. Approach direction comes first because it remains operationally useful
+at every airport zoom and in both themes; ground lighting is limited to the
+dark detail view, while buildings and terrain are contextual rather than
+flight-operation semantics.
+
 The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
 points, watcher locations, and user location. Context-tile loading no longer
@@ -358,6 +366,20 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   runway. Same-size production KBOS remained the richer operational baseline,
   particularly for photo locations and vector context, so this clears runway
   geometry readability rather than overall map parity.
+- Runway approach direction now reuses the production annotation model instead
+  of inventing POC-only airport geometry. Light mode turns all 12 KBOS runway
+  ends into one batched dashed-corridor mesh; dark mode triangulates all 12
+  approach wedges into one batched mesh and carries the production near-to-far
+  fade as vertex alpha. At detail zoom the local browser reported 132 dashes /
+  792 vertices in light mode and 228 triangles / 684 vertices in dark mode,
+  with 12 runway-end labels and 15,006 airport-surface vertices still present.
+  Context-only rendering stayed at 15 draw calls in both 2D and 3D, so the new
+  cue costs one fixed draw call rather than one object per runway end. Visual
+  inspection found the first flat-opacity dark treatment too heavy; the final
+  vertex fade kept the near-end orientation cue while letting the runway and
+  taxiway network remain dominant. Production KBOS was used as the same-size
+  semantic-density baseline, not as proof that the experimental renderer has
+  reached overall parity.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

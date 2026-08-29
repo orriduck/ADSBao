@@ -20,6 +20,7 @@ import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileReso
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import {
   buildRenderableAirportSurfaceFeatureCollection,
+  buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
   buildRunwayEndLabels,
   buildRunwayMapFromSurfaceMap,
@@ -609,14 +610,26 @@ export default function ThreeOsmMapPoc({
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
     [runwayMap],
   );
+  const annotationRunwayMap = useMemo(
+    () => buildRunwayMapFromSurfaceMap(surfaceMap, runwayMap) || runwayMap,
+    [runwayMap, surfaceMap],
+  );
+  const runwayApproachVisualization = useMemo(
+    () =>
+      annotationRunwayMap
+        ? buildRunwayApproachVisualization(annotationRunwayMap, {
+            zoom: tileZoom,
+            theme,
+          })
+        : null,
+    [annotationRunwayMap, theme, tileZoom],
+  );
   const runwayEndLabels = useMemo(
     () => {
       if (Number(tileZoom) < ZOOM_DETAIL) return [];
-      return buildRunwayEndLabels(
-        buildRunwayMapFromSurfaceMap(surfaceMap, runwayMap) || runwayMap,
-      );
+      return buildRunwayEndLabels(annotationRunwayMap);
     },
-    [runwayMap, surfaceMap, tileZoom],
+    [annotationRunwayMap, tileZoom],
   );
   const surfaceCollection = useMemo(
     () => buildRenderableAirportSurfaceFeatureCollection(surfaceMap, runwayMap),
@@ -1507,6 +1520,7 @@ export default function ThreeOsmMapPoc({
       airportCode,
       airports: visibleAirports,
       surfaceCollection,
+      runwayApproachVisualization,
       runwayCollection,
       runwayEndLabels,
       airspaceFeatures,
@@ -1559,6 +1573,26 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-runway-labels",
       String(contextScene.counts.runwayEnds),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-approach-kind",
+      contextScene.runwayApproachDiagnostics.kind,
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-approach-features",
+      String(contextScene.runwayApproachDiagnostics.features),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-approach-dashes",
+      String(contextScene.runwayApproachDiagnostics.dashes),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-approach-triangles",
+      String(contextScene.runwayApproachDiagnostics.triangles),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-approach-vertices",
+      String(contextScene.runwayApproachDiagnostics.vertices),
     );
     rootRef.current?.setAttribute(
       "data-poc-surface-visible",
@@ -1662,6 +1696,7 @@ export default function ThreeOsmMapPoc({
     onSelectAirspace,
     reportingPoints,
     runwayCollection,
+    runwayApproachVisualization,
     runwayEndLabels,
     surfaceCollection,
     selectedAirportIcao,

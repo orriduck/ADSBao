@@ -11,6 +11,7 @@ import {
 } from "./threeOsmAccessibilityPreferences";
 import { lonLatAltitudeToThreeOsmWorld, type TileCoordinate } from "./threeOsmProjection";
 import { createThreeOsmRunwayScene } from "./threeOsmRunwayScene";
+import { createThreeOsmRunwayApproachScene } from "./threeOsmRunwayApproachScene";
 import { createThreeOsmSurfaceScene } from "./threeOsmSurfaceScene";
 
 export type ThreeOsmSceneLabel = {
@@ -210,6 +211,7 @@ export function createThreeOsmContextScene({
   airportCode,
   airports,
   surfaceCollection = null,
+  runwayApproachVisualization = null,
   runwayCollection,
   runwayEndLabels = [],
   airspaceFeatures,
@@ -239,6 +241,7 @@ export function createThreeOsmContextScene({
   airportCode: string;
   airports: Array<Record<string, any>>;
   surfaceCollection?: Record<string, any> | null;
+  runwayApproachVisualization?: Record<string, any> | null;
   runwayCollection: Record<string, any> | null;
   runwayEndLabels?: Array<Record<string, any>>;
   airspaceFeatures: Array<Record<string, any>>;
@@ -283,6 +286,15 @@ export function createThreeOsmContextScene({
     contrastMode,
   });
   group.add(surfaceScene.group);
+
+  const runwayApproachScene = createThreeOsmRunwayApproachScene({
+    visualization: runwayApproachVisualization,
+    tileCenter,
+    centerLat,
+    palette,
+    contrastMode,
+  });
+  group.add(runwayApproachScene.group);
 
   const focalMarker = new THREE.Mesh(
     new THREE.CylinderGeometry(5, 5, 18, 12),
@@ -653,6 +665,13 @@ export function createThreeOsmContextScene({
     runwayDiagnostics: {
       segments: runwayScene.segmentCount,
       vertices: runwayScene.vertexCount,
+    },
+    runwayApproachDiagnostics: {
+      kind: runwayApproachScene.kind,
+      features: runwayApproachScene.featureCount,
+      dashes: runwayApproachScene.dashCount,
+      triangles: runwayApproachScene.triangleCount,
+      vertices: runwayApproachScene.vertexCount,
     },
     surfaceDiagnostics: {
       visible: surfaceScene.visible,
