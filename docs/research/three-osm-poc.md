@@ -64,9 +64,13 @@ before the 20-minute session can pass.
 The live/synthetic split remains explanatory evidence and does not create a
 twelfth gate. The WebGL recovery gate requires at least one real context-loss
 event and a matching restore; an untouched `0 lost / 0 restored` session cannot
-pass merely because the counters are balanced. The operator must mark the
-phone's thermal state because browsers do not expose a trustworthy
-device-temperature API. The report can be shared or downloaded as
+pass merely because the counters are balanced. The resource-bounds gate also
+requires positive cache, texture, geometry, and shader-program observations;
+all-zero counters mean missing instrumentation, not a perfectly idle GPU.
+Missing resource evidence stays pending during the run and fails when the
+20-minute duration completes, while an observed limit breach fails immediately.
+The operator must mark the phone's thermal state because browsers do not expose
+a trustworthy device-temperature API. The report can be shared or downloaded as
 JSON; it contains provider identity and state but never the tile URL or browser
 key.
 

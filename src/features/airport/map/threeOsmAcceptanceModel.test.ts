@@ -150,6 +150,44 @@ assert.equal(
   "fail",
 );
 
+const resourceEvidenceMissing = createPassingCandidate();
+resourceEvidenceMissing.tileCacheSizeMax = 0;
+resourceEvidenceMissing.texturesMax = 0;
+resourceEvidenceMissing.geometriesMax = 0;
+resourceEvidenceMissing.programsMax = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    resourceEvidenceMissing,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
+  ).gates.find((gate) => gate.id === "resource-bounds")?.status,
+  "pending",
+);
+const resourceEvidenceMissingFinished = evaluateThreeOsmAcceptanceSession(
+  resourceEvidenceMissing,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+);
+assert.equal(resourceEvidenceMissingFinished.status, "failed");
+assert.equal(
+  resourceEvidenceMissingFinished.gates.find(
+    (gate) => gate.id === "resource-bounds",
+  )?.status,
+  "fail",
+);
+assert.match(
+  resourceEvidenceMissingFinished.gates.find(
+    (gate) => gate.id === "resource-bounds",
+  )?.evidence || "",
+  /cache=0; textures=0; geometries=0; programs=0; required>0/,
+);
+
+const resourceBoundsExceeded = createPassingCandidate();
+resourceBoundsExceeded.texturesMax = 81;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(resourceBoundsExceeded, start + 1_000)
+    .gates.find((gate) => gate.id === "resource-bounds")?.status,
+  "fail",
+);
+
 sampleThreeOsmAcceptanceSession(passing, {
   nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS + 1,
   wakeLockStatus: "error",

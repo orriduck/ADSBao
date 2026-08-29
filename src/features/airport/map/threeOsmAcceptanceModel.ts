@@ -642,7 +642,18 @@ export function evaluateThreeOsmAcceptanceSession(
   const contextRecoveryExercised =
     session.contextLossesMax >= 1 &&
     session.contextLossesMax === session.contextRestoresMax;
+  const resourceEvidenceComplete =
+    session.tileCacheSizeMax >= 1 &&
+    session.texturesMax >= 1 &&
+    session.geometriesMax >= 1 &&
+    session.programsMax >= 1;
+  const resourceBoundsExceeded =
+    session.tileCacheSizeMax > THREE_OSM_ACCEPTANCE_MAX_TILE_CACHE_SIZE ||
+    session.texturesMax > THREE_OSM_ACCEPTANCE_MAX_TEXTURES ||
+    session.geometriesMax > THREE_OSM_ACCEPTANCE_MAX_GEOMETRIES ||
+    session.programsMax > THREE_OSM_ACCEPTANCE_MAX_PROGRAMS;
   const resourceBoundsOk =
+    resourceEvidenceComplete &&
     session.tileCacheSizeMax <= THREE_OSM_ACCEPTANCE_MAX_TILE_CACHE_SIZE &&
     session.texturesMax <= THREE_OSM_ACCEPTANCE_MAX_TEXTURES &&
     session.geometriesMax <= THREE_OSM_ACCEPTANCE_MAX_GEOMETRIES &&
@@ -728,10 +739,14 @@ export function evaluateThreeOsmAcceptanceSession(
     },
     {
       id: "resource-bounds",
-      status: resourceBoundsOk
-        ? pendingOrPass(true, durationComplete)
-        : "fail",
-      evidence: `cache=${session.tileCacheSizeMax}; textures=${session.texturesMax}; geometries=${session.geometriesMax}; programs=${session.programsMax}`,
+      status: resourceBoundsExceeded
+        ? "fail"
+        : resourceBoundsOk
+          ? pendingOrPass(true, durationComplete)
+          : durationComplete
+            ? "fail"
+            : "pending",
+      evidence: `cache=${session.tileCacheSizeMax}; textures=${session.texturesMax}; geometries=${session.geometriesMax}; programs=${session.programsMax}; required>0`,
     },
     {
       id: "render-stability",
