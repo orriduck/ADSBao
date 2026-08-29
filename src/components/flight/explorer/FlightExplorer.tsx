@@ -1058,6 +1058,7 @@ function FlightExplorerContent({ callsign }) {
               focalRangeRings={false}
               contextTileOverlays
               contextTileRefreshKey={`${callsign}:${mapFollowsAircraft}:${mapZoom}`}
+              threeOsmRoutePath={remainingRoutePath}
               fullTraceContext={!mapFollowsAircraft}
               onContextTilesChange={setContextTiles}
               deferUntilFocal

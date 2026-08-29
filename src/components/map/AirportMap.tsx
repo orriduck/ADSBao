@@ -134,6 +134,7 @@ export default function AirportMap({
   selectedAirspaceId = "",
   selectedCandidateWatchingSpotId = "",
   candidateWatchingSpots = [],
+  threeOsmRoutePath = [],
   focalAircraftId = "",
   focalVisualPosition = null,
   focalVisualPositionRef = null,
@@ -1057,6 +1058,7 @@ export default function AirportMap({
               navaidCounts={contextTiles.navaidCounts}
               reportingPoints={reportingPoints}
               candidateWatchingSpots={candidateWatchingSpots}
+              routePath={threeOsmRoutePath}
               showAirspaces={showAirspaces}
               showNavaidMarkers={showNavaidMarkers}
               useNavaidCounts={useNavaidCountTiles}

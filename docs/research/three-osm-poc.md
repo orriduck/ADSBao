@@ -36,6 +36,10 @@ The query flag replaces both visible map modes with one Three.js scene:
 - A shared projected-label canvas now provides collision-bounded aircraft and
   airport identifiers in both camera modes. Nearby-airport markers and focal
   runway centerlines live in the same geospatial scene.
+- Selected aircraft traces now render in that shared scene with a true-altitude
+  line, ground projection, and current-height connector. Flight tracking pages
+  can also pass their existing great-circle route model into a dashed Three.js
+  route and destination marker without rebuilding route ownership in the map.
 - Desktop requests only a 5×5 current-view tile grid; compact layouts request
   3×3. There is no prefetch, offline archive, or background scan.
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
@@ -66,8 +70,10 @@ The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
 points, watcher locations, and user location. Context-tile loading no longer
 requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
-own bounds. Selection callbacks and the trace/route layer remain the next
-incomplete operational boundary.
+own bounds. Item three now includes pointer picking, selected-aircraft styling,
+live selected traces, and flight-page route geometry. Keyboard selection, a
+stronger selected-state visual, accessible DOM map contents, and route-aware
+camera fitting remain the next incomplete operational boundary.
 
 ## Proposed architecture if the POC graduates
 

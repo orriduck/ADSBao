@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
@@ -17,6 +18,8 @@ import {
   createThreeOsmContextScene,
   type ThreeOsmSceneLabel,
 } from "@/features/airport/map/threeOsmSceneContext";
+import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
+import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
 
 type CameraMode = "2d" | "3d";
 
@@ -33,6 +36,7 @@ type ThreeOsmPocProps = {
   navaidCounts?: Array<Record<string, any>>;
   reportingPoints?: Array<Record<string, any>>;
   candidateWatchingSpots?: Array<Record<string, any>>;
+  routePath?: Array<[unknown, unknown]>;
   showAirspaces?: boolean;
   showNavaidMarkers?: boolean;
   useNavaidCounts?: boolean;
@@ -117,6 +121,7 @@ export default function ThreeOsmMapPoc({
   navaidCounts = [],
   reportingPoints = [],
   candidateWatchingSpots = [],
+  routePath = [],
   showAirspaces = true,
   showNavaidMarkers = false,
   useNavaidCounts = false,
@@ -133,6 +138,7 @@ export default function ThreeOsmMapPoc({
   onSelectAircraft = null,
   onReady = null,
 }: ThreeOsmPocProps) {
+  const { traces = [] } = useSelectedAircraftTrace();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const runtimeIdRef = useRef(
     `three-osm-${Math.random().toString(36).slice(2, 10)}`,
@@ -148,6 +154,8 @@ export default function ThreeOsmMapPoc({
   const tileGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
+  const traceGroupRef = useRef<THREE.Group | null>(null);
+  const routeGroupRef = useRef<THREE.Group | null>(null);
   const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficIdsRef = useRef<string[]>([]);
   const trafficRenderItemsRef = useRef<TrafficRenderItem[]>([]);
@@ -433,9 +441,13 @@ export default function ThreeOsmMapPoc({
       disposeObject(tileGroupRef.current);
       disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
+      disposeObject(traceGroupRef.current);
+      disposeObject(routeGroupRef.current);
       tileGroupRef.current = null;
       contextGroupRef.current = null;
       trafficGroupRef.current = null;
+      traceGroupRef.current = null;
+      routeGroupRef.current = null;
       trafficMeshRef.current = null;
       trafficRenderItemsRef.current = [];
       trafficLabelsRef.current = [];
@@ -731,6 +743,57 @@ export default function ThreeOsmMapPoc({
     tileCenter,
     visibleAircraft,
   ]);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene || !Number.isFinite(centerLat) || !Array.isArray(traces)) return;
+
+    disposeObject(traceGroupRef.current);
+    const traceScene = createThreeOsmTraceScene({
+      traces,
+      tileCenter,
+      centerLat,
+      theme,
+    });
+    traceGroupRef.current = traceScene.group;
+    scene.add(traceScene.group);
+    rootRef.current?.setAttribute("data-poc-traces", String(traceScene.traceCount));
+    rootRef.current?.setAttribute(
+      "data-poc-trace-points",
+      String(traceScene.pointCount),
+    );
+    requestRenderRef.current();
+
+    return () => {
+      disposeObject(traceScene.group);
+      if (traceGroupRef.current === traceScene.group) traceGroupRef.current = null;
+    };
+  }, [centerLat, theme, tileCenter, traces]);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene || !Number.isFinite(centerLat)) return;
+
+    disposeObject(routeGroupRef.current);
+    const routeScene = createThreeOsmRouteScene({
+      path: routePath,
+      tileCenter,
+      centerLat,
+      theme,
+    });
+    routeGroupRef.current = routeScene.group;
+    scene.add(routeScene.group);
+    rootRef.current?.setAttribute(
+      "data-poc-route-points",
+      String(routeScene.pointCount),
+    );
+    requestRenderRef.current();
+
+    return () => {
+      disposeObject(routeScene.group);
+      if (routeGroupRef.current === routeScene.group) routeGroupRef.current = null;
+    };
+  }, [centerLat, routePath, theme, tileCenter]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
