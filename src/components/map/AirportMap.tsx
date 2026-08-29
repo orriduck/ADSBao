@@ -1070,6 +1070,7 @@ export default function AirportMap({
               allowRouteOnlyFit={threeOsmAllowRouteOnlyFit}
               keepRouteInView={threeOsmKeepRouteInView}
               followsCenter={followsCenter}
+              allowsMapInteraction={mapInteraction.allowsDragging}
               showAirspaces={showAirspaces}
               showNavaidMarkers={showNavaidMarkers}
               useNavaidCounts={useNavaidCountTiles}

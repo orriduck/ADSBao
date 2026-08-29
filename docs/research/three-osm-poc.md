@@ -80,8 +80,11 @@ fitting consumes the existing product signals: it chooses a bounded tile zoom
 from the geographic envelope and actual viewport aspect, frames the same
 geometry with either camera, handles dateline wrapping, restores Follow without
 replacing the runtime, and guards full-route endpoints when live route data
-exists. Bounded interaction, a tile adapter/cache, and long-session recovery
-remain the next incomplete operational boundary.
+exists. Airport exploration now clamps the 2D/3D ground footprint to the loaded
+tile grid and derives its minimum orthographic zoom from that coverage. Flight
+tracking inherits the existing locked-camera contract, so Follow/trace controls
+rather than direct gestures own its framing. A tile adapter/cache and long-session
+recovery remain the next incomplete operational boundary.
 
 ## Proposed architecture if the POC graduates
 

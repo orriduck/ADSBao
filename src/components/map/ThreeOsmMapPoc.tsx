@@ -10,6 +10,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
 import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFraming";
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
+import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
@@ -61,6 +62,7 @@ type ThreeOsmPocProps = {
   allowRouteOnlyFit?: boolean;
   keepRouteInView?: boolean;
   followsCenter?: boolean;
+  allowsMapInteraction?: boolean;
   showAirspaces?: boolean;
   showNavaidMarkers?: boolean;
   useNavaidCounts?: boolean;
@@ -138,6 +140,7 @@ export default function ThreeOsmMapPoc({
   allowRouteOnlyFit = false,
   keepRouteInView = false,
   followsCenter = true,
+  allowsMapInteraction = true,
   showAirspaces = true,
   showNavaidMarkers = false,
   useNavaidCounts = false,
@@ -1024,9 +1027,9 @@ export default function ThreeOsmMapPoc({
     const controls = new OrbitControls(camera, canvas);
     controls.target.set(0, 0, 0);
     controls.enableDamping = false;
-    controls.enableRotate = viewMode === "3d";
-    controls.enablePan = true;
-    controls.enableZoom = true;
+    controls.enableRotate = viewMode === "3d" && allowsMapInteraction;
+    controls.enablePan = allowsMapInteraction;
+    controls.enableZoom = allowsMapInteraction;
     controls.screenSpacePanning = viewMode === "2d";
     controls.minDistance = 180;
     controls.maxDistance = 1_600;
@@ -1040,6 +1043,7 @@ export default function ThreeOsmMapPoc({
     controls.update();
     controlsRef.current = controls;
     root.dataset.pocCamera = viewMode === "3d" ? "perspective" : "orthographic";
+    root.dataset.pocInteraction = allowsMapInteraction ? "bounded" : "locked";
     requestRenderRef.current();
 
     return () => {
@@ -1047,7 +1051,7 @@ export default function ThreeOsmMapPoc({
       controls.dispose();
       if (controlsRef.current === controls) controlsRef.current = null;
     };
-  }, [viewMode]);
+  }, [allowsMapInteraction, viewMode]);
 
   useThreeOsmCameraFraming({
     rootRef,
@@ -1059,6 +1063,16 @@ export default function ThreeOsmMapPoc({
     sceneCenterLat,
     viewMode,
     keepRouteInView,
+  });
+
+  useThreeOsmInteractionBounds({
+    rootRef,
+    activeCameraRef,
+    controlsRef,
+    requestRenderRef,
+    tileCenter,
+    visibleTiles,
+    viewMode,
   });
 
   return (
