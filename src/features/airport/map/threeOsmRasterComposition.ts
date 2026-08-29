@@ -1,0 +1,149 @@
+import * as THREE from "three";
+import type { ThreeOsmContrastMode } from "./threeOsmAccessibilityPreferences";
+
+export type ThreeOsmRasterCompositionMode =
+  | "primary"
+  | "transition"
+  | "context-underlay";
+
+export type ThreeOsmRasterComposition = {
+  mode: ThreeOsmRasterCompositionMode;
+  washColor: number;
+  washStrength: number;
+};
+
+const OUTSIDE_VECTOR_COVERAGE_WASH_FACTOR = 0.28;
+
+type VectorContextState =
+  | "disabled"
+  | "loading"
+  | "ready"
+  | "partial"
+  | "degraded";
+
+type RasterCompositionLayerMode =
+  | "all"
+  | "basemap"
+  | "vector"
+  | "context"
+  | "traffic"
+  | "flight";
+
+const VECTOR_UNDERLAY_START_ZOOM = 11;
+const VECTOR_UNDERLAY_FULL_ZOOM = 14;
+
+function smoothstep(value: number) {
+  const bounded = Math.min(1, Math.max(0, value));
+  return bounded * bounded * (3 - 2 * bounded);
+}
+
+export function resolveThreeOsmRasterComposition({
+  vectorEnabled,
+  vectorState,
+  zoom,
+  layerMode,
+  theme,
+  contrastMode,
+  background,
+}: {
+  vectorEnabled: boolean;
+  vectorState: VectorContextState;
+  zoom: number;
+  layerMode: RasterCompositionLayerMode;
+  theme: string;
+  contrastMode: ThreeOsmContrastMode;
+  background: number;
+}): ThreeOsmRasterComposition {
+  const canUseVectorUnderlay =
+    vectorEnabled &&
+    vectorState === "ready" &&
+    layerMode === "all" &&
+    contrastMode === "standard" &&
+    Number.isFinite(zoom) &&
+    zoom > VECTOR_UNDERLAY_START_ZOOM;
+  if (!canUseVectorUnderlay) {
+    return { mode: "primary", washColor: background, washStrength: 0 };
+  }
+
+  const progress = smoothstep(
+    (zoom - VECTOR_UNDERLAY_START_ZOOM) /
+      (VECTOR_UNDERLAY_FULL_ZOOM - VECTOR_UNDERLAY_START_ZOOM),
+  );
+  const maximumWash = theme === "light" ? 0.78 : 0.72;
+  const washStrength = progress * maximumWash;
+  return {
+    mode:
+      zoom >= VECTOR_UNDERLAY_FULL_ZOOM
+        ? "context-underlay"
+        : "transition",
+    washColor: background,
+    washStrength,
+  };
+}
+
+export function resolveThreeOsmRasterTileComposition(
+  composition: ThreeOsmRasterComposition,
+  vectorCovered: boolean,
+): ThreeOsmRasterComposition {
+  if (composition.mode === "primary" || vectorCovered) return composition;
+  return {
+    ...composition,
+    washStrength:
+      composition.washStrength * OUTSIDE_VECTOR_COVERAGE_WASH_FACTOR,
+  };
+}
+
+type RasterCompositionUniforms = {
+  washColor: { value: THREE.Color };
+  washStrength: { value: number };
+};
+
+type RasterCompositionMaterial = THREE.MeshBasicMaterial & {
+  userData: {
+    threeOsmRasterCompositionUniforms?: RasterCompositionUniforms;
+    [key: string]: unknown;
+  };
+};
+
+export function applyThreeOsmRasterComposition(
+  material: THREE.MeshBasicMaterial,
+  composition: ThreeOsmRasterComposition,
+) {
+  const rasterMaterial = material as RasterCompositionMaterial;
+  let uniforms = rasterMaterial.userData.threeOsmRasterCompositionUniforms;
+  if (!uniforms) {
+    uniforms = {
+      washColor: { value: new THREE.Color(composition.washColor) },
+      washStrength: { value: composition.washStrength },
+    };
+    rasterMaterial.userData.threeOsmRasterCompositionUniforms = uniforms;
+    rasterMaterial.onBeforeCompile = (shader) => {
+      shader.uniforms.threeOsmRasterWashColor = uniforms!.washColor;
+      shader.uniforms.threeOsmRasterWashStrength = uniforms!.washStrength;
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          [
+            "#include <common>",
+            "uniform vec3 threeOsmRasterWashColor;",
+            "uniform float threeOsmRasterWashStrength;",
+          ].join("\n"),
+        )
+        .replace(
+          "#include <map_fragment>",
+          [
+            "#include <map_fragment>",
+            "diffuseColor.rgb = mix(",
+            "  diffuseColor.rgb,",
+            "  threeOsmRasterWashColor,",
+            "  threeOsmRasterWashStrength",
+            ");",
+          ].join("\n"),
+        );
+    };
+    rasterMaterial.customProgramCacheKey = () =>
+      "three-osm-raster-composition-v1";
+  }
+  uniforms.washColor.value.set(composition.washColor);
+  uniforms.washStrength.value = composition.washStrength;
+}

@@ -93,6 +93,11 @@ import { createThreeOsmVectorContextScene } from "@/features/airport/map/threeOs
 import type { ThreeOsmVectorTilePayload } from "@/features/airport/map/threeOsmVectorContextGeometry";
 import { ThreeOsmVectorContextWorkerClient } from "@/features/airport/map/threeOsmVectorContextWorkerClient";
 import {
+  applyThreeOsmRasterComposition,
+  resolveThreeOsmRasterComposition,
+  resolveThreeOsmRasterTileComposition,
+} from "@/features/airport/map/threeOsmRasterComposition";
+import {
   OPENFREEMAP_VECTOR_ATTRIBUTION,
   OPENFREEMAP_VECTOR_ATTRIBUTION_URL,
   buildOpenFreeMapVectorTileUrl,
@@ -434,6 +439,12 @@ export default function ThreeOsmMapPoc({
   const controlsCreateCountRef = useRef(0);
   const controlsCameraSwapCountRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
+  const rasterTileMaterialsRef = useRef<
+    Array<{
+      material: THREE.MeshBasicMaterial;
+      vectorCovered: boolean;
+    }>
+  >([]);
   const vectorContextGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
@@ -811,8 +822,42 @@ export default function ThreeOsmMapPoc({
       }),
     [vectorTileCenter],
   );
+  const vectorTileKeys = useMemo(
+    () =>
+      new Set(
+        vectorTiles.map((tile) => `${tile.z}/${tile.x}/${tile.y}`),
+      ),
+    [vectorTiles],
+  );
   const vectorContextActive =
     vectorContextEnabled && tileZoom >= 10 && Boolean(vectorTileTemplate);
+  const rasterComposition = useMemo(
+    () =>
+      resolveThreeOsmRasterComposition({
+        vectorEnabled: vectorContextEnabled,
+        vectorState: vectorContextState,
+        zoom: tileZoom,
+        layerMode: debugLayerMode,
+        theme,
+        contrastMode,
+        background: visualPalette.background,
+      }),
+    [
+      contrastMode,
+      debugLayerMode,
+      theme,
+      tileZoom,
+      vectorContextEnabled,
+      vectorContextState,
+      visualPalette.background,
+    ],
+  );
+  const rasterCompositionRef = useRef(rasterComposition);
+  rasterCompositionRef.current = rasterComposition;
+  const rasterContextOnlyComposition = useMemo(
+    () => resolveThreeOsmRasterTileComposition(rasterComposition, false),
+    [rasterComposition],
+  );
   const visibleAircraft = useMemo(
     () =>
       aircraft
@@ -1578,6 +1623,7 @@ export default function ThreeOsmMapPoc({
         controlsRef.current = null;
       }
       disposeTileGroup(tileGroupRef.current);
+      rasterTileMaterialsRef.current = [];
       disposeObject(vectorContextGroupRef.current);
       disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
@@ -1632,6 +1678,11 @@ export default function ThreeOsmMapPoc({
     group.visible = isDebugLayerVisible(debugLayerMode, "basemap");
     tileGroupRef.current = group;
     scene.add(group);
+    const tileMaterials: Array<{
+      material: THREE.MeshBasicMaterial;
+      vectorCovered: boolean;
+    }> = [];
+    rasterTileMaterialsRef.current = tileMaterials;
 
     const textureCache = tileTextureCacheRef.current;
     if (!textureCache) return undefined;
@@ -1706,6 +1757,17 @@ export default function ThreeOsmMapPoc({
           : 0xffffff,
         side: THREE.DoubleSide,
       });
+      const vectorCovered =
+        vectorContextEnabled &&
+        vectorTileKeys.has(`${tile.z}/${tile.x}/${tile.y}`);
+      applyThreeOsmRasterComposition(
+        material,
+        resolveThreeOsmRasterTileComposition(
+          rasterCompositionRef.current,
+          vectorCovered,
+        ),
+      );
+      tileMaterials.push({ material, vectorCovered });
       const mesh = new THREE.Mesh(tileGeometry, material);
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.set(
@@ -1758,6 +1820,14 @@ export default function ThreeOsmMapPoc({
 
     rootRef.current?.setAttribute("data-poc-tile-zoom", String(tileZoom));
     rootRef.current?.setAttribute("data-poc-tiles-requested", String(visibleTiles.length));
+    rootRef.current?.setAttribute(
+      "data-poc-raster-vector-covered-tiles",
+      String(tileMaterials.filter((item) => item.vectorCovered).length),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-raster-context-only-tiles",
+      String(tileMaterials.filter((item) => !item.vectorCovered).length),
+    );
     requestRenderRef.current();
 
     return () => {
@@ -1767,6 +1837,9 @@ export default function ThreeOsmMapPoc({
       releases.forEach((release) => release());
       disposeTileGroup(group);
       if (tileGroupRef.current === group) tileGroupRef.current = null;
+      if (rasterTileMaterialsRef.current === tileMaterials) {
+        rasterTileMaterialsRef.current = [];
+      }
     };
   }, [
     activeTileSource,
@@ -1779,6 +1852,8 @@ export default function ThreeOsmMapPoc({
     tileRetryEpoch,
     tileZoom,
     visualPalette,
+    vectorContextEnabled,
+    vectorTileKeys,
     visibleTiles,
   ]);
 
@@ -1988,6 +2063,19 @@ export default function ThreeOsmMapPoc({
     vectorTileZoom,
     vectorTiles,
   ]);
+
+  useEffect(() => {
+    rasterTileMaterialsRef.current.forEach(({ material, vectorCovered }) =>
+      applyThreeOsmRasterComposition(
+        material,
+        resolveThreeOsmRasterTileComposition(
+          rasterComposition,
+          vectorCovered,
+        ),
+      ),
+    );
+    requestRenderRef.current();
+  }, [rasterComposition]);
 
   useEffect(() => {
     if (vectorContextGroupRef.current) {
@@ -2814,6 +2902,11 @@ export default function ThreeOsmMapPoc({
       data-poc-route-workload-destination={routeWorkload.destinationId}
       data-poc-vector-context-enabled={vectorContextEnabled ? "true" : "false"}
       data-poc-vector-context-state={vectorContextState}
+      data-poc-raster-composition={rasterComposition.mode}
+      data-poc-raster-wash={rasterComposition.washStrength.toFixed(3)}
+      data-poc-raster-context-only-wash={
+        rasterContextOnlyComposition.washStrength.toFixed(3)
+      }
       data-poc-operational-overlay-profile={verifiedOperationalOverlayProfile}
       data-poc-show-airspaces={showAirspaces ? "true" : "false"}
       data-poc-show-navaids={showNavaidMarkers ? "true" : "false"}

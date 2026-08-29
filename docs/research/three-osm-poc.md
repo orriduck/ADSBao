@@ -54,6 +54,17 @@ one, so fast route/zoom changes cannot leave stale geometry jobs queued. The
 ordinary POC constructs a lazy Worker client but never starts a Worker or copies
 tile buffers while the vector flag is absent.
 
+Once all nine vector tiles are ready, the combined `all` view treats raster as
+a context underlay rather than a second detail renderer. From zoom 12 through
+14, each raster material progressively mixes its sampled color toward the
+current Three scene background. The nine raster tiles covered by the vector
+grid receive the full wash; the outer desktop-only ring receives 28% of that
+wash so coastline, land use, and broader orientation remain visible outside
+the bounded vector workload. Partial or degraded vector state, basemap-only
+isolation, and elevated/forced contrast keep the original raster presentation.
+This is an opaque material shader, not tile opacity, so the overlapping tile
+edge guard does not create translucent seams.
+
 This flag is an architectural probe, not a production source decision. The
 normal POC does not fetch OpenFreeMap TileJSON or MVT resources and does not
 show its attribution. The enabled probe displays `OpenFreeMap © OpenMapTiles
@@ -634,6 +645,24 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   per-model baseline, while the POC retained its airport-detail framing and
   measured terminal massing. This is still desktop Chromium execution plus a
   responsive viewport, not physical-device thermal or scheduling evidence.
+- The vector-first raster composition activates only after `vector=ready`.
+  At KBOS, zoom 13 used a 0.578 wash over the nine vector-covered raster tiles
+  and a 0.162 wash over the outer 16 context-only tiles; zoom 14 used 0.780 and
+  0.218 respectively. Browser inspection showed the duplicated raster roads,
+  building ink, and baked labels recede in the airport detail area while the
+  coastline and broader Boston/Winthrop context remain available. Basemap-only
+  isolation immediately returned to `primary` / 0.000 without rebuilding the
+  vector geometry, then restored the same Worker/build diagnostics in `all`.
+  2D→3D retained one runtime and the same composition without another Worker
+  build. At 390×844, all 9 raster tiles were vector-covered, both sources were
+  9/9 ready, and the existing 1,246-road / 3,384-building / 199,701-vertex
+  geometry remained intact. The ordinary POC stayed `primary`, Worker idle,
+  with no vector requests or attribution; `more` contrast also stayed
+  `primary` even with vector ready. Same-size production KBOS remained the
+  richer overview, label, airspace, photo-location, and per-model reference,
+  not a visual-parity claim. The material path kept renderer programs at 10;
+  the POC chunk changed from 142.60 kB raw / 41.70 kB gzip to 144.92 kB /
+  42.45 kB, while the 21.24 kB Worker asset was unchanged.
 
 This browser evidence clears the next architecture iteration, not the real
 device gate. A 20-minute iPhone-class run with background/foreground cycles,
