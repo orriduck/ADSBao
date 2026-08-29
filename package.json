@@ -29,6 +29,7 @@
     "test:all": "tsx scripts/run-tests.ts"
   },
   "dependencies": {
+    "@mapbox/vector-tile": "^3.0.0",
     "@newrelic/browser-agent": "^1.320.0",
     "@number-flow/react": "^0.5.0",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -42,12 +43,13 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
     "maplibre-gl": "^5.24.0",
-    "three": "^0.180.0",
+    "pbf": "^5.1.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.17.0",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

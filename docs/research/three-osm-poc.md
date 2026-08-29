@@ -32,6 +32,27 @@ POC-only recovery controls are available with `&threeOsmDebug=1`. Add
 same-origin source and verify the degraded-basemap path without changing the
 operational overlays.
 
+Add `&threeOsmVector=1` with Debug Mode to load a research-only
+[OpenFreeMap](https://openfreemap.org/) MVT context layer. It resolves the
+current planet tile template through an exact-host allowlist, requests a fixed
+3×3 grid, and decodes only the OpenMapTiles `transportation` and `building`
+layers. Roads are available from source zoom 10 and building massing from
+source zoom 13. Three road tiers become at most three batched meshes; building
+walls and roofs become at most two more. The MVT cache retains at most 24
+ArrayBuffers, retries failed entries no faster than every 30 seconds, and the
+scene caps road and building source points separately. Debug Mode exposes a
+`vector` isolation button so the geometry can be inspected without the raster,
+operational context, traffic, or flight layers. Switching that isolation mode
+changes visibility without decoding or rebuilding the vector geometry.
+
+This flag is an architectural probe, not a production source decision. The
+normal POC does not fetch OpenFreeMap TileJSON or MVT resources and does not
+show its attribution. The enabled probe displays `OpenFreeMap © OpenMapTiles
+Data from OpenStreetMap` alongside the raster attribution. It intentionally
+does not implement the rest of the [OpenMapTiles
+schema](https://openmaptiles.org/schema/), a style-expression engine, glyphs,
+sprites, or vector-label collision.
+
 Add `&threeOsmSoak=1` alongside Debug Mode to switch only the POC camera between
 2D and 3D every seven seconds. The harness does not write the user's saved map
 mode and exists only to support long-session resource and render diagnostics.
@@ -218,6 +239,18 @@ depth. Approach direction comes first because it remains operationally useful
 at every airport zoom and in both themes; ground lighting is limited to the
 dark detail view, while buildings and terrain are contextual rather than
 flight-operation semantics.
+
+The branch has now taken the next local-only step with the bounded OpenFreeMap
+roads/buildings probe described above. Real KBOS surface data contains runway,
+taxiway, taxilane, and apron geometry but no terminal or hangar footprints, so
+the external building layer fills a measured data gap instead of fabricating
+airport blocks. A direct CPU/Canvas terrain experiment against the existing
+Terrarium endpoint was not selected: while the [Terrarium
+format](https://github.com/tilezen/joerd/blob/master/docs/formats.md) has a
+straightforward RGB elevation formula, the tested endpoint did not grant the
+cross-origin access needed for browser-side pixel decoding. Terrain therefore
+remains behind a source/transport decision rather than being approximated in
+the scene.
 
 The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
@@ -568,6 +601,23 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   The POC now carries coarse family/wake semantics, and its larger silhouettes
   and bounded label collision are easier to scan, but this is not per-model
   parity. Different live context payloads also prevent a broader parity claim.
+- The bounded OpenFreeMap vector-context probe loaded all 9/9 MVT tiles with
+  zero failures at KBOS zoom 14. Center-first ordering plus a 30,000-point
+  building budget reduced the final scene to 1,246 road features, 3,384
+  building polygons, 199,701 vector vertices, and a 53.9 ms desktop geometry
+  build; three over-budget aggregated building features were skipped. The full
+  desktop scene reported 54 draw calls and 98,911 triangles. Resizing the same
+  runtime to 390×844 kept 9/9 raster and 9/9 vector tiles, zero failures, the
+  same vector geometry, correct dual attribution, and zero horizontal
+  overflow. Switching to the new vector-only Debug layer retained the same
+  runtime id, feature counts, and build-time diagnostic, proving that isolation
+  does not trigger another vector decode. A fresh ordinary POC document showed
+  the vector state disabled, 0 requested tiles, no OpenFreeMap attribution, and
+  no OpenFreeMap resources in the page asset inventory. The first unbounded
+  pass had roughly 782,000 vector vertices and took 125.2 ms, so the budget is
+  an evidence-driven mobile guard rather than a speculative constant. This is
+  still desktop Chromium evidence; worker-side decoding and real-device
+  measurement remain the next performance questions.
 
 This browser evidence clears the next architecture iteration, not the real
 device gate. A 20-minute iPhone-class run with background/foreground cycles,

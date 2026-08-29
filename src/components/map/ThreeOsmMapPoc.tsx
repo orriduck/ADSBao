@@ -62,6 +62,7 @@ import {
   lonLatToTileCoordinate,
   shortestWrappedTileDelta,
   THREE_OSM_TILE_SIZE,
+  type TileCoordinate,
 } from "@/features/airport/map/threeOsmProjection";
 import {
   captureThreeOsmCameraSnapshot,
@@ -88,6 +89,16 @@ import {
   threeOsmRouteEndpointMatches,
 } from "@/features/airport/map/threeOsmRouteWorkload";
 import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
+import {
+  createThreeOsmVectorContextScene,
+  type ThreeOsmVectorTilePayload,
+} from "@/features/airport/map/threeOsmVectorContextScene";
+import {
+  OPENFREEMAP_VECTOR_ATTRIBUTION,
+  OPENFREEMAP_VECTOR_ATTRIBUTION_URL,
+  buildOpenFreeMapVectorTileUrl,
+  openFreeMapVectorSourceClient,
+} from "@/features/airport/map/threeOsmVectorTileSource";
 import {
   THREE_OSM_AIRCRAFT_CAPACITY,
   buildThreeOsmTrafficRenderSources,
@@ -155,6 +166,7 @@ type ThreeOsmPocProps = {
 };
 
 const MAX_TILE_TEXTURES = 72;
+const MAX_VECTOR_TILE_BUFFERS = 24;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
 
@@ -175,11 +187,18 @@ type TrafficRenderBatch = {
 };
 
 type BasemapState = "loading" | "ready" | "partial" | "degraded";
-type DebugLayerMode = "all" | "basemap" | "context" | "traffic" | "flight";
+type DebugLayerMode =
+  | "all"
+  | "basemap"
+  | "vector"
+  | "context"
+  | "traffic"
+  | "flight";
 
 const DEBUG_LAYER_MODES: DebugLayerMode[] = [
   "all",
   "basemap",
+  "vector",
   "context",
   "traffic",
   "flight",
@@ -416,11 +435,15 @@ export default function ThreeOsmMapPoc({
   const controlsCreateCountRef = useRef(0);
   const controlsCameraSwapCountRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
+  const vectorContextGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
   const traceGroupRef = useRef<THREE.Group | null>(null);
   const routeGroupRef = useRef<THREE.Group | null>(null);
   const tileTextureCacheRef = useRef<BoundedTileResourceCache<THREE.Texture> | null>(
+    null,
+  );
+  const vectorTileCacheRef = useRef<BoundedTileResourceCache<ArrayBuffer> | null>(
     null,
   );
   const tileCacheHitCountRef = useRef(0);
@@ -444,6 +467,10 @@ export default function ThreeOsmMapPoc({
     () => typeof window !== "undefined" && window.matchMedia?.("(max-width: 700px)").matches,
   );
   const [basemapState, setBasemapState] = useState<BasemapState>("loading");
+  const [vectorTileTemplate, setVectorTileTemplate] = useState("");
+  const [vectorContextState, setVectorContextState] = useState<
+    "disabled" | "loading" | "ready" | "partial" | "degraded"
+  >("disabled");
   const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
   const [acceptanceResetArmedAtMs, setAcceptanceResetArmedAtMs] = useState<
     number | null
@@ -467,6 +494,8 @@ export default function ThreeOsmMapPoc({
   const routeWorkloadEnabled =
     acceptanceEnabled &&
     debugSearchParams.get("threeOsmRouteStress") === "1";
+  const vectorContextEnabled =
+    debugEnabled && debugSearchParams.get("threeOsmVector") === "1";
   const trafficStressTarget = debugEnabled
     ? parseThreeOsmTrafficStressTarget(
         debugSearchParams.get("threeOsmStress"),
@@ -531,6 +560,27 @@ export default function ThreeOsmMapPoc({
       : debugEnabled && requestedTileSource === "fail"
         ? THREE_OSM_DEBUG_FAILURE_TILE_SOURCE
         : THREE_OSM_STANDARD_TILE_SOURCE;
+
+  useEffect(() => {
+    let disposed = false;
+    if (!vectorContextEnabled) {
+      setVectorTileTemplate("");
+      setVectorContextState("disabled");
+      return undefined;
+    }
+    setVectorContextState("loading");
+    openFreeMapVectorSourceClient.loadTemplate().then(
+      (template) => {
+        if (!disposed) setVectorTileTemplate(template);
+      },
+      () => {
+        if (!disposed) setVectorContextState("degraded");
+      },
+    );
+    return () => {
+      disposed = true;
+    };
+  }, [vectorContextEnabled]);
 
   useEffect(() => {
     onSelectAircraftRef.current = onSelectAircraft;
@@ -737,6 +787,31 @@ export default function ThreeOsmMapPoc({
     () => buildVisibleTileGrid(tileCenter, tileRadius),
     [tileCenter, tileRadius],
   );
+  const vectorTileZoom = Math.min(14, Math.max(10, tileZoom));
+  const vectorTileCenter = useMemo(
+    () =>
+      lonLatToTileCoordinate(
+        sceneCenterLon,
+        sceneCenterLat,
+        vectorTileZoom,
+      ),
+    [sceneCenterLat, sceneCenterLon, vectorTileZoom],
+  );
+  const vectorTiles = useMemo(
+    () =>
+      buildVisibleTileGrid(vectorTileCenter, 1).sort((left, right) => {
+        const leftDistance =
+          Math.abs(left.x + 0.5 - vectorTileCenter.x) +
+          Math.abs(left.y + 0.5 - vectorTileCenter.y);
+        const rightDistance =
+          Math.abs(right.x + 0.5 - vectorTileCenter.x) +
+          Math.abs(right.y + 0.5 - vectorTileCenter.y);
+        return leftDistance - rightDistance;
+      }),
+    [vectorTileCenter],
+  );
+  const vectorContextActive =
+    vectorContextEnabled && tileZoom >= 10 && Boolean(vectorTileTemplate);
   const visibleAircraft = useMemo(
     () =>
       aircraft
@@ -975,6 +1050,22 @@ export default function ThreeOsmMapPoc({
       dispose: (texture) => texture.dispose(),
     });
     tileTextureCacheRef.current = tileTextureCache;
+    const vectorTileCache = new BoundedTileResourceCache<ArrayBuffer>({
+      maxEntries: MAX_VECTOR_TILE_BUFFERS,
+      retryErrorsAfterMs: TILE_RETRY_DELAY_MS,
+      load: async (url) => {
+        const response = await fetch(url, {
+          headers: { Accept: "application/vnd.mapbox-vector-tile" },
+          cache: "force-cache",
+        });
+        if (!response.ok) {
+          throw new Error(`Vector tile HTTP ${response.status}`);
+        }
+        return response.arrayBuffer();
+      },
+      dispose: () => {},
+    });
+    vectorTileCacheRef.current = vectorTileCache;
 
     const orthographicCamera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
     const perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 1, 6_000);
@@ -1483,11 +1574,13 @@ export default function ThreeOsmMapPoc({
         controlsRef.current = null;
       }
       disposeTileGroup(tileGroupRef.current);
+      disposeObject(vectorContextGroupRef.current);
       disposeObject(contextGroupRef.current);
       disposeObject(trafficGroupRef.current);
       disposeObject(traceGroupRef.current);
       disposeObject(routeGroupRef.current);
       tileGroupRef.current = null;
+      vectorContextGroupRef.current = null;
       contextGroupRef.current = null;
       trafficGroupRef.current = null;
       traceGroupRef.current = null;
@@ -1495,6 +1588,10 @@ export default function ThreeOsmMapPoc({
       tileTextureCache.disposeAll();
       if (tileTextureCacheRef.current === tileTextureCache) {
         tileTextureCacheRef.current = null;
+      }
+      vectorTileCache.disposeAll();
+      if (vectorTileCacheRef.current === vectorTileCache) {
+        vectorTileCacheRef.current = null;
       }
       trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
@@ -1676,6 +1773,151 @@ export default function ThreeOsmMapPoc({
     visualPalette,
     visibleTiles,
   ]);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    const cache = vectorTileCacheRef.current;
+    const root = rootRef.current;
+    disposeObject(vectorContextGroupRef.current);
+    vectorContextGroupRef.current = null;
+    if (!scene || !cache || !root || !vectorContextActive) {
+      root?.setAttribute(
+        "data-poc-vector-context",
+        vectorContextEnabled ? "zoom-gated" : "disabled",
+      );
+      root?.setAttribute("data-poc-vector-tiles-requested", "0");
+      root?.setAttribute("data-poc-vector-tiles-loaded", "0");
+      root?.setAttribute("data-poc-vector-tiles-failed", "0");
+      root?.setAttribute("data-poc-vector-roads", "0");
+      root?.setAttribute("data-poc-vector-buildings", "0");
+      setVectorContextState(vectorContextEnabled ? "loading" : "disabled");
+      return undefined;
+    }
+
+    let disposed = false;
+    let settled = 0;
+    let failed = 0;
+    const loaded: ThreeOsmVectorTilePayload[] = [];
+    const releases: Array<() => void> = [];
+    const tileOrder = new Map(
+      vectorTiles.map((tile, index) => [
+        `${tile.z}/${tile.x}/${tile.y}`,
+        index,
+      ]),
+    );
+    setVectorContextState("loading");
+    root.dataset.pocVectorContext = "loading";
+    root.dataset.pocVectorTilesRequested = String(vectorTiles.length);
+    root.dataset.pocVectorTilesLoaded = "0";
+    root.dataset.pocVectorTilesFailed = "0";
+
+    const finish = () => {
+      if (disposed || settled < vectorTiles.length) return;
+      const startedAt = performance.now();
+      const context = createThreeOsmVectorContextScene({
+        tiles: [...loaded].sort(
+          (left, right) =>
+            (tileOrder.get(`${left.tile.z}/${left.tile.x}/${left.tile.y}`) ?? 0) -
+            (tileOrder.get(`${right.tile.z}/${right.tile.x}/${right.tile.y}`) ?? 0),
+        ),
+        tileCenter,
+        centerLat: sceneCenterLat,
+        sceneZoom: tileZoom,
+        sourceZoom: vectorTileZoom,
+        theme,
+      });
+      context.group.visible = isDebugLayerVisible(
+        debugLayerModeRef.current,
+        "vector",
+      );
+      vectorContextGroupRef.current = context.group;
+      scene.add(context.group);
+      const nextState =
+        failed === 0 ? "ready" : loaded.length > 0 ? "partial" : "degraded";
+      setVectorContextState(nextState);
+      root.dataset.pocVectorContext = nextState;
+      root.dataset.pocVectorTilesLoaded = String(loaded.length);
+      root.dataset.pocVectorTilesFailed = String(failed);
+      root.dataset.pocVectorTileZoom = String(vectorTileZoom);
+      root.dataset.pocVectorRoads = String(context.roadFeatures);
+      root.dataset.pocVectorRoadSegments = String(context.roadSegments);
+      root.dataset.pocVectorRoadSourcePoints = String(context.roadSourcePoints);
+      root.dataset.pocVectorBuildings = String(context.buildings);
+      root.dataset.pocVectorBuildingRoofTriangles = String(
+        context.buildingRoofTriangles,
+      );
+      root.dataset.pocVectorBuildingSourcePoints = String(
+        context.buildingSourcePoints,
+      );
+      root.dataset.pocVectorSkippedFeatures = String(context.skippedFeatures);
+      root.dataset.pocVectorDecodeFailures = String(context.decodeFailures);
+      root.dataset.pocVectorVertices = String(context.vertexCount);
+      root.dataset.pocVectorBuildMs = (performance.now() - startedAt).toFixed(2);
+      const cacheStats = cache.snapshot();
+      root.dataset.pocVectorCacheSize = String(cacheStats.size);
+      root.dataset.pocVectorCacheReady = String(cacheStats.ready);
+      requestRenderRef.current();
+    };
+    const settleReady = (tile: TileCoordinate, data: ArrayBuffer) => {
+      if (disposed) return;
+      loaded.push({ tile, data });
+      settled += 1;
+      root.dataset.pocVectorTilesLoaded = String(loaded.length);
+      finish();
+    };
+    const settleError = () => {
+      if (disposed) return;
+      failed += 1;
+      settled += 1;
+      root.dataset.pocVectorTilesFailed = String(failed);
+      finish();
+    };
+
+    vectorTiles.forEach((tile) => {
+      const url = buildOpenFreeMapVectorTileUrl(vectorTileTemplate, tile);
+      if (!url) {
+        settleError();
+        return;
+      }
+      const handle = cache.acquire(url, {
+        ready: (data) => settleReady(tile, data),
+        error: settleError,
+      });
+      releases.push(handle.release);
+      if (handle.status === "ready" && handle.value) {
+        settleReady(tile, handle.value);
+      } else if (handle.status === "error") {
+        settleError();
+      }
+    });
+
+    return () => {
+      disposed = true;
+      releases.forEach((release) => release());
+      disposeObject(vectorContextGroupRef.current);
+      vectorContextGroupRef.current = null;
+    };
+  }, [
+    sceneCenterLat,
+    theme,
+    tileCenter,
+    tileZoom,
+    vectorContextActive,
+    vectorContextEnabled,
+    vectorTileTemplate,
+    vectorTileZoom,
+    vectorTiles,
+  ]);
+
+  useEffect(() => {
+    if (vectorContextGroupRef.current) {
+      vectorContextGroupRef.current.visible = isDebugLayerVisible(
+        debugLayerMode,
+        "vector",
+      );
+      requestRenderRef.current();
+    }
+  }, [debugLayerMode]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -2490,6 +2732,8 @@ export default function ThreeOsmMapPoc({
       data-poc-route-workload={routeWorkload.active ? "active" : "inactive"}
       data-poc-route-workload-revision={routeWorkload.revision}
       data-poc-route-workload-destination={routeWorkload.destinationId}
+      data-poc-vector-context-enabled={vectorContextEnabled ? "true" : "false"}
+      data-poc-vector-context-state={vectorContextState}
       data-poc-operational-overlay-profile={verifiedOperationalOverlayProfile}
       data-poc-show-airspaces={showAirspaces ? "true" : "false"}
       data-poc-show-navaids={showNavaidMarkers ? "true" : "false"}
@@ -2621,7 +2865,9 @@ export default function ThreeOsmMapPoc({
         ) : null}
         {debugEnabled ? (
           <div className="pointer-events-auto mt-2 flex max-w-56 flex-wrap gap-1 normal-case tracking-normal">
-            {DEBUG_LAYER_MODES.map((mode) => (
+            {DEBUG_LAYER_MODES.filter(
+              (mode) => mode !== "vector" || vectorContextEnabled,
+            ).map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -2848,20 +3094,32 @@ export default function ThreeOsmMapPoc({
         ) : null}
       </div>
 
-      {activeTileSource.attributionUrl ? (
-        <a
-          className="absolute bottom-1 right-2 z-10 text-[10px] text-white/75 underline decoration-white/30 underline-offset-2"
-          href={activeTileSource.attributionUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          {activeTileSource.attribution}
-        </a>
-      ) : (
-        <span className="pointer-events-none absolute bottom-1 right-2 z-10 text-[10px] text-white/55">
-          {activeTileSource.attribution}
-        </span>
-      )}
+      <div className="absolute bottom-1 right-2 z-10 flex max-w-[calc(100%-1rem)] flex-wrap justify-end gap-x-2 gap-y-0.5 text-right text-[10px]">
+        {activeTileSource.attributionUrl ? (
+          <a
+            className="text-white/75 underline decoration-white/30 underline-offset-2"
+            href={activeTileSource.attributionUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {activeTileSource.attribution}
+          </a>
+        ) : (
+          <span className="pointer-events-none text-white/55">
+            {activeTileSource.attribution}
+          </span>
+        )}
+        {vectorContextEnabled ? (
+          <a
+            className="text-white/75 underline decoration-white/30 underline-offset-2"
+            href={OPENFREEMAP_VECTOR_ATTRIBUTION_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {OPENFREEMAP_VECTOR_ATTRIBUTION}
+          </a>
+        ) : null}
+      </div>
     </div>
   );
 }
