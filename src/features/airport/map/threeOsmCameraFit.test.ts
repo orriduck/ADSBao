@@ -1,0 +1,60 @@
+import assert from "node:assert/strict";
+import {
+  resolveThreeOsmCameraFrame,
+  resolveThreeOsmFitViewport,
+} from "./threeOsmCameraFit";
+
+const regional = resolveThreeOsmFitViewport({
+  points: [
+    [42.3656, -71.0096],
+    [40.6413, -73.7781],
+  ],
+  requestedZoom: 10,
+  tileRadius: 2,
+  aspect: 16 / 9,
+});
+assert.ok(regional);
+assert.ok(regional.zoom < 10);
+assert.ok(regional.zoom >= 3);
+assert.ok(regional.xSpanTiles <= 4.35);
+assert.ok(regional.framedWidthTiles <= 4.5);
+assert.ok(regional.centerLat < 42.3656 && regional.centerLat > 40.6413);
+
+const dateline = resolveThreeOsmFitViewport({
+  points: [
+    [35, 179.5],
+    [35.2, -179.5],
+  ],
+  requestedZoom: 8,
+  tileRadius: 2,
+  aspect: 16 / 9,
+});
+assert.ok(dateline);
+assert.ok(dateline.zoom >= 7, "dateline neighbors should not force a world view");
+assert.ok(Math.abs(dateline.centerLon) > 170);
+
+const orthographic = resolveThreeOsmCameraFrame({
+  points: [
+    { x: -300, y: 0, z: -100 },
+    { x: 300, y: 200, z: 100 },
+  ],
+  mode: "2d",
+  aspect: 16 / 9,
+});
+assert.ok(orthographic);
+assert.equal(orthographic.target.y, 0);
+assert.ok(orthographic.orthographicZoom < 2);
+
+const perspective = resolveThreeOsmCameraFrame({
+  points: [
+    { x: -300, y: 0, z: -100 },
+    { x: 300, y: 400, z: 100 },
+  ],
+  mode: "3d",
+  aspect: 16 / 9,
+});
+assert.ok(perspective);
+assert.equal(perspective.target.y, 0);
+assert.ok(perspective.distance > 700);
+
+console.log("threeOsmCameraFit.test.ts ok");

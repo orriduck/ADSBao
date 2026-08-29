@@ -84,7 +84,7 @@ export function createThreeOsmTraceScene({
             color: theme === "light" ? 0x4d504d : 0xb9bcb9,
             opacity: opacity * 0.45,
             transparent: true,
-            depthTest: false,
+            depthTest: true,
           }),
         ),
       );

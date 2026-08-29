@@ -6,6 +6,7 @@ import {
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
   lonLatToTileCoordinate,
+  shortestWrappedTileDelta,
 } from "./threeOsmProjection";
 
 const center = lonLatToTileCoordinate(-71.0064, 42.3629, 10);
@@ -47,5 +48,18 @@ assert.ok(airborne);
 assert.ok(airborne.x > 0);
 assert.ok(airborne.z < 0);
 assert.ok(airborne.y > 0);
+
+const datelineCenter = lonLatToTileCoordinate(179.8, 35, 8);
+const datelineNeighbor = lonLatAltitudeToThreeOsmWorld({
+  lon: -179.8,
+  lat: 35,
+  center: datelineCenter,
+  centerLat: 35,
+});
+assert.ok(datelineNeighbor);
+assert.ok(Math.abs(datelineNeighbor.x) < 256);
+assert.ok(
+  Math.abs(shortestWrappedTileDelta(0.1, 255.9, 8) - 0.2) < 0.0001,
+);
 
 console.log("threeOsmProjection.test.ts ok");

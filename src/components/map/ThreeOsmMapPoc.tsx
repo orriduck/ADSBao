@@ -8,6 +8,8 @@ import {
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
+import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFraming";
+import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
@@ -19,6 +21,7 @@ import {
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
   lonLatToTileCoordinate,
+  shortestWrappedTileDelta,
   THREE_OSM_TILE_SIZE,
 } from "@/features/airport/map/threeOsmProjection";
 import {
@@ -44,6 +47,12 @@ type ThreeOsmPocProps = {
   reportingPoints?: Array<Record<string, any>>;
   candidateWatchingSpots?: Array<Record<string, any>>;
   routePath?: Array<[unknown, unknown]>;
+  fitRoutePath?: Array<[unknown, unknown]>;
+  fitAircraftId?: string;
+  fitFallbackAnchor?: Record<string, any> | null;
+  allowRouteOnlyFit?: boolean;
+  keepRouteInView?: boolean;
+  followsCenter?: boolean;
   showAirspaces?: boolean;
   showNavaidMarkers?: boolean;
   useNavaidCounts?: boolean;
@@ -129,6 +138,12 @@ export default function ThreeOsmMapPoc({
   reportingPoints = [],
   candidateWatchingSpots = [],
   routePath = [],
+  fitRoutePath = [],
+  fitAircraftId = "",
+  fitFallbackAnchor = null,
+  allowRouteOnlyFit = false,
+  keepRouteInView = false,
+  followsCenter = true,
   showAirspaces = true,
   showNavaidMarkers = false,
   useNavaidCounts = false,
@@ -194,12 +209,29 @@ export default function ThreeOsmMapPoc({
 
   const centerLat = Number(center?.lat);
   const centerLon = Number(center?.lon);
-  const tileZoom = clampThreeOsmZoom(zoom);
-  const tileCenter = useMemo(
-    () => lonLatToTileCoordinate(centerLon, centerLat, tileZoom),
-    [centerLat, centerLon, tileZoom],
-  );
+  const requestedTileZoom = clampThreeOsmZoom(zoom);
   const tileRadius = isCompact ? 1 : 2;
+  const activeCameraFit = useThreeOsmCameraFitState({
+    rootRef,
+    traces,
+    fitRoutePath,
+    fitAircraftId,
+    fitFallbackAnchor,
+    allowRouteOnlyFit,
+    keepRouteInView,
+    followsCenter,
+    requestedTileZoom,
+    tileRadius,
+  });
+  const sceneCenterLat = activeCameraFit?.centerLat ?? centerLat;
+  const sceneCenterLon = activeCameraFit?.centerLon ?? centerLon;
+  const tileZoom = activeCameraFit?.zoom ?? requestedTileZoom;
+  const tileCenter = useMemo(
+    () =>
+      activeCameraFit?.tileCenter ||
+      lonLatToTileCoordinate(sceneCenterLon, sceneCenterLat, tileZoom),
+    [activeCameraFit?.tileCenter, sceneCenterLat, sceneCenterLon, tileZoom],
+  );
   const visibleTiles = useMemo(
     () => buildVisibleTileGrid(tileCenter, tileRadius),
     [tileCenter, tileRadius],
@@ -495,7 +527,12 @@ export default function ThreeOsmMapPoc({
   useEffect(() => {
     const scene = sceneRef.current;
     const renderer = rendererRef.current;
-    if (!scene || !renderer || !Number.isFinite(centerLat) || !Number.isFinite(centerLon)) {
+    if (
+      !scene ||
+      !renderer ||
+      !Number.isFinite(sceneCenterLat) ||
+      !Number.isFinite(sceneCenterLon)
+    ) {
       return undefined;
     }
 
@@ -512,6 +549,7 @@ export default function ThreeOsmMapPoc({
     let loadedCount = 0;
     let settledCount = 0;
     let readySent = false;
+    rootRef.current?.setAttribute("data-poc-tiles-loaded", "0");
     const publishReady = () => {
       if (readySent || disposed) return;
       readySent = true;
@@ -531,7 +569,11 @@ export default function ThreeOsmMapPoc({
       const mesh = new THREE.Mesh(geometry, material);
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.set(
-        (tile.x + 0.5 - tileCenter.x) * THREE_OSM_TILE_SIZE,
+        shortestWrappedTileDelta(
+          tile.x + 0.5,
+          tileCenter.x,
+          tileCenter.z,
+        ) * THREE_OSM_TILE_SIZE,
         0,
         (tile.y + 0.5 - tileCenter.y) * THREE_OSM_TILE_SIZE,
       );
@@ -571,11 +613,15 @@ export default function ThreeOsmMapPoc({
       disposeObject(group);
       if (tileGroupRef.current === group) tileGroupRef.current = null;
     };
-  }, [centerLat, centerLon, theme, tileCenter, tileZoom, visibleTiles]);
+  }, [sceneCenterLat, sceneCenterLon, theme, tileCenter, tileZoom, visibleTiles]);
 
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene || !Number.isFinite(centerLat) || !Number.isFinite(centerLon)) {
+    if (
+      !scene ||
+      !Number.isFinite(sceneCenterLat) ||
+      !Number.isFinite(sceneCenterLon)
+    ) {
       return;
     }
 
@@ -599,7 +645,7 @@ export default function ThreeOsmMapPoc({
       selectedCandidateWatchingSpotId,
       userLocation,
       tileCenter,
-      centerLat,
+      centerLat: sceneCenterLat,
       theme,
     });
     const { group } = contextScene;
@@ -645,8 +691,8 @@ export default function ThreeOsmMapPoc({
     airspaceFeatures,
     airportCode,
     candidateWatchingSpots,
-    centerLat,
-    centerLon,
+    sceneCenterLat,
+    sceneCenterLon,
     navaidCounts,
     navaids,
     reportingPoints,
@@ -667,7 +713,11 @@ export default function ThreeOsmMapPoc({
 
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene || !Number.isFinite(centerLat) || !Number.isFinite(centerLon)) {
+    if (
+      !scene ||
+      !Number.isFinite(sceneCenterLat) ||
+      !Number.isFinite(sceneCenterLon)
+    ) {
       return;
     }
 
@@ -699,7 +749,7 @@ export default function ThreeOsmMapPoc({
         lat: item?.lat,
         altitudeFt: item?.onGround ? 0 : item?.altitude,
         center: tileCenter,
-        centerLat,
+        centerLat: sceneCenterLat,
       });
       const id = getAircraftIdentity(item);
       ids.push(id);
@@ -767,8 +817,8 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute("data-poc-aircraft", String(visibleAircraft.length));
     requestRenderRef.current();
   }, [
-    centerLat,
-    centerLon,
+    sceneCenterLat,
+    sceneCenterLon,
     focalAircraftId,
     selectedAircraftId,
     showCallsigns,
@@ -779,13 +829,15 @@ export default function ThreeOsmMapPoc({
 
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene || !Number.isFinite(centerLat) || !Array.isArray(traces)) return;
+    if (!scene || !Number.isFinite(sceneCenterLat) || !Array.isArray(traces)) {
+      return;
+    }
 
     disposeObject(traceGroupRef.current);
     const traceScene = createThreeOsmTraceScene({
       traces,
       tileCenter,
-      centerLat,
+      centerLat: sceneCenterLat,
       theme,
     });
     traceGroupRef.current = traceScene.group;
@@ -801,17 +853,17 @@ export default function ThreeOsmMapPoc({
       disposeObject(traceScene.group);
       if (traceGroupRef.current === traceScene.group) traceGroupRef.current = null;
     };
-  }, [centerLat, theme, tileCenter, traces]);
+  }, [sceneCenterLat, theme, tileCenter, traces]);
 
   useEffect(() => {
     const scene = sceneRef.current;
-    if (!scene || !Number.isFinite(centerLat)) return;
+    if (!scene || !Number.isFinite(sceneCenterLat)) return;
 
     disposeObject(routeGroupRef.current);
     const routeScene = createThreeOsmRouteScene({
       path: routePath,
       tileCenter,
-      centerLat,
+      centerLat: sceneCenterLat,
       theme,
     });
     routeGroupRef.current = routeScene.group;
@@ -826,7 +878,7 @@ export default function ThreeOsmMapPoc({
       disposeObject(routeScene.group);
       if (routeGroupRef.current === routeScene.group) routeGroupRef.current = null;
     };
-  }, [centerLat, routePath, theme, tileCenter]);
+  }, [routePath, sceneCenterLat, theme, tileCenter]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -879,6 +931,18 @@ export default function ThreeOsmMapPoc({
     };
   }, [viewMode]);
 
+  useThreeOsmCameraFraming({
+    rootRef,
+    activeCameraRef,
+    controlsRef,
+    requestRenderRef,
+    activeCameraFit,
+    tileCenter,
+    sceneCenterLat,
+    viewMode,
+    keepRouteInView,
+  });
+
   return (
     <div
       ref={rootRef}
@@ -887,6 +951,12 @@ export default function ThreeOsmMapPoc({
       data-poc-mode={viewMode}
       data-poc-runtime-id={runtimeIdRef.current}
       data-poc-keyboard-targets={accessibleAircraft.length}
+      data-poc-fit-active={activeCameraFit ? "true" : "false"}
+      data-poc-fit-reason={activeCameraFit?.reason || "follow"}
+      data-poc-fit-points={activeCameraFit?.pointCount || 0}
+      data-poc-fit-zoom={activeCameraFit?.zoom || requestedTileZoom}
+      data-poc-fit-width-tiles={activeCameraFit?.framedWidthTiles.toFixed(3) || "0"}
+      data-poc-fit-height-tiles={activeCameraFit?.framedHeightTiles.toFixed(3) || "0"}
       role="region"
       aria-label="Three.js and OpenStreetMap proof of concept"
     >

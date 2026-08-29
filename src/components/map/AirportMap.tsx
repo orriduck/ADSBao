@@ -135,6 +135,11 @@ export default function AirportMap({
   selectedCandidateWatchingSpotId = "",
   candidateWatchingSpots = [],
   threeOsmRoutePath = [],
+  threeOsmFitRoutePath = [],
+  threeOsmFitAircraftId = "",
+  threeOsmFitFallbackAnchor = null,
+  threeOsmAllowRouteOnlyFit = false,
+  threeOsmKeepRouteInView = false,
   focalAircraftId = "",
   focalVisualPosition = null,
   focalVisualPositionRef = null,
@@ -1059,6 +1064,12 @@ export default function AirportMap({
               reportingPoints={reportingPoints}
               candidateWatchingSpots={candidateWatchingSpots}
               routePath={threeOsmRoutePath}
+              fitRoutePath={threeOsmFitRoutePath}
+              fitAircraftId={threeOsmFitAircraftId}
+              fitFallbackAnchor={threeOsmFitFallbackAnchor}
+              allowRouteOnlyFit={threeOsmAllowRouteOnlyFit}
+              keepRouteInView={threeOsmKeepRouteInView}
+              followsCenter={followsCenter}
               showAirspaces={showAirspaces}
               showNavaidMarkers={showNavaidMarkers}
               useNavaidCounts={useNavaidCountTiles}

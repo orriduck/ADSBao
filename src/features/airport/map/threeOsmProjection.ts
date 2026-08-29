@@ -85,13 +85,25 @@ export function buildOsmRasterTileUrl(tile: TileCoordinate) {
   return `https://tile.openstreetmap.org/${tile.z}/${tile.x}/${tile.y}.png`;
 }
 
-function tileXToLongitude(x: number, zoom: number) {
+export function tileXToLongitude(x: number, zoom: number) {
   return (x / 2 ** zoom) * 360 - 180;
 }
 
-function tileYToLatitude(y: number, zoom: number) {
+export function tileYToLatitude(y: number, zoom: number) {
   const n = Math.PI - (2 * Math.PI * y) / 2 ** zoom;
   return (180 / Math.PI) * Math.atan(Math.sinh(n));
+}
+
+export function shortestWrappedTileDelta(
+  value: number,
+  center: number,
+  zoom: number,
+) {
+  const scale = 2 ** clampThreeOsmZoom(zoom);
+  let delta = value - center;
+  if (delta > scale / 2) delta -= scale;
+  if (delta < -scale / 2) delta += scale;
+  return delta;
 }
 
 export function buildThreeOsmTileGridBounds(
@@ -148,7 +160,7 @@ export function lonLatAltitudeToThreeOsmWorld({
   const altitudeMeters = Math.max(0, Number(altitudeFt) || 0) * FEET_TO_METERS;
 
   return {
-    x: (point.x - center.x) * tileSize,
+    x: shortestWrappedTileDelta(point.x, center.x, center.z) * tileSize,
     y:
       (altitudeMeters / metersPerTile) *
       tileSize *
