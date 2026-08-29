@@ -73,6 +73,12 @@ export class BoundedTileResourceCache<T> {
     };
   }
 
+  forEachReady(callback: (value: T, key: string) => void) {
+    this.entries.forEach((entry, key) => {
+      if (entry.status === "ready" && entry.value) callback(entry.value, key);
+    });
+  }
+
   disposeAll() {
     if (this.disposed) return;
     this.disposed = true;

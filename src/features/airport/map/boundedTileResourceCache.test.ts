@@ -32,6 +32,9 @@ third.release();
 
 assert.equal(cache.snapshot().size, 2);
 assert.deepEqual(disposed, ["texture:a"]);
+const retained: string[] = [];
+cache.forEachReady((value) => retained.push(value));
+assert.deepEqual(retained.sort(), ["texture:b", "texture:c"]);
 cache.disposeAll();
 assert.equal(cache.snapshot().size, 0);
 assert.deepEqual(disposed.sort(), ["texture:a", "texture:b", "texture:c"]);

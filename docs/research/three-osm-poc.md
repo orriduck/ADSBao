@@ -47,6 +47,9 @@ The query flag replaces both visible map modes with one Three.js scene:
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
 - Rendering is event-driven: resize, camera interaction, live traffic changes,
   or tile completion request a frame. There is no permanent animation loop.
+- WebGL context loss drops map readiness without discarding the bounded CPU-side
+  tile cache; restoration re-uploads retained textures/materials and requests a
+  fresh frame.
 - The map exposes draw-call, triangle, texture, tile, aircraft, pixel-ratio,
   and camera-profile diagnostics as `data-poc-*` attributes.
 
@@ -87,8 +90,9 @@ tile grid and derives its minimum orthographic zoom from that coverage. Flight
 tracking inherits the existing locked-camera contract, so Follow/trace controls
 rather than direct gestures own its framing. The raster URL and attribution now
 sit behind a replaceable source contract, and the bounded cache explicitly
-disposes evicted or unmounted textures. Provider outage fallback and long-session
-recovery remain the next incomplete operational boundary.
+disposes evicted or unmounted textures. The runtime now handles WebGL context
+loss/restoration and exposes failed-tile counts, but provider fallback and a
+real-device long-session acceptance run remain incomplete.
 
 ## Proposed architecture if the POC graduates
 

@@ -580,12 +580,49 @@ export default function ThreeOsmMapPoc({
         hit?.instanceId == null ? "" : trafficIdsRef.current[hit.instanceId] || "";
       if (id) onSelectAircraftRef.current(id);
     };
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      root.dataset.pocContext = "lost";
+      root.dataset.pocContextLosses = String(
+        Number(root.dataset.pocContextLosses || 0) + 1,
+      );
+      onReadyRef.current?.({ ready: false, tilesLoaded: 0 });
+    };
+    const handleContextRestored = () => {
+      tileTextureCache.forEachReady((texture) => {
+        texture.needsUpdate = true;
+      });
+      scene.traverse((object: any) => {
+        const materials = Array.isArray(object.material)
+          ? object.material
+          : object.material
+            ? [object.material]
+            : [];
+        materials.forEach((material: THREE.Material) => {
+          material.needsUpdate = true;
+        });
+      });
+      root.dataset.pocContext = "restored";
+      root.dataset.pocContextRestores = String(
+        Number(root.dataset.pocContextRestores || 0) + 1,
+      );
+      onReadyRef.current?.({
+        ready: true,
+        tilesLoaded: Number(root.dataset.pocTilesLoaded || 0),
+      });
+      requestRenderRef.current();
+    };
+    root.dataset.pocContext = "ready";
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored);
 
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
       resizeObserver.disconnect();
       if (frameId) window.cancelAnimationFrame(frameId);
       controlsRef.current?.dispose();
@@ -639,9 +676,11 @@ export default function ThreeOsmMapPoc({
     if (!textureCache) return undefined;
     let disposed = false;
     let loadedCount = 0;
+    let failedCount = 0;
     let settledCount = 0;
     let readySent = false;
     rootRef.current?.setAttribute("data-poc-tiles-loaded", "0");
+    rootRef.current?.setAttribute("data-poc-tiles-failed", "0");
     const publishReady = () => {
       if (readySent || disposed) return;
       readySent = true;
@@ -699,6 +738,11 @@ export default function ThreeOsmMapPoc({
       };
       const settleError = () => {
         settledCount += 1;
+        failedCount += 1;
+        rootRef.current?.setAttribute(
+          "data-poc-tiles-failed",
+          String(failedCount),
+        );
         if (settledCount >= visibleTiles.length) publishReady();
         publishCacheStats();
         requestRenderRef.current();
