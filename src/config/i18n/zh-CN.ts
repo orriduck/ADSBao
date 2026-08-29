@@ -698,7 +698,7 @@ const zhCN = {
       acceptanceGateTouch: "触控操作",
       acceptanceGateModeSwitches: "2D/3D 切换",
       acceptanceGateBackgroundRecovery: "后台恢复",
-      acceptanceGateRuntimeContinuity: "运行连续性",
+      acceptanceGateRuntimeContinuity: "运行与航路连续性",
       acceptanceGateBasemap: "底图稳定性",
       acceptanceGateWebglRecovery: "WebGL 恢复",
       acceptanceGateResourceBounds: "GPU 资源边界",

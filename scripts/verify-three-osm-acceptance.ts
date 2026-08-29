@@ -62,6 +62,9 @@ function main() {
     console.log(
       `- traffic capacity: rendered=${verification.session.trafficRenderedMax}; real=${verification.session.trafficRealMax}; synthetic=${verification.session.trafficSyntheticMax}; target=${verification.session.trafficStressTargetMax}; simultaneous samples=${verification.session.trafficCapacitySamples}; full-overlay capacity=${verification.session.fullOperationalTrafficCapacitySamples} (render-stability evidence)`,
     );
+    console.log(
+      `- route workload transitions: observed=${verification.session.routeWorkloadTransitionsMax}; applied=${verification.session.routeWorkloadAppliedTransitionsMax}; ready=${verification.session.routeWorkloadReadyTransitionsMax}; baseline=${verification.session.routeWorkloadInitialRevision ?? "unset"} (runtime-continuity evidence)`,
+    );
   }
   if (verification.evaluation) {
     console.log("");

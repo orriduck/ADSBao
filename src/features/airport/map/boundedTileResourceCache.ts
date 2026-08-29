@@ -66,6 +66,7 @@ export class BoundedTileResourceCache<T> {
     entry.lastUsed = ++this.clock;
     const token = Symbol(key);
     entry.consumers.set(token, listener);
+    this.prune();
     let released = false;
     return {
       cacheHit,
@@ -116,7 +117,7 @@ export class BoundedTileResourceCache<T> {
     this.entries.set(key, entry);
     this.options.load(key).then(
       (value) => {
-        if (this.disposed) {
+        if (this.disposed || this.entries.get(key) !== entry) {
           this.options.dispose(value);
           return;
         }
@@ -127,7 +128,7 @@ export class BoundedTileResourceCache<T> {
         this.prune();
       },
       () => {
-        if (this.disposed) return;
+        if (this.disposed || this.entries.get(key) !== entry) return;
         entry.status = "error";
         entry.failedAt = this.now();
         entry.consumers.forEach((listener) => listener.error?.());
@@ -141,10 +142,7 @@ export class BoundedTileResourceCache<T> {
     const maxEntries = Math.max(1, Math.round(this.options.maxEntries));
     while (this.entries.size > maxEntries) {
       const candidate = [...this.entries.entries()]
-        .filter(
-          ([, entry]) =>
-            entry.status !== "pending" && entry.consumers.size === 0,
-        )
+        .filter(([, entry]) => entry.consumers.size === 0)
         .sort(([, left], [, right]) => left.lastUsed - right.lastUsed)[0];
       if (!candidate) return;
       const [key, entry] = candidate;

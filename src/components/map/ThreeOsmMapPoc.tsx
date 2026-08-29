@@ -81,6 +81,12 @@ import {
   type ThreeOsmContextKind,
 } from "@/features/airport/map/threeOsmContextInteraction";
 import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
+import {
+  parseThreeOsmRoutePathSnapshot,
+  resolveThreeOsmRouteWorkload,
+  serializeThreeOsmRoutePath,
+  threeOsmRouteEndpointMatches,
+} from "@/features/airport/map/threeOsmRouteWorkload";
 import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
 import {
   THREE_OSM_AIRCRAFT_CAPACITY,
@@ -458,6 +464,9 @@ export default function ThreeOsmMapPoc({
   const acceptanceEnabled =
     debugEnabled &&
     debugSearchParams.get("threeOsmAcceptance") === "1";
+  const routeWorkloadEnabled =
+    acceptanceEnabled &&
+    debugSearchParams.get("threeOsmRouteStress") === "1";
   const trafficStressTarget = debugEnabled
     ? parseThreeOsmTrafficStressTarget(
         debugSearchParams.get("threeOsmStress"),
@@ -624,18 +633,88 @@ export default function ThreeOsmMapPoc({
     Number.isFinite(debugZoom) ? debugZoom : zoom,
   );
   const tileRadius = isCompact ? 1 : 2;
+  const routeWorkloadAirportSnapshot = routeWorkloadEnabled
+    ? JSON.stringify(
+        nearbyAirports.map((item) => ({
+          icao: item?.icao,
+          iata: item?.iata,
+          ident: item?.ident,
+          id: item?.id,
+          lat: item?.lat,
+          lon: item?.lon,
+        })),
+      )
+    : "[]";
+  const routeWorkload = useMemo(
+    () =>
+      resolveThreeOsmRouteWorkload({
+        enabled: routeWorkloadEnabled,
+        revision: soakModeSwitches,
+        center: { lat: centerLat, lon: centerLon },
+        nearbyAirports: JSON.parse(routeWorkloadAirportSnapshot),
+      }),
+    [
+      centerLat,
+      centerLon,
+      routeWorkloadAirportSnapshot,
+      routeWorkloadEnabled,
+      soakModeSwitches,
+    ],
+  );
+  const routePathSnapshot = serializeThreeOsmRoutePath(routePath);
+  const stableRoutePath = useMemo(
+    () => parseThreeOsmRoutePathSnapshot(routePathSnapshot),
+    [routePathSnapshot],
+  );
+  const fitRoutePathSnapshot = serializeThreeOsmRoutePath(fitRoutePath);
+  const stableFitRoutePath = useMemo(
+    () => parseThreeOsmRoutePathSnapshot(fitRoutePathSnapshot),
+    [fitRoutePathSnapshot],
+  );
+  const effectiveFitRoutePath = routeWorkload.active
+    ? routeWorkload.path
+    : stableFitRoutePath;
   const activeCameraFit = useThreeOsmCameraFitState({
     rootRef,
     traces,
-    fitRoutePath,
+    fitRoutePath: effectiveFitRoutePath,
     fitAircraftId,
     fitFallbackAnchor,
-    allowRouteOnlyFit,
-    keepRouteInView,
+    allowRouteOnlyFit: routeWorkload.active || allowRouteOnlyFit,
+    keepRouteInView: routeWorkload.active || keepRouteInView,
     followsCenter,
     requestedTileZoom,
     tileRadius,
   });
+  const routeWorkloadFitMatches =
+    routeWorkload.active &&
+    activeCameraFit?.reason === "full-route-guard" &&
+    threeOsmRouteEndpointMatches(
+      routeWorkload.path,
+      activeCameraFit.guardPoints,
+    );
+  const [appliedRouteWorkload, setAppliedRouteWorkload] =
+    useState(routeWorkload);
+  useEffect(() => {
+    if (!routeWorkloadFitMatches) return;
+    setAppliedRouteWorkload((current) =>
+      current.active === routeWorkload.active &&
+      current.revision === routeWorkload.revision &&
+      current.destinationId === routeWorkload.destinationId
+        ? current
+        : routeWorkload,
+    );
+  }, [routeWorkload, routeWorkloadFitMatches]);
+  const routeSceneWorkload = routeWorkloadFitMatches
+    ? routeWorkload
+    : appliedRouteWorkload;
+  const effectiveRoutePath = routeWorkload.active
+    ? routeSceneWorkload.path
+    : stableRoutePath;
+  const routeWorkloadFitRevisionRef = useRef(0);
+  routeWorkloadFitRevisionRef.current = routeWorkloadFitMatches
+    ? routeWorkload.revision
+    : 0;
   const sceneCenterLat = activeCameraFit?.centerLat ?? centerLat;
   const sceneCenterLon = activeCameraFit?.centerLon ?? centerLon;
   const tileZoom = activeCameraFit?.zoom ?? requestedTileZoom;
@@ -1457,6 +1536,7 @@ export default function ThreeOsmMapPoc({
     let settledCount = 0;
     let readySent = false;
     let retryTimeout = 0;
+    const routeWorkloadFitRevision = routeWorkloadFitRevisionRef.current;
     setBasemapState("loading");
     rootRef.current?.setAttribute("data-poc-tiles-loaded", "0");
     rootRef.current?.setAttribute("data-poc-tiles-failed", "0");
@@ -1475,6 +1555,17 @@ export default function ThreeOsmMapPoc({
             ? "partial"
             : "degraded";
       setBasemapState(nextState);
+      if (nextState === "ready" && routeWorkloadFitRevision >= 1) {
+        const root = rootRef.current;
+        if (root) {
+          root.dataset.pocRouteWorkloadReadyRevision = String(
+            Math.max(
+              Number(root.dataset.pocRouteWorkloadReadyRevision || 0),
+              routeWorkloadFitRevision,
+            ),
+          );
+        }
+      }
       if (failedCount > 0) {
         retryTimeout = window.setTimeout(
           () => setTileRetryEpoch((epoch) => epoch + 1),
@@ -2130,7 +2221,7 @@ export default function ThreeOsmMapPoc({
 
     disposeObject(routeGroupRef.current);
     const routeScene = createThreeOsmRouteScene({
-      path: routePath,
+      path: effectiveRoutePath,
       tileCenter,
       centerLat: sceneCenterLat,
       theme,
@@ -2144,6 +2235,16 @@ export default function ThreeOsmMapPoc({
       "data-poc-route-points",
       String(routeScene.pointCount),
     );
+    if (rootRef.current) {
+      rootRef.current.dataset.pocRouteRebuilds = String(
+        Number(rootRef.current.dataset.pocRouteRebuilds || 0) + 1,
+      );
+      rootRef.current.dataset.pocRouteWorkloadAppliedRevision = String(
+        routeWorkload.active && routeScene.pointCount >= 2
+          ? routeSceneWorkload.revision
+          : 0,
+      );
+    }
     requestRenderRef.current();
 
     return () => {
@@ -2153,7 +2254,9 @@ export default function ThreeOsmMapPoc({
   }, [
     contrastMode,
     debugLayerMode,
-    routePath,
+    effectiveRoutePath,
+    routeWorkload.active,
+    routeSceneWorkload.revision,
     sceneCenterLat,
     systemColors,
     theme,
@@ -2377,6 +2480,16 @@ export default function ThreeOsmMapPoc({
       data-poc-debug-layer={debugLayerMode}
       data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
       data-poc-soak-mode-switches={soakModeSwitches}
+      data-poc-route-workload-enabled={routeWorkloadEnabled ? "true" : "false"}
+      data-poc-route-workload-input-airports={visibleAirports.length}
+      data-poc-route-workload-input-center={
+        Number.isFinite(centerLat) && Number.isFinite(centerLon)
+          ? `${centerLat},${centerLon}`
+          : "invalid"
+      }
+      data-poc-route-workload={routeWorkload.active ? "active" : "inactive"}
+      data-poc-route-workload-revision={routeWorkload.revision}
+      data-poc-route-workload-destination={routeWorkload.destinationId}
       data-poc-operational-overlay-profile={verifiedOperationalOverlayProfile}
       data-poc-show-airspaces={showAirspaces ? "true" : "false"}
       data-poc-show-navaids={showNavaidMarkers ? "true" : "false"}

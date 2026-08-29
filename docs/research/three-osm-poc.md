@@ -78,6 +78,16 @@ a trustworthy device-temperature API. The report can be shared or downloaded as
 JSON; it contains provider identity and state but never the tile URL or browser
 key.
 
+The device acceptance URL also adds `&threeOsmRouteStress=1`. On every camera
+soak switch, the same Three runtime rebuilds a Debug-only route from the focal
+airport to a different real nearby-airport coordinate, fits that route, and
+settles the resulting tile grid. The existing runtime-continuity gate requires
+at least six applied-and-ready route transitions after the current acceptance
+session's first sampled revision; a transition counts only when the route
+geometry and fitted basemap are ready together. Resetting a report therefore
+cannot inherit already-completed route changes. The workload never runs on the
+ordinary POC or production map and is not presented as a real flight.
+
 The acceptance verdict remains `incomplete` until all eleven gates pass. A
 desktop viewport or emulated user agent cannot be reported as the physical
 iPhone result: the exported user agent/touch evidence is only a candidate
@@ -185,7 +195,8 @@ continue in this order rather than polishing the 3D treatment first:
 3. **Selection and trace:** unified picking, selected-state semantics, selected
    trace and route geometry, keyboard access, and an accessible DOM summary.
 4. **Map interaction parity:** bounded pan/zoom, recenter/follow behavior,
-   fit-to-trace, saved camera state, touch tuning, and context loss recovery.
+   fit-to-trace, saved camera state, repeated route rebuilds, touch tuning, and
+   context loss recovery.
 5. **Tile architecture:** provider adapter, bounded LRU cache, failure fallback,
    attribution enforcement, and production-safe terms/capacity.
 6. **Measured optimization:** real-device 20-minute sessions, frame/long-task
@@ -196,9 +207,9 @@ remaining priority is: (1) a real iPhone-class 20-minute touch/background/
 thermal run, (2) a licensed raster provider trial through the existing adapter,
 then (3) additional vector-cartography or aesthetic depth. Real navaid and
 photo-location interaction checks are now complete. The Debug-only 250-target
-capacity harness now makes the first run reproducible, but desktop evidence
-does not clear its real-device gate. More visual polish should not move ahead
-of the first two graduation risks.
+capacity harness and route workload now make the first run reproducible, but
+desktop evidence does not clear its real-device gate. More visual polish should
+not move ahead of the first two graduation risks.
 
 While the first two gates require external hardware or provider authorization,
 the next local-only cartography sequence is: runway approach direction,
@@ -296,6 +307,10 @@ tile source adapter + bounded LRU cache
 
 The scene model, not React components or a map library, becomes the ownership
 boundary. Camera changes do not rebuild aircraft, traces, or tile ownership.
+Route arrays are normalized by coordinate content before they reach the scene,
+so live parent rerenders do not dispose and recreate an unchanged empty or
+flight route. In the acceptance workload, a new route and its fitted projection
+are applied atomically after the new fit is available.
 
 ## Tile-provider direction
 

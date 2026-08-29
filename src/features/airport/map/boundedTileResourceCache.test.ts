@@ -73,4 +73,34 @@ assert.equal(retryCache.snapshot().ready, 1);
 retried.release();
 retryCache.disposeAll();
 
+const pendingResolvers = new Map<string, (value: string) => void>();
+const pendingDisposed: string[] = [];
+const pendingCache = new BoundedTileResourceCache<string>({
+  maxEntries: 2,
+  load: (key) =>
+    new Promise((resolve) => {
+      pendingResolvers.set(key, resolve);
+    }),
+  dispose: (value) => pendingDisposed.push(value),
+});
+const pendingA = pendingCache.acquire("pending-a");
+const pendingB = pendingCache.acquire("pending-b");
+pendingA.release();
+pendingB.release();
+const pendingC = pendingCache.acquire("pending-c");
+assert.equal(pendingCache.snapshot().size, 2);
+pendingResolvers.get("pending-a")?.("texture:pending-a");
+pendingResolvers.get("pending-b")?.("texture:pending-b");
+pendingResolvers.get("pending-c")?.("texture:pending-c");
+await Promise.resolve();
+assert.deepEqual(pendingDisposed, ["texture:pending-a"]);
+const pendingRetained: string[] = [];
+pendingCache.forEachReady((value) => pendingRetained.push(value));
+assert.deepEqual(pendingRetained.sort(), [
+  "texture:pending-b",
+  "texture:pending-c",
+]);
+pendingC.release();
+pendingCache.disposeAll();
+
 console.log("boundedTileResourceCache.test.ts ok");

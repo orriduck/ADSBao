@@ -18,6 +18,7 @@ import {
   setThreeOsmAcceptanceThermalAssessment,
 } from "./threeOsmAcceptanceModel";
 import { verifyThreeOsmAcceptanceReport } from "./threeOsmAcceptanceReportModel";
+import { THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS } from "./threeOsmRouteWorkload";
 
 const start = Date.UTC(2026, 7, 29, 16, 0, 0);
 const finishedAt = start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS;
@@ -47,9 +48,20 @@ function createPassingReport(tileSource = "licensed-raster") {
   recordThreeOsmAcceptanceForeground(session, 180, start + 61_000);
   setThreeOsmAcceptanceThermalAssessment(session, "acceptable", finishedAt);
   sampleThreeOsmAcceptanceSession(session, {
+    nowMs: start + 2_500,
+    routeWorkloadRevision: 0,
+    routeWorkloadAppliedRevision: 0,
+    routeWorkloadReadyRevision: 0,
+    routePoints: 0,
+  });
+  sampleThreeOsmAcceptanceSession(session, {
     nowMs: finishedAt,
     runtimeId: "runtime-1",
     modeSwitches: 171,
+    routeWorkloadRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routeWorkloadAppliedRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routeWorkloadReadyRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routePoints: 2,
     renderCount: 900,
     renderSceneMaxMs: 180,
     longTaskCount: 3,
@@ -223,6 +235,10 @@ try {
   assert.match(
     configuredCli.stdout,
     /traffic capacity: rendered=250; real=183; synthetic=67; target=250; simultaneous samples=1; full-overlay capacity=1 \(render-stability evidence\)/,
+  );
+  assert.match(
+    configuredCli.stdout,
+    /route workload transitions: observed=6; applied=6; ready=6; baseline=0 \(runtime-continuity evidence\)/,
   );
   assert.doesNotMatch(configuredCli.stdout, /MUST_NOT_BE_PRINTED/);
 

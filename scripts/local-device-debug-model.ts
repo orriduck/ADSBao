@@ -113,6 +113,7 @@ export function buildThreeOsmDeviceAcceptanceUrl(input: {
   url.searchParams.set("threeOsmDebug", "1");
   url.searchParams.set("threeOsmSoak", "1");
   url.searchParams.set("threeOsmAcceptance", "1");
+  url.searchParams.set("threeOsmRouteStress", "1");
   url.searchParams.set("threeOsmStress", "250");
   if (input.configuredTiles) url.searchParams.set("threeOsmTiles", "configured");
   url.searchParams.set("locale", "en");

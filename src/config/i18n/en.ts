@@ -707,7 +707,7 @@ const en = {
       acceptanceGateTouch: "Touch interactions",
       acceptanceGateModeSwitches: "2D/3D switches",
       acceptanceGateBackgroundRecovery: "Background recovery",
-      acceptanceGateRuntimeContinuity: "Runtime continuity",
+      acceptanceGateRuntimeContinuity: "Runtime + route continuity",
       acceptanceGateBasemap: "Basemap stability",
       acceptanceGateWebglRecovery: "WebGL recovery",
       acceptanceGateResourceBounds: "GPU resource bounds",

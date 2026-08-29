@@ -143,6 +143,16 @@ export function useThreeOsmAcceptanceRecorder(input: {
         ? root.dataset.pocRuntimeId || runtimeId
         : undefined,
       modeSwitches: numericDatasetValue(root.dataset.pocSoakModeSwitches),
+      routeWorkloadRevision: numericDatasetValue(
+        root.dataset.pocRouteWorkloadRevision,
+      ),
+      routeWorkloadAppliedRevision: numericDatasetValue(
+        root.dataset.pocRouteWorkloadAppliedRevision,
+      ),
+      routeWorkloadReadyRevision: numericDatasetValue(
+        root.dataset.pocRouteWorkloadReadyRevision,
+      ),
+      routePoints: numericDatasetValue(root.dataset.pocRoutePoints),
       renderCount: numericDatasetValue(root.dataset.pocRenderCount),
       renderSceneMaxMs: numericDatasetValue(root.dataset.pocRenderSceneMaxMs),
       slowSceneCount: numericDatasetValue(root.dataset.pocRenderSlowSceneCount),
@@ -189,6 +199,18 @@ export function useThreeOsmAcceptanceRecorder(input: {
     );
     root.dataset.pocAcceptanceDocumentBoots = String(session.documentBootIds.length);
     root.dataset.pocAcceptanceRuntimes = String(session.runtimeIds.length);
+    root.dataset.pocAcceptanceRouteWorkloadInitialRevision = String(
+      session.routeWorkloadInitialRevision ?? "",
+    );
+    root.dataset.pocAcceptanceRouteWorkloadTransitionsMax = String(
+      session.routeWorkloadTransitionsMax,
+    );
+    root.dataset.pocAcceptanceRouteWorkloadAppliedTransitionsMax = String(
+      session.routeWorkloadAppliedTransitionsMax,
+    );
+    root.dataset.pocAcceptanceRouteWorkloadReadyTransitionsMax = String(
+      session.routeWorkloadReadyTransitionsMax,
+    );
     root.dataset.pocAcceptanceThermal = session.thermalAssessment;
     root.dataset.pocAcceptancePhysicalDevice = session.physicalDeviceAssessment;
     root.dataset.pocAcceptanceWakeLock = session.wakeLock.latestStatus;

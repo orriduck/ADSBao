@@ -13,6 +13,7 @@ import {
   setThreeOsmAcceptancePhysicalDeviceAssessment,
   setThreeOsmAcceptanceThermalAssessment,
 } from "./threeOsmAcceptanceModel";
+import { THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS } from "./threeOsmRouteWorkload";
 
 const start = Date.UTC(2026, 7, 29, 12, 0, 0);
 const device = {
@@ -46,9 +47,20 @@ function createPassingCandidate() {
     start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
   );
   sampleThreeOsmAcceptanceSession(session, {
+    nowMs: start + 1_002,
+    routeWorkloadRevision: 0,
+    routeWorkloadAppliedRevision: 0,
+    routeWorkloadReadyRevision: 0,
+    routePoints: 0,
+  });
+  sampleThreeOsmAcceptanceSession(session, {
     nowMs: start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
     runtimeId: "runtime-1",
     modeSwitches: 171,
+    routeWorkloadRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routeWorkloadAppliedRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routeWorkloadReadyRevision: THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+    routePoints: 2,
     renderCount: 900,
     renderSceneMaxMs: 180,
     slowSceneCount: 2,
@@ -111,6 +123,10 @@ assert.equal(passing.fullOperationalOverlaySamples, 1);
 assert.equal(passing.fullOperationalTrafficCapacitySamples, 1);
 assert.equal(passing.latest.operationalOverlayProfile, "full-operational");
 assert.equal(THREE_OSM_ACCEPTANCE_MIN_TRAFFIC_TARGETS, 250);
+assert.equal(
+  passing.routeWorkloadReadyTransitionsMax,
+  THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
+);
 
 const recoveryNotExercised = createPassingCandidate();
 recoveryNotExercised.contextLossesMax = 0;
@@ -351,6 +367,89 @@ assert.equal(
   restartedEvaluation.gates.find((gate) => gate.id === "runtime-continuity")
     ?.status,
   "fail",
+);
+
+const missingRouteWorkload = createPassingCandidate();
+missingRouteWorkload.routeWorkloadTransitionsMax = 0;
+missingRouteWorkload.routeWorkloadAppliedTransitionsMax = 0;
+missingRouteWorkload.routeWorkloadReadyTransitionsMax = 0;
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    missingRouteWorkload,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS - 1,
+  ).gates.find((gate) => gate.id === "runtime-continuity")?.status,
+  "pending",
+);
+const missingRouteWorkloadFinished = evaluateThreeOsmAcceptanceSession(
+  missingRouteWorkload,
+  start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+);
+assert.equal(missingRouteWorkloadFinished.status, "failed");
+assert.equal(
+  missingRouteWorkloadFinished.gates.find(
+    (gate) => gate.id === "runtime-continuity",
+  )?.status,
+  "fail",
+);
+assert.match(
+  missingRouteWorkloadFinished.gates.find(
+    (gate) => gate.id === "runtime-continuity",
+  )?.evidence || "",
+  /route-ready transitions=0\/6/,
+);
+
+const routeWorkloadSampleAlignment = createThreeOsmAcceptanceSession({
+  sessionId: "session-route-alignment",
+  route: "/airport/KBOS",
+  nowMs: start,
+  documentBootId: "document-route-alignment",
+  device,
+});
+sampleThreeOsmAcceptanceSession(routeWorkloadSampleAlignment, {
+  nowMs: start + 1_000,
+  routeWorkloadRevision: 100,
+  routeWorkloadAppliedRevision: 100,
+  routeWorkloadReadyRevision: 100,
+  routePoints: 2,
+});
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadInitialRevision, 100);
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadReadyTransitionsMax, 0);
+assert.equal(
+  evaluateThreeOsmAcceptanceSession(
+    routeWorkloadSampleAlignment,
+    start + THREE_OSM_ACCEPTANCE_MIN_DURATION_MS,
+  ).gates.find((gate) => gate.id === "runtime-continuity")?.status,
+  "fail",
+);
+sampleThreeOsmAcceptanceSession(routeWorkloadSampleAlignment, {
+  nowMs: start + 2_000,
+  routeWorkloadRevision: 106,
+  routeWorkloadAppliedRevision: 105,
+  routeWorkloadReadyRevision: 106,
+  routePoints: 2,
+});
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadTransitionsMax, 6);
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadAppliedTransitionsMax, 0);
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadReadyTransitionsMax, 0);
+sampleThreeOsmAcceptanceSession(routeWorkloadSampleAlignment, {
+  nowMs: start + 3_000,
+  routeWorkloadRevision: 106,
+  routeWorkloadAppliedRevision: 106,
+  routeWorkloadReadyRevision: 105,
+  routePoints: 2,
+});
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadAppliedTransitionsMax, 6);
+assert.equal(routeWorkloadSampleAlignment.routeWorkloadReadyTransitionsMax, 0);
+sampleThreeOsmAcceptanceSession(routeWorkloadSampleAlignment, {
+  nowMs: start + 4_000,
+  routeWorkloadRevision: 106,
+  routeWorkloadAppliedRevision: 106,
+  routeWorkloadReadyRevision: 106,
+  routePoints: 2,
+});
+assert.equal(
+  routeWorkloadSampleAlignment.routeWorkloadReadyTransitionsMax,
+  THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS,
 );
 
 const hot = createPassingCandidate();

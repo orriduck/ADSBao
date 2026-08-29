@@ -1,7 +1,8 @@
 import { THREE_OSM_AIRCRAFT_CAPACITY } from "./threeOsmTrafficStress";
 import { THREE_OSM_ACCEPTANCE_OVERLAY_PROFILE } from "./threeOsmAcceptanceProfile";
+import { THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS } from "./threeOsmRouteWorkload";
 
-export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 5;
+export const THREE_OSM_ACCEPTANCE_SCHEMA_VERSION = 6;
 export const THREE_OSM_ACCEPTANCE_REPORT_KIND =
   "adsbao-three-osm-real-device-acceptance";
 export const THREE_OSM_ACCEPTANCE_MIN_DURATION_MS = 20 * 60 * 1_000;
@@ -47,6 +48,10 @@ export type ThreeOsmAcceptanceSample = {
   nowMs: number;
   runtimeId?: string;
   modeSwitches?: number;
+  routeWorkloadRevision?: number;
+  routeWorkloadAppliedRevision?: number;
+  routeWorkloadReadyRevision?: number;
+  routePoints?: number;
   renderCount?: number;
   renderSceneMaxMs?: number;
   slowSceneCount?: number;
@@ -94,6 +99,10 @@ export type ThreeOsmAcceptanceSession = {
   foregroundRecoveryLastMs: number | null;
   foregroundRecoveryMaxMs: number | null;
   modeSwitchesMax: number;
+  routeWorkloadInitialRevision: number | null;
+  routeWorkloadTransitionsMax: number;
+  routeWorkloadAppliedTransitionsMax: number;
+  routeWorkloadReadyTransitionsMax: number;
   renderCountMax: number;
   renderSceneMaxMs: number;
   slowSceneCountMax: number;
@@ -167,6 +176,9 @@ const ACCEPTANCE_SESSION_NUMBER_FIELDS = [
   "backgroundCycles",
   "foregroundRestores",
   "modeSwitchesMax",
+  "routeWorkloadTransitionsMax",
+  "routeWorkloadAppliedTransitionsMax",
+  "routeWorkloadReadyTransitionsMax",
   "renderCountMax",
   "renderSceneMaxMs",
   "slowSceneCountMax",
@@ -199,6 +211,7 @@ const ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS = [
   "usedJsHeapMinBytes",
   "usedJsHeapMaxBytes",
   "usedJsHeapLastBytes",
+  "routeWorkloadInitialRevision",
 ] as const;
 
 const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
@@ -206,6 +219,9 @@ const ACCEPTANCE_SESSION_INTEGER_FIELDS = [
   "backgroundCycles",
   "foregroundRestores",
   "modeSwitchesMax",
+  "routeWorkloadTransitionsMax",
+  "routeWorkloadAppliedTransitionsMax",
+  "routeWorkloadReadyTransitionsMax",
   "renderCountMax",
   "slowSceneCountMax",
   "longTaskCountMax",
@@ -289,6 +305,10 @@ export function createThreeOsmAcceptanceSession(input: {
     foregroundRecoveryLastMs: null,
     foregroundRecoveryMaxMs: null,
     modeSwitchesMax: 0,
+    routeWorkloadInitialRevision: null,
+    routeWorkloadTransitionsMax: 0,
+    routeWorkloadAppliedTransitionsMax: 0,
+    routeWorkloadReadyTransitionsMax: 0,
     renderCountMax: 0,
     renderSceneMaxMs: 0,
     slowSceneCountMax: 0,
@@ -359,6 +379,8 @@ export function isThreeOsmAcceptanceSession(
     ACCEPTANCE_SESSION_NULLABLE_NUMBER_FIELDS.every((field) =>
       isNullableNonNegativeFiniteNumber(session[field]),
     ) &&
+    (session.routeWorkloadInitialRevision === null ||
+      Number.isInteger(session.routeWorkloadInitialRevision)) &&
     isUniqueStringArray(session.documentBootIds, false) &&
     isUniqueStringArray(session.runtimeIds, true) &&
     (session.physicalDeviceAssessment === "unreviewed" ||
@@ -403,6 +425,10 @@ export function isThreeOsmAcceptanceSession(
       Number(session.trafficCapacitySamples) &&
     Number(session.fullOperationalTrafficCapacitySamples) <=
       Number(session.fullOperationalOverlaySamples) &&
+    Number(session.routeWorkloadAppliedTransitionsMax) <=
+      Number(session.routeWorkloadTransitionsMax) &&
+    Number(session.routeWorkloadReadyTransitionsMax) <=
+      Number(session.routeWorkloadAppliedTransitionsMax) &&
     (latest.basemap === "loading" ||
       latest.basemap === "ready" ||
       latest.basemap === "partial" ||
@@ -513,6 +539,39 @@ export function sampleThreeOsmAcceptanceSession(
     registerThreeOsmAcceptanceRuntime(session, sample.runtimeId, sample.nowMs);
   }
   session.modeSwitchesMax = maxValue(session.modeSwitchesMax, sample.modeSwitches);
+  const sampledRouteRevision = Math.floor(
+    finiteNumber(sample.routeWorkloadRevision),
+  );
+  session.routeWorkloadInitialRevision ??= sampledRouteRevision;
+  const routeWorkloadTransitions = Math.max(
+    0,
+    sampledRouteRevision - session.routeWorkloadInitialRevision,
+  );
+  session.routeWorkloadTransitionsMax = Math.max(
+    session.routeWorkloadTransitionsMax,
+    routeWorkloadTransitions,
+  );
+  const routeWorkloadAppliedInSameSample =
+    sampledRouteRevision >= session.routeWorkloadInitialRevision &&
+    Math.floor(finiteNumber(sample.routeWorkloadAppliedRevision)) ===
+      sampledRouteRevision;
+  if (routeWorkloadAppliedInSameSample) {
+    session.routeWorkloadAppliedTransitionsMax = Math.max(
+      session.routeWorkloadAppliedTransitionsMax,
+      routeWorkloadTransitions,
+    );
+  }
+  const routeWorkloadReadyInSameSample =
+    routeWorkloadAppliedInSameSample &&
+    Math.floor(finiteNumber(sample.routeWorkloadReadyRevision)) >=
+      sampledRouteRevision &&
+    Math.floor(finiteNumber(sample.routePoints)) >= 2;
+  if (routeWorkloadReadyInSameSample) {
+    session.routeWorkloadReadyTransitionsMax = Math.max(
+      session.routeWorkloadReadyTransitionsMax,
+      routeWorkloadTransitions,
+    );
+  }
   session.renderCountMax = maxValue(session.renderCountMax, sample.renderCount);
   session.renderSceneMaxMs = maxValue(
     session.renderSceneMaxMs,
@@ -676,6 +735,11 @@ export function evaluateThreeOsmAcceptanceSession(
     basemapEvidenceComplete &&
     session.latest.basemap === "ready" &&
     session.tilesFailedMax === 0;
+  const routeWorkloadOk =
+    session.routeWorkloadReadyTransitionsMax >=
+    THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS;
+  const runtimeContinuityBroken =
+    session.documentBootIds.length > 1 || session.runtimeIds.length > 1;
 
   const gates: ThreeOsmAcceptanceGate[] = [
     {
@@ -721,11 +785,14 @@ export function evaluateThreeOsmAcceptanceSession(
     },
     {
       id: "runtime-continuity",
-      status:
-        session.documentBootIds.length > 1 || session.runtimeIds.length > 1
-          ? "fail"
-          : pendingOrPass(session.runtimeIds.length === 1, durationComplete),
-      evidence: `${session.documentBootIds.length} document boot(s); ${session.runtimeIds.length} Three runtime(s)`,
+      status: runtimeContinuityBroken
+        ? "fail"
+        : session.runtimeIds.length === 1 && routeWorkloadOk
+          ? pendingOrPass(true, durationComplete)
+          : durationComplete
+            ? "fail"
+            : "pending",
+      evidence: `${session.documentBootIds.length} document boot(s); ${session.runtimeIds.length} Three runtime(s); route-ready transitions=${session.routeWorkloadReadyTransitionsMax}/${THREE_OSM_ACCEPTANCE_MIN_ROUTE_TRANSITIONS}; applied=${session.routeWorkloadAppliedTransitionsMax}; observed=${session.routeWorkloadTransitionsMax}; baseline=${session.routeWorkloadInitialRevision ?? "unset"}`,
     },
     {
       id: "basemap",
@@ -822,6 +889,8 @@ export function buildThreeOsmAcceptanceReport(
         "Screen wake-lock state is recorded as operator-assistance evidence. It does not add or replace any of the 11 acceptance gates.",
       trafficCapacity:
         "Rendered, real, synthetic, requested stress-target maxima, simultaneous requested/rendered capacity samples, and full-operational-overlay capacity samples are recorded inside the existing render-stability gate. Synthetic targets are Debug-only and do not represent live aircraft or add a twelfth gate.",
+      routeWorkload:
+        "Debug-only route changes use real nearby-airport coordinates. A settled revision counts only after its route geometry and fitted tile grid are both ready inside the same Three runtime; this remains part of the runtime-continuity gate.",
     },
   };
 }

@@ -82,7 +82,7 @@ const acceptanceUrl = buildThreeOsmDeviceAcceptanceUrl({
 });
 assert.equal(
   acceptanceUrl,
-  "http://192.168.99.103:3000/airport/KBOS?threeOsmPoc=1&threeOsmDebug=1&threeOsmSoak=1&threeOsmAcceptance=1&threeOsmStress=250&threeOsmTiles=configured&locale=en",
+  "http://192.168.99.103:3000/airport/KBOS?threeOsmPoc=1&threeOsmDebug=1&threeOsmSoak=1&threeOsmAcceptance=1&threeOsmRouteStress=1&threeOsmStress=250&threeOsmTiles=configured&locale=en",
 );
 assert.equal(acceptanceUrl.includes("secret"), false);
 assert.equal(acceptanceUrl.includes("tiles.example"), false);
