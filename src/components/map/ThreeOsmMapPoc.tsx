@@ -26,6 +26,8 @@ import {
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
+  createConfiguredThreeOsmTileSource,
+  THREE_OSM_CONFIG_UNAVAILABLE_TILE_SOURCE,
   THREE_OSM_DEBUG_FAILURE_TILE_SOURCE,
   THREE_OSM_STANDARD_TILE_SOURCE,
 } from "@/features/airport/map/threeOsmTileSource";
@@ -292,11 +294,26 @@ export default function ThreeOsmMapPoc({
   const debugEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
+  const configuredTileSource = useMemo(
+    () =>
+      createConfiguredThreeOsmTileSource({
+        id: import.meta.env.VITE_THREE_OSM_RASTER_SOURCE_ID,
+        urlTemplate: import.meta.env.VITE_THREE_OSM_RASTER_URL_TEMPLATE,
+        attribution: import.meta.env.VITE_THREE_OSM_RASTER_ATTRIBUTION,
+        attributionUrl: import.meta.env.VITE_THREE_OSM_RASTER_ATTRIBUTION_URL,
+      }),
+    [],
+  );
+  const requestedTileSource =
+    typeof window === "undefined"
+      ? "osm"
+      : new URLSearchParams(window.location.search).get("threeOsmTiles") || "osm";
   const activeTileSource =
-    debugEnabled &&
-    new URLSearchParams(window.location.search).get("threeOsmTiles") === "fail"
-      ? THREE_OSM_DEBUG_FAILURE_TILE_SOURCE
-      : THREE_OSM_STANDARD_TILE_SOURCE;
+    requestedTileSource === "configured"
+      ? configuredTileSource.source || THREE_OSM_CONFIG_UNAVAILABLE_TILE_SOURCE
+      : debugEnabled && requestedTileSource === "fail"
+        ? THREE_OSM_DEBUG_FAILURE_TILE_SOURCE
+        : THREE_OSM_STANDARD_TILE_SOURCE;
 
   useEffect(() => {
     onSelectAircraftRef.current = onSelectAircraft;
@@ -1462,7 +1479,9 @@ export default function ThreeOsmMapPoc({
       data-poc-debug-layer={debugLayerMode}
       data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
       data-poc-soak-mode-switches={soakModeSwitches}
+      data-poc-tile-source-requested={requestedTileSource}
       data-poc-tile-source={activeTileSource.id}
+      data-poc-tile-source-config={configuredTileSource.status}
       data-poc-basemap={basemapState}
       data-poc-runtime-id={runtimeIdRef.current}
       data-poc-keyboard-targets={accessibleAircraft.length}
@@ -1552,10 +1571,10 @@ export default function ThreeOsmMapPoc({
         ) : null}
       </div>
 
-      {activeTileSource === THREE_OSM_STANDARD_TILE_SOURCE ? (
+      {activeTileSource.attributionUrl ? (
         <a
           className="absolute bottom-1 right-2 z-10 text-[10px] text-white/75 underline decoration-white/30 underline-offset-2"
-          href="https://www.openstreetmap.org/copyright"
+          href={activeTileSource.attributionUrl}
           target="_blank"
           rel="noreferrer"
         >

@@ -174,6 +174,27 @@ No provider credential is committed or requested by the POC. A browser key,
 domain restriction, quota alert, and provider-specific attribution must be in
 place before a hosted source is exercised.
 
+The branch now has a provider-neutral trial boundary. Put the following values
+in ignored `.env.local` (never in a query string or committed file), restart the
+local Vite process so it reads them, then use
+`?threeOsmPoc=1&threeOsmTiles=configured`:
+
+```dotenv
+VITE_THREE_OSM_RASTER_SOURCE_ID=licensed-raster
+VITE_THREE_OSM_RASTER_URL_TEMPLATE=https://tiles.example.test/style/256/{z}/{x}/{y}.png?key=PUBLIC_BROWSER_KEY
+VITE_THREE_OSM_RASTER_ATTRIBUTION=Provider attribution text
+VITE_THREE_OSM_RASTER_ATTRIBUTION_URL=https://provider.example.test/attribution
+```
+
+The adapter accepts only HTTPS templates containing all three `{z}`, `{x}`, and
+`{y}` tokens, requires a valid HTTPS attribution URL, and exposes only the
+source id/config state through diagnostics. If `configured` is requested while
+the configuration is absent or invalid, the basemap deliberately enters the
+degraded path instead of silently falling back to OSM and producing a false
+provider-validation result. As with any client-rendered map, a configured key
+is delivered to the browser; it must therefore be a provider-authorized public
+browser key with domain restrictions, not a server secret.
+
 ## Local performance evidence
 
 The current branch has a measured mobile-size browser baseline, but not a real
