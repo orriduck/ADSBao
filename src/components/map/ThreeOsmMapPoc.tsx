@@ -66,6 +66,10 @@ import {
   type ThreeOsmContextPickTarget,
   type ThreeOsmSceneLabel,
 } from "@/features/airport/map/threeOsmSceneContext";
+import {
+  selectThreeOsmDebugContextTargets,
+  type ThreeOsmContextKind,
+} from "@/features/airport/map/threeOsmContextInteraction";
 import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
 import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
 
@@ -611,6 +615,7 @@ export default function ThreeOsmMapPoc({
   const accessibleContextTargets = useMemo(() => {
     const targets: Array<{
       key: string;
+      kind: ThreeOsmContextKind;
       label: string;
       selected: boolean;
       onSelect: () => void;
@@ -622,6 +627,7 @@ export default function ThreeOsmMapPoc({
         if (!code || !selectionId) return;
         targets.push({
           key: `airport:${selectionId}`,
+          kind: "airport",
           label: code,
           selected: selectionId === selectedAirportIcao,
           onSelect: () => onSelectAirport(selectionId),
@@ -636,6 +642,7 @@ export default function ThreeOsmMapPoc({
       buildNavaidLabels(navaids).slice(0, 24).forEach((item: any) => {
         targets.push({
           key: `navaid:${item.key}`,
+          kind: "navaid",
           label: item.ident,
           selected: item.key === selectedNavaidKey,
           onSelect: () => onSelectNavaid(item.key),
@@ -648,6 +655,7 @@ export default function ThreeOsmMapPoc({
         .forEach((item: any) => {
           targets.push({
             key: `reporting:${item.key}`,
+            kind: "reporting",
             label: item.name,
             selected: item.key === selectedReportingPointKey,
             onSelect: () => onSelectReportingPoint(item.key),
@@ -664,6 +672,7 @@ export default function ThreeOsmMapPoc({
         if (!id || !label) return;
         targets.push({
           key: `spot:${id}`,
+          kind: "spot",
           label,
           selected: id === selectedCandidateWatchingSpotId,
           onSelect: () => onSelectCandidateWatchingSpot(id),
@@ -689,6 +698,10 @@ export default function ThreeOsmMapPoc({
     useNavaidCounts,
     visibleAirports,
   ]);
+  const debugContextTargets = useMemo(
+    () => selectThreeOsmDebugContextTargets(accessibleContextTargets),
+    [accessibleContextTargets],
+  );
   const summaryId = `${runtimeIdRef.current}-summary`;
   const handleCanvasKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
     const nextId = resolveThreeOsmKeyboardSelection({
@@ -1521,6 +1534,15 @@ export default function ThreeOsmMapPoc({
       "data-poc-context-selectable",
       String(contextScene.contextPickTargets.length),
     );
+    for (const kind of ["airport", "navaid", "reporting", "spot"] as const) {
+      rootRef.current?.setAttribute(
+        `data-poc-context-${kind}-selectable`,
+        String(
+          contextScene.contextPickTargets.filter((target) => target.kind === kind)
+            .length,
+        ),
+      );
+    }
     rootRef.current?.setAttribute(
       "data-poc-navaids",
       String(contextScene.counts.navaids),
@@ -2185,18 +2207,25 @@ export default function ThreeOsmMapPoc({
               {t("map.poc.simulateGpuReset")}
             </button>
             {(debugLayerMode === "all" || debugLayerMode === "context") &&
-            accessibleContextTargets.length ? (
+            debugContextTargets.length ? (
               <div className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1">
-                {accessibleContextTargets.slice(0, 8).map((item) => (
+                {debugContextTargets.map((item) => (
                   <button
                     key={item.key}
                     type="button"
                     className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[selected=true]:border-[#f5c542] data-[selected=true]:text-[#f5c542]"
+                    data-poc-debug-context-kind={item.kind}
                     data-selected={item.selected}
                     aria-label={t("map.poc.selectContextAria", {
                       context: item.label,
                     })}
-                    onClick={item.onSelect}
+                    onClick={() => {
+                      if (rootRef.current) {
+                        rootRef.current.dataset.pocLastDebugContext =
+                          `${item.kind}:${item.key.split(":").slice(1).join(":")}`;
+                      }
+                      item.onSelect();
+                    }}
                   >
                     {item.label}
                   </button>

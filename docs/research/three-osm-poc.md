@@ -99,9 +99,10 @@ continue in this order rather than polishing the 3D treatment first:
 With items one through four now substantially represented in the branch, the
 remaining priority is: (1) a real iPhone-class 20-minute touch/background/
 thermal run, (2) a licensed raster provider trial through the existing adapter,
-(3) live-data interaction checks for every context kind, then (4) additional
-vector-cartography or aesthetic depth. More visual polish should not move ahead
-of the first two graduation risks.
+(3) live-data interaction checks for navaids and photo locations after airport
+and reporting-point selection, then (4) additional vector-cartography or
+aesthetic depth. More visual polish should not move ahead of the first two
+graduation risks.
 
 The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
@@ -334,6 +335,17 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   and mouse-to-touch translation did not produce a trusted touch pointer, so
   the 22 CSS-pixel touch radius remains covered by deterministic projection/
   radius tests until the real iPhone gate.
+- The visible Debug Mode context controls now reserve one representative per
+  available context kind before filling the remaining eight slots. This avoids
+  airport-dense payloads hiding every navaid, reporting point, or photo location
+  from browser verification. Live local EGLL exposed 63 selectable airports and
+  13 selectable reporting points; selecting `ALLY PALLY` through its visible
+  reporting-point control selected the canvas label and accessible mirror and
+  opened the existing Reporting point preview with GB and OpenAIP source. The
+  same diagnostics report per-kind selectable counts. Current local payloads
+  did not expose a selectable navaid or photo location during this check, so
+  those two live-data interactions remain open rather than being inferred from
+  synthetic tests.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes
