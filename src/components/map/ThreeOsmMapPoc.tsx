@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
@@ -6,6 +12,7 @@ import { getAircraftIdentity } from "@/features/airport/context/airportContextUi
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
+import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
   buildOsmRasterTileUrl,
   buildVisibleTileGrid,
@@ -216,6 +223,32 @@ export default function ThreeOsmMapPoc({
     () => buildAirspaceOverlayFeatures(airspaces),
     [airspaces],
   );
+  const accessibleAircraft = useMemo(
+    () =>
+      visibleAircraft.flatMap((item) => {
+        const id = getAircraftIdentity(item);
+        if (!id) return [];
+        const label = String(
+          item?.callsign || item?.flight || item?.registration || id,
+        ).trim();
+        return [{ id, label, altitude: Number(item?.altitude) }];
+      }),
+    [visibleAircraft],
+  );
+  const selectedAccessibleAircraft = accessibleAircraft.find(
+    (item) => item.id === (selectedAircraftId || focalAircraftId),
+  );
+  const summaryId = `${runtimeIdRef.current}-summary`;
+  const handleCanvasKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
+    const nextId = resolveThreeOsmKeyboardSelection({
+      key: event.key,
+      aircraftIds: accessibleAircraft.map((item) => item.id),
+      selectedAircraftId: selectedAircraftId || focalAircraftId,
+    });
+    if (!nextId || typeof onSelectAircraft !== "function") return;
+    event.preventDefault();
+    onSelectAircraft(nextId);
+  };
 
   useEffect(() => {
     const root = rootRef.current;
@@ -853,6 +886,7 @@ export default function ThreeOsmMapPoc({
       data-poc-engine="three-osm"
       data-poc-mode={viewMode}
       data-poc-runtime-id={runtimeIdRef.current}
+      data-poc-keyboard-targets={accessibleAircraft.length}
       role="region"
       aria-label="Three.js and OpenStreetMap proof of concept"
     >
@@ -860,17 +894,37 @@ export default function ThreeOsmMapPoc({
         ref={canvasRef}
         className="block h-full w-full touch-none"
         aria-label={`${viewMode === "3d" ? "3D perspective" : "2D orthographic"} airport map proof of concept`}
+        aria-describedby={summaryId}
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space"
+        tabIndex={0}
+        onKeyDown={handleCanvasKeyDown}
       />
       <canvas
         ref={labelCanvasRef}
         className="pointer-events-none absolute inset-0 h-full w-full"
         aria-hidden="true"
       />
-      <span className="sr-only">
-        {airportCode
-          ? `${airportCode} map with ${visibleAircraft.length} aircraft, ${visibleAirports.length} nearby airports, and ${runwayCollection?.features?.length || 0} runways.`
-          : `Map with ${visibleAircraft.length} aircraft and ${visibleAirports.length} nearby airports.`}
-      </span>
+      <div id={summaryId} className="sr-only" aria-live="polite">
+        <p>
+          {airportCode
+            ? `${airportCode} map with ${visibleAircraft.length} aircraft, ${visibleAirports.length} nearby airports, and ${runwayCollection?.features?.length || 0} runways.`
+            : `Map with ${visibleAircraft.length} aircraft and ${visibleAirports.length} nearby airports.`}
+          {selectedAccessibleAircraft
+            ? ` Selected aircraft ${selectedAccessibleAircraft.label}.`
+            : " No aircraft selected."}
+          {" Use the arrow keys to move through aircraft, Home or End to jump, and Enter or Space to select."}
+        </p>
+        <ul aria-label="First visible aircraft">
+          {accessibleAircraft.slice(0, 12).map((item) => (
+            <li key={item.id}>
+              {item.label}
+              {Number.isFinite(item.altitude)
+                ? `, ${Math.round(item.altitude).toLocaleString()} feet`
+                : ""}
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm">
         <strong className="block text-[11px] font-semibold text-[#f5c542]">

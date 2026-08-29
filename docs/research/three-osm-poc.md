@@ -70,10 +70,11 @@ The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
 points, watcher locations, and user location. Context-tile loading no longer
 requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
-own bounds. Item three now includes pointer picking, selected-aircraft styling,
-live selected traces, and flight-page route geometry. Keyboard selection, a
-stronger selected-state visual, accessible DOM map contents, and route-aware
-camera fitting remain the next incomplete operational boundary.
+own bounds. Item three now includes pointer and keyboard picking,
+selected-aircraft styling, live selected traces, flight-page route geometry,
+and an accessible DOM summary of the visible map. A stronger selected-state
+visual and route-aware camera fitting remain the next incomplete operational
+boundary.
 
 ## Proposed architecture if the POC graduates
 
