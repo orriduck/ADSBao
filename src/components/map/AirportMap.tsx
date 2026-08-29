@@ -1104,6 +1104,7 @@ export default function AirportMap({
               showCandidateWatchingSpots={showCandidateWatchingSpots}
               showCallsigns={showCallsigns}
               selectedAircraftId={selectedAircraftId}
+              selectedAirportIcao={selectedAirportIcao}
               selectedNavaidKey={selectedNavaidKey}
               selectedReportingPointKey={selectedReportingPointKey}
               selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
@@ -1112,6 +1113,10 @@ export default function AirportMap({
               userLocation={userLocation}
               theme={currentTheme}
               onSelectAircraft={onSelectAircraft}
+              onSelectAirport={onSelectAirport}
+              onSelectNavaid={onSelectNavaid}
+              onSelectReportingPoint={onSelectReportingPoint}
+              onSelectCandidateWatchingSpot={onSelectCandidateWatchingSpot}
               onSelectAirspace={onSelectAirspace}
               onReady={handleThreeOsmPocReady}
             />

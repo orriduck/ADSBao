@@ -29,8 +29,58 @@ type ContextPoint = {
   lon: unknown;
   kind: "navaid" | "reporting" | "spot";
   selected: boolean;
+  selectable: boolean;
   priority: number;
 };
+
+export type ThreeOsmContextSelection = {
+  kind: "airport" | "navaid" | "reporting" | "spot";
+  id: string;
+};
+
+export type ThreeOsmContextPickTarget = ThreeOsmContextSelection & {
+  position: THREE.Vector3;
+};
+
+export function resolveThreeOsmContextScreenHit({
+  targets,
+  camera,
+  width,
+  height,
+  x,
+  y,
+  radiusPx = 14,
+}: {
+  targets: ThreeOsmContextPickTarget[];
+  camera: THREE.Camera;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  radiusPx?: number;
+}) {
+  if (width <= 0 || height <= 0 || radiusPx <= 0) return null;
+  const projected = new THREE.Vector3();
+  let nearest: ThreeOsmContextSelection | null = null;
+  let nearestDistanceSquared = radiusPx * radiusPx;
+  for (const target of targets) {
+    projected.copy(target.position).project(camera);
+    if (projected.z < -1 || projected.z > 1) continue;
+    const screenX = (projected.x * 0.5 + 0.5) * width;
+    const screenY = (-projected.y * 0.5 + 0.5) * height;
+    const distanceSquared = (screenX - x) ** 2 + (screenY - y) ** 2;
+    if (distanceSquared >= nearestDistanceSquared) continue;
+    nearestDistanceSquared = distanceSquared;
+    nearest = { kind: target.kind, id: target.id };
+  }
+  return nearest;
+}
+
+function finiteCoordinate(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
 
 function addContextPointInstances({
   group,
@@ -51,7 +101,7 @@ function addContextPointInstances({
 }) {
   if (!items.length) {
     geometry.dispose();
-    return 0;
+    return { count: 0, pickTargets: [] as ThreeOsmContextPickTarget[] };
   }
   const mesh = new THREE.InstancedMesh(
     geometry,
@@ -64,11 +114,15 @@ function addContextPointInstances({
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
+  const pickTargets: ThreeOsmContextPickTarget[] = [];
   let rendered = 0;
-  items.forEach((item, index) => {
+  items.forEach((item) => {
+    const lat = finiteCoordinate(item.lat);
+    const lon = finiteCoordinate(item.lon);
+    if (lat === null || lon === null) return;
     const point = lonLatAltitudeToThreeOsmWorld({
-      lon: item.lon,
-      lat: item.lat,
+      lon,
+      lat,
       center: tileCenter,
       centerLat,
     });
@@ -76,9 +130,9 @@ function addContextPointInstances({
     position.set(point.x, 4, point.z);
     scale.setScalar(item.selected ? 1.5 : 1);
     matrix.compose(position, quaternion, scale);
-    mesh.setMatrixAt(index, matrix);
+    mesh.setMatrixAt(rendered, matrix);
     mesh.setColorAt(
-      index,
+      rendered,
       new THREE.Color(
         item.selected
           ? theme === "light"
@@ -97,14 +151,22 @@ function addContextPointInstances({
       priority: item.selected ? 850 : item.priority,
       selected: item.selected,
     });
+    if (item.selectable) {
+      pickTargets.push({
+        kind: item.kind,
+        id: item.id,
+        position: position.clone(),
+      });
+    }
     rendered += 1;
   });
+  mesh.count = rendered;
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   mesh.computeBoundingSphere();
   mesh.name = `three-osm-${items[0]?.kind || "context"}-markers`;
   group.add(mesh);
-  return rendered;
+  return { count: rendered, pickTargets };
 }
 
 export function collectAirspaceLineCoordinates(geometry: Record<string, any> | null) {
@@ -154,6 +216,7 @@ export function createThreeOsmContextScene({
   showNavaidMarkers,
   showReportingPoints,
   showCandidateWatchingSpots,
+  selectedAirportIcao,
   selectedNavaidKey,
   selectedReportingPointKey,
   selectedCandidateWatchingSpotId,
@@ -177,6 +240,7 @@ export function createThreeOsmContextScene({
   showNavaidMarkers: boolean;
   showReportingPoints: boolean;
   showCandidateWatchingSpots: boolean;
+  selectedAirportIcao: string;
   selectedNavaidKey: string;
   selectedReportingPointKey: string;
   selectedCandidateWatchingSpotId: string;
@@ -230,30 +294,65 @@ export function createThreeOsmContextScene({
   );
   const airportMatrix = new THREE.Matrix4();
   const airportPosition = new THREE.Vector3();
-  airports.forEach((item, index) => {
+  const airportQuaternion = new THREE.Quaternion();
+  const airportScale = new THREE.Vector3();
+  const airportPickTargets: ThreeOsmContextPickTarget[] = [];
+  let airportCount = 0;
+  airports.forEach((item) => {
+    const lat = finiteCoordinate(item?.lat);
+    const lon = finiteCoordinate(item?.lon);
+    if (lat === null || lon === null) return;
     const point = lonLatAltitudeToThreeOsmWorld({
-      lon: item?.lon,
-      lat: item?.lat,
+      lon,
+      lat,
       center: tileCenter,
       centerLat,
     });
     if (!point) return;
-    airportPosition.set(point.x, 5, point.z);
-    airportMatrix.makeTranslation(airportPosition);
-    airportMesh.setMatrixAt(index, airportMatrix);
     const code = airportDisplayCode(item);
-    if (code) {
-      labels.push({
-        id: `airport:${code}:${index}`,
-        text: code,
+    if (!code) return;
+    const selectionId = String(item?.icao || "").trim().toUpperCase();
+    const selected = Boolean(
+      selectionId && selectionId === selectedAirportIcao,
+    );
+    airportPosition.set(point.x, 5, point.z);
+    airportScale.setScalar(selected ? 1.5 : 1);
+    airportMatrix.compose(airportPosition, airportQuaternion, airportScale);
+    airportMesh.setMatrixAt(airportCount, airportMatrix);
+    airportMesh.setColorAt(
+      airportCount,
+      new THREE.Color(
+        selected
+          ? theme === "light"
+            ? 0x414341
+            : 0xb7bab7
+          : theme === "light"
+            ? 0x252725
+            : 0xe4e1d8,
+      ),
+    );
+    if (selectionId) {
+      airportPickTargets.push({
         kind: "airport",
-        position: airportPosition.clone().setY(10),
-        priority: 650 - Math.hypot(point.x, point.z) / 10,
+        id: selectionId,
+        position: airportPosition.clone(),
       });
     }
+    labels.push({
+      id: `airport:${code}:${airportCount}`,
+      text: code,
+      kind: "airport",
+      position: airportPosition.clone().setY(10),
+      priority: selected ? 850 : 650 - Math.hypot(point.x, point.z) / 10,
+      selected,
+    });
+    airportCount += 1;
   });
+  airportMesh.count = airportCount;
   airportMesh.instanceMatrix.needsUpdate = true;
+  if (airportMesh.instanceColor) airportMesh.instanceColor.needsUpdate = true;
   airportMesh.computeBoundingSphere();
+  airportMesh.name = "three-osm-airport-markers";
   group.add(airportMesh);
 
   const runwaySegments: number[] = [];
@@ -414,6 +513,7 @@ export function createThreeOsmContextScene({
             lon: item?.lon,
             kind: "navaid" as const,
             selected: false,
+            selectable: false,
             priority: 420,
           }];
         })
@@ -424,9 +524,10 @@ export function createThreeOsmContextScene({
           lon: item.lon,
           kind: "navaid" as const,
           selected: item.key === selectedNavaidKey,
+          selectable: true,
           priority: 430,
         }));
-  const navaidCount = addContextPointInstances({
+  const navaidResult = addContextPointInstances({
     group,
     labels,
     items: navaidItems,
@@ -444,10 +545,11 @@ export function createThreeOsmContextScene({
         lon: item.lon,
         kind: "reporting" as const,
         selected: item.key === selectedReportingPointKey,
+        selectable: true,
         priority: 410,
       }))
     : [];
-  const reportingCount = addContextPointInstances({
+  const reportingResult = addContextPointInstances({
     group,
     labels,
     items: reportingItems,
@@ -461,19 +563,23 @@ export function createThreeOsmContextScene({
     ? candidateWatchingSpots.flatMap((item, index) => {
         const label = String(item?.name || item?.title || "Spot").trim();
         if (!label) return [];
-        const id = String(item?.id || index);
+        const selectionId = String(item?.id || "").trim();
+        const id = selectionId || `spot-${index}`;
         return [{
           id,
           label,
           lat: item?.lat,
           lon: item?.lon,
           kind: "spot" as const,
-          selected: id === selectedCandidateWatchingSpotId,
+          selected: Boolean(
+            selectionId && selectionId === selectedCandidateWatchingSpotId,
+          ),
+          selectable: Boolean(selectionId),
           priority: 400,
         }];
       })
     : [];
-  const spotCount = addContextPointInstances({
+  const spotResult = addContextPointInstances({
     group,
     labels,
     items: spotItems,
@@ -484,10 +590,12 @@ export function createThreeOsmContextScene({
   });
 
   let userLocationCount = 0;
-  const userPoint = userLocation
+  const userLat = finiteCoordinate(userLocation?.lat);
+  const userLon = finiteCoordinate(userLocation?.lon);
+  const userPoint = userLat !== null && userLon !== null
     ? lonLatAltitudeToThreeOsmWorld({
-        lon: userLocation.lon,
-        lat: userLocation.lat,
+        lon: userLon,
+        lat: userLat,
         center: tileCenter,
         centerLat,
       })
@@ -510,14 +618,20 @@ export function createThreeOsmContextScene({
     group,
     labels,
     airspaceHitObject,
+    contextPickTargets: [
+      ...airportPickTargets,
+      ...navaidResult.pickTargets,
+      ...reportingResult.pickTargets,
+      ...spotResult.pickTargets,
+    ],
     counts: {
-      airports: airports.length,
+      airports: airportCount,
       runways: runwayCollection?.features?.length || 0,
       airspaces: showAirspaces ? airspaceFeatures.length : 0,
       selectedAirspaces: selectedAirspaceCount,
-      navaids: navaidCount,
-      reportingPoints: reportingCount,
-      spots: spotCount,
+      navaids: navaidResult.count,
+      reportingPoints: reportingResult.count,
+      spots: spotResult.count,
       userLocation: userLocationCount,
     },
   };

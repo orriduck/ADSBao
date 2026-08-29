@@ -140,6 +140,17 @@ Recenter invalidates them. The existing `Recenter on airport` control now sends
 an explicit signal to the POC instead of becoming a no-op while Leaflet is
 disabled.
 
+Small operational context markers now use a separate screen-space selection
+model rather than requiring their low-poly visual geometry to be hit exactly.
+Desktop pointers receive a 14 CSS-pixel radius and touch pointers receive 22
+pixels; aircraft selection remains first, context points second, and airspace
+boundaries last. Debug layer isolation also applies to picking, so a hidden
+traffic batch cannot intercept a context-only check. Airport labels keep the
+short public display code while selection passes the full ICAO identity. A
+bounded DOM mirror exposes selectable airports, individual navaids, reporting
+points, and photo locations to assistive technology, while aggregate navaid
+counts remain informational.
+
 ## Proposed architecture if the POC graduates
 
 ```text
@@ -289,6 +300,16 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   increased-contrast, or forced-colors media preferences; those preference
   modes therefore remain an explicit external acceptance gate rather than a
   claimed browser pass.
+- In context-only Debug Mode, clicking the browser-controlled canvas center no
+  longer selected an invisible aircraft. The live local KBOS tree exposed 26
+  nearby airports as selectable context buttons; selecting OWD through the
+  same callback highlighted its POC marker and opened the existing airport
+  preview with 12.8 NM, 49 ft, and Track airport. Production KBOS selected OWD
+  through its airport list and showed the same interaction contract at 13 NM
+  and 49 ft, plus the richer Norwood Memorial Airport name. The browser control
+  surface only issued center canvas clicks, so arbitrary-coordinate marker
+  picking is covered by the deterministic camera-projection/radius test rather
+  than claimed as a direct pointer pass.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

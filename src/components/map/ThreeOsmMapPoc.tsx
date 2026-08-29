@@ -13,6 +13,7 @@ import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFram
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { airportDisplayCode } from "@/utils/airport";
 import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
 import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
@@ -28,6 +29,8 @@ import {
   type ThreeOsmAircraftFamily,
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
+import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
+import { buildReportingPointLabels } from "@/features/airport/map/reportingPointLabelModel";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
   createConfiguredThreeOsmTileSource,
@@ -52,6 +55,8 @@ import {
 import {
   createThreeOsmContextScene,
   resolveThreeOsmAirspaceHitIds,
+  resolveThreeOsmContextScreenHit,
+  type ThreeOsmContextPickTarget,
   type ThreeOsmSceneLabel,
 } from "@/features/airport/map/threeOsmSceneContext";
 import { createThreeOsmRouteScene } from "@/features/airport/map/threeOsmRouteScene";
@@ -89,6 +94,7 @@ type ThreeOsmPocProps = {
   showCandidateWatchingSpots?: boolean;
   showCallsigns?: boolean;
   selectedAircraftId?: string;
+  selectedAirportIcao?: string;
   selectedNavaidKey?: string;
   selectedReportingPointKey?: string;
   selectedCandidateWatchingSpotId?: string;
@@ -97,6 +103,10 @@ type ThreeOsmPocProps = {
   userLocation?: Record<string, any> | null;
   theme?: string;
   onSelectAircraft?: ((aircraftId: string) => void) | null;
+  onSelectAirport?: ((airportIcao: string) => void) | null;
+  onSelectNavaid?: ((navaidKey: string) => void) | null;
+  onSelectReportingPoint?: ((reportingPointKey: string) => void) | null;
+  onSelectCandidateWatchingSpot?: ((spotId: string) => void) | null;
   onSelectAirspace?: ((airspaceId: string | string[]) => void) | null;
   onReady?: ((state: { ready: boolean; tilesLoaded: number }) => void) | null;
 };
@@ -273,6 +283,7 @@ export default function ThreeOsmMapPoc({
   showCandidateWatchingSpots = false,
   showCallsigns = true,
   selectedAircraftId = "",
+  selectedAirportIcao = "",
   selectedNavaidKey = "",
   selectedReportingPointKey = "",
   selectedCandidateWatchingSpotId = "",
@@ -281,6 +292,10 @@ export default function ThreeOsmMapPoc({
   userLocation = null,
   theme = "dark",
   onSelectAircraft = null,
+  onSelectAirport = null,
+  onSelectNavaid = null,
+  onSelectReportingPoint = null,
+  onSelectCandidateWatchingSpot = null,
   onSelectAirspace = null,
   onReady = null,
 }: ThreeOsmPocProps) {
@@ -321,11 +336,16 @@ export default function ThreeOsmMapPoc({
   const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const airspaceHitObjectRef = useRef<THREE.LineSegments | null>(null);
+  const contextPickTargetsRef = useRef<ThreeOsmContextPickTarget[]>([]);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
+  const onSelectAirportRef = useRef(onSelectAirport);
+  const onSelectNavaidRef = useRef(onSelectNavaid);
+  const onSelectReportingPointRef = useRef(onSelectReportingPoint);
+  const onSelectCandidateWatchingSpotRef = useRef(onSelectCandidateWatchingSpot);
   const onSelectAirspaceRef = useRef(onSelectAirspace);
   const onReadyRef = useRef(onReady);
   const [isCompact, setIsCompact] = useState(
@@ -345,6 +365,8 @@ export default function ThreeOsmMapPoc({
   const debugEnabled =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
+  const debugEnabledRef = useRef(debugEnabled);
+  debugEnabledRef.current = debugEnabled;
   const configuredTileSource = useMemo(
     () =>
       createConfiguredThreeOsmTileSource({
@@ -369,6 +391,22 @@ export default function ThreeOsmMapPoc({
   useEffect(() => {
     onSelectAircraftRef.current = onSelectAircraft;
   }, [onSelectAircraft]);
+
+  useEffect(() => {
+    onSelectAirportRef.current = onSelectAirport;
+  }, [onSelectAirport]);
+
+  useEffect(() => {
+    onSelectNavaidRef.current = onSelectNavaid;
+  }, [onSelectNavaid]);
+
+  useEffect(() => {
+    onSelectReportingPointRef.current = onSelectReportingPoint;
+  }, [onSelectReportingPoint]);
+
+  useEffect(() => {
+    onSelectCandidateWatchingSpotRef.current = onSelectCandidateWatchingSpot;
+  }, [onSelectCandidateWatchingSpot]);
 
   useEffect(() => {
     onSelectAirspaceRef.current = onSelectAirspace;
@@ -458,6 +496,87 @@ export default function ThreeOsmMapPoc({
   const selectedAccessibleAircraft = accessibleAircraft.find(
     (item) => item.id === (selectedAircraftId || focalAircraftId),
   );
+  const accessibleContextTargets = useMemo(() => {
+    const targets: Array<{
+      key: string;
+      label: string;
+      selected: boolean;
+      onSelect: () => void;
+    }> = [];
+    if (typeof onSelectAirport === "function") {
+      visibleAirports.slice(0, 24).forEach((item) => {
+        const code = airportDisplayCode(item);
+        const selectionId = String(item?.icao || "").trim().toUpperCase();
+        if (!code || !selectionId) return;
+        targets.push({
+          key: `airport:${selectionId}`,
+          label: code,
+          selected: selectionId === selectedAirportIcao,
+          onSelect: () => onSelectAirport(selectionId),
+        });
+      });
+    }
+    if (
+      showNavaidMarkers &&
+      !useNavaidCounts &&
+      typeof onSelectNavaid === "function"
+    ) {
+      buildNavaidLabels(navaids).slice(0, 24).forEach((item: any) => {
+        targets.push({
+          key: `navaid:${item.key}`,
+          label: item.ident,
+          selected: item.key === selectedNavaidKey,
+          onSelect: () => onSelectNavaid(item.key),
+        });
+      });
+    }
+    if (showReportingPoints && typeof onSelectReportingPoint === "function") {
+      buildReportingPointLabels(reportingPoints)
+        .slice(0, 24)
+        .forEach((item: any) => {
+          targets.push({
+            key: `reporting:${item.key}`,
+            label: item.name,
+            selected: item.key === selectedReportingPointKey,
+            onSelect: () => onSelectReportingPoint(item.key),
+          });
+        });
+    }
+    if (
+      showCandidateWatchingSpots &&
+      typeof onSelectCandidateWatchingSpot === "function"
+    ) {
+      candidateWatchingSpots.slice(0, 24).forEach((item) => {
+        const id = String(item?.id || "").trim();
+        const label = String(item?.name || item?.title || "Spot").trim();
+        if (!id || !label) return;
+        targets.push({
+          key: `spot:${id}`,
+          label,
+          selected: id === selectedCandidateWatchingSpotId,
+          onSelect: () => onSelectCandidateWatchingSpot(id),
+        });
+      });
+    }
+    return targets;
+  }, [
+    candidateWatchingSpots,
+    navaids,
+    onSelectAirport,
+    onSelectCandidateWatchingSpot,
+    onSelectNavaid,
+    onSelectReportingPoint,
+    reportingPoints,
+    selectedAirportIcao,
+    selectedCandidateWatchingSpotId,
+    selectedNavaidKey,
+    selectedReportingPointKey,
+    showCandidateWatchingSpots,
+    showNavaidMarkers,
+    showReportingPoints,
+    useNavaidCounts,
+    visibleAirports,
+  ]);
   const summaryId = `${runtimeIdRef.current}-summary`;
   const handleCanvasKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
     const nextId = resolveThreeOsmKeyboardSelection({
@@ -765,6 +884,23 @@ export default function ThreeOsmMapPoc({
       } else {
         root.removeAttribute("data-poc-camera-zoom");
       }
+      if (debugEnabledRef.current) {
+        const screenTarget = new THREE.Vector3();
+        root.dataset.pocContextScreenTargets = JSON.stringify(
+          contextPickTargetsRef.current
+            .slice(0, 64)
+            .map((target) => {
+              screenTarget.copy(target.position).project(camera);
+              return {
+                id: `${target.kind}:${target.id}`,
+                x: Math.round((screenTarget.x * 0.5 + 0.5) * root.clientWidth),
+                y: Math.round((-screenTarget.y * 0.5 + 0.5) * root.clientHeight),
+              };
+            }),
+        );
+      } else {
+        root.removeAttribute("data-poc-context-screen-targets");
+      }
       root.dataset.pocRenderCount = String(renderCount);
       root.dataset.pocRenderLastMs = renderDurationMs.toFixed(2);
       root.dataset.pocRenderMaxMs = maxRenderDurationMs.toFixed(2);
@@ -865,13 +1001,21 @@ export default function ThreeOsmMapPoc({
       const batches = trafficBatchesRef.current;
       if (!camera) return;
       const bounds = canvas.getBoundingClientRect();
+      const pointerX = event.clientX - bounds.left;
+      const pointerY = event.clientY - bounds.top;
       pointer.set(
-        ((event.clientX - bounds.left) / bounds.width) * 2 - 1,
-        -((event.clientY - bounds.top) / bounds.height) * 2 + 1,
+        (pointerX / bounds.width) * 2 - 1,
+        -(pointerY / bounds.height) * 2 + 1,
       );
       raycaster.setFromCamera(pointer, camera);
+      const trafficSelectable = isDebugLayerVisible(
+        debugLayerModeRef.current,
+        "traffic",
+      );
       const hit =
-        batches.length && typeof onSelectAircraftRef.current === "function"
+        trafficSelectable &&
+        batches.length &&
+        typeof onSelectAircraftRef.current === "function"
           ? raycaster.intersectObjects(
               batches.map((batch) => batch.mesh),
               false,
@@ -881,18 +1025,75 @@ export default function ThreeOsmMapPoc({
       const id =
         hit?.instanceId == null ? "" : hitBatch?.items[hit.instanceId]?.id || "";
       if (id) {
+        root.dataset.pocLastPick = `aircraft:${id}`;
         onSelectAircraftRef.current?.(id);
+        return;
+      }
+      const contextSelectable = isDebugLayerVisible(
+        debugLayerModeRef.current,
+        "context",
+      );
+      const contextHit = contextSelectable
+        ? resolveThreeOsmContextScreenHit({
+            targets: contextPickTargetsRef.current,
+            camera,
+            width: bounds.width,
+            height: bounds.height,
+            x: pointerX,
+            y: pointerY,
+            radiusPx: event.pointerType === "touch" ? 22 : 14,
+          })
+        : null;
+      if (debugEnabledRef.current) {
+        const projected = new THREE.Vector3();
+        const nearest = contextPickTargetsRef.current
+          .map((target) => {
+            projected.copy(target.position).project(camera);
+            const targetX = (projected.x * 0.5 + 0.5) * bounds.width;
+            const targetY = (-projected.y * 0.5 + 0.5) * bounds.height;
+            return {
+              target,
+              distance: Math.hypot(targetX - pointerX, targetY - pointerY),
+            };
+          })
+          .sort((left, right) => left.distance - right.distance)[0];
+        root.dataset.pocLastPointer = `${pointerX.toFixed(1)},${pointerY.toFixed(1)}`;
+        root.dataset.pocLastContextNearest = nearest
+          ? `${nearest.target.kind}:${nearest.target.id}:${nearest.distance.toFixed(1)}`
+          : "none";
+      }
+      if (contextHit) {
+        const selectContext = {
+          airport: onSelectAirportRef.current,
+          navaid: onSelectNavaidRef.current,
+          reporting: onSelectReportingPointRef.current,
+          spot: onSelectCandidateWatchingSpotRef.current,
+        }[contextHit.kind];
+        if (typeof selectContext === "function") {
+          root.dataset.pocLastPick = `${contextHit.kind}:${contextHit.id}`;
+          selectContext(contextHit.id);
+          return;
+        }
+      }
+      if (!contextSelectable) {
+        root.dataset.pocLastPick = "none";
         return;
       }
       const airspaceHitObject = airspaceHitObjectRef.current;
       if (!airspaceHitObject || typeof onSelectAirspaceRef.current !== "function") {
+        root.dataset.pocLastPick = "none";
         return;
       }
       raycaster.params.Line.threshold = 6;
       const airspaceIds = resolveThreeOsmAirspaceHitIds(
         raycaster.intersectObject(airspaceHitObject, false),
       );
-      if (airspaceIds.length) onSelectAirspaceRef.current(airspaceIds);
+      if (airspaceIds.length) {
+        root.dataset.pocLastPick = `airspace:${airspaceIds.join(",")}`;
+        onSelectAirspaceRef.current(airspaceIds);
+      } else {
+        root.dataset.pocLastPick = "none";
+      }
     };
     const handleContextLost = (event: Event) => {
       event.preventDefault();
@@ -964,6 +1165,7 @@ export default function ThreeOsmMapPoc({
       trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
       airspaceHitObjectRef.current = null;
+      contextPickTargetsRef.current = [];
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
       renderer.dispose();
@@ -1147,6 +1349,7 @@ export default function ThreeOsmMapPoc({
       showNavaidMarkers,
       showReportingPoints,
       showCandidateWatchingSpots,
+      selectedAirportIcao,
       selectedNavaidKey,
       selectedReportingPointKey,
       selectedCandidateWatchingSpotId,
@@ -1161,6 +1364,7 @@ export default function ThreeOsmMapPoc({
     group.visible = isDebugLayerVisible(debugLayerMode, "context");
     contextGroupRef.current = group;
     airspaceHitObjectRef.current = contextScene.airspaceHitObject;
+    contextPickTargetsRef.current = contextScene.contextPickTargets;
     scene.add(group);
     contextLabelsRef.current = contextScene.labels;
     rootRef.current?.setAttribute(
@@ -1186,6 +1390,10 @@ export default function ThreeOsmMapPoc({
         : "false",
     );
     rootRef.current?.setAttribute(
+      "data-poc-context-selectable",
+      String(contextScene.contextPickTargets.length),
+    );
+    rootRef.current?.setAttribute(
       "data-poc-navaids",
       String(contextScene.counts.navaids),
     );
@@ -1209,6 +1417,9 @@ export default function ThreeOsmMapPoc({
       if (airspaceHitObjectRef.current === contextScene.airspaceHitObject) {
         airspaceHitObjectRef.current = null;
       }
+      if (contextPickTargetsRef.current === contextScene.contextPickTargets) {
+        contextPickTargetsRef.current = [];
+      }
       if (contextGroupRef.current == null) contextLabelsRef.current = [];
     };
   }, [
@@ -1224,6 +1435,7 @@ export default function ThreeOsmMapPoc({
     onSelectAirspace,
     reportingPoints,
     runwayCollection,
+    selectedAirportIcao,
     selectedCandidateWatchingSpotId,
     selectedAirspaceId,
     selectedNavaidKey,
@@ -1764,6 +1976,21 @@ export default function ThreeOsmMapPoc({
             </li>
           ))}
         </ul>
+        {accessibleContextTargets.length ? (
+          <ul aria-label={t("map.poc.selectableContextListAria")}>
+            {accessibleContextTargets.map((item) => (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  aria-pressed={item.selected}
+                  onClick={item.onSelect}
+                >
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm md:left-[312px]">
@@ -1808,6 +2035,25 @@ export default function ThreeOsmMapPoc({
             >
               {t("map.poc.simulateGpuReset")}
             </button>
+            {(debugLayerMode === "all" || debugLayerMode === "context") &&
+            accessibleContextTargets.length ? (
+              <div className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1">
+                {accessibleContextTargets.slice(0, 8).map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[selected=true]:border-[#f5c542] data-[selected=true]:text-[#f5c542]"
+                    data-selected={item.selected}
+                    aria-label={t("map.poc.selectContextAria", {
+                      context: item.label,
+                    })}
+                    onClick={item.onSelect}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>

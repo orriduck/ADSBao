@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import * as THREE from "three";
 import {
   collectAirspaceLineCoordinates,
   createThreeOsmContextScene,
   resolveThreeOsmAirspaceHitIds,
+  resolveThreeOsmContextScreenHit,
 } from "./threeOsmSceneContext";
 import { lonLatToTileCoordinate } from "./threeOsmProjection";
 
@@ -30,7 +32,10 @@ assert.deepEqual(
 
 const context = createThreeOsmContextScene({
   airportCode: "BOS",
-  airports: [{ iata: "OWD", lat: 42.19, lon: -71.17 }],
+  airports: [
+    { icao: "KOWD", iata: "OWD", lat: 42.19, lon: -71.17 },
+    { icao: "KBAD", iata: "BAD", lat: null, lon: null },
+  ],
   runwayCollection: {
     features: [
       {
@@ -56,6 +61,7 @@ const context = createThreeOsmContextScene({
   showNavaidMarkers: true,
   showReportingPoints: true,
   showCandidateWatchingSpots: true,
+  selectedAirportIcao: "KOWD",
   selectedNavaidKey: "",
   selectedReportingPointKey: "",
   selectedCandidateWatchingSpotId: "",
@@ -77,6 +83,7 @@ assert.deepEqual(context.counts, {
 });
 assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
+assert.ok(context.labels.some((label) => label.text === "OWD" && label.selected));
 assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));
@@ -87,6 +94,40 @@ assert.deepEqual(
     { index: 2, object: context.airspaceHitObject || undefined },
   ]),
   ["bos-class-b"],
+);
+const camera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
+camera.position.set(0, 900, 0.01);
+camera.up.set(0, 0, -1);
+camera.lookAt(0, 0, 0);
+camera.updateMatrixWorld();
+const airportTarget = context.contextPickTargets.find(
+  (target) => target.kind === "airport" && target.id === "KOWD",
+);
+assert.ok(airportTarget);
+const projectedAirport = airportTarget.position.clone().project(camera);
+const airportX = (projectedAirport.x * 0.5 + 0.5) * 800;
+const airportY = (-projectedAirport.y * 0.5 + 0.5) * 600;
+assert.deepEqual(
+  resolveThreeOsmContextScreenHit({
+    targets: context.contextPickTargets,
+    camera,
+    width: 800,
+    height: 600,
+    x: airportX + 10,
+    y: airportY,
+  }),
+  { kind: "airport", id: "KOWD" },
+);
+assert.equal(
+  resolveThreeOsmContextScreenHit({
+    targets: context.contextPickTargets,
+    camera,
+    width: 800,
+    height: 600,
+    x: airportX + 20,
+    y: airportY,
+  }),
+  null,
 );
 
 const chineseCounts = createThreeOsmContextScene({
@@ -103,6 +144,7 @@ const chineseCounts = createThreeOsmContextScene({
   showNavaidMarkers: true,
   showReportingPoints: false,
   showCandidateWatchingSpots: false,
+  selectedAirportIcao: "",
   selectedNavaidKey: "",
   selectedReportingPointKey: "",
   selectedCandidateWatchingSpotId: "",
@@ -113,5 +155,10 @@ const chineseCounts = createThreeOsmContextScene({
   locale: "zh-CN",
 });
 assert.ok(chineseCounts.labels.some((label) => label.text === "3 导航台"));
+assert.equal(
+  chineseCounts.contextPickTargets.some((target) => target.kind === "navaid"),
+  false,
+  "aggregated navaid counts are informational rather than selectable",
+);
 
 console.log("threeOsmSceneContext.test.ts ok");
