@@ -76,8 +76,12 @@ import {
 } from "@/features/airport/map/mapInteractionMode";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
+import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
 
 const ThreeAltitudeLayer = lazy(() => import("./ThreeAltitudeLayer"));
+const NativeOperationalLayers = lazy(
+  () => import("./NativeOperationalLayers"),
+);
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -154,6 +158,7 @@ export default function AirportMap({
   children = null,
 }: Record<string, any>) {
   const { locale, t } = useI18n();
+  const { mapViewMode: viewMode } = useExplorerUi();
   const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
@@ -169,12 +174,6 @@ export default function AirportMap({
   const mapDragRef = useRef(false);
   const [mapInstance, setMapInstance] = useState(null);
   const [nativeMapInstance, setNativeMapInstance] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<"2d" | "3d">(() =>
-    typeof window !== "undefined" &&
-    window.localStorage.getItem("adsbao:map-view-mode:v1") === "3d"
-      ? "3d"
-      : "2d",
-  );
   viewModeRef.current = viewMode;
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [visualContentReady, setVisualContentReady] = useState(false);
@@ -403,7 +402,6 @@ export default function AirportMap({
   useEffect(() => {
     if (!nativeMapInstance) return;
     const is3d = viewMode === "3d";
-    window.localStorage.setItem("adsbao:map-view-mode:v1", viewMode);
     const applyViewMode = () => {
       const overlayMap = mapRef.current as any;
       if (overlayMap) {
@@ -965,7 +963,18 @@ export default function AirportMap({
   }, []);
 
   return (
-    <div className="relative h-full w-full bg-atc-bg">
+    <div
+      className="relative h-full w-full bg-atc-bg"
+      data-map-view-mode={viewMode}
+      data-map-tiles-ready={mapTilesReady ? "true" : "false"}
+      data-map-visual-ready={mapVisualReady ? "true" : "false"}
+      data-map-loading-mode={loadingOverlayState.mode}
+      data-map-show-airspaces={showAirspaces ? "true" : "false"}
+      data-map-context-airspaces={contextTiles.airspaces.length}
+      data-map-context-navaids={contextTiles.navaids.length}
+      data-map-context-navaid-counts={contextTiles.navaidCounts.length}
+      data-map-context-loading={contextTiles.loading ? "true" : "false"}
+    >
       <div
         ref={nativeMapEl}
         className="airport-map-native absolute inset-0 h-full w-full"
@@ -1122,6 +1131,36 @@ export default function AirportMap({
             lon={lon}
           />
           <Suspense fallback={null}>
+            <NativeOperationalLayers
+              map={nativeMapInstance}
+              active
+              aircraft={visibleAircraft}
+              nearbyAirports={nearbyAirportLayerDisplay.airports}
+              navaids={renderedNavaids}
+              navaidCounts={contextTiles.navaidCounts}
+              reportingPoints={reportingPoints}
+              airspaces={renderedAirspaces}
+              candidateWatchingSpots={candidateWatchingSpots}
+              runwayMap={runwayMap}
+              showNavaidMarkers={showNavaidMarkers}
+              useNavaidCounts={useNavaidCountTiles}
+              showReportingPoints={showReportingPoints}
+              showAirspaces={showAirspaces}
+              showCandidateWatchingSpots={showCandidateWatchingSpots}
+              showCallsigns={showCallsigns}
+              selectedAircraftId={selectedAircraftId}
+              selectedAirportIcao={selectedAirportIcao}
+              selectedNavaidKey={selectedNavaidKey}
+              selectedReportingPointKey={selectedReportingPointKey}
+              selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
+              userLocation={userLocation}
+              onSelectAircraft={onSelectAircraft}
+              onSelectAirport={onSelectAirport}
+              onSelectNavaid={onSelectNavaid}
+              onSelectReportingPoint={onSelectReportingPoint}
+              onSelectAirspace={onSelectAirspace}
+              onSelectCandidateWatchingSpot={onSelectCandidateWatchingSpot}
+            />
             <ThreeAltitudeLayer
               map={nativeMapInstance}
               active
@@ -1132,27 +1171,6 @@ export default function AirportMap({
             />
           </Suspense>
         </>
-      )}
-
-      {nativeMapInstance && mapVisible && (
-        <div className="map-view-mode" role="group" aria-label="Map dimension">
-          <button
-            type="button"
-            className={viewMode === "2d" ? "is-active" : ""}
-            aria-pressed={viewMode === "2d"}
-            onClick={() => setViewMode("2d")}
-          >
-            2D
-          </button>
-          <button
-            type="button"
-            className={viewMode === "3d" ? "is-active" : ""}
-            aria-pressed={viewMode === "3d"}
-            onClick={() => setViewMode("3d")}
-          >
-            3D
-          </button>
-        </div>
       )}
 
       {mapInstance && (

@@ -50,7 +50,6 @@ export default function MapTileLayers({
     }
     const abort = new AbortController();
     let cancelled = false;
-    let pendingInitialLoad: (() => void) | null = null;
     let cleanupReadinessWatcher: (() => void) | null = null;
     let cleanupDarkRoadShields: (() => void) | null = null;
     onReadinessChange?.({ ready: false, reason: "loading" });
@@ -67,22 +66,17 @@ export default function MapTileLayers({
         const applyStyle = () => {
           if (cancelled || !map?.getContainer?.()?.isConnected) return;
           try {
-          map.setStyle(style, { diff: true });
-          map.getCanvas?.().classList.add("atc-tile-base");
-          cleanupDarkRoadShields = attachDarkRoadShieldImages(
-            map,
-            theme,
-          );
-          if (
-            typeof map.setMaxTileCacheSize === "function"
-          ) {
-            map.setMaxTileCacheSize(512);
-          }
-          cleanupReadinessWatcher = watchMapLibreReadiness(map, {
-            isCancelled: () => cancelled,
-            onReady: (reason) => onReadinessChange?.({ ready: true, reason }),
-          });
-          setSelectionOpacity(map, theme, selectionActiveRef.current);
+            map.setStyle(style, { diff: true });
+            map.getCanvas?.().classList.add("atc-tile-base");
+            cleanupDarkRoadShields = attachDarkRoadShieldImages(map, theme);
+            if (typeof map.setMaxTileCacheSize === "function") {
+              map.setMaxTileCacheSize(512);
+            }
+            cleanupReadinessWatcher = watchMapLibreReadiness(map, {
+              isCancelled: () => cancelled,
+              onReady: (reason) => onReadinessChange?.({ ready: true, reason }),
+            });
+            setSelectionOpacity(map, theme, selectionActiveRef.current);
           } catch (error) {
             onReadinessChange?.({ ready: true, reason: "init-failed" });
             if (shouldLogMapTileLayerFailure(error)) {
@@ -90,12 +84,12 @@ export default function MapTileLayers({
             }
           }
         };
-        if (map.loaded?.()) {
-          applyStyle();
-        } else {
-          pendingInitialLoad = applyStyle;
-          map.once("load", applyStyle);
-        }
+        // The map instance already exists and setStyle() is safe here. Waiting
+        // for a generic `load` is racy because the empty bootstrap style may
+        // have emitted that one-shot event while this network request was in
+        // flight, while loaded()/isStyleLoaded() can both be false during the
+        // same transition. Applying directly is the only deterministic path.
+        applyStyle();
       })
       .catch((error) => {
         if (error?.name === "AbortError") return;
@@ -106,7 +100,6 @@ export default function MapTileLayers({
     return () => {
       cancelled = true;
       abort.abort();
-      if (pendingInitialLoad) map.off?.("load", pendingInitialLoad);
       cleanupReadinessWatcher?.();
       cleanupDarkRoadShields?.();
     };
@@ -271,7 +264,10 @@ async function loadLocalizedMapStyle({
     v: MAP_STYLE_THEME_REVISION,
   });
   if (baseLayer) params.set("baseLayer", baseLayer);
-  const upstreamStyle = await requestJson(`/api/proxy/map-style/${theme}?${params}`, { signal });
+  const upstreamStyle = await requestJson(
+    `/api/proxy/map-style/${theme}?${params}`,
+    { signal },
+  );
   const proxiedStyle = buildProxiedMapLibreStyle(upstreamStyle);
   const themedStyle = resolveClientMapStyle({
     style: proxiedStyle,

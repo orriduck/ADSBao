@@ -28,6 +28,7 @@ export default function ExplorerMapMenu({
   const {
     isMobile,
     mapZoom,
+    mapViewMode,
     mapFollowsAircraft,
     showRunwayBeams,
     showNavaidMarkers,
@@ -41,6 +42,7 @@ export default function ExplorerMapMenu({
     mapSettingsSaveCycle,
     saveMapSettings,
     setMapZoom,
+    setMapViewMode,
     setMapBaseLayer,
     toggleSidebar,
     toggleRunwayBeams,
@@ -56,6 +58,7 @@ export default function ExplorerMapMenu({
       surface={surface}
       menuPlacement={isMobile ? "top" : "bottom"}
       activeZoom={mapZoom}
+      mapViewMode={mapViewMode}
       zoomActive={mapFollowsAircraft}
       zoomDisabled={zoomDisabled}
       traceViewItems={traceViewItems}
@@ -82,6 +85,7 @@ export default function ExplorerMapMenu({
       wakeLockActive={wakeLockState.active}
       wakeLockSupported={wakeLockState.supported}
       onZoom={setMapZoom}
+      onMapViewModeChange={setMapViewMode}
       onToggleRunwayBeams={toggleRunwayBeams}
       onToggleNavaidMarkers={toggleNavaidMarkers}
       onToggleReportingPoints={toggleReportingPoints}

@@ -255,53 +255,6 @@
     transition: opacity 220ms var(--motion-ease-out);
 }
 
-.map-view-mode {
-    position: absolute;
-    z-index: var(--z-map-controls, 580);
-    right: 12px;
-    bottom: calc(var(--app-bottom-dock-offset, 0px) + 12px);
-    display: grid;
-    grid-template-columns: repeat(2, 36px);
-    height: 36px;
-    border: 1px solid color-mix(in oklab, var(--atc-text) 18%, transparent);
-    background: color-mix(in oklab, var(--atc-bg) 94%, transparent);
-    box-shadow:
-        inset 0 1px 0 color-mix(in oklab, white 24%, transparent),
-        inset 0 -1px 0 color-mix(in oklab, black 18%, transparent),
-        0 8px 24px color-mix(in oklab, black 14%, transparent);
-    backdrop-filter: blur(12px) saturate(0.85);
-}
-
-.map-view-mode button {
-    border: 0;
-    border-right: 1px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
-    background: transparent;
-    color: color-mix(in oklab, var(--atc-text) 58%, transparent);
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    cursor: pointer;
-    transition:
-        color var(--motion-ui-fast) var(--motion-ease-out),
-        background-color var(--motion-ui-fast) var(--motion-ease-out),
-        transform 120ms var(--motion-ease-out);
-}
-
-.map-view-mode button:last-child {
-    border-right: 0;
-}
-
-.map-view-mode button.is-active {
-    background: color-mix(in oklab, var(--atc-text) 10%, transparent);
-    color: var(--atc-text);
-    box-shadow: inset 0 -2px 0 var(--atc-signal-accent);
-}
-
-.map-view-mode button:active {
-    transform: translateY(1px);
-}
-
 .native-map-airport-marker {
     position: relative;
     display: inline-flex;
@@ -346,11 +299,70 @@
     background: color-mix(in oklab, var(--atc-signal-accent) 84%, #f3d448);
 }
 
-@media (min-width: 768px) {
-    .map-view-mode {
-        right: 16px;
-        bottom: 16px;
-    }
+.native-operational-marker {
+    display: inline-flex;
+    align-items: center;
+    min-width: 16px;
+    min-height: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: color-mix(in oklab, var(--atc-text) 86%, transparent);
+    filter: drop-shadow(0 2px 3px color-mix(in oklab, black 52%, transparent));
+    font-family: var(--font-mono);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.native-operational-marker__glyph {
+    display: grid;
+    width: 16px;
+    height: 16px;
+    flex: none;
+    place-items: center;
+    color: currentColor;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.native-operational-marker__label {
+    max-width: 88px;
+    margin-left: 3px;
+    overflow: hidden;
+    color: var(--atc-text);
+    font-size: 9px;
+    font-weight: 720;
+    line-height: 15px;
+    letter-spacing: 0.035em;
+    text-overflow: ellipsis;
+    text-shadow:
+        0 1px 2px var(--atc-bg),
+        0 0 5px var(--atc-bg);
+    white-space: nowrap;
+}
+
+.native-operational-marker--aircraft {
+    color: color-mix(in oklab, var(--atc-text) 84%, transparent);
+}
+
+.native-operational-marker--aircraft[data-selected="true"],
+.native-operational-marker--airport[data-selected="true"],
+.native-operational-marker--navaid[data-selected="true"],
+.native-operational-marker--reporting[data-selected="true"],
+.native-operational-marker--spot[data-selected="true"] {
+    color: var(--atc-signal-accent);
+    filter: drop-shadow(0 0 5px color-mix(in oklab, var(--atc-signal-accent) 46%, transparent));
+}
+
+.native-operational-marker--airport,
+.native-operational-marker--navaid,
+.native-operational-marker--reporting,
+.native-operational-marker--spot {
+    color: color-mix(in oklab, var(--atc-text) 68%, transparent);
+}
+
+.native-operational-marker--user {
+    color: var(--atc-signal-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -361,8 +373,7 @@
         transition: none;
     }
 
-    .airport-map-surface,
-    .map-view-mode button {
+    .airport-map-surface {
         transition: none;
     }
 }

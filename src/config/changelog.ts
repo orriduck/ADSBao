@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.17.0",
+    version: "v3.17.1",
     kind: "feat",
     title: {
       en: "Spatial map interaction",
       zh: "空间地图交互",
     },
     summary: {
-      en: "Airport maps now combine a native MapLibre base with operational overlays, an optional Three.js altitude view, synchronized 2D and 3D cameras, and more tactile sidebar and mobile-card gestures across responsive layouts.",
-      zh: "机场地图现在结合原生 MapLibre 底图与运行导视图层，提供可选的 Three.js 高度视图、同步的 2D 与 3D 相机，并在响应式布局中加入更具触感的侧边栏和移动卡片手势。",
+      en: "Airport maps now combine a native MapLibre base with operational overlays, an optional Three.js altitude view that preserves traffic, airspace, runway, navigation and location context, synchronized cameras, and more tactile sidebar and mobile-card gestures. The 2D and 3D choice now lives inside the map control menu.",
+      zh: "机场地图现在结合原生 MapLibre 底图与运行导视图层，可选的 Three.js 高度视图会保留飞机、空域、跑道、导航标记与位置语境，并同步相机和强化侧边栏及移动卡片手势。2D 与 3D 选择现已收进地图控制菜单。",
     },
     highlights: [],
   },

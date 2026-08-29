@@ -597,6 +597,8 @@ const zhCN = {
     approachingView: "进近视图(点击循环)",
     viewMenu: "地图范围",
     viewMenuTitle: "地图范围:{label}",
+    view2d: "2D 运行地图",
+    view3d: "3D 高度视图",
     viewFar: "远",
     viewMedium: "中",
     viewNear: "近",
