@@ -73,4 +73,29 @@ assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 
+const chineseCounts = createThreeOsmContextScene({
+  airportCode: "BOS",
+  airports: [],
+  runwayCollection: null,
+  airspaceFeatures: [],
+  showAirspaces: false,
+  navaids: [],
+  navaidCounts: [{ key: "tile", count: 3, lat: 42.35, lon: -70.99 }],
+  useNavaidCounts: true,
+  reportingPoints: [],
+  candidateWatchingSpots: [],
+  showNavaidMarkers: true,
+  showReportingPoints: false,
+  showCandidateWatchingSpots: false,
+  selectedNavaidKey: "",
+  selectedReportingPointKey: "",
+  selectedCandidateWatchingSpotId: "",
+  userLocation: null,
+  tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
+  centerLat: 42.3656,
+  theme: "dark",
+  locale: "zh-CN",
+});
+assert.ok(chineseCounts.labels.some((label) => label.text === "3 导航台"));
+
 console.log("threeOsmSceneContext.test.ts ok");

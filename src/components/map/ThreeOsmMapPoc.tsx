@@ -8,6 +8,7 @@ import {
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { useSelectedAircraftTrace } from "@/components/aircraft/trace/SelectedAircraftTraceContext";
+import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFraming";
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
@@ -101,6 +102,7 @@ const FOCAL_AIRCRAFT_COLOR_DARK = 0xe8893f;
 const FOCAL_AIRCRAFT_COLOR_LIGHT = 0xcf6a1e;
 const AIRCRAFT_HALO_COLOR_DARK = 0x20211f;
 const AIRCRAFT_HALO_COLOR_LIGHT = 0xf7f5ef;
+const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
 
 type TrafficRenderItem = {
   id: string;
@@ -253,6 +255,7 @@ export default function ThreeOsmMapPoc({
   onSelectAircraft = null,
   onReady = null,
 }: ThreeOsmPocProps) {
+  const { locale, t } = useI18n();
   const { traces = [] } = useSelectedAircraftTrace();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const runtimeIdRef = useRef(
@@ -592,10 +595,10 @@ export default function ThreeOsmMapPoc({
         const y = ((1 - projected.y) / 2) * height;
         const font =
           label.kind === "focal-airport"
-            ? "700 12px Figtree, sans-serif"
+            ? `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`
             : label.kind === "airport"
-              ? "700 10px Figtree, sans-serif"
-              : "600 9px Figtree, sans-serif";
+              ? `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`
+              : `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         context.font = font;
         styleById.set(label.id, label);
         return [
@@ -626,14 +629,14 @@ export default function ThreeOsmMapPoc({
           context.fillStyle = "#f5c542";
           context.fillRect(label.left, label.top, label.width, label.height);
           context.fillStyle = "#101111";
-          context.font = "700 12px Figtree, sans-serif";
+          context.font = `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         } else if (style.kind === "airport") {
           context.fillStyle = theme === "light" ? "rgba(255,255,255,.94)" : "rgba(0,0,0,.88)";
           context.fillRect(label.left, label.top, label.width, label.height);
           context.strokeStyle = theme === "light" ? "rgba(0,0,0,.32)" : "rgba(255,255,255,.35)";
           context.strokeRect(label.left + 0.5, label.top + 0.5, label.width - 1, label.height - 1);
           context.fillStyle = theme === "light" ? "#111211" : "#f2f0e9";
-          context.font = "700 10px Figtree, sans-serif";
+          context.font = `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         } else {
           context.fillStyle = style.selected
             ? theme === "light"
@@ -650,12 +653,15 @@ export default function ThreeOsmMapPoc({
             : theme === "light"
               ? "#171817"
               : "#f0eee7";
-          context.font = "600 9px Figtree, sans-serif";
+          context.font = `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         }
         context.textBaseline = "middle";
         context.fillText(label.text, label.left + 6, label.top + label.height / 2 + 0.5);
       }
       root.dataset.pocLabelsVisible = String(placed.length);
+      root.dataset.pocLabelFallbacks = String(
+        placed.filter((label) => label.placement !== "top-right").length,
+      );
     };
     const render = () => {
       frameId = 0;
@@ -1070,6 +1076,7 @@ export default function ThreeOsmMapPoc({
       tileCenter,
       centerLat: sceneCenterLat,
       theme,
+      locale,
     });
     const { group } = contextScene;
     group.visible = isDebugLayerVisible(debugLayerMode, "context");
@@ -1120,6 +1127,7 @@ export default function ThreeOsmMapPoc({
     sceneCenterLon,
     navaidCounts,
     navaids,
+    locale,
     reportingPoints,
     runwayCollection,
     selectedCandidateWatchingSpotId,
@@ -1513,6 +1521,7 @@ export default function ThreeOsmMapPoc({
       ref={rootRef}
       className="three-osm-poc absolute inset-0 overflow-hidden"
       data-poc-engine="three-osm"
+      data-poc-locale={locale}
       data-poc-mode={viewMode}
       data-poc-debug={debugEnabled ? "true" : "false"}
       data-poc-debug-layer={debugLayerMode}
@@ -1531,12 +1540,14 @@ export default function ThreeOsmMapPoc({
       data-poc-fit-width-tiles={activeCameraFit?.framedWidthTiles.toFixed(3) || "0"}
       data-poc-fit-height-tiles={activeCameraFit?.framedHeightTiles.toFixed(3) || "0"}
       role="region"
-      aria-label="Three.js and OpenStreetMap proof of concept"
+      aria-label={t("map.poc.regionAria")}
     >
       <canvas
         ref={canvasRef}
         className="block h-full w-full touch-none"
-        aria-label={`${viewMode === "3d" ? "3D perspective" : "2D orthographic"} airport map proof of concept`}
+        aria-label={t(
+          viewMode === "3d" ? "map.poc.canvas3dAria" : "map.poc.canvas2dAria",
+        )}
         aria-describedby={summaryId}
         aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End Enter Space"
         tabIndex={0}
@@ -1550,19 +1561,33 @@ export default function ThreeOsmMapPoc({
       <div id={summaryId} className="sr-only" aria-live="polite">
         <p>
           {airportCode
-            ? `${airportCode} map with ${visibleAircraft.length} aircraft, ${visibleAirports.length} nearby airports, and ${runwayCollection?.features?.length || 0} runways.`
-            : `Map with ${visibleAircraft.length} aircraft and ${visibleAirports.length} nearby airports.`}
+            ? t("map.poc.summaryAirport", {
+                airport: airportCode,
+                aircraft: visibleAircraft.length,
+                airports: visibleAirports.length,
+                runways: runwayCollection?.features?.length || 0,
+              })
+            : t("map.poc.summaryMap", {
+                aircraft: visibleAircraft.length,
+                airports: visibleAirports.length,
+              })}
+          {" "}
           {selectedAccessibleAircraft
-            ? ` Selected aircraft ${selectedAccessibleAircraft.label}.`
-            : " No aircraft selected."}
-          {" Use the arrow keys to move through aircraft, Home or End to jump, and Enter or Space to select."}
+            ? t("map.poc.selectedAircraft", {
+                aircraft: selectedAccessibleAircraft.label,
+              })
+            : t("map.poc.noAircraftSelected")}
+          {" "}
+          {t("map.poc.keyboardInstructions")}
         </p>
-        <ul aria-label="First visible aircraft">
+        <ul aria-label={t("map.poc.visibleAircraftListAria")}>
           {accessibleAircraft.slice(0, 12).map((item) => (
             <li key={item.id}>
               {item.label}
               {Number.isFinite(item.altitude)
-                ? `, ${Math.round(item.altitude).toLocaleString()} feet`
+                ? `, ${t("map.poc.altitudeFeet", {
+                    altitude: Math.round(item.altitude).toLocaleString(locale),
+                  })}`
                 : ""}
             </li>
           ))}
@@ -1574,14 +1599,19 @@ export default function ThreeOsmMapPoc({
           Three + OSM / POC
         </strong>
         <span className="mt-1 block text-white/70">
-          {viewMode === "3d" ? "Perspective altitude scene" : "Orthographic operations scene"}
+          {t(viewMode === "3d" ? "map.poc.scene3d" : "map.poc.scene2d")}
         </span>
         <span className="mt-0.5 block text-white/50">
-          {visibleTiles.length} tiles · {visibleAircraft.length} targets · {visibleAirports.length} airports · z{tileZoom}
+          {t("map.poc.stats", {
+            tiles: visibleTiles.length,
+            aircraft: visibleAircraft.length,
+            airports: visibleAirports.length,
+            zoom: tileZoom,
+          })}
         </span>
         {basemapState === "partial" || basemapState === "degraded" ? (
           <span className="mt-1 block normal-case tracking-normal text-[#f5c542]" role="status">
-            Basemap {basemapState} · operational overlays remain
+            {t("map.poc.basemapDegraded", { state: basemapState })}
           </span>
         ) : null}
         {debugEnabled ? (
@@ -1592,7 +1622,7 @@ export default function ThreeOsmMapPoc({
                 type="button"
                 className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"
                 data-active={debugLayerMode === mode}
-                aria-label={`Show ${mode} POC layers`}
+                aria-label={t("map.poc.showLayersAria", { layer: mode })}
                 onClick={() => setDebugLayerMode(mode)}
               >
                 {mode}
@@ -1601,10 +1631,10 @@ export default function ThreeOsmMapPoc({
             <button
               type="button"
               className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
-              aria-label="Simulate WebGL context loss"
+              aria-label={t("map.poc.simulateGpuResetAria")}
               onClick={handleSimulateContextRecovery}
             >
-              Simulate GPU reset
+              {t("map.poc.simulateGpuReset")}
             </button>
           </div>
         ) : null}

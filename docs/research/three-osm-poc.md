@@ -101,7 +101,12 @@ bounded operational silhouette families (`transport`, `heavy`, `light`,
 fields. Each active family uses one fill and one contrast InstancedMesh, with
 the existing ADS-B wake-category scale and one bounded selection-ring batch;
 focal and secondary selection semantics remain distinct without creating
-per-aircraft scene objects. Route and recorded-trace camera
+per-aircraft scene objects. Projected labels now try four stable quadrants in
+priority order, so a high-priority label can move inward at a viewport edge or
+around an existing label instead of disappearing. Canvas text uses the product
+Figtree/Noto Sans SC stack, while the POC map aria, summary, status, and navaid
+count semantics follow the active English or Simplified Chinese locale. Route
+and recorded-trace camera
 fitting consumes the existing product signals: it chooses a bounded tile zoom
 from the geographic envelope and actual viewport aspect, frames the same
 geometry with either camera, handles dateline wrapping, restores Follow without
@@ -238,6 +243,14 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   slow scenes; a 3D→2D return kept the same runtime and removed the
   perspective-only diagnostics. These are browser visual checks, not touch or
   thermal evidence.
+- The edge-aware label pass was checked in English and Simplified Chinese,
+  light and dark themes, at 1280×720 and 390×844. A live English dark 3D KBOS
+  frame placed 36 labels with 11 using a fallback quadrant; the compact frame
+  placed 3 with 1 fallback, stayed at 9 loaded tiles, and had no horizontal
+  overflow. Localized DOM summaries exposed the correct active locale and
+  altitude units. Synthetic context coverage verified the Chinese `导航台`
+  canvas label because the live local context payload did not consistently
+  contain navaid counts during this check.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

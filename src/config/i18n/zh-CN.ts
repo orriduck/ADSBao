@@ -650,6 +650,27 @@ const zhCN = {
     distanceLabel: "距离",
     wakeLock: "屏幕常亮",
     wakeLockTitle: "防止屏幕休眠",
+    poc: {
+      regionAria: "Three.js 与 OpenStreetMap 地图概念验证",
+      canvas2dAria: "2D 正交机场地图概念验证",
+      canvas3dAria: "3D 透视机场地图概念验证",
+      summaryAirport:
+        "{airport} 地图包含 {aircraft} 架飞机、{airports} 个附近机场和 {runways} 条跑道。",
+      summaryMap: "地图包含 {aircraft} 架飞机和 {airports} 个附近机场。",
+      selectedAircraft: "当前选中飞机 {aircraft}。",
+      noAircraftSelected: "当前没有选中飞机。",
+      keyboardInstructions:
+        "使用方向键切换飞机，Home 或 End 跳转，按 Enter 或空格键选择。",
+      visibleAircraftListAria: "首批可见飞机",
+      altitudeFeet: "{altitude} 英尺",
+      scene2d: "正交运行场景",
+      scene3d: "透视高度场景",
+      stats: "{tiles} 张瓦片 · {aircraft} 架飞机 · {airports} 个机场 · z{zoom}",
+      basemapDegraded: "底图状态：{state} · 运行图层仍保持显示",
+      showLayersAria: "显示 {layer} POC 图层",
+      simulateGpuResetAria: "模拟 WebGL 上下文丢失",
+      simulateGpuReset: "模拟 GPU 重置",
+    },
   },
   mapLayers: {
     mapLabels: "地图标签",

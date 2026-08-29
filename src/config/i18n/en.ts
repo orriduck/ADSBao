@@ -659,6 +659,27 @@ const en = {
     distanceLabel: "Distance",
     wakeLock: "Keep screen awake",
     wakeLockTitle: "Prevent screen from sleeping",
+    poc: {
+      regionAria: "Three.js and OpenStreetMap map proof of concept",
+      canvas2dAria: "2D orthographic airport map proof of concept",
+      canvas3dAria: "3D perspective airport map proof of concept",
+      summaryAirport:
+        "{airport} map with {aircraft} aircraft, {airports} nearby airports, and {runways} runways.",
+      summaryMap: "Map with {aircraft} aircraft and {airports} nearby airports.",
+      selectedAircraft: "Selected aircraft {aircraft}.",
+      noAircraftSelected: "No aircraft selected.",
+      keyboardInstructions:
+        "Use the arrow keys to move through aircraft, Home or End to jump, and Enter or Space to select.",
+      visibleAircraftListAria: "First visible aircraft",
+      altitudeFeet: "{altitude} feet",
+      scene2d: "Orthographic operations scene",
+      scene3d: "Perspective altitude scene",
+      stats: "{tiles} tiles · {aircraft} targets · {airports} airports · z{zoom}",
+      basemapDegraded: "Basemap {state} · operational overlays remain",
+      showLayersAria: "Show {layer} POC layers",
+      simulateGpuResetAria: "Simulate WebGL context loss",
+      simulateGpuReset: "Simulate GPU reset",
+    },
   },
   mapLayers: {
     mapLabels: "Map labels",

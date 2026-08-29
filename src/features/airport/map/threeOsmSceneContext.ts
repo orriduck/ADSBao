@@ -142,6 +142,7 @@ export function createThreeOsmContextScene({
   tileCenter,
   centerLat,
   theme,
+  locale = "en",
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -163,6 +164,7 @@ export function createThreeOsmContextScene({
   tileCenter: TileCoordinate;
   centerLat: number;
   theme: string;
+  locale?: string;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -328,7 +330,7 @@ export function createThreeOsmContextScene({
           if (count <= 0) return [];
           return [{
             id: String(item?.key || index),
-            label: `${count} NAV`,
+            label: locale === "zh-CN" ? `${count} 导航台` : `${count} NAV`,
             lat: item?.lat,
             lon: item?.lon,
             kind: "navaid" as const,
