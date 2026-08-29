@@ -89,10 +89,9 @@ import {
   threeOsmRouteEndpointMatches,
 } from "@/features/airport/map/threeOsmRouteWorkload";
 import { createThreeOsmTraceScene } from "@/features/airport/map/threeOsmTraceScene";
-import {
-  createThreeOsmVectorContextScene,
-  type ThreeOsmVectorTilePayload,
-} from "@/features/airport/map/threeOsmVectorContextScene";
+import { createThreeOsmVectorContextScene } from "@/features/airport/map/threeOsmVectorContextScene";
+import type { ThreeOsmVectorTilePayload } from "@/features/airport/map/threeOsmVectorContextGeometry";
+import { ThreeOsmVectorContextWorkerClient } from "@/features/airport/map/threeOsmVectorContextWorkerClient";
 import {
   OPENFREEMAP_VECTOR_ATTRIBUTION,
   OPENFREEMAP_VECTOR_ATTRIBUTION_URL,
@@ -446,6 +445,8 @@ export default function ThreeOsmMapPoc({
   const vectorTileCacheRef = useRef<BoundedTileResourceCache<ArrayBuffer> | null>(
     null,
   );
+  const vectorContextWorkerRef =
+    useRef<ThreeOsmVectorContextWorkerClient | null>(null);
   const tileCacheHitCountRef = useRef(0);
   const tileCacheMissCountRef = useRef(0);
   const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
@@ -1066,6 +1067,9 @@ export default function ThreeOsmMapPoc({
       dispose: () => {},
     });
     vectorTileCacheRef.current = vectorTileCache;
+    const vectorContextWorker = new ThreeOsmVectorContextWorkerClient();
+    vectorContextWorkerRef.current = vectorContextWorker;
+    root.dataset.pocVectorWorker = "idle";
 
     const orthographicCamera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
     const perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 1, 6_000);
@@ -1593,6 +1597,10 @@ export default function ThreeOsmMapPoc({
       if (vectorTileCacheRef.current === vectorTileCache) {
         vectorTileCacheRef.current = null;
       }
+      vectorContextWorker.dispose();
+      if (vectorContextWorkerRef.current === vectorContextWorker) {
+        vectorContextWorkerRef.current = null;
+      }
       trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
       airspaceHitObjectRef.current = null;
@@ -1777,10 +1785,12 @@ export default function ThreeOsmMapPoc({
   useEffect(() => {
     const scene = sceneRef.current;
     const cache = vectorTileCacheRef.current;
+    const workerClient = vectorContextWorkerRef.current;
     const root = rootRef.current;
+    workerClient?.cancelActive();
     disposeObject(vectorContextGroupRef.current);
     vectorContextGroupRef.current = null;
-    if (!scene || !cache || !root || !vectorContextActive) {
+    if (!scene || !cache || !workerClient || !root || !vectorContextActive) {
       root?.setAttribute(
         "data-poc-vector-context",
         vectorContextEnabled ? "zoom-gated" : "disabled",
@@ -1790,6 +1800,15 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
+      root?.setAttribute(
+        "data-poc-vector-worker",
+        workerClient ? "idle" : "unavailable",
+      );
+      root?.setAttribute("data-poc-vector-worker-ms", "0");
+      root?.setAttribute("data-poc-vector-round-trip-ms", "0");
+      root?.setAttribute("data-poc-vector-submit-ms", "0");
+      root?.setAttribute("data-poc-vector-main-thread-ms", "0");
+      root?.setAttribute("data-poc-vector-long-task-delta", "0");
       setVectorContextState(vectorContextEnabled ? "loading" : "disabled");
       return undefined;
     }
@@ -1797,6 +1816,7 @@ export default function ThreeOsmMapPoc({
     let disposed = false;
     let settled = 0;
     let failed = 0;
+    let buildStarted = false;
     const loaded: ThreeOsmVectorTilePayload[] = [];
     const releases: Array<() => void> = [];
     const tileOrder = new Map(
@@ -1810,11 +1830,22 @@ export default function ThreeOsmMapPoc({
     root.dataset.pocVectorTilesRequested = String(vectorTiles.length);
     root.dataset.pocVectorTilesLoaded = "0";
     root.dataset.pocVectorTilesFailed = "0";
+    root.dataset.pocVectorWorker = "waiting-for-tiles";
 
     const finish = () => {
-      if (disposed || settled < vectorTiles.length) return;
+      if (disposed || buildStarted || settled < vectorTiles.length) return;
+      buildStarted = true;
+      if (!loaded.length) {
+        setVectorContextState("degraded");
+        root.dataset.pocVectorContext = "degraded";
+        root.dataset.pocVectorWorker = "idle";
+        return;
+      }
       const startedAt = performance.now();
-      const context = createThreeOsmVectorContextScene({
+      const longTaskCountAtStart = Number(root.dataset.pocLongTaskCount || 0);
+      root.dataset.pocVectorWorker = "building";
+      const submitStartedAt = performance.now();
+      const geometryRequest = workerClient.build({
         tiles: [...loaded].sort(
           (left, right) =>
             (tileOrder.get(`${left.tile.z}/${left.tile.x}/${left.tile.y}`) ?? 0) -
@@ -1824,39 +1855,87 @@ export default function ThreeOsmMapPoc({
         centerLat: sceneCenterLat,
         sceneZoom: tileZoom,
         sourceZoom: vectorTileZoom,
-        theme,
       });
-      context.group.visible = isDebugLayerVisible(
-        debugLayerModeRef.current,
-        "vector",
+      const submitMs = performance.now() - submitStartedAt;
+      root.dataset.pocVectorSubmitMs = submitMs.toFixed(2);
+      geometryRequest.then(
+        (result) => {
+          if (disposed) return;
+          const meshStartedAt = performance.now();
+          const context = createThreeOsmVectorContextScene({
+            geometry: result.geometry,
+            theme,
+          });
+          const meshMs = performance.now() - meshStartedAt;
+          context.group.visible = isDebugLayerVisible(
+            debugLayerModeRef.current,
+            "vector",
+          );
+          vectorContextGroupRef.current = context.group;
+          scene.add(context.group);
+          const nextState = failed === 0 ? "ready" : "partial";
+          setVectorContextState(nextState);
+          root.dataset.pocVectorContext = nextState;
+          root.dataset.pocVectorWorker = "ready";
+          root.dataset.pocVectorWorkerMs = result.workerBuildMs.toFixed(2);
+          root.dataset.pocVectorRoundTripMs = result.roundTripMs.toFixed(2);
+          root.dataset.pocVectorMainThreadMs = (submitMs + meshMs).toFixed(2);
+          root.dataset.pocVectorTilesLoaded = String(loaded.length);
+          root.dataset.pocVectorTilesFailed = String(failed);
+          root.dataset.pocVectorTileZoom = String(vectorTileZoom);
+          root.dataset.pocVectorRoads = String(context.roadFeatures);
+          root.dataset.pocVectorRoadSegments = String(context.roadSegments);
+          root.dataset.pocVectorRoadSourcePoints = String(
+            context.roadSourcePoints,
+          );
+          root.dataset.pocVectorBuildings = String(context.buildings);
+          root.dataset.pocVectorBuildingRoofTriangles = String(
+            context.buildingRoofTriangles,
+          );
+          root.dataset.pocVectorBuildingSourcePoints = String(
+            context.buildingSourcePoints,
+          );
+          root.dataset.pocVectorSkippedFeatures = String(
+            context.skippedFeatures,
+          );
+          root.dataset.pocVectorDecodeFailures = String(
+            context.decodeFailures,
+          );
+          root.dataset.pocVectorVertices = String(context.vertexCount);
+          root.dataset.pocVectorBuildMs = (
+            performance.now() - startedAt
+          ).toFixed(2);
+          root.dataset.pocVectorLongTaskDelta = String(
+            Math.max(
+              0,
+              Number(root.dataset.pocLongTaskCount || 0) -
+                longTaskCountAtStart,
+            ),
+          );
+          const cacheStats = cache.snapshot();
+          root.dataset.pocVectorCacheSize = String(cacheStats.size);
+          root.dataset.pocVectorCacheReady = String(cacheStats.ready);
+          requestRenderRef.current();
+        },
+        (error) => {
+          if (disposed || error?.name === "AbortError") return;
+          setVectorContextState("degraded");
+          root.dataset.pocVectorContext = "degraded";
+          root.dataset.pocVectorWorker = "error";
+          root.dataset.pocVectorWorkerMs = "0";
+          root.dataset.pocVectorRoundTripMs = (
+            performance.now() - startedAt
+          ).toFixed(2);
+          root.dataset.pocVectorMainThreadMs = submitMs.toFixed(2);
+          root.dataset.pocVectorLongTaskDelta = String(
+            Math.max(
+              0,
+              Number(root.dataset.pocLongTaskCount || 0) -
+                longTaskCountAtStart,
+            ),
+          );
+        },
       );
-      vectorContextGroupRef.current = context.group;
-      scene.add(context.group);
-      const nextState =
-        failed === 0 ? "ready" : loaded.length > 0 ? "partial" : "degraded";
-      setVectorContextState(nextState);
-      root.dataset.pocVectorContext = nextState;
-      root.dataset.pocVectorTilesLoaded = String(loaded.length);
-      root.dataset.pocVectorTilesFailed = String(failed);
-      root.dataset.pocVectorTileZoom = String(vectorTileZoom);
-      root.dataset.pocVectorRoads = String(context.roadFeatures);
-      root.dataset.pocVectorRoadSegments = String(context.roadSegments);
-      root.dataset.pocVectorRoadSourcePoints = String(context.roadSourcePoints);
-      root.dataset.pocVectorBuildings = String(context.buildings);
-      root.dataset.pocVectorBuildingRoofTriangles = String(
-        context.buildingRoofTriangles,
-      );
-      root.dataset.pocVectorBuildingSourcePoints = String(
-        context.buildingSourcePoints,
-      );
-      root.dataset.pocVectorSkippedFeatures = String(context.skippedFeatures);
-      root.dataset.pocVectorDecodeFailures = String(context.decodeFailures);
-      root.dataset.pocVectorVertices = String(context.vertexCount);
-      root.dataset.pocVectorBuildMs = (performance.now() - startedAt).toFixed(2);
-      const cacheStats = cache.snapshot();
-      root.dataset.pocVectorCacheSize = String(cacheStats.size);
-      root.dataset.pocVectorCacheReady = String(cacheStats.ready);
-      requestRenderRef.current();
     };
     const settleReady = (tile: TileCoordinate, data: ArrayBuffer) => {
       if (disposed) return;
@@ -1893,6 +1972,7 @@ export default function ThreeOsmMapPoc({
 
     return () => {
       disposed = true;
+      workerClient.cancelActive();
       releases.forEach((release) => release());
       disposeObject(vectorContextGroupRef.current);
       vectorContextGroupRef.current = null;

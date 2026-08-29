@@ -3,7 +3,7 @@ import {
   classifyThreeOsmRoadTier,
   resolveThreeOsmBuildingHeights,
   resolveThreeOsmRoadWidthWorld,
-} from "./threeOsmVectorContextScene";
+} from "./threeOsmVectorContextGeometry";
 
 assert.equal(classifyThreeOsmRoadTier("motorway"), "major");
 assert.equal(classifyThreeOsmRoadTier("secondary"), "minor");

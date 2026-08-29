@@ -45,6 +45,15 @@ scene caps road and building source points separately. Debug Mode exposes a
 operational context, traffic, or flight layers. Switching that isolation mode
 changes visibility without decoding or rebuilding the vector geometry.
 
+MVT decoding, projection, road expansion, and Earcut building triangulation run
+in one dedicated module Worker. The main thread copies the nine cached tile
+buffers into one transferable request, receives five bounded `Float32Array`
+position buffers, and creates only the Three.js geometries and materials. A
+superseded scene request terminates its active Worker before starting the next
+one, so fast route/zoom changes cannot leave stale geometry jobs queued. The
+ordinary POC constructs a lazy Worker client but never starts a Worker or copies
+tile buffers while the vector flag is absent.
+
 This flag is an architectural probe, not a production source decision. The
 normal POC does not fetch OpenFreeMap TileJSON or MVT resources and does not
 show its attribution. The enabled probe displays `OpenFreeMap © OpenMapTiles
@@ -604,20 +613,27 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
 - The bounded OpenFreeMap vector-context probe loaded all 9/9 MVT tiles with
   zero failures at KBOS zoom 14. Center-first ordering plus a 30,000-point
   building budget reduced the final scene to 1,246 road features, 3,384
-  building polygons, 199,701 vector vertices, and a 53.9 ms desktop geometry
-  build; three over-budget aggregated building features were skipped. The full
-  desktop scene reported 54 draw calls and 98,911 triangles. Resizing the same
-  runtime to 390×844 kept 9/9 raster and 9/9 vector tiles, zero failures, the
-  same vector geometry, correct dual attribution, and zero horizontal
-  overflow. Switching to the new vector-only Debug layer retained the same
-  runtime id, feature counts, and build-time diagnostic, proving that isolation
-  does not trigger another vector decode. A fresh ordinary POC document showed
-  the vector state disabled, 0 requested tiles, no OpenFreeMap attribution, and
-  no OpenFreeMap resources in the page asset inventory. The first unbounded
-  pass had roughly 782,000 vector vertices and took 125.2 ms, so the budget is
-  an evidence-driven mobile guard rather than a speculative constant. This is
-  still desktop Chromium evidence; worker-side decoding and real-device
-  measurement remain the next performance questions.
+  building polygons and 199,701 vector vertices; three over-budget aggregated
+  building features were skipped. The first unbounded main-thread pass had
+  roughly 782,000 vector vertices and took 125.2 ms. The bounded main-thread
+  pass still took 53.9–71.2 ms, which justified moving the decoder rather than
+  merely lowering the visual budget again.
+- With the dedicated Worker, two real desktop KBOS loads measured 47.1–68.1 ms
+  inside the Worker and 72.5–128.3 ms round trip, including warm versus cold
+  Worker startup. Synchronous main-thread work fell to 5.2–8.6 ms for buffer
+  copying, transfer submission, and five mesh creations, and the measured
+  vector-build interval added zero Long Tasks. The exact feature and vertex
+  counts remained unchanged. The POC chunk fell from 152.88 kB raw / 45.00 kB
+  gzip to 142.32 kB / 41.66 kB; the separate Worker asset is 21.24 kB raw and
+  does not import Three.js. 2D→3D→vector-only isolation retained one runtime,
+  the same build diagnostics, and zero console errors. Resizing that runtime to
+  390×844 kept 9/9 raster and 9/9 vector tiles, zero failures, correct dual
+  attribution, and zero horizontal overflow. A fresh ordinary POC document
+  showed vector disabled, Worker idle, 0 requested tiles, and no OpenFreeMap
+  attribution. Same-size production KBOS remained the richer labels/style/
+  per-model baseline, while the POC retained its airport-detail framing and
+  measured terminal massing. This is still desktop Chromium execution plus a
+  responsive viewport, not physical-device thermal or scheduling evidence.
 
 This browser evidence clears the next architecture iteration, not the real
 device gate. A 20-minute iPhone-class run with background/foreground cycles,
