@@ -5,6 +5,8 @@ import {
   resolveThreeOsmLodBounds,
   resolveThreeOsmSettledLod,
   resolveThreeOsmSourceTileTransform,
+  resolveThreeOsmSourceViewCenter,
+  resolveThreeOsmTileWindowKey,
 } from "./threeOsmCameraLod";
 import { lonLatToTileCoordinate } from "./threeOsmProjection";
 
@@ -82,7 +84,7 @@ const source13 = resolveThreeOsmSourceTileTransform({
     y: Math.floor(sourceCenter13.y),
     z: 13,
   },
-  sourceCenter: sourceCenter13,
+  projectionCenter: sourceCenter13,
   sceneZoom: sceneCenter.z,
 });
 const source11 = resolveThreeOsmSourceTileTransform({
@@ -91,12 +93,47 @@ const source11 = resolveThreeOsmSourceTileTransform({
     y: Math.floor(sourceCenter11.y),
     z: 11,
   },
-  sourceCenter: sourceCenter11,
+  projectionCenter: sourceCenter11,
   sceneZoom: sceneCenter.z,
 });
 assert.equal(source13.worldSize, 128);
 assert.equal(source11.worldSize, 512);
 assert.ok(Math.abs(source13.x) <= source13.worldSize / 2);
 assert.ok(Math.abs(source13.z) <= source13.worldSize / 2);
+
+const pannedSourceCenter = resolveThreeOsmSourceViewCenter({
+  projectionCenter: sourceCenter13,
+  sceneZoom: sceneCenter.z,
+  targetX: 128,
+  targetZ: -64,
+});
+assert.ok(Math.abs(pannedSourceCenter.x - sourceCenter13.x - 1) < 0.0001);
+assert.ok(Math.abs(pannedSourceCenter.y - sourceCenter13.y + 0.5) < 0.0001);
+assert.notEqual(
+  resolveThreeOsmTileWindowKey(pannedSourceCenter),
+  resolveThreeOsmTileWindowKey(sourceCenter13),
+);
+
+const pannedTile = resolveThreeOsmSourceTileTransform({
+  tile: {
+    x: Math.floor(pannedSourceCenter.x),
+    y: Math.floor(pannedSourceCenter.y),
+    z: 13,
+  },
+  projectionCenter: sourceCenter13,
+  sceneZoom: sceneCenter.z,
+});
+assert.ok(pannedTile.x > source13.x);
+assert.ok(Number.isFinite(pannedTile.z));
+
+const invalidTargetCenter = resolveThreeOsmSourceViewCenter({
+  projectionCenter: sourceCenter13,
+  sceneZoom: sceneCenter.z,
+  targetX: Number.POSITIVE_INFINITY,
+  targetZ: Number.NaN,
+});
+assert.ok(Math.abs(invalidTargetCenter.x - sourceCenter13.x) < 0.0001);
+assert.ok(Math.abs(invalidTargetCenter.y - sourceCenter13.y) < 0.0001);
+assert.equal(invalidTargetCenter.z, sourceCenter13.z);
 
 console.log("threeOsmCameraLod.test.ts ok");

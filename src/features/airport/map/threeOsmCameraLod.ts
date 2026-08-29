@@ -70,23 +70,57 @@ export function resolveThreeOsmSettledLod({
 
 export function resolveThreeOsmSourceTileTransform({
   tile,
-  sourceCenter,
+  projectionCenter,
   sceneZoom,
 }: {
   tile: TileCoordinate;
-  sourceCenter: TileCoordinate;
+  projectionCenter: TileCoordinate;
   sceneZoom: number;
 }) {
-  const worldSize = THREE_OSM_TILE_SIZE * 2 ** (sceneZoom - sourceCenter.z);
+  const worldSize =
+    THREE_OSM_TILE_SIZE * 2 ** (sceneZoom - projectionCenter.z);
   return {
     worldSize,
     seamGuard: worldSize / 1_024,
     x:
       shortestWrappedTileDelta(
         tile.x + 0.5,
-        sourceCenter.x,
-        sourceCenter.z,
+        projectionCenter.x,
+        projectionCenter.z,
       ) * worldSize,
-    z: (tile.y + 0.5 - sourceCenter.y) * worldSize,
+    z: (tile.y + 0.5 - projectionCenter.y) * worldSize,
   };
+}
+
+export function resolveThreeOsmSourceViewCenter({
+  projectionCenter,
+  sceneZoom,
+  targetX,
+  targetZ,
+}: {
+  projectionCenter: TileCoordinate;
+  sceneZoom: number;
+  targetX: number;
+  targetZ: number;
+}) {
+  const worldSize =
+    THREE_OSM_TILE_SIZE * 2 ** (sceneZoom - projectionCenter.z);
+  const scale = 2 ** projectionCenter.z;
+  const numericTargetX = Number(targetX);
+  const numericTargetZ = Number(targetZ);
+  const rawX =
+    projectionCenter.x +
+    (Number.isFinite(numericTargetX) ? numericTargetX : 0) / worldSize;
+  const rawY =
+    projectionCenter.y +
+    (Number.isFinite(numericTargetZ) ? numericTargetZ : 0) / worldSize;
+  return {
+    x: ((rawX % scale) + scale) % scale,
+    y: Math.min(scale - 1e-9, Math.max(0, rawY)),
+    z: projectionCenter.z,
+  };
+}
+
+export function resolveThreeOsmTileWindowKey(center: TileCoordinate) {
+  return `${center.z}/${Math.floor(center.x)}/${Math.floor(center.y)}`;
 }
