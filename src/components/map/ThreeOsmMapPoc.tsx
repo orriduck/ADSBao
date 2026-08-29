@@ -1517,6 +1517,14 @@ export default function ThreeOsmMapPoc({
       String(contextScene.counts.runways),
     );
     rootRef.current?.setAttribute(
+      "data-poc-runway-segments",
+      String(contextScene.runwayDiagnostics.segments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-runway-vertices",
+      String(contextScene.runwayDiagnostics.vertices),
+    );
+    rootRef.current?.setAttribute(
       "data-poc-airspaces",
       String(contextScene.counts.airspaces),
     );

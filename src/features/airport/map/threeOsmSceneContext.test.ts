@@ -82,11 +82,14 @@ assert.deepEqual(context.counts, {
   spots: 1,
   userLocation: 1,
 });
+assert.deepEqual(context.runwayDiagnostics, { segments: 1, vertices: 6 });
 assert.ok(context.labels.some((label) => label.text === "BOS"));
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.labels.some((label) => label.text === "OWD" && label.selected));
 assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
+assert.ok(context.group.getObjectByName("three-osm-runway-halo"));
+assert.ok(context.group.getObjectByName("three-osm-runway-surfaces"));
 assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));
 assert.equal(context.counts.selectedAirspaces, 1);
 assert.deepEqual(

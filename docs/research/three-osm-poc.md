@@ -346,6 +346,18 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   did not expose a selectable navaid or photo location during this check, so
   those two live-data interactions remain open rather than being inferred from
   synthetic tests.
+- Focal runways no longer depend on WebGL's effectively fixed one-pixel line
+  width. The centerline collection now carries runway id and physical width,
+  and the POC builds all visible runway segments into one neutral halo mesh and
+  one surface mesh. Physical width is preserved when it is visually meaningful;
+  a bounded minimum world width keeps a runway legible at the airport overview
+  range without turning it into a screen-space DOM overlay. Live local KBOS
+  produced 6 runway segments / 36 surface vertices in both cameras. Light 2D,
+  dark 2D, and dark 3D kept 25/25 tiles, zero tile failures, and zero horizontal
+  overflow; the two meshes add a fixed two draw calls rather than one object per
+  runway. Same-size production KBOS remained the richer operational baseline,
+  particularly for photo locations and vector context, so this clears runway
+  geometry readability rather than overall map parity.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

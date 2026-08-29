@@ -9,6 +9,7 @@ import {
   type ThreeOsmVisualPalette,
 } from "./threeOsmAccessibilityPreferences";
 import { lonLatAltitudeToThreeOsmWorld, type TileCoordinate } from "./threeOsmProjection";
+import { createThreeOsmRunwayScene } from "./threeOsmRunwayScene";
 
 export type ThreeOsmSceneLabel = {
   id: string;
@@ -360,46 +361,14 @@ export function createThreeOsmContextScene({
   airportMesh.name = "three-osm-airport-markers";
   group.add(airportMesh);
 
-  const runwaySegments: number[] = [];
-  for (const feature of runwayCollection?.features || []) {
-    const coordinates = feature?.geometry?.coordinates;
-    if (!Array.isArray(coordinates)) continue;
-    for (let index = 1; index < coordinates.length; index += 1) {
-      const from = coordinates[index - 1];
-      const to = coordinates[index];
-      const fromPoint = lonLatAltitudeToThreeOsmWorld({
-        lon: from?.[0],
-        lat: from?.[1],
-        center: tileCenter,
-        centerLat,
-      });
-      const toPoint = lonLatAltitudeToThreeOsmWorld({
-        lon: to?.[0],
-        lat: to?.[1],
-        center: tileCenter,
-        centerLat,
-      });
-      if (!fromPoint || !toPoint) continue;
-      runwaySegments.push(fromPoint.x, 1.8, fromPoint.z, toPoint.x, 1.8, toPoint.z);
-    }
-  }
-  if (runwaySegments.length) {
-    const runwayGeometry = new THREE.BufferGeometry();
-    runwayGeometry.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(runwaySegments, 3),
-    );
-    group.add(
-      new THREE.LineSegments(
-        runwayGeometry,
-        new THREE.LineBasicMaterial({
-          color: palette.runway,
-          opacity: contrastMode === "standard" ? 0.95 : 1,
-          transparent: true,
-        }),
-      ),
-    );
-  }
+  const runwayScene = createThreeOsmRunwayScene({
+    runwayCollection,
+    tileCenter,
+    centerLat,
+    palette,
+    contrastMode,
+  });
+  group.add(runwayScene.group);
 
   const airspaceSegments: number[] = [];
   const selectedAirspaceSegments: number[] = [];
@@ -631,13 +600,17 @@ export function createThreeOsmContextScene({
     ],
     counts: {
       airports: airportCount,
-      runways: runwayCollection?.features?.length || 0,
+      runways: runwayScene.runwayCount,
       airspaces: showAirspaces ? airspaceFeatures.length : 0,
       selectedAirspaces: selectedAirspaceCount,
       navaids: navaidResult.count,
       reportingPoints: reportingResult.count,
       spots: spotResult.count,
       userLocation: userLocationCount,
+    },
+    runwayDiagnostics: {
+      segments: runwayScene.segmentCount,
+      vertices: runwayScene.vertexCount,
     },
   };
 }

@@ -81,7 +81,16 @@ assert.deepEqual(buildRunwayCenterlineCollection(runwayMap), {
     source: "OurAirports",
     cycle: "260514",
   },
-  features: [runwayMap.runways[0].centerline],
+  features: [
+    {
+      ...runwayMap.runways[0].centerline,
+      properties: {
+        ...runwayMap.runways[0].centerline.properties,
+        runwayId: "04R/22L",
+        widthFt: 150,
+      },
+    },
+  ],
 });
 
 const approachVisualization = buildRunwayApproachVisualization(runwayMap, {

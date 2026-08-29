@@ -818,12 +818,23 @@ export function buildRunwayCenterlineCollection(runwayMap: RunwayAnnotationRecor
       source: runwayMap?.source || "Runway geometry",
       cycle: runwayMap?.cycle || "",
     },
-    features: (runwayMap?.runways || [])
-      .map((runway) => runway.centerline)
-      .filter(
-        (centerline) =>
-          centerline?.type === "Feature" &&
-          centerline.geometry?.type === "LineString",
-      ),
+    features: (runwayMap?.runways || []).flatMap((runway) => {
+      const centerline = runway?.centerline;
+      const widthFt = Number(runway?.widthFt);
+      if (
+        centerline?.type !== "Feature" ||
+        centerline.geometry?.type !== "LineString"
+      ) {
+        return [];
+      }
+      return [{
+        ...centerline,
+        properties: {
+          ...(centerline.properties || {}),
+          runwayId: runway?.id || centerline.properties?.id || "",
+          widthFt: Number.isFinite(widthFt) && widthFt > 0 ? widthFt : null,
+        },
+      }];
+    }),
   };
 }
