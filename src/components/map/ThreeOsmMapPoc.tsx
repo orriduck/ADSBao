@@ -25,6 +25,7 @@ import {
   buildRunwayEndLabels,
   buildRunwayMapFromSurfaceMap,
 } from "@/features/airport/map/runwayAnnotationModel";
+import { buildRunwayGroundLightingCollection } from "@/features/airport/map/runwayGroundLightingModel";
 import {
   parseThreeOsmAccessibilityDebugOverrides,
   resolveThreeOsmAccessibilityPreferences,
@@ -623,6 +624,10 @@ export default function ThreeOsmMapPoc({
           })
         : null,
     [annotationRunwayMap, theme, tileZoom],
+  );
+  const runwayGroundLighting = useMemo(
+    () => buildRunwayGroundLightingCollection(annotationRunwayMap),
+    [annotationRunwayMap],
   );
   const runwayEndLabels = useMemo(
     () => {
@@ -1521,6 +1526,7 @@ export default function ThreeOsmMapPoc({
       airports: visibleAirports,
       surfaceCollection,
       runwayApproachVisualization,
+      runwayGroundLighting,
       runwayCollection,
       runwayEndLabels,
       airspaceFeatures,
@@ -1593,6 +1599,38 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-approach-vertices",
       String(contextScene.runwayApproachDiagnostics.vertices),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-visible",
+      contextScene.groundLightingDiagnostics.visible ? "true" : "false",
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-runway-features",
+      String(contextScene.groundLightingDiagnostics.runwayFeatures),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-runway-dashes",
+      String(contextScene.groundLightingDiagnostics.runwayDashes),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-reils",
+      String(contextScene.groundLightingDiagnostics.reils),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-taxiway-features",
+      String(contextScene.groundLightingDiagnostics.taxiwayFeatures),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-taxiway-dashes",
+      String(contextScene.groundLightingDiagnostics.taxiwayDashes),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-vertices",
+      String(contextScene.groundLightingDiagnostics.vertices),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-ground-lighting-batches",
+      String(contextScene.groundLightingDiagnostics.drawBatches),
     );
     rootRef.current?.setAttribute(
       "data-poc-surface-visible",
@@ -1697,6 +1735,7 @@ export default function ThreeOsmMapPoc({
     reportingPoints,
     runwayCollection,
     runwayApproachVisualization,
+    runwayGroundLighting,
     runwayEndLabels,
     surfaceCollection,
     selectedAirportIcao,

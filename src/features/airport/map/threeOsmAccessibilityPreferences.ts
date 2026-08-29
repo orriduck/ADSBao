@@ -38,6 +38,10 @@ export type ThreeOsmVisualPalette = {
   airportMarker: number;
   selectedContextMarker: number;
   runway: number;
+  runwayLightWhite: number;
+  runwayLightAmber: number;
+  taxiwayLightBlue: number;
+  taxiwayLightGreen: number;
   airspace: number;
   selectedAirspace: number;
   userLocation: number;
@@ -138,6 +142,10 @@ export function resolveThreeOsmVisualPalette({
       airportMarker: canvasText,
       selectedContextMarker: highlight,
       runway: canvasText,
+      runwayLightWhite: canvasText,
+      runwayLightAmber: canvasText,
+      taxiwayLightBlue: canvasText,
+      taxiwayLightGreen: canvasText,
       airspace: canvasText,
       selectedAirspace: highlight,
       userLocation: canvasText,
@@ -176,6 +184,10 @@ export function resolveThreeOsmVisualPalette({
       airportMarker: foreground,
       selectedContextMarker: foreground,
       runway: foreground,
+      runwayLightWhite: foreground,
+      runwayLightAmber: foreground,
+      taxiwayLightBlue: foreground,
+      taxiwayLightGreen: foreground,
       airspace: foreground,
       selectedAirspace: foreground,
       userLocation: foreground,
@@ -214,6 +226,10 @@ export function resolveThreeOsmVisualPalette({
     airportMarker: light ? 0x252725 : 0xe4e1d8,
     selectedContextMarker: light ? 0x414341 : 0xb7bab7,
     runway: light ? 0x1d1e1d : 0xf4f1e8,
+    runwayLightWhite: 0xffffff,
+    runwayLightAmber: 0xffc23d,
+    taxiwayLightBlue: 0x3f86ff,
+    taxiwayLightGreen: 0x46ff8c,
     airspace: light ? 0x515451 : 0xc6c9c6,
     selectedAirspace: light ? 0x242624 : 0xf5c542,
     userLocation: light ? 0x414341 : 0xd7d9d7,

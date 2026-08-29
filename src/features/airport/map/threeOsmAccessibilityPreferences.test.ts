@@ -43,6 +43,8 @@ const standardDark = resolveThreeOsmVisualPalette({
 });
 assert.equal(standardDark.background, 0x101111);
 assert.equal(standardDark.focalAirport, 0xf5c542);
+assert.equal(standardDark.runwayLightAmber, 0xffc23d);
+assert.equal(standardDark.taxiwayLightBlue, 0x3f86ff);
 assert.equal(standardDark.label.borderWidth, 1);
 assert.equal(standardDark.label.contextBackground, "rgba(0,0,0,.74)");
 

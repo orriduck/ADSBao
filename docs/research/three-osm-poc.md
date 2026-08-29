@@ -380,6 +380,21 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   taxiway network remain dominant. Production KBOS was used as the same-size
   semantic-density baseline, not as proof that the experimental renderer has
   reached overall parity.
+- Dark detail views now reuse the production runway-ground-lighting model and
+  the same surface collection. The Three scene creates no lighting geometry in
+  light mode or below zoom 13.5. At local KBOS zoom 14 it represented 78 runway
+  lighting features, 24 REIL points, and 254 taxiway/taxilane features as five
+  fixed batches: white runway, amber caution, blue taxiway underlay, green
+  taxiway dashes, and one instanced REIL set. The real payload produced 684
+  runway dashes, 2,668 taxiway dashes, and 34,134 lighting vertices. Browser
+  inspection in dark 2D and 3D kept the runway network dominant and made the
+  airport movement area readable without glow, blur, per-light objects, or a
+  continuous animation loop. After the theme rebuild settled, the desktop POC
+  reported a 1.8 ms render / 0.5 ms scene render with no recorded long task;
+  the observed 35.2 ms maximum remains desktop-only evidence and does not clear
+  the real-device performance gate. Production KBOS remained the visual-density
+  baseline, while its wider live camera scale prevented a pixel-identical
+  airport-detail comparison.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

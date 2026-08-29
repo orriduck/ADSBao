@@ -12,6 +12,7 @@ import {
 import { lonLatAltitudeToThreeOsmWorld, type TileCoordinate } from "./threeOsmProjection";
 import { createThreeOsmRunwayScene } from "./threeOsmRunwayScene";
 import { createThreeOsmRunwayApproachScene } from "./threeOsmRunwayApproachScene";
+import { createThreeOsmGroundLightingScene } from "./threeOsmGroundLightingScene";
 import { createThreeOsmSurfaceScene } from "./threeOsmSurfaceScene";
 
 export type ThreeOsmSceneLabel = {
@@ -212,6 +213,7 @@ export function createThreeOsmContextScene({
   airports,
   surfaceCollection = null,
   runwayApproachVisualization = null,
+  runwayGroundLighting = null,
   runwayCollection,
   runwayEndLabels = [],
   airspaceFeatures,
@@ -242,6 +244,7 @@ export function createThreeOsmContextScene({
   airports: Array<Record<string, any>>;
   surfaceCollection?: Record<string, any> | null;
   runwayApproachVisualization?: Record<string, any> | null;
+  runwayGroundLighting?: Record<string, any> | null;
   runwayCollection: Record<string, any> | null;
   runwayEndLabels?: Array<Record<string, any>>;
   airspaceFeatures: Array<Record<string, any>>;
@@ -295,6 +298,18 @@ export function createThreeOsmContextScene({
     contrastMode,
   });
   group.add(runwayApproachScene.group);
+
+  const groundLightingScene = createThreeOsmGroundLightingScene({
+    runwayLighting: runwayGroundLighting,
+    surfaceCollection,
+    tileCenter,
+    centerLat,
+    zoom,
+    theme,
+    palette,
+    contrastMode,
+  });
+  group.add(groundLightingScene.group);
 
   const focalMarker = new THREE.Mesh(
     new THREE.CylinderGeometry(5, 5, 18, 12),
@@ -672,6 +687,18 @@ export function createThreeOsmContextScene({
       dashes: runwayApproachScene.dashCount,
       triangles: runwayApproachScene.triangleCount,
       vertices: runwayApproachScene.vertexCount,
+    },
+    groundLightingDiagnostics: {
+      visible: groundLightingScene.visible,
+      runwayFeatures: groundLightingScene.runwayFeatures,
+      runwaySegments: groundLightingScene.runwaySegments,
+      runwayDashes: groundLightingScene.runwayDashes,
+      reils: groundLightingScene.reilCount,
+      taxiwayFeatures: groundLightingScene.taxiwayFeatures,
+      taxiwaySegments: groundLightingScene.taxiwaySegments,
+      taxiwayDashes: groundLightingScene.taxiwayDashes,
+      vertices: groundLightingScene.vertexCount,
+      drawBatches: groundLightingScene.drawBatches,
     },
     surfaceDiagnostics: {
       visible: surfaceScene.visible,

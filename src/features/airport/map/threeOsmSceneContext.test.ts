@@ -83,6 +83,15 @@ const context = createThreeOsmContextScene({
       }],
     },
   },
+  runwayGroundLighting: {
+    features: [{
+      properties: { role: "edge" },
+      geometry: {
+        type: "LineString",
+        coordinates: [[-71.02, 42.36], [-71.01, 42.37]],
+      },
+    }],
+  },
   runwayEndLabels: [
     {
       key: "04R/22L-04R",
@@ -132,6 +141,7 @@ assert.deepEqual(context.runwayDiagnostics, { segments: 1, vertices: 6 });
 assert.equal(context.runwayApproachDiagnostics.kind, "approach-lines");
 assert.equal(context.runwayApproachDiagnostics.features, 1);
 assert.ok(context.runwayApproachDiagnostics.dashes > 0);
+assert.equal(context.groundLightingDiagnostics.visible, false);
 assert.deepEqual(context.surfaceDiagnostics, {
   visible: true,
   aprons: 1,
