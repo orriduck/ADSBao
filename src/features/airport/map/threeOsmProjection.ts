@@ -14,6 +14,13 @@ export type ThreeOsmWorldPoint = {
   z: number;
 };
 
+export type ThreeOsmBounds = {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+};
+
 export const THREE_OSM_TILE_SIZE = 256;
 export const THREE_OSM_MIN_ZOOM = 3;
 export const THREE_OSM_MAX_ZOOM = 16;
@@ -76,6 +83,33 @@ export function buildVisibleTileGrid(
 
 export function buildOsmRasterTileUrl(tile: TileCoordinate) {
   return `https://tile.openstreetmap.org/${tile.z}/${tile.x}/${tile.y}.png`;
+}
+
+function tileXToLongitude(x: number, zoom: number) {
+  return (x / 2 ** zoom) * 360 - 180;
+}
+
+function tileYToLatitude(y: number, zoom: number) {
+  const n = Math.PI - (2 * Math.PI * y) / 2 ** zoom;
+  return (180 / Math.PI) * Math.atan(Math.sinh(n));
+}
+
+export function buildThreeOsmTileGridBounds(
+  center: TileCoordinate,
+  radius: unknown,
+): ThreeOsmBounds {
+  const safeRadius = Math.min(2, Math.max(1, Math.round(Number(radius) || 1)));
+  const scale = 2 ** center.z;
+  const minX = Math.max(0, Math.floor(center.x) - safeRadius);
+  const maxX = Math.min(scale, Math.floor(center.x) + safeRadius + 1);
+  const minY = Math.max(0, Math.floor(center.y) - safeRadius);
+  const maxY = Math.min(scale, Math.floor(center.y) + safeRadius + 1);
+  return {
+    west: tileXToLongitude(minX, center.z),
+    south: tileYToLatitude(maxY, center.z),
+    east: tileXToLongitude(maxX, center.z),
+    north: tileYToLatitude(minY, center.z),
+  };
 }
 
 export function metersPerTileAtLatitude(lat: unknown, zoom: unknown) {

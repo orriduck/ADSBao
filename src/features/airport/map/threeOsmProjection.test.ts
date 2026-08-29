@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   buildOsmRasterTileUrl,
+  buildThreeOsmTileGridBounds,
   buildVisibleTileGrid,
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
@@ -16,6 +17,12 @@ assert.equal(center.z, 10);
 const grid = buildVisibleTileGrid(center, 2);
 assert.equal(grid.length, 25);
 assert.equal(buildOsmRasterTileUrl(grid[0]).startsWith("https://tile.openstreetmap.org/10/"), true);
+
+const bounds = buildThreeOsmTileGridBounds(center, 2);
+assert.ok(bounds.west < -71.0064);
+assert.ok(bounds.east > -71.0064);
+assert.ok(bounds.south < 42.3629);
+assert.ok(bounds.north > 42.3629);
 
 const origin = lonLatAltitudeToThreeOsmWorld({
   lon: -71.0064,

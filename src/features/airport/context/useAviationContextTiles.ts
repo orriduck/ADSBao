@@ -68,6 +68,8 @@ async function fetchTile(url: string) {
 
 export function useAviationContextTiles({
   map = null,
+  bounds = null,
+  zoom = null,
   enabled = false,
   airspacesEnabled = false,
   navaidsEnabled = false,
@@ -85,7 +87,7 @@ export function useAviationContextTiles({
   const lastTileSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!map || !enabled) {
+    if ((!map && !bounds) || !enabled) {
       setTiles([]);
       lastTileSignatureRef.current = null;
       return undefined;
@@ -95,8 +97,8 @@ export function useAviationContextTiles({
       let nextTiles = [];
       try {
         nextTiles = getContextTilesForBounds({
-          bounds: map.getBounds?.(),
-          zoom: map.getZoom?.(),
+          bounds: map?.getBounds?.() || bounds,
+          zoom: map?.getZoom?.() ?? zoom,
         });
       } catch {
         return;
@@ -108,6 +110,9 @@ export function useAviationContextTiles({
     };
 
     const frame = window.requestAnimationFrame(updateTiles);
+    if (!map) {
+      return () => window.cancelAnimationFrame(frame);
+    }
     // The first animation frame can run before Leaflet has committed its
     // initial bounds. Re-run once its view is actually ready so a stationary
     // first load still requests its viewport context (including airspace).
@@ -123,7 +128,7 @@ export function useAviationContextTiles({
       map.off?.("moveend", updateTiles);
       map.off?.("zoomend", updateTiles);
     };
-  }, [enabled, map, refreshKey]);
+  }, [bounds, enabled, map, refreshKey, zoom]);
 
   const requestUrls = useMemo(() => {
     if (!enabled || tiles.length === 0) return [];

@@ -62,9 +62,12 @@ continue in this order rather than polishing the 3D treatment first:
 6. **Measured optimization:** real-device 20-minute sessions, frame/long-task
    budgets, memory stability, and only then additional visual depth or effects.
 
-The first item is implemented in the branch POC. The focal runways and nearby
-airport scene objects begin item two; the remaining operational overlays are
-still intentionally incomplete.
+The first item is implemented in the branch POC. Item two now includes focal
+runways, nearby airports, airspace boundaries, conditional navaids, reporting
+points, watcher locations, and user location. Context-tile loading no longer
+requires a hidden Leaflet map instance: the Three/OSM tile grid supplies its
+own bounds. Selection callbacks and the trace/route layer remain the next
+incomplete operational boundary.
 
 ## Proposed architecture if the POC graduates
 

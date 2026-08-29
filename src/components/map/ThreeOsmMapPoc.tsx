@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
+import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import {
@@ -12,7 +13,10 @@ import {
   lonLatToTileCoordinate,
   THREE_OSM_TILE_SIZE,
 } from "@/features/airport/map/threeOsmProjection";
-import { airportDisplayCode } from "@/utils/airport";
+import {
+  createThreeOsmContextScene,
+  type ThreeOsmSceneLabel,
+} from "@/features/airport/map/threeOsmSceneContext";
 
 type CameraMode = "2d" | "3d";
 
@@ -24,9 +28,23 @@ type ThreeOsmPocProps = {
   airportCode?: string;
   nearbyAirports?: Array<Record<string, any>>;
   runwayMap?: Record<string, any> | null;
+  airspaces?: Array<Record<string, any>>;
+  navaids?: Array<Record<string, any>>;
+  navaidCounts?: Array<Record<string, any>>;
+  reportingPoints?: Array<Record<string, any>>;
+  candidateWatchingSpots?: Array<Record<string, any>>;
+  showAirspaces?: boolean;
+  showNavaidMarkers?: boolean;
+  useNavaidCounts?: boolean;
+  showReportingPoints?: boolean;
+  showCandidateWatchingSpots?: boolean;
   showCallsigns?: boolean;
   selectedAircraftId?: string;
+  selectedNavaidKey?: string;
+  selectedReportingPointKey?: string;
+  selectedCandidateWatchingSpotId?: string;
   focalAircraftId?: string;
+  userLocation?: Record<string, any> | null;
   theme?: string;
   onSelectAircraft?: ((aircraftId: string) => void) | null;
   onReady?: ((state: { ready: boolean; tilesLoaded: number }) => void) | null;
@@ -37,16 +55,6 @@ const AIRCRAFT_COLOR_DARK = 0xf0eee7;
 const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
 const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
 const SELECTED_AIRCRAFT_COLOR_LIGHT = 0x414341;
-const FOCAL_AIRPORT_COLOR = 0xf5c542;
-
-type SceneLabel = {
-  id: string;
-  text: string;
-  kind: "aircraft" | "airport" | "focal-airport";
-  position: THREE.Vector3;
-  priority: number;
-  selected?: boolean;
-};
 
 type TrafficRenderItem = {
   position: THREE.Vector3;
@@ -104,9 +112,23 @@ export default function ThreeOsmMapPoc({
   airportCode = "",
   nearbyAirports = [],
   runwayMap = null,
+  airspaces = [],
+  navaids = [],
+  navaidCounts = [],
+  reportingPoints = [],
+  candidateWatchingSpots = [],
+  showAirspaces = true,
+  showNavaidMarkers = false,
+  useNavaidCounts = false,
+  showReportingPoints = false,
+  showCandidateWatchingSpots = false,
   showCallsigns = true,
   selectedAircraftId = "",
+  selectedNavaidKey = "",
+  selectedReportingPointKey = "",
+  selectedCandidateWatchingSpotId = "",
   focalAircraftId = "",
+  userLocation = null,
   theme = "dark",
   onSelectAircraft = null,
   onReady = null,
@@ -129,8 +151,8 @@ export default function ThreeOsmMapPoc({
   const trafficMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const trafficIdsRef = useRef<string[]>([]);
   const trafficRenderItemsRef = useRef<TrafficRenderItem[]>([]);
-  const trafficLabelsRef = useRef<SceneLabel[]>([]);
-  const contextLabelsRef = useRef<SceneLabel[]>([]);
+  const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
+  const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
@@ -181,6 +203,10 @@ export default function ThreeOsmMapPoc({
   const runwayCollection = useMemo(
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
     [runwayMap],
+  );
+  const airspaceFeatures = useMemo(
+    () => buildAirspaceOverlayFeatures(airspaces),
+    [airspaces],
   );
 
   useEffect(() => {
@@ -242,7 +268,7 @@ export default function ThreeOsmMapPoc({
       context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       context.clearRect(0, 0, width, height);
       const labels = [...contextLabelsRef.current, ...trafficLabelsRef.current];
-      const styleById = new Map<string, SceneLabel>();
+      const styleById = new Map<string, ThreeOsmSceneLabel>();
       const candidates = labels.flatMap((label) => {
         projected.copy(label.position).project(camera);
         if (
@@ -509,130 +535,59 @@ export default function ThreeOsmMapPoc({
     }
 
     disposeObject(contextGroupRef.current);
-    const group = new THREE.Group();
-    group.name = "three-osm-operational-context";
+    const contextScene = createThreeOsmContextScene({
+      airportCode,
+      airports: visibleAirports,
+      runwayCollection,
+      airspaceFeatures,
+      showAirspaces,
+      navaids,
+      navaidCounts,
+      useNavaidCounts,
+      reportingPoints,
+      candidateWatchingSpots,
+      showNavaidMarkers,
+      showReportingPoints,
+      showCandidateWatchingSpots,
+      selectedNavaidKey,
+      selectedReportingPointKey,
+      selectedCandidateWatchingSpotId,
+      userLocation,
+      tileCenter,
+      centerLat,
+      theme,
+    });
+    const { group } = contextScene;
     contextGroupRef.current = group;
     scene.add(group);
-
-    const labels: SceneLabel[] = [];
-    const focalMarker = new THREE.Mesh(
-      new THREE.CylinderGeometry(5, 5, 18, 12),
-      new THREE.MeshBasicMaterial({ color: FOCAL_AIRPORT_COLOR }),
+    contextLabelsRef.current = contextScene.labels;
+    rootRef.current?.setAttribute(
+      "data-poc-airports",
+      String(contextScene.counts.airports),
     );
-    focalMarker.position.set(0, 9, 0);
-    group.add(focalMarker);
-    const focalRing = new THREE.Mesh(
-      new THREE.RingGeometry(8, 10, 28),
-      new THREE.MeshBasicMaterial({
-        color: FOCAL_AIRPORT_COLOR,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.9,
-      }),
-    );
-    focalRing.rotation.x = -Math.PI / 2;
-    focalRing.position.y = 1.5;
-    group.add(focalRing);
-    if (airportCode) {
-      labels.push({
-        id: `focal-airport:${airportCode}`,
-        text: airportCode,
-        kind: "focal-airport",
-        position: new THREE.Vector3(0, 24, 0),
-        priority: 1_000,
-      });
-    }
-
-    const airportGeometry = new THREE.OctahedronGeometry(4, 0);
-    const airportMaterial = new THREE.MeshBasicMaterial({
-      color: theme === "light" ? 0x252725 : 0xe4e1d8,
-    });
-    const airportMesh = new THREE.InstancedMesh(
-      airportGeometry,
-      airportMaterial,
-      visibleAirports.length,
-    );
-    const airportMatrix = new THREE.Matrix4();
-    const airportPosition = new THREE.Vector3();
-    visibleAirports.forEach((item, index) => {
-      const point = lonLatAltitudeToThreeOsmWorld({
-        lon: item?.lon,
-        lat: item?.lat,
-        center: tileCenter,
-        centerLat,
-      });
-      if (!point) return;
-      airportPosition.set(point.x, 5, point.z);
-      airportMatrix.makeTranslation(airportPosition);
-      airportMesh.setMatrixAt(index, airportMatrix);
-      const code = airportDisplayCode(item);
-      if (code) {
-        labels.push({
-          id: `airport:${code}:${index}`,
-          text: code,
-          kind: "airport",
-          position: airportPosition.clone().setY(10),
-          priority: 650 - Math.hypot(point.x, point.z) / 10,
-        });
-      }
-    });
-    airportMesh.instanceMatrix.needsUpdate = true;
-    airportMesh.computeBoundingSphere();
-    group.add(airportMesh);
-
-    const runwaySegments: number[] = [];
-    for (const feature of runwayCollection?.features || []) {
-      const coordinates = feature?.geometry?.coordinates;
-      if (!Array.isArray(coordinates)) continue;
-      for (let index = 1; index < coordinates.length; index += 1) {
-        const from = coordinates[index - 1];
-        const to = coordinates[index];
-        const fromPoint = lonLatAltitudeToThreeOsmWorld({
-          lon: from?.[0],
-          lat: from?.[1],
-          center: tileCenter,
-          centerLat,
-        });
-        const toPoint = lonLatAltitudeToThreeOsmWorld({
-          lon: to?.[0],
-          lat: to?.[1],
-          center: tileCenter,
-          centerLat,
-        });
-        if (!fromPoint || !toPoint) continue;
-        runwaySegments.push(
-          fromPoint.x,
-          1.8,
-          fromPoint.z,
-          toPoint.x,
-          1.8,
-          toPoint.z,
-        );
-      }
-    }
-    if (runwaySegments.length) {
-      const runwayGeometry = new THREE.BufferGeometry();
-      runwayGeometry.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute(runwaySegments, 3),
-      );
-      group.add(
-        new THREE.LineSegments(
-          runwayGeometry,
-          new THREE.LineBasicMaterial({
-            color: theme === "light" ? 0x1d1e1d : 0xf4f1e8,
-            opacity: 0.95,
-            transparent: true,
-          }),
-        ),
-      );
-    }
-
-    contextLabelsRef.current = labels;
-    rootRef.current?.setAttribute("data-poc-airports", String(visibleAirports.length));
     rootRef.current?.setAttribute(
       "data-poc-runways",
-      String(runwayCollection?.features?.length || 0),
+      String(contextScene.counts.runways),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspaces",
+      String(contextScene.counts.airspaces),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-navaids",
+      String(contextScene.counts.navaids),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-reporting-points",
+      String(contextScene.counts.reportingPoints),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-spots",
+      String(contextScene.counts.spots),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-user-location",
+      String(contextScene.counts.userLocation),
     );
     requestRenderRef.current();
 
@@ -642,12 +597,26 @@ export default function ThreeOsmMapPoc({
       if (contextGroupRef.current == null) contextLabelsRef.current = [];
     };
   }, [
+    airspaceFeatures,
     airportCode,
+    candidateWatchingSpots,
     centerLat,
     centerLon,
+    navaidCounts,
+    navaids,
+    reportingPoints,
     runwayCollection,
+    selectedCandidateWatchingSpotId,
+    selectedNavaidKey,
+    selectedReportingPointKey,
+    showAirspaces,
+    showCandidateWatchingSpots,
+    showNavaidMarkers,
+    showReportingPoints,
     theme,
     tileCenter,
+    useNavaidCounts,
+    userLocation,
     visibleAirports,
   ]);
 
@@ -677,7 +646,7 @@ export default function ThreeOsmMapPoc({
     const ids: string[] = [];
     const renderItems: TrafficRenderItem[] = [];
     const stems: number[] = [];
-    const labels: SceneLabel[] = [];
+    const labels: ThreeOsmSceneLabel[] = [];
 
     visibleAircraft.forEach((item, index) => {
       const point = lonLatAltitudeToThreeOsmWorld({

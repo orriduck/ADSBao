@@ -74,6 +74,11 @@ import {
   AirportMapInteractionMode,
   resolveAirportMapInteraction,
 } from "@/features/airport/map/mapInteractionMode";
+import {
+  buildThreeOsmTileGridBounds,
+  clampThreeOsmZoom,
+  lonLatToTileCoordinate,
+} from "@/features/airport/map/threeOsmProjection";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
 import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
@@ -223,6 +228,19 @@ export default function AirportMap({
       }),
     [fallbackCenter, focalCenter, shouldDeferInitialCenter],
   );
+  const threeOsmContextViewport = useMemo(() => {
+    if (!threeOsmPocEnabled || !initialCenter) return null;
+    const contextZoom = clampThreeOsmZoom(zoom);
+    const tileCenter = lonLatToTileCoordinate(
+      initialCenter.lon,
+      initialCenter.lat,
+      contextZoom,
+    );
+    return {
+      bounds: buildThreeOsmTileGridBounds(tileCenter, 2),
+      zoom: contextZoom,
+    };
+  }, [initialCenter, threeOsmPocEnabled, zoom]);
   const canInitializeMap = Boolean(initialCenter);
   const visualGateKey = resolveMapVisualGateKey({
     variant: loadingOverlayVariant,
@@ -835,7 +853,9 @@ export default function AirportMap({
     zoom: leafletZoom,
   });
   const contextTiles = useAviationContextTiles({
-    map: mapInstance,
+    map: threeOsmPocEnabled ? null : mapInstance,
+    bounds: threeOsmContextViewport?.bounds,
+    zoom: threeOsmContextViewport?.zoom,
     enabled: contextTileOverlays,
     airspacesEnabled: showAirspaces,
     navaidsEnabled: showNavaidMarkers && !useNavaidCountTiles,
@@ -1032,9 +1052,23 @@ export default function AirportMap({
               airportCode={focalAirportDisplayCode}
               nearbyAirports={nearbyAirportLayerDisplay.airports}
               runwayMap={runwayMap}
+              airspaces={renderedAirspaces}
+              navaids={renderedNavaids}
+              navaidCounts={contextTiles.navaidCounts}
+              reportingPoints={reportingPoints}
+              candidateWatchingSpots={candidateWatchingSpots}
+              showAirspaces={showAirspaces}
+              showNavaidMarkers={showNavaidMarkers}
+              useNavaidCounts={useNavaidCountTiles}
+              showReportingPoints={showReportingPoints}
+              showCandidateWatchingSpots={showCandidateWatchingSpots}
               showCallsigns={showCallsigns}
               selectedAircraftId={selectedAircraftId}
+              selectedNavaidKey={selectedNavaidKey}
+              selectedReportingPointKey={selectedReportingPointKey}
+              selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
               focalAircraftId={focalAircraftId}
+              userLocation={userLocation}
               theme={currentTheme}
               onSelectAircraft={onSelectAircraft}
               onReady={handleThreeOsmPocReady}
