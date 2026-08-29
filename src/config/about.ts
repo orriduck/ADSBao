@@ -11,14 +11,7 @@ export const ABOUT_BUILD_META = {
       label: "Stack",
       labelKey: "about.meta.stack",
       layout: "compact-grid",
-      items: [
-        "React 19",
-        "Vite 8",
-        "Tailwind CSS v4",
-        "MapLibre GL",
-        "Leaflet",
-        "Three.js",
-      ],
+      items: ["React 19", "Vite 8", "Tailwind CSS v4", "Leaflet"],
     },
     {
       label: "Architecture",

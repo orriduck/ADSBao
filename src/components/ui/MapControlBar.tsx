@@ -16,7 +16,6 @@ export default function MapControlBar({
   surface = "map",
   menuPlacement = "bottom",
   activeZoom = ZOOM_AIRPORT,
-  mapViewMode = "2d",
   zoomActive = true,
   zoomDisabled = false,
   traceViewItems = [],
@@ -43,7 +42,6 @@ export default function MapControlBar({
   wakeLockActive = false,
   wakeLockSupported = false,
   onZoom,
-  onMapViewModeChange,
   onToggleRunwayBeams,
   onToggleNavaidMarkers,
   onToggleReportingPoints,
@@ -125,7 +123,6 @@ export default function MapControlBar({
       <MapControlRail
         menuPlacement={menuPlacement}
         activeZoom={activeZoom}
-        mapViewMode={mapViewMode}
         zoomMin={AIRPORT_MAP_ZOOM_MIN}
         zoomMax={AIRPORT_MAP_ZOOM_MAX}
         zoomDisabled={zoomDisabled}
@@ -133,7 +130,6 @@ export default function MapControlBar({
           normalizedTraceViewItems.length > 0 && !zoomActive
         }
         onZoom={onZoom}
-        onMapViewModeChange={onMapViewModeChange}
         onRecenter={onRecenter}
         traceItems={normalizedTraceViewItems}
         currentTheme={themePreference}

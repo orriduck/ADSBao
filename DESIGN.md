@@ -119,32 +119,6 @@ frosted material tokens (`--atc-glass-*`, `--atc-control-*`, `--app-frost*`) so
 the live map remains visible and interaction layers are spatially distinct.
 Do not introduce a third surface recipe.
 
-## Neutral technical material
-
-ADSBao may borrow the material logic of exposed consumer electronics without
-borrowing another product's typography, scale, color system, or signature
-graphics. The intended reference is restrained hardware construction: surfaces
-show how they meet, controls visibly depress, and floating layers reveal the
-map beneath them. This extends Operational Wayfinding; it does not replace it.
-
-- Fixed information content remains a flat white or black **matte information
-  plate**. A very low-opacity microtexture may keep large neutral areas from
-  reading as unfinished browser fill, but it must not lower text contrast or
-  become visible patterning.
-- Rails and compact controls may read as **machined neutral controls** through
-  one inset highlight edge, one low edge, and a short glyph-only press motion.
-  They keep the 36px rail, the 48px content axis, and the existing semantic
-  color. Do not add screws, dot-matrix decoration, circular widget grids, or
-  ornamental hardware marks.
-- Existing floating frost surfaces may read as **polycarbonate interaction
-  layers** through their current blur, a restrained inner edge, and controlled
-  translucency. Do not increase blur merely to make the material conspicuous.
-- Material is expressed by edge behavior and depth response, not by changing
-  the product typeface, font sizes, yellow/deep-blue meanings, or information
-  density.
-- Joined rows still own exactly one structural divider. Material highlights
-  are inset and cannot create a second divider between neighboring modules.
-
 ## Shape and motion
 
 - Floating preview cards keep a soft outer radius so they read as elevated

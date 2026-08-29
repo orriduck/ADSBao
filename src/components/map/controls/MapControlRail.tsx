@@ -27,13 +27,11 @@ const RAIL_BUTTON_CLASS = toolbarButtonVariants({ tone: "rail" });
 export default function MapControlRail({
   menuPlacement = "bottom",
   activeZoom = 10,
-  mapViewMode = "2d",
   zoomMin = 10,
   zoomMax = 15,
   zoomDisabled = false,
   zoomAdjustmentDisabled = false,
   onZoom,
-  onMapViewModeChange,
   traceItems = [],
   currentTheme,
   themeTitle,
@@ -91,13 +89,11 @@ export default function MapControlRail({
       {showZoom ? (
         <ZoomSliderButton
           activeZoom={activeZoom}
-          mapViewMode={mapViewMode}
           min={zoomMin}
           max={zoomMax}
           disabled={zoomDisabled}
           adjustmentDisabled={zoomAdjustmentDisabled}
           onZoom={onZoom}
-          onMapViewModeChange={onMapViewModeChange}
           onRecenter={onRecenter}
           traceItems={traceItems}
           menuPlacement={menuPlacement}
@@ -147,13 +143,11 @@ export default function MapControlRail({
 // 一级一级吸附（整数）的缩放滑条。无长按、无点击循环。
 function ZoomSliderButton({
   activeZoom = 10,
-  mapViewMode = "2d",
   min = 10,
   max = 15,
   disabled = false,
   adjustmentDisabled = false,
   onZoom,
-  onMapViewModeChange,
   onRecenter = null,
   traceItems = [],
   menuPlacement = "bottom",
@@ -219,29 +213,6 @@ function ZoomSliderButton({
           </div>
           <div className="mt-1.5 text-center text-[12px] font-semibold tabular-nums text-atc-text">
             {current}x
-          </div>
-
-          <div className="mt-2 border-t border-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] pt-1.5">
-            {(["2d", "3d"] as const).map((mode) => (
-              <MenuItem
-                key={mode}
-                role="menuitemradio"
-                aria-checked={mapViewMode === mode}
-                selected={mapViewMode === mode}
-                onClick={() => {
-                  onMapViewModeChange?.(mode);
-                  setOpen(false);
-                }}
-                className="justify-between"
-              >
-                <MenuItemLabel>
-                  {mode === "2d" ? t("map.view2d") : t("map.view3d")}
-                </MenuItemLabel>
-                {mapViewMode === mode ? (
-                  <Check className="h-3 w-3" aria-hidden="true" />
-                ) : null}
-              </MenuItem>
-            ))}
           </div>
 
           {onRecenter ? (

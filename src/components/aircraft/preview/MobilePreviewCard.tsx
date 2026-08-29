@@ -30,51 +30,25 @@ export default function MobilePreviewCard({
   // *call site* (<MobilePreviewCard key=...>), not a prop here — a `key`
   // on this root <aside> would be a no-op (React reads key at the call site).
   const [expanded, setExpanded] = React.useState(false);
-  const [dragOffset, setDragOffset] = React.useState(0);
-  const [dragging, setDragging] = React.useState(false);
-  const dragRef = React.useRef<{
-    y: number;
-    lastY: number;
-    lastAt: number;
-    velocity: number;
-  } | null>(null);
+  const dragRef = React.useRef<{ y: number } | null>(null);
   // Portrait = top sheet, drags DOWN to expand. Landscape = bottom sheet,
   // drags UP to expand. expandDir is the sign of "open".
   const isTop = placement !== "bottomRight";
   const expandDir = isTop ? 1 : -1;
 
   const onGrabberPointerDown = (event: React.PointerEvent) => {
-    dragRef.current = {
-      y: event.clientY,
-      lastY: event.clientY,
-      lastAt: event.timeStamp,
-      velocity: 0,
-    };
-    setDragging(true);
+    dragRef.current = { y: event.clientY };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
   const onGrabberPointerMove = (event: React.PointerEvent) => {
     const drag = dragRef.current;
     if (!drag) return;
     const delta = (event.clientY - drag.y) * expandDir;
-    const elapsed = Math.max(1, event.timeStamp - drag.lastAt);
-    drag.velocity = ((event.clientY - drag.lastY) * expandDir) / elapsed;
-    drag.lastY = event.clientY;
-    drag.lastAt = event.timeStamp;
-    setDragOffset(Math.max(-42, Math.min(42, delta)) * expandDir);
+    if (delta > SHEET_DRAG_THRESHOLD) setExpanded(true);
+    else if (delta < -SHEET_DRAG_THRESHOLD) setExpanded(false);
   };
   const onGrabberPointerUp = (event: React.PointerEvent) => {
-    const drag = dragRef.current;
-    if (drag) {
-      const delta = (event.clientY - drag.y) * expandDir;
-      if (delta > SHEET_DRAG_THRESHOLD || drag.velocity > 0.5) setExpanded(true);
-      else if (delta < -SHEET_DRAG_THRESHOLD || drag.velocity < -0.5) {
-        setExpanded(false);
-      }
-    }
     dragRef.current = null;
-    setDragging(false);
-    setDragOffset(0);
     event.currentTarget.releasePointerCapture?.(event.pointerId);
   };
 
@@ -114,16 +88,10 @@ export default function MobilePreviewCard({
       data-density={compact ? "compact" : undefined}
       data-placement={placement === "bottomRight" ? "bottom-right" : "top"}
       data-expanded={expanded ? "true" : undefined}
-      data-dragging={dragging ? "true" : undefined}
       data-dismissible={dismissible ? "true" : undefined}
       data-has-top-media={topMedia ? "true" : undefined}
       data-ui="mobile-preview-card"
-      style={
-        {
-          ...style,
-          "--mobile-preview-drag-y": `${dragOffset}px`,
-        } as React.CSSProperties
-      }
+      style={style}
       className={cn(
         "fixed z-popover",
         placement === "bottomRight"

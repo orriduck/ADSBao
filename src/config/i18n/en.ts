@@ -605,8 +605,6 @@ const en = {
     approachingView: "Approaching view (click to cycle)",
     viewMenu: "Map range",
     viewMenuTitle: "Map range: {label}",
-    view2d: "2D operational map",
-    view3d: "3D altitude view",
     viewFar: "Far",
     viewMedium: "Medium",
     viewNear: "Near",

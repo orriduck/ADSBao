@@ -272,9 +272,6 @@ const AircraftCanvasRenderer = (L as any).Renderer.extend({
     }
 
     this._hitPoints = hitPoints;
-    if (this._container) {
-      this._container.dataset.renderedAircraftCount = String(drawn);
-    }
     this._anyAnimating = anyAnimating;
     this._lastDraw = now;
     recordAircraftCanvasFrame({

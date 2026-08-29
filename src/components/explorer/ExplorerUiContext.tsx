@@ -50,12 +50,6 @@ const ExplorerSelectionContext = createContext(null);
 const DEFAULT_USER_LOCATION_PREFERENCES =
   mapSettingsToUserLocationPreferences(DEFAULT_MAP_SETTINGS);
 
-const getInitialMapViewMode = () =>
-  typeof window !== "undefined" &&
-  window.localStorage.getItem("adsbao:map-view-mode:v1") === "3d"
-    ? "3d"
-    : "2d";
-
 const initialUiState = {
   ...DEFAULT_AIRPORT_EXPLORER_UI_STATE,
   ...mapSettingsToExplorerLayers(DEFAULT_MAP_SETTINGS),
@@ -72,7 +66,6 @@ const initialUiState = {
   selectedCandidateWatchingSpotId: "",
   fitToTraceSignal: 0,
   mapFollowsAircraft: true,
-  mapViewMode: getInitialMapViewMode(),
 };
 
 function getExplorerLayoutProfile(clientDeviceProfile) {
@@ -169,12 +162,6 @@ function airportExplorerUiReducer(state, action) {
         mapZoom: action.mapZoom,
         mapFollowsAircraft: true,
       };
-    case "setMapViewMode": {
-      const mapViewMode = action.mapViewMode === "3d" ? "3d" : "2d";
-      if (state.mapViewMode === mapViewMode) return state;
-      window.localStorage.setItem("adsbao:map-view-mode:v1", mapViewMode);
-      return { ...state, mapViewMode };
-    }
     case "toggleRunwayBeams":
       return applyManualLayerToggle(
         state,
@@ -477,7 +464,6 @@ export function ExplorerUiProvider({ children }) {
     sidebarMode,
     sidebarOpen,
     mapZoom,
-    mapViewMode,
     mapLabelLevel,
     showRunwayBeams,
     showNavaidMarkers,
@@ -573,10 +559,6 @@ export function ExplorerUiProvider({ children }) {
 
   const setMapZoom = useCallback((mapZoom) => {
     dispatch({ type: "setMapZoom", mapZoom });
-  }, []);
-
-  const setMapViewMode = useCallback((mapViewMode) => {
-    dispatch({ type: "setMapViewMode", mapViewMode });
   }, []);
 
   const saveMapSettings = useCallback(
@@ -724,7 +706,6 @@ export function ExplorerUiProvider({ children }) {
       sidebarOpen: effectiveSidebarOpen,
       isMobile,
       mapZoom,
-      mapViewMode,
       mapFollowsAircraft,
       mapLabelLevel,
       showRunwayBeams,
@@ -753,7 +734,6 @@ export function ExplorerUiProvider({ children }) {
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
-      setMapViewMode,
       setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,
@@ -792,7 +772,6 @@ export function ExplorerUiProvider({ children }) {
       effectiveSidebarOpen,
       isMobile,
       mapZoom,
-      mapViewMode,
       mapFollowsAircraft,
       mapLabelLevel,
       showRunwayBeams,
@@ -821,7 +800,6 @@ export function ExplorerUiProvider({ children }) {
       selectedCandidateWatchingSpotId,
       fitToTraceSignal,
       setMapZoom,
-      setMapViewMode,
       setAirborneFilter,
       setTypeFilter,
       setAltitudeLevel,

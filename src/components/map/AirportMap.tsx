@@ -1,7 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
 import { toast } from "sonner";
 import { MapContext } from "./MapContext";
 import MapTileLayers from "./MapTileLayers";
@@ -32,8 +30,6 @@ import MapLoadingOverlay, {
   useMapLoadingOverlayText,
   useResolvedMapLoadingOverlay,
 } from "./MapLoadingOverlay";
-import NativeMapMarkers from "./NativeMapMarkers";
-import { airportDisplayCode } from "@/utils/airport";
 import { getAircraftIdentity } from "../../features/airport/context/airportContextUiModel";
 import { useI18n } from "../../features/app-shell/i18n/useI18n";
 import {
@@ -76,12 +72,6 @@ import {
 } from "@/features/airport/map/mapInteractionMode";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
-import { useExplorerUi } from "@/components/explorer/ExplorerUiContext";
-
-const ThreeAltitudeLayer = lazy(() => import("./ThreeAltitudeLayer"));
-const NativeOperationalLayers = lazy(
-  () => import("./NativeOperationalLayers"),
-);
 
 const resolveCurrentTheme = () =>
   typeof document !== "undefined"
@@ -158,23 +148,16 @@ export default function AirportMap({
   children = null,
 }: Record<string, any>) {
   const { locale, t } = useI18n();
-  const { mapViewMode: viewMode } = useExplorerUi();
-  const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
   const mapEl = useRef(null);
-  const nativeMapEl = useRef(null);
   const mapRef = useRef(null);
-  const nativeMapRef = useRef<any>(null);
-  const viewModeRef = useRef<"2d" | "3d">("2d");
   const sizeObs = useRef(null);
   // Set by AircraftCanvasLayer; the map click handler hit-tests aircraft through
   // it (the canvas pane is pointer-events:none, so clicks reach the map).
   const aircraftHitTestRef = useRef<((cp: any) => string | null) | null>(null);
   const mapDragRef = useRef(false);
   const [mapInstance, setMapInstance] = useState(null);
-  const [nativeMapInstance, setNativeMapInstance] = useState<any>(null);
-  viewModeRef.current = viewMode;
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [visualContentReady, setVisualContentReady] = useState(false);
   const [initialVisualReady, setInitialVisualReady] = useState(false);
@@ -245,33 +228,7 @@ export default function AirportMap({
   }, [visualGateKey]);
 
   useEffect(() => {
-    if (
-      !mapEl.current ||
-      !nativeMapEl.current ||
-      mapRef.current ||
-      nativeMapRef.current ||
-      !initialCenter
-    ) return undefined;
-    const nativeMap = new maplibregl.Map({
-      container: nativeMapEl.current,
-      style: { version: 8, sources: {}, layers: [] },
-      center: [Number(initialCenter.lon), Number(initialCenter.lat)],
-      zoom: Number(zoom) - 1,
-      attributionControl: false,
-    });
-    nativeMap.dragPan.disable();
-    nativeMap.scrollZoom.disable();
-    nativeMap.boxZoom.disable();
-    nativeMap.doubleClickZoom.disable();
-    nativeMap.keyboard.disable();
-    nativeMap.touchZoomRotate.disable();
-    nativeMap.on("error", (event: any) => {
-      const message = String(event?.error?.message || "");
-      if (/AbortError|cancelled|canceled/i.test(message)) return;
-      console.error("[airport-map] native map error", event?.error || event);
-    });
-    nativeMapRef.current = nativeMap;
-    setNativeMapInstance(nativeMap);
+    if (!mapEl.current || mapRef.current || !initialCenter) return undefined;
     const map = L.map(mapEl.current, {
       center: [initialCenter.lat, initialCenter.lon],
       zoom,
@@ -296,156 +253,20 @@ export default function AirportMap({
     mapRef.current = map;
     setMapInstance(map);
 
-    let syncing = false;
-    let nativeReady = false;
-    const publishAlignmentAudit = () => {
-      const debugElement = nativeMapEl.current as HTMLElement | null;
-      if (!debugElement) return;
-      const nativePoint = nativeMap.project([
-        Number(initialCenter.lon),
-        Number(initialCenter.lat),
-      ]);
-      const overlayPoint = map.latLngToContainerPoint([
-        Number(initialCenter.lat),
-        Number(initialCenter.lon),
-      ]);
-      debugElement.dataset.mapAlignmentDelta = [
-        (overlayPoint.x - nativePoint.x).toFixed(2),
-        (overlayPoint.y - nativePoint.y).toFixed(2),
-      ].join(",");
-      debugElement.dataset.mapCamera = [
-        nativeMap.getZoom().toFixed(2),
-        map.getZoom().toFixed(2),
-        nativeMap.getPitch().toFixed(1),
-        nativeMap.getBearing().toFixed(1),
-      ].join(",");
-    };
-    const syncNativeFromOverlay = (force = false) => {
-      if (
-        syncing ||
-        !nativeReady ||
-        (!force && viewModeRef.current !== "2d")
-      ) return;
-      const center = map.getCenter();
-      syncing = true;
-      nativeMap.jumpTo({
-        center: [center.lng, center.lat],
-        zoom: map.getZoom() - 1,
-      });
-      syncing = false;
-      publishAlignmentAudit();
-    };
-    const syncOverlayFromNative = () => {
-      if (
-        syncing ||
-        !nativeReady ||
-        viewModeRef.current !== "3d"
-      ) return;
-      const center = nativeMap.getCenter();
-      syncing = true;
-      map.setView([center.lat, center.lng], nativeMap.getZoom() + 1, {
-        animate: false,
-      });
-      syncing = false;
-      publishAlignmentAudit();
-    };
-    const handleNativeReady = () => {
-      nativeReady = true;
-      if (viewModeRef.current === "2d") syncNativeFromOverlay(true);
-      else publishAlignmentAudit();
-    };
-    const handleNativeStyleLoad = () => {
-      window.requestAnimationFrame(() => {
-        if (viewModeRef.current === "2d") syncNativeFromOverlay(true);
-        else publishAlignmentAudit();
-      });
-    };
-    const handleOverlayCameraChange = () => syncNativeFromOverlay(false);
-    const handleNativeCameraChange = () => {
-      if (viewModeRef.current === "3d") syncOverlayFromNative();
-      else publishAlignmentAudit();
-    };
-    map.on("move zoom", handleOverlayCameraChange);
-    nativeMap.on("move", handleNativeCameraChange);
-    nativeMap.on("load", handleNativeReady);
-    nativeMap.on("style.load", handleNativeStyleLoad);
-
     sizeObs.current = new ResizeObserver(() => {
       requestAnimationFrame(() => mapRef.current?.invalidateSize());
-      requestAnimationFrame(() => {
-        const currentNativeMap = nativeMapRef.current;
-        if (!currentNativeMap) return;
-        currentNativeMap.resize();
-        if (viewModeRef.current === "2d") syncNativeFromOverlay(true);
-        else publishAlignmentAudit();
-      });
     });
     sizeObs.current.observe(mapEl.current);
 
     return () => {
       sizeObs.current?.disconnect();
       sizeObs.current = null;
-      map.off("move zoom", handleOverlayCameraChange);
-      nativeMap.off("move", handleNativeCameraChange);
-      nativeMap.off("load", handleNativeReady);
-      nativeMap.off("style.load", handleNativeStyleLoad);
       map.remove();
-      nativeMap.remove();
       mapRef.current = null;
-      nativeMapRef.current = null;
       setMapInstance(null);
-      setNativeMapInstance(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canInitializeMap]);
-
-  useEffect(() => {
-    if (!nativeMapInstance) return;
-    const is3d = viewMode === "3d";
-    const applyViewMode = () => {
-      const overlayMap = mapRef.current as any;
-      if (overlayMap) {
-        if (is3d) {
-          const center = overlayMap.getCenter();
-          nativeMapInstance.jumpTo({
-            center: [center.lng, center.lat],
-            zoom: overlayMap.getZoom() - 1,
-          });
-        } else {
-          const center = nativeMapInstance.getCenter();
-          overlayMap.setView(
-            [center.lat, center.lng],
-            nativeMapInstance.getZoom() + 1,
-            { animate: false },
-          );
-        }
-      }
-      nativeMapInstance.dragPan?.[is3d && mapInteraction.allowsDragging ? "enable" : "disable"]?.();
-      if (is3d && mapInteraction.allowsDragging) {
-        nativeMapInstance.touchZoomRotate?.enable?.();
-        nativeMapInstance.touchZoomRotate?.disableRotation?.();
-      } else {
-        nativeMapInstance.touchZoomRotate?.disable?.();
-      }
-      const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-      nativeMapInstance.easeTo({
-        pitch: is3d ? 54 : 0,
-        bearing: is3d ? -16 : 0,
-        duration: reducedMotion ? 0 : 420,
-        essential: false,
-      });
-    };
-    // Camera state is independent from style readiness. Apply it immediately
-    // on every mode transition, then repeat after style lifecycle events so a
-    // newly swapped style cannot restore a stale 2D/3D pitch or bearing.
-    applyViewMode();
-    nativeMapInstance.on("load", applyViewMode);
-    nativeMapInstance.on("style.load", applyViewMode);
-    return () => {
-      nativeMapInstance.off("load", applyViewMode);
-      nativeMapInstance.off("style.load", applyViewMode);
-    };
-  }, [mapInteraction.allowsDragging, nativeMapInstance, viewMode]);
 
   useEffect(() => {
     if (!mapInstance) return;
@@ -703,15 +524,6 @@ export default function AirportMap({
       null,
     [aircraft, selectedAircraftId, visibleAircraft],
   );
-  const focalAircraft = useMemo(
-    () =>
-      visibleAircraft.find(
-        (item) => getAircraftIdentity(item) === focalAircraftId,
-      ) ||
-      aircraft.find((item) => getAircraftIdentity(item) === focalAircraftId) ||
-      null,
-    [aircraft, focalAircraftId, visibleAircraft],
-  );
   const selectionActive = Boolean(selectedAircraftId && selectedAircraft);
   const renderSelectedAircraftTrace = shouldRenderSelectedAircraftTrace({
     selectedAircraftId,
@@ -768,18 +580,11 @@ export default function AirportMap({
     const mapContainer = mapInstance.getContainer?.() || null;
     const checkReadiness = () => {
       if (cancelled) return;
-      const visualRoot = mapContainer?.parentElement || mapContainer;
       const aircraftMarkersReady =
         !aircraftMarkersRequired ||
-        Boolean(
-          visualRoot?.querySelector(
-            '.aircraft-canvas-layer[data-rendered-aircraft-count]:not([data-rendered-aircraft-count="0"])',
-          ),
-        );
+        Boolean(mapContainer?.querySelector(".aircraft-marker"));
       const traceReady =
-        !traceRequired ||
-        Boolean(visualRoot?.querySelector(".aircraft-trace")) ||
-        Boolean(nativeMapRef.current?.getLayer?.("adsbao-three-altitude"));
+        !traceRequired || Boolean(mapContainer?.querySelector(".aircraft-trace"));
       const timedOut =
         window.performance.now() - startedAt >=
         MAP_VISUAL_CONTENT_READY_CUTOFF_MS;
@@ -963,37 +768,20 @@ export default function AirportMap({
   }, []);
 
   return (
-    <div
-      className="relative h-full w-full bg-atc-bg"
-      data-map-view-mode={viewMode}
-      data-map-tiles-ready={mapTilesReady ? "true" : "false"}
-      data-map-visual-ready={mapVisualReady ? "true" : "false"}
-      data-map-loading-mode={loadingOverlayState.mode}
-      data-map-show-airspaces={showAirspaces ? "true" : "false"}
-      data-map-context-airspaces={contextTiles.airspaces.length}
-      data-map-context-navaids={contextTiles.navaids.length}
-      data-map-context-navaid-counts={contextTiles.navaidCounts.length}
-      data-map-context-loading={contextTiles.loading ? "true" : "false"}
-    >
-      <div
-        ref={nativeMapEl}
-        className="airport-map-native absolute inset-0 h-full w-full"
-        aria-hidden={!mapVisible}
-      />
+    <div className="relative h-full w-full bg-atc-bg">
       <div
         ref={mapEl}
-        className="airport-map-surface absolute inset-0 h-full w-full"
+        className="airport-map-surface h-full w-full"
         aria-hidden={!mapVisible}
         style={{
-          opacity: mapVisible && viewMode === "2d" ? 1 : 0,
-          pointerEvents: mapVisible && viewMode === "2d" ? undefined : "none",
+          opacity: mapVisible ? 1 : 0,
+          pointerEvents: mapVisible ? undefined : "none",
         }}
       />
 
       {mapInstance && (
         <MapContext.Provider value={mapInstance}>
           <MapTileLayers
-            map={nativeMapInstance}
             theme={currentTheme}
             locale={locale}
             labelLevel={mapLabelLevel}
@@ -1119,58 +907,6 @@ export default function AirportMap({
             hitTestRef={aircraftHitTestRef}
           />
         </MapContext.Provider>
-      )}
-
-      {nativeMapInstance && viewMode === "3d" && (
-        <>
-          <NativeMapMarkers
-            map={nativeMapInstance}
-            active
-            airportCode={focalAirportDisplayCode}
-            lat={lat}
-            lon={lon}
-          />
-          <Suspense fallback={null}>
-            <NativeOperationalLayers
-              map={nativeMapInstance}
-              active
-              aircraft={visibleAircraft}
-              nearbyAirports={nearbyAirportLayerDisplay.airports}
-              navaids={renderedNavaids}
-              navaidCounts={contextTiles.navaidCounts}
-              reportingPoints={reportingPoints}
-              airspaces={renderedAirspaces}
-              candidateWatchingSpots={candidateWatchingSpots}
-              runwayMap={runwayMap}
-              showNavaidMarkers={showNavaidMarkers}
-              useNavaidCounts={useNavaidCountTiles}
-              showReportingPoints={showReportingPoints}
-              showAirspaces={showAirspaces}
-              showCandidateWatchingSpots={showCandidateWatchingSpots}
-              showCallsigns={showCallsigns}
-              selectedAircraftId={selectedAircraftId}
-              selectedAirportIcao={selectedAirportIcao}
-              selectedNavaidKey={selectedNavaidKey}
-              selectedReportingPointKey={selectedReportingPointKey}
-              selectedCandidateWatchingSpotId={selectedCandidateWatchingSpotId}
-              userLocation={userLocation}
-              onSelectAircraft={onSelectAircraft}
-              onSelectAirport={onSelectAirport}
-              onSelectNavaid={onSelectNavaid}
-              onSelectReportingPoint={onSelectReportingPoint}
-              onSelectAirspace={onSelectAirspace}
-              onSelectCandidateWatchingSpot={onSelectCandidateWatchingSpot}
-            />
-            <ThreeAltitudeLayer
-              map={nativeMapInstance}
-              active
-              selectedAircraft={selectedAircraft || focalAircraft}
-              focalVisualPosition={focalVisualPosition}
-              aircraft={visibleAircraft}
-              theme={currentTheme}
-            />
-          </Suspense>
-        </>
       )}
 
       {mapInstance && (
