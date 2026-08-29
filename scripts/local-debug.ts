@@ -9,6 +9,12 @@ import {
 } from "node:fs";
 import { join, relative } from "node:path";
 import process from "node:process";
+import { networkInterfaces } from "node:os";
+import {
+  buildThreeOsmDeviceAcceptanceUrl,
+  resolveThreeOsmProviderFieldState,
+  selectAdsbaoLocalDeviceHost,
+} from "./local-device-debug-model";
 
 type EndpointCheck = {
   name: string;
@@ -31,6 +37,8 @@ type Options = {
   restart: boolean;
   service: boolean;
   serviceRestart: boolean;
+  device: boolean;
+  configuredTiles: boolean;
 };
 
 const rootDir = process.cwd();
@@ -49,14 +57,17 @@ const viteOrigin = env.ADSBAO_LOCAL_DEV_ORIGIN || `http://localhost:${vitePort}`
 
 function printUsage() {
   console.log(`Usage:
-  pnpm debug:local [--restart] [--no-start] [--service] [--service-restart] [--json]
+  pnpm debug:local [--restart] [--no-start] [--service] [--service-restart] [--device] [--configured-tiles] [--json]
 
 Examples:
   pnpm debug:local
   pnpm debug:local --service
   pnpm debug:local --restart
   pnpm debug:local:status
-  pnpm debug:local:service`);
+  pnpm debug:local:service
+  pnpm debug:device
+  pnpm debug:device:status
+  pnpm debug:device:configured`);
 }
 
 function parseOptions(args: string[]): Options {
@@ -66,6 +77,8 @@ function parseOptions(args: string[]): Options {
     restart: false,
     service: false,
     serviceRestart: false,
+    device: false,
+    configuredTiles: false,
   };
 
   for (const arg of args) {
@@ -88,6 +101,15 @@ function parseOptions(args: string[]): Options {
       case "--service-restart":
         options.service = true;
         options.serviceRestart = true;
+        break;
+      case "--device":
+        options.device = true;
+        options.service = true;
+        break;
+      case "--configured-tiles":
+        options.configuredTiles = true;
+        options.device = true;
+        options.service = true;
         break;
       case "--help":
       case "-h":
@@ -492,8 +514,62 @@ async function ensureService(options: Options) {
   return { action: "started", start };
 }
 
-async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
+async function buildDeviceReport(options: Options) {
+  if (!options.device) return null;
+
+  const providerFields = resolveThreeOsmProviderFieldState(env);
+  const host = selectAdsbaoLocalDeviceHost({
+    interfaces: networkInterfaces(),
+    explicitHost: env.ADSBAO_LOCAL_DEVICE_HOST,
+  });
+  if (!host) {
+    return {
+      ready: false,
+      host: null,
+      origin: null,
+      acceptanceUrl: null,
+      tileMode: options.configuredTiles ? "configured" : "osm",
+      providerFields,
+      endpoints: [] as EndpointCheck[],
+      issue:
+        "No private LAN IPv4 address was found. Set ADSBAO_LOCAL_DEVICE_HOST to a trusted local hostname or private IPv4 address.",
+    };
+  }
+
+  const origin = `http://${host}:${vitePort}`;
+  const acceptanceUrl = buildThreeOsmDeviceAcceptanceUrl({
+    origin,
+    configuredTiles: options.configuredTiles,
+  });
   const endpoints = await Promise.all([
+    checkEndpoint("device frontend /", `${origin}/`, 4_000),
+    checkEndpoint("device KBOS acceptance", acceptanceUrl, 4_000),
+    checkEndpoint("device /health proxy", `${origin}/health`, 4_000),
+  ]);
+  const providerReady = !options.configuredTiles || providerFields.complete;
+  const networkReady = endpoints.every((endpoint) => endpoint.ok);
+  return {
+    ready: providerReady && networkReady,
+    host,
+    origin,
+    acceptanceUrl,
+    tileMode: options.configuredTiles ? "configured" : "osm",
+    providerFields,
+    endpoints,
+    issue: !providerReady
+      ? `Configured tile mode requires all ${providerFields.total} browser-visible provider fields; found ${providerFields.configured}.`
+      : !networkReady
+        ? "The LAN origin did not pass every HTTP probe. Check macOS Local Network/firewall access and Wi-Fi client isolation before opening it on a phone."
+        : null,
+  };
+}
+
+async function buildSnapshot(
+  frontendAction: unknown,
+  serviceAction: unknown,
+  options: Options,
+) {
+  const localEndpoints = await Promise.all([
     checkEndpoint("frontend /", `${viteOrigin}/`),
     checkEndpoint("frontend KBOS", `${viteOrigin}/airport/KBOS?locale=zh-CN`),
     checkEndpoint("frontend /health proxy", `${viteOrigin}/health`),
@@ -503,6 +579,8 @@ async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
     checkEndpoint("service /debug/channels", `${localApiOrigin}/debug/channels`),
     checkEndpoint("service /debug/tracking", `${localApiOrigin}/debug/tracking`),
   ]);
+  const device = await buildDeviceReport(options);
+  const endpoints = [...localEndpoints, ...(device?.endpoints || [])];
 
   const git = gitSnapshot();
   const report = {
@@ -519,6 +597,7 @@ async function buildSnapshot(frontendAction: unknown, serviceAction: unknown) {
       action: serviceAction,
       process: portState(localApiPort),
     },
+    device,
     endpoints,
   };
 
@@ -554,6 +633,14 @@ function renderMarkdown(report: any) {
     `- git: ${report.git.branch}@${report.git.sha}${report.git.dirty ? " dirty" : ""}`,
     `- frontend: ${report.viteOrigin}`,
     `- local API origin: ${report.localApiOrigin}`,
+    ...(report.device
+      ? [
+          `- device origin: ${report.device.origin || "unavailable"}`,
+          `- device acceptance: ${report.device.acceptanceUrl || "unavailable"}`,
+          `- device tile mode: ${report.device.tileMode} (${report.device.providerFields.configured}/${report.device.providerFields.total} provider fields)`,
+          `- device readiness: ${report.device.ready ? "ready" : "blocked"}${report.device.issue ? ` — ${report.device.issue}` : ""}`,
+        ]
+      : []),
     ``,
     `| check | status | ok | ms | summary |`,
     `|---|---:|---:|---:|---|`,
@@ -576,6 +663,19 @@ function printReport(report: any) {
   );
   console.log(`- frontend: ${report.viteOrigin}`);
   console.log(`- local API origin: ${report.localApiOrigin}`);
+  if (report.device) {
+    console.log(`- device origin: ${report.device.origin || "unavailable"}`);
+    console.log(
+      `- device acceptance: ${report.device.acceptanceUrl || "unavailable"}`,
+    );
+    console.log(
+      `- device tile mode: ${report.device.tileMode} (${report.device.providerFields.configured}/${report.device.providerFields.total} provider fields)`,
+    );
+    console.log(
+      `- device readiness: ${report.device.ready ? "ready" : "blocked"}`,
+    );
+    if (report.device.issue) console.log(`- device issue: ${report.device.issue}`);
+  }
   console.log(`- snapshot: ${relative(rootDir, join(tmpDir, "latest.md"))}`);
   console.log("");
 
@@ -594,7 +694,7 @@ async function main() {
 
   const frontendAction = await ensureFrontend(options);
   const serviceAction = await ensureService(options);
-  const report = await buildSnapshot(frontendAction, serviceAction);
+  const report = await buildSnapshot(frontendAction, serviceAction, options);
 
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));
@@ -610,8 +710,9 @@ async function main() {
         (endpoint: EndpointCheck) => endpoint.name === "service /health",
       )?.ok
     : true;
+  const deviceHealthy = options.device ? report.device?.ready === true : true;
 
-  if (!frontendHealthy || !serviceHealthy) {
+  if (!frontendHealthy || !serviceHealthy || !deviceHealthy) {
     process.exit(1);
   }
 }

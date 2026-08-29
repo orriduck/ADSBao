@@ -57,6 +57,22 @@ the start of the physical run, perform at least ten touch interactions and one
 background/foreground cycle, then mark the observed thermal state after the
 20-minute timer completes and export the report.
 
+Before opening the page on a physical phone, run `pnpm debug:device` for the
+default OSM source. It prints a key-free private-LAN acceptance URL only after
+checking the frontend root, that exact KBOS deep link, and the proxied service
+health endpoint through the same origin the phone will use. The command exits
+nonzero when any LAN probe fails; fix macOS Local Network/firewall permission or
+Wi-Fi client isolation before proceeding, and do not substitute a public tunnel
+without explicit authorization. Both devices must be on a network that permits
+client-to-client traffic.
+
+For a licensed-provider run, put all four public-browser fields listed below in
+ignored `.env.local`, then use `pnpm debug:device:configured`. It restarts the
+frontend so Vite adopts the provider fields, requires all four to be present,
+and prints only their count—not their values or tile URL. Open only the emitted
+acceptance URL. On an insecure HTTP LAN origin, report sharing may fall back to
+downloading the JSON file; that does not change the eleven acceptance gates.
+
 The query flag replaces both visible map modes with one Three.js scene:
 
 - 2D uses `OrthographicCamera`.

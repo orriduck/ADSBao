@@ -40,6 +40,7 @@ Choose the smallest applicable path:
 | UI-only | `pnpm debug:local` | Inspect the affected route in a real browser; check the relevant theme, responsive state, and `DESIGN.md` checklist. |
 | Client logic or model | `pnpm debug:local` | Focused active tests plus browser review when user-visible. |
 | API, SSE, proxy, or service contract | `pnpm debug:local:service` | `pnpm debug:local:status`, direct service health, focused contract test, and browser Network inspection when a stream is affected. |
+| Physical-device browser POC | `pnpm debug:device` | Open only the printed private-LAN acceptance URL. The command must pass frontend, deep-link, and proxied-health LAN probes before the device run begins. |
 | Private Go service | From `../ADSBao-Secret-Service/services/adsbao-service`: `go test ./...` and `PORT=8082 ./run-local.sh` | Verify its documented endpoint contract through Vite as well as directly. |
 
 `debug:local` adopts healthy processes. Use `debug:local:restart` only for an
@@ -47,6 +48,16 @@ unhealthy or stale frontend; use `debug:local:service:restart` only when the
 private service itself needs restart. The snapshot records `/`, a deep link,
 and `/health` plus active debug endpoints. It intentionally does not invent a
 feature-flags route.
+
+`debug:device` uses the current private IPv4 address and keeps browser requests
+on Vite's same-origin proxy. Use `debug:device:status` for a non-starting
+readiness check. For the Three/OSM licensed-provider trial, first place all four
+public browser provider fields in ignored `.env.local`, then run
+`pnpm debug:device:configured`; that command restarts only the frontend so Vite
+can adopt those values. It reports only field counts and the key-free acceptance
+URL. A failed LAN probe is a real precondition failure: resolve macOS Local
+Network/firewall access or Wi-Fi client isolation rather than bypassing it with
+an unrequested public tunnel.
 
 ## Product constraints
 
