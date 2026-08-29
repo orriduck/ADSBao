@@ -72,10 +72,12 @@ The acceptance verdict remains `incomplete` until all eleven gates pass. A
 desktop viewport or emulated user agent cannot be reported as the physical
 iPhone result: the exported user agent/touch evidence is only a candidate
 signal and the operator still confirms the hardware. Use **Reset report** at
-the start of the physical run, perform at least ten touch interactions and one
-background/foreground cycle, then mark the observed thermal state after the
-20-minute timer completes and export the report. Expand **Gate details** during
-the run to inspect each gate's live status and evidence; pending and failed
+the start of the physical run; resetting requires a second confirmation within
+eight seconds so an accidental tap cannot erase a long session. Perform at
+least ten touch interactions and one background/foreground cycle. The thermal
+controls remain disabled until the 20-minute timer completes; then mark the
+observed thermal state and export the report. Expand **Gate details** during the
+run to inspect each gate's live status and evidence; pending and failed
 requirements remain visible without covering the map when the list is closed.
 The same panel exposes the browser screen-wake-lock state and an explicit
 enable/retry control so an operator does not accidentally invalidate the long

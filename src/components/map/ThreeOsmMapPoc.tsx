@@ -88,6 +88,11 @@ import {
   parseThreeOsmTrafficStressTarget,
 } from "@/features/airport/map/threeOsmTrafficStress";
 import { verifyThreeOsmOperationalOverlayProfile } from "@/features/airport/map/threeOsmAcceptanceProfile";
+import {
+  THREE_OSM_ACCEPTANCE_RESET_CONFIRM_WINDOW_MS,
+  canAssessThreeOsmAcceptanceThermal,
+  resolveThreeOsmAcceptanceResetAction,
+} from "@/features/airport/map/threeOsmAcceptanceOperatorModel";
 
 type CameraMode = "2d" | "3d";
 
@@ -434,6 +439,9 @@ export default function ThreeOsmMapPoc({
   );
   const [basemapState, setBasemapState] = useState<BasemapState>("loading");
   const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
+  const [acceptanceResetArmedAtMs, setAcceptanceResetArmedAtMs] = useState<
+    number | null
+  >(null);
   const [debugLayerMode, setDebugLayerMode] = useState<DebugLayerMode>(() =>
     typeof window === "undefined"
       ? "all"
@@ -2319,6 +2327,31 @@ export default function ThreeOsmMapPoc({
     (acceptanceRecorder.evaluation?.elapsedMs || 0) / 1_000,
   );
   const acceptanceElapsed = `${String(Math.floor(acceptanceElapsedSeconds / 60)).padStart(2, "0")}:${String(acceptanceElapsedSeconds % 60).padStart(2, "0")}`;
+  const acceptanceThermalAvailable = canAssessThreeOsmAcceptanceThermal(
+    acceptanceRecorder.evaluation?.elapsedMs,
+  );
+
+  useEffect(() => {
+    if (acceptanceResetArmedAtMs == null) return undefined;
+    const timeout = window.setTimeout(
+      () => setAcceptanceResetArmedAtMs(null),
+      THREE_OSM_ACCEPTANCE_RESET_CONFIRM_WINDOW_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [acceptanceResetArmedAtMs]);
+
+  const handleAcceptanceReset = () => {
+    const next = resolveThreeOsmAcceptanceResetAction({
+      armedAtMs: acceptanceResetArmedAtMs,
+      nowMs: Date.now(),
+    });
+    if (next.action === "reset") {
+      acceptanceRecorder.reset();
+      setAcceptanceResetArmedAtMs(null);
+      return;
+    }
+    setAcceptanceResetArmedAtMs(next.armedAtMs);
+  };
 
   const handleSimulateContextRecovery = () => {
     const renderer = rendererRef.current;
@@ -2562,10 +2595,12 @@ export default function ThreeOsmMapPoc({
                 </button>
                 <button
                   type="button"
-                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542]"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-[#f5c542] data-[active=true]:text-[#f5c542] disabled:cursor-not-allowed disabled:opacity-45"
                   data-active={
+                    acceptanceThermalAvailable &&
                     rootRef.current?.dataset.pocAcceptanceThermal === "acceptable"
                   }
+                  disabled={!acceptanceThermalAvailable}
                   onClick={() =>
                     acceptanceRecorder.setThermalAssessment("acceptable")
                   }
@@ -2574,17 +2609,27 @@ export default function ThreeOsmMapPoc({
                 </button>
                 <button
                   type="button"
-                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-red-400 data-[active=true]:text-red-300"
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[active=true]:border-red-400 data-[active=true]:text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
                   data-active={
+                    acceptanceThermalAvailable &&
                     rootRef.current?.dataset.pocAcceptanceThermal ===
                     "uncomfortable"
                   }
+                  disabled={!acceptanceThermalAvailable}
                   onClick={() =>
                     acceptanceRecorder.setThermalAssessment("uncomfortable")
                   }
                 >
                   {t("map.poc.acceptanceThermalHot")}
                 </button>
+                {!acceptanceThermalAvailable ? (
+                  <span
+                    className="w-full text-[9px] text-white/55"
+                    data-poc-acceptance-thermal-available="false"
+                  >
+                    {t("map.poc.acceptanceThermalLocked")}
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white"
@@ -2594,10 +2639,16 @@ export default function ThreeOsmMapPoc({
                 </button>
                 <button
                   type="button"
-                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white"
-                  onClick={acceptanceRecorder.reset}
+                  className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[confirm=true]:border-red-400 data-[confirm=true]:text-red-300"
+                  data-confirm={acceptanceResetArmedAtMs != null}
+                  data-poc-acceptance-reset-confirmation={
+                    acceptanceResetArmedAtMs == null ? "idle" : "armed"
+                  }
+                  onClick={handleAcceptanceReset}
                 >
-                  {t("map.poc.acceptanceReset")}
+                  {acceptanceResetArmedAtMs == null
+                    ? t("map.poc.acceptanceReset")
+                    : t("map.poc.acceptanceResetConfirm")}
                 </button>
                 {acceptanceRecorder.exportState !== "idle" ? (
                   <span className="w-full text-[9px] text-white/60">
