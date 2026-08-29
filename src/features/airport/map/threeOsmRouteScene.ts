@@ -3,6 +3,11 @@ import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  resolveThreeOsmVisualPalette,
+  type ThreeOsmContrastMode,
+  type ThreeOsmSystemColors,
+} from "./threeOsmAccessibilityPreferences";
 
 type RoutePoint = [unknown, unknown];
 
@@ -11,14 +16,23 @@ export function createThreeOsmRouteScene({
   tileCenter,
   centerLat,
   theme,
+  contrastMode,
+  systemColors = null,
 }: {
   path: RoutePoint[];
   tileCenter: TileCoordinate;
   centerLat: number;
   theme: string;
+  contrastMode: ThreeOsmContrastMode;
+  systemColors?: ThreeOsmSystemColors | null;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-flight-route";
+  const palette = resolveThreeOsmVisualPalette({
+    theme,
+    contrastMode,
+    systemColors,
+  });
   const points = (Array.isArray(path) ? path : []).flatMap((point) => {
     const world = lonLatAltitudeToThreeOsmWorld({
       lat: point?.[0],
@@ -34,10 +48,10 @@ export function createThreeOsmRouteScene({
   const route = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(points),
     new THREE.LineDashedMaterial({
-      color: theme === "light" ? 0x4b4e4b : 0xc4c7c4,
+      color: palette.route,
       dashSize: 13,
       gapSize: 9,
-      opacity: 0.68,
+      opacity: contrastMode === "standard" ? 0.68 : 1,
       transparent: true,
       depthTest: false,
     }),
@@ -51,8 +65,8 @@ export function createThreeOsmRouteScene({
     const destinationRing = new THREE.Mesh(
       new THREE.RingGeometry(5.5, 7.5, 24),
       new THREE.MeshBasicMaterial({
-        color: theme === "light" ? 0x4b4e4b : 0xc4c7c4,
-        opacity: 0.72,
+        color: palette.route,
+        opacity: palette.lineOpacity,
         transparent: true,
         depthTest: false,
         side: THREE.DoubleSide,

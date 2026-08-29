@@ -17,6 +17,7 @@ const scene = createThreeOsmTraceScene({
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
   theme: "dark",
+  contrastMode: "standard",
 });
 
 assert.equal(scene.traceCount, 1);

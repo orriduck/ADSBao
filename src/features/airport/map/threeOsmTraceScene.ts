@@ -3,6 +3,11 @@ import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  resolveThreeOsmVisualPalette,
+  type ThreeOsmContrastMode,
+  type ThreeOsmSystemColors,
+} from "./threeOsmAccessibilityPreferences";
 
 type TraceRecord = {
   aircraftHex?: string | null;
@@ -15,14 +20,23 @@ export function createThreeOsmTraceScene({
   tileCenter,
   centerLat,
   theme,
+  contrastMode,
+  systemColors = null,
 }: {
   traces: TraceRecord[];
   tileCenter: TileCoordinate;
   centerLat: number;
   theme: string;
+  contrastMode: ThreeOsmContrastMode;
+  systemColors?: ThreeOsmSystemColors | null;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-selected-traces";
+  const palette = resolveThreeOsmVisualPalette({
+    theme,
+    contrastMode,
+    systemColors,
+  });
   let traceCount = 0;
   let pointCount = 0;
 
@@ -45,14 +59,10 @@ export function createThreeOsmTraceScene({
       new THREE.LineBasicMaterial({
         color:
           traceIndex === 0
-            ? theme === "light"
-              ? 0x353735
-              : 0xd8dad8
-            : theme === "light"
-              ? 0x686b68
-              : 0xa5a8a5,
-        opacity,
-        transparent: opacity < 1,
+            ? palette.tracePrimary
+            : palette.traceSecondary,
+        opacity: contrastMode === "standard" ? opacity : 1,
+        transparent: contrastMode === "standard" && opacity < 1,
         depthTest: false,
       }),
     );
@@ -64,8 +74,9 @@ export function createThreeOsmTraceScene({
       new THREE.Line(
         new THREE.BufferGeometry().setFromPoints(groundPoints),
         new THREE.LineBasicMaterial({
-          color: theme === "light" ? 0x4d504d : 0xb9bcb9,
-          opacity: opacity * 0.26,
+          color: palette.traceSecondary,
+          opacity:
+            contrastMode === "standard" ? opacity * 0.26 : palette.mutedLineOpacity,
           transparent: true,
           depthTest: false,
         }),
@@ -81,8 +92,9 @@ export function createThreeOsmTraceScene({
             head,
           ]),
           new THREE.LineBasicMaterial({
-            color: theme === "light" ? 0x4d504d : 0xb9bcb9,
-            opacity: opacity * 0.45,
+            color: palette.traceSecondary,
+            opacity:
+              contrastMode === "standard" ? opacity * 0.45 : palette.lineOpacity,
             transparent: true,
             depthTest: true,
           }),

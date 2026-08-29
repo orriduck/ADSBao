@@ -58,6 +58,13 @@ The query flag replaces both visible map modes with one Three.js scene:
 - Device pixel ratio is capped at 1.5 desktop and 1.25 compact.
 - Rendering is event-driven: resize, camera interaction, live traffic changes,
   or tile completion request a frame. There is no permanent animation loop.
+- The runtime listens to `prefers-reduced-motion`, `prefers-contrast`, and
+  `forced-colors`. Reduced motion keeps the existing on-demand renderer and
+  disabled camera damping. Increased contrast makes operational lines and
+  canvas labels opaque with stronger borders; forced colors resolve the user
+  agent's `Canvas`, `CanvasText`, `Highlight`, and `HighlightText` system colors
+  into the WebGL/canvas palette. Raster tiles remain untinted so geography is
+  not destroyed by multiplying a system background color into the texture.
 - Orthographic and perspective modes reuse one `OrbitControls` instance and
   retarget it to the active camera, avoiding listener/allocation churn during
   repeated mode changes.
@@ -88,6 +95,13 @@ continue in this order rather than polishing the 3D treatment first:
    attribution enforcement, and production-safe terms/capacity.
 6. **Measured optimization:** real-device 20-minute sessions, frame/long-task
    budgets, memory stability, and only then additional visual depth or effects.
+
+With items one through four now substantially represented in the branch, the
+remaining priority is: (1) a real iPhone-class 20-minute touch/background/
+thermal run, (2) a licensed raster provider trial through the existing adapter,
+(3) live-data interaction checks for every context kind, then (4) additional
+vector-cartography or aesthetic depth. More visual polish should not move ahead
+of the first two graduation risks.
 
 The first item is implemented in the branch POC. Item two now includes focal
 runways, nearby airports, airspace boundaries, conditional navaids, reporting
@@ -296,10 +310,16 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   summary, keyboard-selection instructions, a bounded first-aircraft list, and
   linked OSM attribution. The renderer remains request-driven and camera
   damping is disabled, so the POC does not add an autonomous camera-animation
-  loop. The available browser surface could not emulate reduced-motion,
-  increased-contrast, or forced-colors media preferences; those preference
-  modes therefore remain an explicit external acceptance gate rather than a
-  claimed browser pass.
+  loop.
+- A native DevTools media emulation at 390×844, DPR 3 matched reduced motion,
+  increased contrast, and forced colors simultaneously. The POC reported
+  `motion=reduced`, `contrast=forced`, `forced-palette=system`, on-demand
+  rendering, and disabled damping; compact coverage remained 9/9 tiles with
+  zero failures and zero horizontal overflow. A separate emulation with forced
+  colors disabled matched `prefers-contrast: more` and selected that palette
+  independently. The real system-color screenshot kept the raster geography,
+  changed canvas labels and operational geometry to the emulated user palette,
+  and retained selected-state shape/ring differences.
 - In context-only Debug Mode, clicking the browser-controlled canvas center no
   longer selected an invisible aircraft. The live local KBOS tree exposed 26
   nearby airports as selectable context buttons; selecting OWD through the
@@ -307,9 +327,13 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   preview with 12.8 NM, 49 ft, and Track airport. Production KBOS selected OWD
   through its airport list and showed the same interaction contract at 13 NM
   and 49 ft, plus the richer Norwood Memorial Airport name. The browser control
-  surface only issued center canvas clicks, so arbitrary-coordinate marker
-  picking is covered by the deterministic camera-projection/radius test rather
-  than claimed as a direct pointer pass.
+  surface was later exercised at a projected arbitrary canvas coordinate in the
+  390×844 emulation: a physical click on the OWD marker set
+  `last-pick=airport:KOWD`, selected the marker, and opened the 12.8 NM / 49 ft
+  preview. Direct DevTools touch injection was rejected by the in-app browser,
+  and mouse-to-touch translation did not produce a trusted touch pointer, so
+  the 22 CSS-pixel touch radius remains covered by deterministic projection/
+  radius tests until the real iPhone gate.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes
@@ -379,6 +403,7 @@ Do not replace the active map runtime until all of these pass:
 - Three.js rendering on demand: https://threejs.org/manual/en/rendering-on-demand.html
 - Three.js responsive/DPR guidance: https://threejs.org/manual/en/responsive.html
 - Three.js resource cleanup: https://threejs.org/manual/en/how-to-dispose-of-objects.html
+- CSS Color Adjustment / forced colors: https://drafts.csswg.org/css-color-adjust/
 - OSM raster tile usage policy: https://operations.osmfoundation.org/policies/tiles/
 - OSM vector tile usage policy: https://operations.osmfoundation.org/policies/vector/
 - OSM attribution guideline: https://osmfoundation.org/wiki/Licence/Attribution_Guidelines

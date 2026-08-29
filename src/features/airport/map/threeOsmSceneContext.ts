@@ -2,9 +2,13 @@ import * as THREE from "three";
 import { airportDisplayCode } from "@/utils/airport";
 import { buildNavaidLabels } from "./navaidLabelModel";
 import { buildReportingPointLabels } from "./reportingPointLabelModel";
+import {
+  resolveThreeOsmVisualPalette,
+  type ThreeOsmContrastMode,
+  type ThreeOsmSystemColors,
+  type ThreeOsmVisualPalette,
+} from "./threeOsmAccessibilityPreferences";
 import { lonLatAltitudeToThreeOsmWorld, type TileCoordinate } from "./threeOsmProjection";
-
-const FOCAL_AIRPORT_COLOR = 0xf5c542;
 
 export type ThreeOsmSceneLabel = {
   id: string;
@@ -89,7 +93,7 @@ function addContextPointInstances({
   geometry,
   tileCenter,
   centerLat,
-  theme,
+  palette,
 }: {
   group: THREE.Group;
   labels: ThreeOsmSceneLabel[];
@@ -97,7 +101,7 @@ function addContextPointInstances({
   geometry: THREE.BufferGeometry;
   tileCenter: TileCoordinate;
   centerLat: number;
-  theme: string;
+  palette: ThreeOsmVisualPalette;
 }) {
   if (!items.length) {
     geometry.dispose();
@@ -106,7 +110,7 @@ function addContextPointInstances({
   const mesh = new THREE.InstancedMesh(
     geometry,
     new THREE.MeshBasicMaterial({
-      color: theme === "light" ? 0x3c3e3c : 0xd2d0ca,
+      color: palette.contextMarker,
     }),
     items.length,
   );
@@ -135,12 +139,8 @@ function addContextPointInstances({
       rendered,
       new THREE.Color(
         item.selected
-          ? theme === "light"
-            ? 0x414341
-            : 0xb7bab7
-          : theme === "light"
-            ? 0x3c3e3c
-            : 0xd2d0ca,
+          ? palette.selectedContextMarker
+          : palette.contextMarker,
       ),
     );
     labels.push({
@@ -224,6 +224,8 @@ export function createThreeOsmContextScene({
   tileCenter,
   centerLat,
   theme,
+  contrastMode,
+  systemColors = null,
   locale = "en",
   selectedAirspaceId = "",
 }: {
@@ -248,23 +250,30 @@ export function createThreeOsmContextScene({
   tileCenter: TileCoordinate;
   centerLat: number;
   theme: string;
+  contrastMode: ThreeOsmContrastMode;
+  systemColors?: ThreeOsmSystemColors | null;
   locale?: string;
   selectedAirspaceId?: string;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
   const labels: ThreeOsmSceneLabel[] = [];
+  const palette = resolveThreeOsmVisualPalette({
+    theme,
+    contrastMode,
+    systemColors,
+  });
 
   const focalMarker = new THREE.Mesh(
     new THREE.CylinderGeometry(5, 5, 18, 12),
-    new THREE.MeshBasicMaterial({ color: FOCAL_AIRPORT_COLOR }),
+    new THREE.MeshBasicMaterial({ color: palette.focalAirport }),
   );
   focalMarker.position.set(0, 9, 0);
   group.add(focalMarker);
   const focalRing = new THREE.Mesh(
     new THREE.RingGeometry(8, 10, 28),
     new THREE.MeshBasicMaterial({
-      color: FOCAL_AIRPORT_COLOR,
+      color: palette.focalAirport,
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.9,
@@ -285,7 +294,7 @@ export function createThreeOsmContextScene({
 
   const airportGeometry = new THREE.OctahedronGeometry(4, 0);
   const airportMaterial = new THREE.MeshBasicMaterial({
-    color: theme === "light" ? 0x252725 : 0xe4e1d8,
+    color: palette.airportMarker,
   });
   const airportMesh = new THREE.InstancedMesh(
     airportGeometry,
@@ -323,12 +332,8 @@ export function createThreeOsmContextScene({
       airportCount,
       new THREE.Color(
         selected
-          ? theme === "light"
-            ? 0x414341
-            : 0xb7bab7
-          : theme === "light"
-            ? 0x252725
-            : 0xe4e1d8,
+          ? palette.selectedContextMarker
+          : palette.airportMarker,
       ),
     );
     if (selectionId) {
@@ -388,8 +393,8 @@ export function createThreeOsmContextScene({
       new THREE.LineSegments(
         runwayGeometry,
         new THREE.LineBasicMaterial({
-          color: theme === "light" ? 0x1d1e1d : 0xf4f1e8,
-          opacity: 0.95,
+          color: palette.runway,
+          opacity: contrastMode === "standard" ? 0.95 : 1,
           transparent: true,
         }),
       ),
@@ -468,8 +473,8 @@ export function createThreeOsmContextScene({
     const airspaceLines = new THREE.LineSegments(
       airspaceGeometry,
       new THREE.LineDashedMaterial({
-        color: theme === "light" ? 0x515451 : 0xc6c9c6,
-        opacity: 0.72,
+        color: palette.airspace,
+        opacity: palette.lineOpacity,
         transparent: true,
         dashSize: 4,
         gapSize: 4,
@@ -490,7 +495,7 @@ export function createThreeOsmContextScene({
     const selectedLines = new THREE.LineSegments(
       selectedGeometry,
       new THREE.LineBasicMaterial({
-        color: theme === "light" ? 0x242624 : 0xf5c542,
+        color: palette.selectedAirspace,
         opacity: 1,
         transparent: true,
       }),
@@ -534,7 +539,7 @@ export function createThreeOsmContextScene({
     geometry: new THREE.OctahedronGeometry(2.5, 0),
     tileCenter,
     centerLat,
-    theme,
+    palette,
   });
 
   const reportingItems: ContextPoint[] = showReportingPoints
@@ -556,7 +561,7 @@ export function createThreeOsmContextScene({
     geometry: new THREE.ConeGeometry(2.8, 5, 3),
     tileCenter,
     centerLat,
-    theme,
+    palette,
   });
 
   const spotItems: ContextPoint[] = showCandidateWatchingSpots
@@ -586,7 +591,7 @@ export function createThreeOsmContextScene({
     geometry: new THREE.SphereGeometry(2.2, 8, 6),
     tileCenter,
     centerLat,
-    theme,
+    palette,
   });
 
   let userLocationCount = 0;
@@ -604,7 +609,7 @@ export function createThreeOsmContextScene({
     const marker = new THREE.Mesh(
       new THREE.TorusGeometry(5, 1.2, 8, 24),
       new THREE.MeshBasicMaterial({
-        color: theme === "light" ? 0x414341 : 0xd7d9d7,
+        color: palette.userLocation,
       }),
     );
     marker.rotation.x = Math.PI / 2;

@@ -69,6 +69,7 @@ const context = createThreeOsmContextScene({
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
   theme: "dark",
+  contrastMode: "standard",
   selectedAirspaceId: "bos-class-b",
 });
 assert.deepEqual(context.counts, {
@@ -152,6 +153,7 @@ const chineseCounts = createThreeOsmContextScene({
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
   theme: "dark",
+  contrastMode: "standard",
   locale: "zh-CN",
 });
 assert.ok(chineseCounts.labels.some((label) => label.text === "3 导航台"));

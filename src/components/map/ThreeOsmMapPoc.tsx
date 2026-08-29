@@ -19,6 +19,13 @@ import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileReso
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildRunwayCenterlineCollection } from "@/features/airport/map/runwayAnnotationModel";
 import {
+  parseThreeOsmAccessibilityDebugOverrides,
+  resolveThreeOsmAccessibilityPreferences,
+  resolveThreeOsmVisualPalette,
+  type ThreeOsmAccessibilityMediaState,
+  type ThreeOsmSystemColors,
+} from "@/features/airport/map/threeOsmAccessibilityPreferences";
+import {
   createThreeOsmAircraftGeometry,
   createThreeOsmAircraftSelectionGeometry,
   resolveThreeOsmAircraftEmphasis,
@@ -114,14 +121,6 @@ type ThreeOsmPocProps = {
 const MAX_AIRCRAFT = 220;
 const MAX_TILE_TEXTURES = 72;
 const TILE_RETRY_DELAY_MS = 30_000;
-const AIRCRAFT_COLOR_DARK = 0xf0eee7;
-const AIRCRAFT_COLOR_LIGHT = 0x1e201f;
-const SELECTED_AIRCRAFT_COLOR_DARK = 0xb7bab7;
-const SELECTED_AIRCRAFT_COLOR_LIGHT = 0x414341;
-const FOCAL_AIRCRAFT_COLOR_DARK = 0xe8893f;
-const FOCAL_AIRCRAFT_COLOR_LIGHT = 0xcf6a1e;
-const AIRCRAFT_HALO_COLOR_DARK = 0x20211f;
-const AIRCRAFT_HALO_COLOR_LIGHT = 0xf7f5ef;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
 
 type TrafficRenderItem = {
@@ -162,6 +161,40 @@ function isDebugLayerVisible(
   layer: Exclude<DebugLayerMode, "all">,
 ) {
   return mode === "all" || mode === layer;
+}
+
+function readThreeOsmAccessibilityMediaState(): ThreeOsmAccessibilityMediaState {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return { reducedMotion: false, moreContrast: false, forcedColors: false };
+  }
+  return {
+    reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    moreContrast: window.matchMedia("(prefers-contrast: more)").matches,
+    forcedColors: window.matchMedia("(forced-colors: active)").matches,
+  };
+}
+
+function readThreeOsmSystemColors(theme: string): ThreeOsmSystemColors | null {
+  if (typeof document === "undefined" || !document.body) return null;
+  const probe = document.createElement("span");
+  probe.setAttribute("aria-hidden", "true");
+  probe.style.position = "fixed";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.style.colorScheme = theme === "light" ? "light" : "dark";
+  document.body.append(probe);
+  const resolve = (systemColor: string) => {
+    probe.style.color = systemColor;
+    return window.getComputedStyle(probe).color;
+  };
+  const colors = {
+    canvas: resolve("Canvas"),
+    canvasText: resolve("CanvasText"),
+    highlight: resolve("Highlight"),
+    highlightText: resolve("HighlightText"),
+  };
+  probe.remove();
+  return colors;
 }
 
 function configureThreeOsmControls({
@@ -367,6 +400,32 @@ export default function ThreeOsmMapPoc({
     new URLSearchParams(window.location.search).get("threeOsmDebug") === "1";
   const debugEnabledRef = useRef(debugEnabled);
   debugEnabledRef.current = debugEnabled;
+  const accessibilityDebugOverrides = useMemo(
+    () =>
+      parseThreeOsmAccessibilityDebugOverrides(
+        new URLSearchParams(
+          typeof window === "undefined" ? "" : window.location.search,
+        ),
+      ),
+    [],
+  );
+  const [accessibilityMediaState, setAccessibilityMediaState] = useState(
+    readThreeOsmAccessibilityMediaState,
+  );
+  const accessibilityPreferences = resolveThreeOsmAccessibilityPreferences({
+    media: accessibilityMediaState,
+    debugEnabled,
+    debugOverrides: accessibilityDebugOverrides,
+  });
+  const { contrastMode, reducedMotion } = accessibilityPreferences;
+  const [systemColors, setSystemColors] = useState<ThreeOsmSystemColors | null>(
+    () =>
+      contrastMode === "forced" ? readThreeOsmSystemColors(theme) : null,
+  );
+  const visualPalette = useMemo(
+    () => resolveThreeOsmVisualPalette({ theme, contrastMode, systemColors }),
+    [contrastMode, systemColors, theme],
+  );
   const configuredTileSource = useMemo(
     () =>
       createConfiguredThreeOsmTileSource({
@@ -423,6 +482,59 @@ export default function ThreeOsmMapPoc({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
+
+  useEffect(() => {
+    const next =
+      contrastMode === "forced" ? readThreeOsmSystemColors(theme) : null;
+    setSystemColors((current) => {
+      if (current === next) return current;
+      if (!current || !next) return next;
+      return current.canvas === next.canvas &&
+        current.canvasText === next.canvasText &&
+        current.highlight === next.highlight &&
+        current.highlightText === next.highlightText
+        ? current
+        : next;
+    });
+  }, [contrastMode, theme]);
+
+  useEffect(() => {
+    const reducedMotionQuery = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    const moreContrastQuery = window.matchMedia("(prefers-contrast: more)");
+    const forcedColorsQuery = window.matchMedia("(forced-colors: active)");
+    const update = () => setAccessibilityMediaState({
+      reducedMotion: reducedMotionQuery.matches,
+      moreContrast: moreContrastQuery.matches,
+      forcedColors: forcedColorsQuery.matches,
+    });
+    update();
+    reducedMotionQuery.addEventListener("change", update);
+    moreContrastQuery.addEventListener("change", update);
+    forcedColorsQuery.addEventListener("change", update);
+    return () => {
+      reducedMotionQuery.removeEventListener("change", update);
+      moreContrastQuery.removeEventListener("change", update);
+      forcedColorsQuery.removeEventListener("change", update);
+    };
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    root.dataset.pocMotion = reducedMotion ? "reduced" : "standard";
+    root.dataset.pocContrast = contrastMode;
+    root.dataset.pocForcedPalette =
+      contrastMode !== "forced"
+        ? "inactive"
+        : systemColors
+          ? "system"
+          : "fallback";
+    root.dataset.pocRenderLoop = "on-demand";
+    root.dataset.pocControlsDamping = "false";
+    requestRenderRef.current();
+  }, [contrastMode, reducedMotion, systemColors]);
 
   const centerLat = Number(center?.lat);
   const centerLon = Number(center?.lon);
@@ -596,7 +708,7 @@ export default function ThreeOsmMapPoc({
     if (!root || !canvas || !labelCanvas) return undefined;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(theme === "light" ? 0xd8d8d5 : 0x101111);
+    scene.background = new THREE.Color(visualPalette.background);
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: window.devicePixelRatio <= 1.5,
@@ -797,33 +909,41 @@ export default function ThreeOsmMapPoc({
         const style = styleById.get(label.id);
         if (!style) continue;
         if (style.kind === "focal-airport") {
-          context.fillStyle = "#f5c542";
+          context.fillStyle = visualPalette.label.focalBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
-          context.fillStyle = "#101111";
+          context.fillStyle = visualPalette.label.focalText;
           context.font = `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         } else if (style.kind === "airport") {
-          context.fillStyle = theme === "light" ? "rgba(255,255,255,.94)" : "rgba(0,0,0,.88)";
+          context.fillStyle = visualPalette.label.background;
           context.fillRect(label.left, label.top, label.width, label.height);
-          context.strokeStyle = theme === "light" ? "rgba(0,0,0,.32)" : "rgba(255,255,255,.35)";
-          context.strokeRect(label.left + 0.5, label.top + 0.5, label.width - 1, label.height - 1);
-          context.fillStyle = theme === "light" ? "#111211" : "#f2f0e9";
+          context.strokeStyle = visualPalette.label.border;
+          context.lineWidth = visualPalette.label.borderWidth;
+          context.strokeRect(
+            label.left + 0.5,
+            label.top + 0.5,
+            label.width - 1,
+            label.height - 1,
+          );
+          context.fillStyle = visualPalette.label.text;
           context.font = `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         } else {
           context.fillStyle = style.selected
-            ? theme === "light"
-              ? "rgba(65,67,65,.94)"
-              : "rgba(183,186,183,.92)"
-            : theme === "light"
-              ? "rgba(255,255,255,.86)"
-              : "rgba(0,0,0,.74)";
+            ? visualPalette.label.selectedBackground
+            : visualPalette.label.contextBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
           context.fillStyle = style.selected
-            ? theme === "light"
-              ? "#ffffff"
-              : "#111211"
-            : theme === "light"
-              ? "#171817"
-              : "#f0eee7";
+            ? visualPalette.label.selectedText
+            : visualPalette.label.text;
+          if (visualPalette.label.borderWidth > 1) {
+            context.strokeStyle = visualPalette.label.border;
+            context.lineWidth = visualPalette.label.borderWidth;
+            context.strokeRect(
+              label.left + 0.5,
+              label.top + 0.5,
+              label.width - 1,
+              label.height - 1,
+            );
+          }
           context.font = `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         }
         context.textBaseline = "middle";
@@ -1173,7 +1293,7 @@ export default function ThreeOsmMapPoc({
       sceneRef.current = null;
       requestRenderRef.current = () => {};
     };
-  }, [theme]);
+  }, [visualPalette]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -1248,7 +1368,11 @@ export default function ThreeOsmMapPoc({
     );
     visibleTiles.forEach((tile) => {
       const material = new THREE.MeshBasicMaterial({
-        color: theme === "light" ? 0xffffff : 0x7a7a76,
+        color: contrastMode === "standard"
+          ? theme === "light"
+            ? 0xffffff
+            : 0x7a7a76
+          : 0xffffff,
         side: THREE.DoubleSide,
       });
       const mesh = new THREE.Mesh(tileGeometry, material);
@@ -1315,6 +1439,7 @@ export default function ThreeOsmMapPoc({
     };
   }, [
     activeTileSource,
+    contrastMode,
     debugLayerMode,
     sceneCenterLat,
     sceneCenterLon,
@@ -1322,6 +1447,7 @@ export default function ThreeOsmMapPoc({
     tileCenter,
     tileRetryEpoch,
     tileZoom,
+    visualPalette,
     visibleTiles,
   ]);
 
@@ -1357,6 +1483,8 @@ export default function ThreeOsmMapPoc({
       tileCenter,
       centerLat: sceneCenterLat,
       theme,
+      contrastMode,
+      systemColors,
       locale,
       selectedAirspaceId,
     });
@@ -1426,6 +1554,7 @@ export default function ThreeOsmMapPoc({
     airspaceFeatures,
     airportCode,
     candidateWatchingSpots,
+    contrastMode,
     debugLayerMode,
     sceneCenterLat,
     sceneCenterLon,
@@ -1444,6 +1573,7 @@ export default function ThreeOsmMapPoc({
     showCandidateWatchingSpots,
     showNavaidMarkers,
     showReportingPoints,
+    systemColors,
     theme,
     tileCenter,
     useNavaidCounts,
@@ -1471,14 +1601,13 @@ export default function ThreeOsmMapPoc({
     scene.add(group);
 
     const aircraftMaterial = new THREE.MeshBasicMaterial({
-      color: theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK,
+      color: visualPalette.aircraft,
       side: THREE.DoubleSide,
       depthTest: false,
       depthWrite: false,
     });
     const haloMaterial = new THREE.MeshBasicMaterial({
-      color:
-        theme === "light" ? AIRCRAFT_HALO_COLOR_LIGHT : AIRCRAFT_HALO_COLOR_DARK,
+      color: visualPalette.aircraftHalo,
       side: THREE.DoubleSide,
       depthTest: false,
       depthWrite: false,
@@ -1493,7 +1622,7 @@ export default function ThreeOsmMapPoc({
       ? new THREE.InstancedMesh(
           createThreeOsmAircraftSelectionGeometry(),
           new THREE.MeshBasicMaterial({
-            color: 0xffffff,
+            color: visualPalette.aircraftSelectionRing,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.88,
@@ -1516,13 +1645,13 @@ export default function ThreeOsmMapPoc({
     const stems: number[] = [];
     const labels: ThreeOsmSceneLabel[] = [];
     const standardColor = new THREE.Color(
-      theme === "light" ? AIRCRAFT_COLOR_LIGHT : AIRCRAFT_COLOR_DARK,
+      visualPalette.aircraft,
     );
     const selectedColor = new THREE.Color(
-      theme === "light" ? SELECTED_AIRCRAFT_COLOR_LIGHT : SELECTED_AIRCRAFT_COLOR_DARK,
+      visualPalette.selectedAircraft,
     );
     const focalColor = new THREE.Color(
-      theme === "light" ? FOCAL_AIRCRAFT_COLOR_LIGHT : FOCAL_AIRCRAFT_COLOR_DARK,
+      visualPalette.focalAircraft,
     );
     let highlightIndex = 0;
 
@@ -1635,8 +1764,8 @@ export default function ThreeOsmMapPoc({
       const stemGeometry = new THREE.BufferGeometry();
       stemGeometry.setAttribute("position", new THREE.Float32BufferAttribute(stems, 3));
       const stemMaterial = new THREE.LineBasicMaterial({
-        color: theme === "light" ? 0x4c4e4c : 0xc9c6bc,
-        opacity: 0.28,
+        color: visualPalette.aircraftStem,
+        opacity: visualPalette.mutedLineOpacity,
         transparent: true,
       });
       group.add(new THREE.LineSegments(stemGeometry, stemMaterial));
@@ -1681,8 +1810,8 @@ export default function ThreeOsmMapPoc({
     focalAircraftId,
     selectedAircraftId,
     showCallsigns,
-    theme,
     tileCenter,
+    visualPalette,
     visibleAircraft,
   ]);
 
@@ -1698,6 +1827,8 @@ export default function ThreeOsmMapPoc({
       tileCenter,
       centerLat: sceneCenterLat,
       theme,
+      contrastMode,
+      systemColors,
     });
     traceGroupRef.current = traceScene.group;
     traceScene.group.visible = isDebugLayerVisible(debugLayerMode, "flight");
@@ -1713,7 +1844,15 @@ export default function ThreeOsmMapPoc({
       disposeObject(traceScene.group);
       if (traceGroupRef.current === traceScene.group) traceGroupRef.current = null;
     };
-  }, [debugLayerMode, sceneCenterLat, theme, tileCenter, traces]);
+  }, [
+    contrastMode,
+    debugLayerMode,
+    sceneCenterLat,
+    systemColors,
+    theme,
+    tileCenter,
+    traces,
+  ]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -1725,6 +1864,8 @@ export default function ThreeOsmMapPoc({
       tileCenter,
       centerLat: sceneCenterLat,
       theme,
+      contrastMode,
+      systemColors,
     });
     routeGroupRef.current = routeScene.group;
     routeScene.group.visible = isDebugLayerVisible(debugLayerMode, "flight");
@@ -1739,7 +1880,15 @@ export default function ThreeOsmMapPoc({
       disposeObject(routeScene.group);
       if (routeGroupRef.current === routeScene.group) routeGroupRef.current = null;
     };
-  }, [debugLayerMode, routePath, sceneCenterLat, theme, tileCenter]);
+  }, [
+    contrastMode,
+    debugLayerMode,
+    routePath,
+    sceneCenterLat,
+    systemColors,
+    theme,
+    tileCenter,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
