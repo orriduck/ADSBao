@@ -130,6 +130,16 @@ provider-outage mode with a neutral fallback and bounded retry. A production
 provider decision and a real-device long-session acceptance run remain
 incomplete.
 
+Airport exploration now also keeps one manual camera snapshot per mode inside
+the current Three.js runtime. A user can pan or zoom the orthographic camera,
+switch to a separately rotated perspective camera, and return to either view
+without losing its target, position, or 2D zoom. The snapshots are deliberately
+runtime-local rather than browser-persistent: a changed scene center, route-fit
+scope, interaction lock, compact/desktop tile radius, Follow resume, or explicit
+Recenter invalidates them. The existing `Recenter on airport` control now sends
+an explicit signal to the POC instead of becoming a no-op while Leaflet is
+disabled.
+
 ## Proposed architecture if the POC graduates
 
 ```text
@@ -262,6 +272,14 @@ reported WebGL 2 through ANGLE's Metal renderer on an Apple M1 Max.
   Airspace preview with CTA, controlled access, Class E, 700 ft AGL–FL600, and
   OpenAIP source. The temporarily enabled airspace preference was restored after
   the check.
+- In a live desktop KBOS interaction, the 3D camera was rotated from its default
+  frame, then the 2D camera was independently zoomed from `1.000` to `1.283`.
+  Two complete 2D/3D round trips restored exact diagnostic position/target
+  values for both cameras and the exact 2D zoom, while keeping one shared
+  controls runtime. Activating the existing Recenter command invalidated the
+  saved scope and returned 2D zoom to `1.000`. Same-size production KBOS kept
+  the same airport center and operational range but, as expected, retained the
+  richer vector-cartography and per-model aircraft baseline.
 - Same-size production KBOS remains the semantic visual baseline: it currently
   has per-model aircraft SVGs plus more airspace and watching-spot context.
   The POC now carries coarse family/wake semantics, and its larger silhouettes

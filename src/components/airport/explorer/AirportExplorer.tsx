@@ -201,6 +201,7 @@ function AirportExplorerContent({
   const [wakeLockState, toggleWakeLock] = useWakeLock();
   const [navigationSpotId, setNavigationSpotId] = useState("");
   const [airportMapInstance, setAirportMapInstance] = useState(null);
+  const [threeOsmRecenterSignal, setThreeOsmRecenterSignal] = useState(0);
   const [contextTiles, setContextTiles] = useState({
     airspaces: [],
     navaids: [],
@@ -215,12 +216,15 @@ function AirportExplorerContent({
   const airportCoordinatesReady =
     airportProfile.lat != null && airportProfile.lon != null;
   const recenterAirportMap = useCallback(() => {
-    if (!airportMapInstance || airportProfile.lat == null || airportProfile.lon == null) {
+    if (airportProfile.lat == null || airportProfile.lon == null) {
       return;
     }
-    airportMapInstance.setView([airportProfile.lat, airportProfile.lon], mapZoom, {
-      animate: true,
-    });
+    setThreeOsmRecenterSignal((signal) => signal + 1);
+    airportMapInstance?.setView(
+      [airportProfile.lat, airportProfile.lon],
+      mapZoom,
+      { animate: true },
+    );
   }, [airportMapInstance, airportProfile.lat, airportProfile.lon, mapZoom]);
   const userLocationLayer = useUserLocationLayer({
     enabled: !nearMe,
@@ -776,6 +780,7 @@ function AirportExplorerContent({
               focalMotionRef={nearMe ? nearMeFocalMotionRef : undefined}
               focalMotionKey={nearMe ? HERE_FOCAL_MOTION_KEY : undefined}
               followsCenter={nearMe || mapFollowsAircraft}
+              threeOsmRecenterSignal={threeOsmRecenterSignal}
               floatingSidebarAware={!isMobile && sidebarOpen}
               onSelectAircraft={selectAircraft}
               onSelectAirport={selectAirport}

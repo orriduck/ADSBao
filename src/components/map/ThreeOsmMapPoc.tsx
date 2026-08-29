@@ -44,6 +44,12 @@ import {
   THREE_OSM_TILE_SIZE,
 } from "@/features/airport/map/threeOsmProjection";
 import {
+  captureThreeOsmCameraSnapshot,
+  restoreThreeOsmCameraSnapshot,
+  type ThreeOsmCameraMode,
+  type ThreeOsmCameraSnapshot,
+} from "@/features/airport/map/threeOsmCameraState";
+import {
   createThreeOsmContextScene,
   resolveThreeOsmAirspaceHitIds,
   type ThreeOsmSceneLabel,
@@ -73,6 +79,7 @@ type ThreeOsmPocProps = {
   fitFallbackAnchor?: Record<string, any> | null;
   allowRouteOnlyFit?: boolean;
   keepRouteInView?: boolean;
+  recenterSignal?: number;
   followsCenter?: boolean;
   allowsMapInteraction?: boolean;
   showAirspaces?: boolean;
@@ -159,7 +166,6 @@ function configureThreeOsmControls({
   allowsMapInteraction: boolean;
 }) {
   controls.object = camera;
-  controls.target.set(0, 0, 0);
   controls.enableDamping = false;
   controls.enableRotate = viewMode === "3d" && allowsMapInteraction;
   controls.enablePan = allowsMapInteraction;
@@ -173,7 +179,24 @@ function configureThreeOsmControls({
   controls.touches.ONE = THREE.TOUCH.PAN;
   controls.touches.TWO =
     viewMode === "3d" ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
-  controls.update();
+}
+
+function initializeThreeOsmCamera(
+  camera: THREE.OrthographicCamera | THREE.PerspectiveCamera,
+  target: THREE.Vector3,
+) {
+  target.set(0, 0, 0);
+  if (camera instanceof THREE.PerspectiveCamera) {
+    camera.position.set(440, 360, 520);
+    camera.up.set(0, 1, 0);
+  } else {
+    camera.position.set(0, 900, 0.01);
+    camera.up.set(0, 0, -1);
+    camera.zoom = 1;
+    camera.updateProjectionMatrix();
+  }
+  camera.lookAt(target);
+  camera.updateMatrixWorld();
 }
 
 function disposeObject(object: THREE.Object3D | null) {
@@ -240,6 +263,7 @@ export default function ThreeOsmMapPoc({
   fitFallbackAnchor = null,
   allowRouteOnlyFit = false,
   keepRouteInView = false,
+  recenterSignal = 0,
   followsCenter = true,
   allowsMapInteraction = true,
   showAirspaces = true,
@@ -274,6 +298,14 @@ export default function ThreeOsmMapPoc({
   const perspectiveCameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const activeCameraRef = useRef<THREE.Camera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
+  const activeCameraModeRef = useRef<ThreeOsmCameraMode | null>(null);
+  const cameraSnapshotsRef = useRef<
+    Partial<Record<ThreeOsmCameraMode, ThreeOsmCameraSnapshot>>
+  >({});
+  const manuallyChangedCameraModesRef = useRef<Set<ThreeOsmCameraMode>>(new Set());
+  const restoredCameraModeRef = useRef<ThreeOsmCameraMode | null>(null);
+  const cameraStateScopeKeyRef = useRef("");
+  const previousFollowsCenterRef = useRef(followsCenter);
   const controlsCreateCountRef = useRef(0);
   const controlsCameraSwapCountRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
@@ -379,6 +411,15 @@ export default function ThreeOsmMapPoc({
       lonLatToTileCoordinate(sceneCenterLon, sceneCenterLat, tileZoom),
     [activeCameraFit?.tileCenter, sceneCenterLat, sceneCenterLon, tileZoom],
   );
+  const cameraStateScopeKey = [
+    tileZoom,
+    tileCenter.x.toFixed(6),
+    tileCenter.y.toFixed(6),
+    tileRadius,
+    activeCameraFit?.reason || "explore",
+    allowsMapInteraction ? "interactive" : "locked",
+    recenterSignal,
+  ].join(":");
   const visibleTiles = useMemo(
     () => buildVisibleTileGrid(tileCenter, tileRadius),
     [tileCenter, tileRadius],
@@ -678,6 +719,7 @@ export default function ThreeOsmMapPoc({
       frameId = 0;
       const camera = activeCameraRef.current;
       if (!camera) return;
+      const controls = controlsRef.current;
       const startedAt = performance.now();
       resizeTrafficInstances(camera);
       const trafficReadyAt = performance.now();
@@ -708,6 +750,21 @@ export default function ThreeOsmMapPoc({
       root.dataset.pocTextures = String(renderer.info.memory.textures);
       root.dataset.pocGeometries = String(renderer.info.memory.geometries);
       root.dataset.pocPrograms = String(renderer.info.programs?.length || 0);
+      root.dataset.pocCameraPosition = camera.position
+        .toArray()
+        .map((value) => value.toFixed(2))
+        .join(",");
+      if (controls) {
+        root.dataset.pocCameraTarget = controls.target
+          .toArray()
+          .map((value) => value.toFixed(2))
+          .join(",");
+      }
+      if (camera instanceof THREE.OrthographicCamera) {
+        root.dataset.pocCameraZoom = camera.zoom.toFixed(3);
+      } else {
+        root.removeAttribute("data-poc-camera-zoom");
+      }
       root.dataset.pocRenderCount = String(renderCount);
       root.dataset.pocRenderLastMs = renderDurationMs.toFixed(2);
       root.dataset.pocRenderMaxMs = maxRenderDurationMs.toFixed(2);
@@ -1479,28 +1536,57 @@ export default function ThreeOsmMapPoc({
     const perspectiveCamera = perspectiveCameraRef.current;
     if (!canvas || !root || !orthographicCamera || !perspectiveCamera) return;
 
-    const camera = viewMode === "3d" ? perspectiveCamera : orthographicCamera;
-    activeCameraRef.current = camera;
+    const previousScopeKey = cameraStateScopeKeyRef.current;
+    const scopeChanged =
+      Boolean(previousScopeKey) && previousScopeKey !== cameraStateScopeKey;
+    const resumedFollow = !previousFollowsCenterRef.current && followsCenter;
+    if (scopeChanged || resumedFollow) {
+      cameraSnapshotsRef.current = {};
+      manuallyChangedCameraModesRef.current.clear();
+      restoredCameraModeRef.current = null;
+      root.removeAttribute("data-poc-camera-state-2d");
+      root.removeAttribute("data-poc-camera-state-3d");
+      root.dataset.pocCameraStateInvalidations = String(
+        Number(root.dataset.pocCameraStateInvalidations || 0) + 1,
+      );
+      root.dataset.pocCameraStateInvalidation = scopeChanged
+        ? "scene-scope"
+        : "follow";
+    }
+    cameraStateScopeKeyRef.current = cameraStateScopeKey;
+    previousFollowsCenterRef.current = followsCenter;
 
-    if (viewMode === "3d") {
-      perspectiveCamera.position.set(440, 360, 520);
-      perspectiveCamera.up.set(0, 1, 0);
-      perspectiveCamera.lookAt(0, 0, 0);
-    } else {
-      orthographicCamera.position.set(0, 900, 0.01);
-      orthographicCamera.up.set(0, 0, -1);
-      orthographicCamera.lookAt(0, 0, 0);
-      orthographicCamera.zoom = 1;
-      orthographicCamera.updateProjectionMatrix();
+    const previousMode = activeCameraModeRef.current;
+    const previousCamera = activeCameraRef.current;
+    const existingControls = controlsRef.current;
+    if (
+      !scopeChanged &&
+      !resumedFollow &&
+      previousMode &&
+      previousMode !== viewMode &&
+      previousCamera &&
+      existingControls &&
+      manuallyChangedCameraModesRef.current.has(previousMode)
+    ) {
+      const snapshot = captureThreeOsmCameraSnapshot({
+        camera: previousCamera,
+        target: existingControls.target,
+        scopeKey: cameraStateScopeKey,
+      });
+      if (snapshot) cameraSnapshotsRef.current[previousMode] = snapshot;
     }
 
-    let controls = controlsRef.current;
+    const camera = viewMode === "3d" ? perspectiveCamera : orthographicCamera;
+    activeCameraRef.current = camera;
+    activeCameraModeRef.current = viewMode;
+
+    let controls = existingControls;
     if (!controls) {
       controls = new OrbitControls(camera, canvas);
       controls.addEventListener("change", requestRenderRef.current);
       controlsRef.current = controls;
       controlsCreateCountRef.current += 1;
-    } else {
+    } else if (previousMode && previousMode !== viewMode) {
       controlsCameraSwapCountRef.current += 1;
     }
     configureThreeOsmControls({
@@ -1509,6 +1595,45 @@ export default function ThreeOsmMapPoc({
       viewMode,
       allowsMapInteraction,
     });
+    const restored =
+      !activeCameraFit &&
+      restoreThreeOsmCameraSnapshot({
+        camera,
+        target: controls.target,
+        snapshot: cameraSnapshotsRef.current[viewMode],
+        scopeKey: cameraStateScopeKey,
+      });
+    if (restored) {
+      restoredCameraModeRef.current = viewMode;
+      root.dataset.pocCameraState = "restored";
+      root.dataset.pocCameraStateRestores = String(
+        Number(root.dataset.pocCameraStateRestores || 0) + 1,
+      );
+    } else {
+      restoredCameraModeRef.current = null;
+      initializeThreeOsmCamera(camera, controls.target);
+      root.dataset.pocCameraState = activeCameraFit ? "fit" : "default";
+    }
+    controls.update();
+    controls.saveState();
+
+    const captureManualState = () => {
+      if (!allowsMapInteraction || activeCameraFit) return;
+      manuallyChangedCameraModesRef.current.add(viewMode);
+      const snapshot = captureThreeOsmCameraSnapshot({
+        camera,
+        target: controls.target,
+        scopeKey: cameraStateScopeKey,
+      });
+      if (!snapshot) return;
+      cameraSnapshotsRef.current[viewMode] = snapshot;
+      root.dataset.pocCameraState = "manual";
+      root.dataset[`pocCameraState${viewMode}`] = "saved";
+      root.dataset.pocCameraStateSaves = String(
+        Number(root.dataset.pocCameraStateSaves || 0) + 1,
+      );
+    };
+    controls.addEventListener("end", captureManualState);
     root.dataset.pocCamera = viewMode === "3d" ? "perspective" : "orthographic";
     root.dataset.pocControlsCreates = String(controlsCreateCountRef.current);
     root.dataset.pocControlsCameraSwaps = String(
@@ -1516,7 +1641,15 @@ export default function ThreeOsmMapPoc({
     );
     root.dataset.pocInteraction = allowsMapInteraction ? "bounded" : "locked";
     requestRenderRef.current();
-  }, [allowsMapInteraction, theme, viewMode]);
+    return () => controls.removeEventListener("end", captureManualState);
+  }, [
+    activeCameraFit,
+    allowsMapInteraction,
+    cameraStateScopeKey,
+    followsCenter,
+    theme,
+    viewMode,
+  ]);
 
   useThreeOsmCameraFraming({
     rootRef,
@@ -1529,6 +1662,7 @@ export default function ThreeOsmMapPoc({
     viewMode,
     keepRouteInView,
     tileRadius,
+    restoredCameraModeRef,
   });
 
   useThreeOsmInteractionBounds({

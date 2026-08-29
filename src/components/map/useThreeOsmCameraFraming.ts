@@ -22,6 +22,7 @@ export function useThreeOsmCameraFraming({
   viewMode,
   keepRouteInView,
   tileRadius,
+  restoredCameraModeRef,
 }: {
   rootRef: RefObject<HTMLElement | null>;
   activeCameraRef: MutableRefObject<THREE.Camera | null>;
@@ -33,6 +34,7 @@ export function useThreeOsmCameraFraming({
   viewMode: "2d" | "3d";
   keepRouteInView: boolean;
   tileRadius: number;
+  restoredCameraModeRef: MutableRefObject<"2d" | "3d" | null>;
 }) {
   const applyCameraFitRef = useRef<() => void>(() => {});
 
@@ -65,6 +67,7 @@ export function useThreeOsmCameraFraming({
         root.dataset.pocDefaultPerspectiveElevation = String(frame.elevationDegrees);
       } else if (camera instanceof THREE.OrthographicCamera) {
         camera.position.set(0, 900, 0.01);
+        camera.up.set(0, 0, -1);
         camera.zoom = 1;
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
@@ -80,6 +83,15 @@ export function useThreeOsmCameraFraming({
 
     if (!activeCameraFit) {
       applyCameraFitRef.current = resetCamera;
+      if (restoredCameraModeRef.current === viewMode) {
+        root.dataset.pocFitCamera = `${viewMode}-restored`;
+        requestRenderRef.current();
+        return () => {
+          if (applyCameraFitRef.current === resetCamera) {
+            applyCameraFitRef.current = () => {};
+          }
+        };
+      }
       resetCamera();
       return () => {
         if (applyCameraFitRef.current === resetCamera) {
@@ -157,6 +169,7 @@ export function useThreeOsmCameraFraming({
     controlsRef,
     requestRenderRef,
     rootRef,
+    restoredCameraModeRef,
     sceneCenterLat,
     tileCenter,
     tileRadius,

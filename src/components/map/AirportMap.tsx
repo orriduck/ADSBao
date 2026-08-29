@@ -140,6 +140,7 @@ export default function AirportMap({
   threeOsmFitFallbackAnchor = null,
   threeOsmAllowRouteOnlyFit = false,
   threeOsmKeepRouteInView = false,
+  threeOsmRecenterSignal = 0,
   focalAircraftId = "",
   focalVisualPosition = null,
   focalVisualPositionRef = null,
@@ -1093,6 +1094,7 @@ export default function AirportMap({
               fitFallbackAnchor={threeOsmFitFallbackAnchor}
               allowRouteOnlyFit={threeOsmAllowRouteOnlyFit}
               keepRouteInView={threeOsmKeepRouteInView}
+              recenterSignal={threeOsmRecenterSignal}
               followsCenter={followsCenter}
               allowsMapInteraction={mapInteraction.allowsDragging}
               showAirspaces={showAirspaces}
