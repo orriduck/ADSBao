@@ -8,7 +8,7 @@ function tileKey(tile: TileCoordinate) {
   return `${tile.z}/${tile.x}/${tile.y}`;
 }
 
-export function resolveThreeOsmDirectionalRasterPrefetch({
+export function resolveThreeOsmDirectionalTilePrefetch({
   currentCenter,
   candidateCenter,
   radius,

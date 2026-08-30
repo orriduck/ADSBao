@@ -13,6 +13,7 @@ import { useThreeOsmCameraFraming } from "@/components/map/useThreeOsmCameraFram
 import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFitState";
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { useThreeOsmAcceptanceRecorder } from "@/components/map/useThreeOsmAcceptanceRecorder";
+import { useThreeOsmTilePrefetch } from "@/components/map/useThreeOsmTilePrefetch";
 import type { WakeLockState } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { airportDisplayCode } from "@/utils/airport";
@@ -107,9 +108,6 @@ import {
   resolveThreeOsmRasterComposition,
   resolveThreeOsmRasterTileComposition,
 } from "@/features/airport/map/threeOsmRasterComposition";
-import {
-  resolveThreeOsmDirectionalRasterPrefetch,
-} from "@/features/airport/map/threeOsmRasterPrefetch";
 import {
   OPENFREEMAP_VECTOR_ATTRIBUTION,
   OPENFREEMAP_VECTOR_ATTRIBUTION_URL,
@@ -480,7 +478,6 @@ export default function ThreeOsmMapPoc({
   const tileGroupRef = useRef<THREE.Group | null>(null);
   const displayedRasterTileSceneRef = useRef<RasterTileSceneHandle | null>(null);
   const pendingRasterTileSceneRef = useRef<RasterTileSceneHandle | null>(null);
-  const rasterPrefetchReadyWindowRef = useRef("");
   const rasterTileMaterialsRef = useRef<RasterTileMaterialRecord[]>([]);
   const vectorContextGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
@@ -497,6 +494,8 @@ export default function ThreeOsmMapPoc({
     useRef<ThreeOsmVectorContextWorkerClient | null>(null);
   const tileCacheHitCountRef = useRef(0);
   const tileCacheMissCountRef = useRef(0);
+  const vectorTileCacheHitCountRef = useRef(0);
+  const vectorTileCacheMissCountRef = useRef(0);
   const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
   const airspaceHitObjectRef = useRef<THREE.LineSegments | null>(null);
@@ -2143,6 +2142,9 @@ export default function ThreeOsmMapPoc({
       const startedAt = performance.now();
       const longTaskCountAtStart = Number(root.dataset.pocLongTaskCount || 0);
       root.dataset.pocVectorWorker = "building";
+      root.dataset.pocVectorWorkerBuilds = String(
+        Number(root.dataset.pocVectorWorkerBuilds || 0) + 1,
+      );
       const submitStartedAt = performance.now();
       const geometryRequest = workerClient.build({
         tiles: [...loaded].sort(
@@ -2293,6 +2295,14 @@ export default function ThreeOsmMapPoc({
         error: settleError,
       });
       releases.push(handle.release);
+      if (handle.cacheHit) vectorTileCacheHitCountRef.current += 1;
+      else vectorTileCacheMissCountRef.current += 1;
+      root.dataset.pocVectorTileCacheHits = String(
+        vectorTileCacheHitCountRef.current,
+      );
+      root.dataset.pocVectorTileCacheMisses = String(
+        vectorTileCacheMissCountRef.current,
+      );
       if (handle.status === "ready" && handle.value) {
         settleReady(tile, handle.value);
       } else if (handle.status === "error") {
@@ -3262,188 +3272,43 @@ export default function ThreeOsmMapPoc({
     viewMode,
   ]);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    const controls = controlsRef.current;
-    const textureCache = tileTextureCacheRef.current;
-    if (!root || !controls || !textureCache || !allowsMapInteraction) {
-      root?.setAttribute("data-poc-raster-prefetch-state", "disabled");
-      return undefined;
-    }
-
-    const increment = (key: string, amount = 1) => {
-      root.dataset[key] = String(Number(root.dataset[key] || 0) + amount);
-    };
-    if (rasterPrefetchReadyWindowRef.current === sourceTileWindowKey) {
-      rasterPrefetchReadyWindowRef.current = "";
-      increment("pocRasterPrefetchAdoptions");
-      root.dataset.pocRasterPrefetchState = "adopted";
-    } else {
-      rasterPrefetchReadyWindowRef.current = "";
-      root.dataset.pocRasterPrefetchState = "idle";
-    }
-    root.dataset.pocRasterPrefetchWindow = "none";
-    root.dataset.pocRasterPrefetchRequested ||= "0";
-    root.dataset.pocRasterPrefetchLoaded ||= "0";
-    root.dataset.pocRasterPrefetchFailed ||= "0";
-
-    type PrefetchRun = {
-      windowKey: string;
-      requested: number;
-      settled: number;
-      loaded: number;
-      failed: number;
-      cancelled: boolean;
-      releases: Array<() => void>;
-    };
-    let activeRun: PrefetchRun | null = null;
-    let lastCandidateWindowKey = "";
-    let prefetchFrame = 0;
-
-    const releaseRun = (run: PrefetchRun) => {
-      run.releases.splice(0).forEach((release) => release());
-    };
-    const cancelActiveRun = (reason: string, countCancellation = true) => {
-      const run = activeRun;
-      if (!run) return;
-      run.cancelled = true;
-      releaseRun(run);
-      activeRun = null;
-      if (countCancellation && run.settled < run.requested) {
-        increment("pocRasterPrefetchCancellations");
-      }
-      root.dataset.pocRasterPrefetchState = reason;
-    };
-    const finishRun = (run: PrefetchRun) => {
-      if (run.cancelled || activeRun !== run || run.settled < run.requested) {
-        return;
-      }
-      releaseRun(run);
-      activeRun = null;
-      root.dataset.pocRasterPrefetchState =
-        run.failed === 0 ? "ready" : run.loaded > 0 ? "partial" : "degraded";
-      if (run.loaded > 0) rasterPrefetchReadyWindowRef.current = run.windowKey;
-    };
-    const startPrefetch = (candidateCenter: TileCoordinate) => {
-      const candidateWindowKey = resolveThreeOsmTileWindowKey(candidateCenter);
-      if (candidateWindowKey === sourceTileWindowKey) {
-        lastCandidateWindowKey = "";
-        rasterPrefetchReadyWindowRef.current = "";
-        cancelActiveRun("idle");
-        root.dataset.pocRasterPrefetchWindow = "none";
-        return;
-      }
-      if (candidateWindowKey === lastCandidateWindowKey) return;
-      lastCandidateWindowKey = candidateWindowKey;
-      if (rasterPrefetchReadyWindowRef.current !== candidateWindowKey) {
-        rasterPrefetchReadyWindowRef.current = "";
-      }
-      cancelActiveRun("superseded");
-
-      const tiles = resolveThreeOsmDirectionalRasterPrefetch({
-        currentCenter: sourceTileCenter,
-        candidateCenter,
-        radius: tileRadius,
-      });
-      if (!tiles.length) {
-        root.dataset.pocRasterPrefetchState = "skipped-nonadjacent";
-        root.dataset.pocRasterPrefetchWindow = candidateWindowKey;
-        return;
-      }
-
-      const run: PrefetchRun = {
-        windowKey: candidateWindowKey,
-        requested: tiles.length,
-        settled: 0,
-        loaded: 0,
-        failed: 0,
-        cancelled: false,
-        releases: [],
-      };
-      activeRun = run;
-      increment("pocRasterPrefetchRuns");
-      root.dataset.pocRasterPrefetchState = "loading";
-      root.dataset.pocRasterPrefetchWindow = candidateWindowKey;
-      root.dataset.pocRasterPrefetchLastWindow = candidateWindowKey;
-      root.dataset.pocRasterPrefetchRequested = String(run.requested);
-      root.dataset.pocRasterPrefetchLoaded = "0";
-      root.dataset.pocRasterPrefetchFailed = "0";
-
-      tiles.forEach((tile) => {
-        const url = activeTileSource.buildUrl(tile);
-        let tileSettled = false;
-        const settle = (loaded: boolean) => {
-          if (tileSettled || run.cancelled) return;
-          tileSettled = true;
-          run.settled += 1;
-          if (loaded) run.loaded += 1;
-          else run.failed += 1;
-          root.dataset.pocRasterPrefetchLoaded = String(run.loaded);
-          root.dataset.pocRasterPrefetchFailed = String(run.failed);
-          finishRun(run);
-        };
-        const handle = textureCache.acquirePrefetch(url, {
-          ready: () => settle(true),
-          error: () => settle(false),
-        });
-        run.releases.push(handle.release);
-        increment(
-          handle.cacheHit
-            ? "pocRasterPrefetchCacheHits"
-            : "pocRasterPrefetchCacheMisses",
-        );
-        if (handle.status === "ready" && handle.value) settle(true);
-        else if (handle.status === "error") settle(false);
-      });
-    };
-    const prefetchForCurrentCamera = () => {
-      prefetchFrame = 0;
-      const displayedScene = displayedRasterTileSceneRef.current;
-      if (
-        !displayedScene ||
-        !displayedScene.materials.some(({ material }) => Boolean(material.map))
-      ) {
-        return;
-      }
-      startPrefetch(
-        resolveThreeOsmSourceViewCenter({
-          projectionCenter: sourceProjectionCenter,
-          sceneZoom: tileZoom,
-          targetX: controls.target.x,
-          targetZ: controls.target.z,
-        }),
-      );
-    };
-    const handleCameraChange = () => {
-      window.cancelAnimationFrame(prefetchFrame);
-      prefetchFrame = window.requestAnimationFrame(prefetchForCurrentCamera);
-    };
-
-    controls.addEventListener("change", handleCameraChange);
-    return () => {
-      controls.removeEventListener("change", handleCameraChange);
-      window.cancelAnimationFrame(prefetchFrame);
-      const adopted =
-        activeRun?.windowKey &&
-        root.dataset.pocTileWindowKey === activeRun.windowKey;
-      if (adopted) {
-        increment("pocRasterPrefetchAdoptions");
-        root.dataset.pocRasterPrefetchState = "adopted-loading";
-      }
-      cancelActiveRun(
-        adopted ? "adopted-loading" : "cancelled",
-        !adopted,
-      );
-    };
-  }, [
-    activeTileSource,
-    allowsMapInteraction,
+  useThreeOsmTilePrefetch({
+    rootRef,
+    controlsRef,
+    cacheRef: tileTextureCacheRef,
+    enabled: allowsMapInteraction,
+    kind: "raster",
     sourceProjectionCenter,
     sourceTileCenter,
     sourceTileWindowKey,
+    sceneZoom: tileZoom,
     tileRadius,
-    tileZoom,
-  ]);
+    buildUrl: activeTileSource.buildUrl,
+    hasDisplayedContent: () =>
+      Boolean(
+        displayedRasterTileSceneRef.current?.materials.some(({ material }) =>
+          Boolean(material.map),
+        ),
+      ),
+    lifecycleKey: visualPalette,
+  });
+
+  useThreeOsmTilePrefetch({
+    rootRef,
+    controlsRef,
+    cacheRef: vectorTileCacheRef,
+    enabled: allowsMapInteraction && vectorContextActive,
+    kind: "vector",
+    sourceProjectionCenter,
+    sourceTileCenter,
+    sourceTileWindowKey,
+    sceneZoom: tileZoom,
+    tileRadius: 1,
+    buildUrl: (tile) =>
+      buildOpenFreeMapVectorTileUrl(vectorTileTemplate, tile),
+    hasDisplayedContent: () => Boolean(vectorContextGroupRef.current),
+    lifecycleKey: visualPalette,
+  });
 
   useThreeOsmInteractionBounds({
     rootRef,
