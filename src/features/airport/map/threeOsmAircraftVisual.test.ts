@@ -3,7 +3,7 @@ import {
   createThreeOsmAircraftGeometry,
   resolveThreeOsmAircraftEmphasis,
   resolveThreeOsmAircraftFamily,
-  resolveThreeOsmAircraftPresentation,
+  resolveThreeOsmAircraftLodScale,
   resolveThreeOsmAircraftScale,
 } from "./threeOsmAircraftVisual";
 
@@ -39,42 +39,42 @@ assert.ok(
   resolveThreeOsmAircraftScale("selected"),
 );
 
-assert.deepEqual(
-  resolveThreeOsmAircraftPresentation({
+assert.equal(
+  resolveThreeOsmAircraftLodScale({
     sourceZoom: 10,
     emphasis: "standard",
   }),
-  { renderFamily: "overview", sizeScale: 1 },
+  0.72,
 );
-assert.deepEqual(
-  resolveThreeOsmAircraftPresentation({
+assert.equal(
+  resolveThreeOsmAircraftLodScale({
     sourceZoom: 11,
     emphasis: "standard",
   }),
-  { renderFamily: "overview", sizeScale: 1 },
+  0.72,
 );
-assert.deepEqual(
-  resolveThreeOsmAircraftPresentation({
+assert.equal(
+  resolveThreeOsmAircraftLodScale({
     sourceZoom: 11,
     emphasis: "standard",
     onGround: true,
   }),
-  { renderFamily: "overview", sizeScale: 0.72 },
+  0.5,
 );
-assert.deepEqual(
-  resolveThreeOsmAircraftPresentation({
+assert.equal(
+  resolveThreeOsmAircraftLodScale({
     sourceZoom: 12,
     emphasis: "standard",
     onGround: true,
   }),
-  { renderFamily: "silhouette", sizeScale: 0.62 },
+  0.62,
 );
-assert.deepEqual(
-  resolveThreeOsmAircraftPresentation({
+assert.equal(
+  resolveThreeOsmAircraftLodScale({
     sourceZoom: 10,
     emphasis: "selected",
   }),
-  { renderFamily: "silhouette", sizeScale: 1 },
+  1,
 );
 
 assert.equal(resolveThreeOsmAircraftFamily({ category: "A3" }), "transport");
@@ -97,15 +97,9 @@ geometry.dispose();
 const heavyGeometry = createThreeOsmAircraftGeometry("heavy");
 const transportGeometry = createThreeOsmAircraftGeometry("transport");
 const rotorcraftGeometry = createThreeOsmAircraftGeometry("rotorcraft");
-const overviewGeometry = createThreeOsmAircraftGeometry("overview");
 assert.ok(heavyGeometry.boundingBox);
 assert.ok(transportGeometry.boundingBox);
 assert.ok(rotorcraftGeometry.boundingBox);
-assert.ok(overviewGeometry.boundingBox);
-assert.ok(
-  overviewGeometry.boundingBox.max.z - overviewGeometry.boundingBox.min.z <
-    transportGeometry.boundingBox.max.z - transportGeometry.boundingBox.min.z,
-);
 assert.ok(
   heavyGeometry.boundingBox.max.x - heavyGeometry.boundingBox.min.x >
     transportGeometry.boundingBox.max.x - transportGeometry.boundingBox.min.x,
@@ -117,6 +111,5 @@ assert.ok(
 heavyGeometry.dispose();
 transportGeometry.dispose();
 rotorcraftGeometry.dispose();
-overviewGeometry.dispose();
 
 console.log("threeOsmAircraftVisual.test.ts ok");

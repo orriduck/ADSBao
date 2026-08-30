@@ -28,10 +28,15 @@ assert.equal(
   resolveThreeOsmLabelPresentation({ kind: "focal-airport" }).tone,
   "focal",
 );
-assert.equal(
-  resolveThreeOsmLabelPresentation({ kind: "airport" }).tone,
-  "operational",
-);
+assert.deepEqual(resolveThreeOsmLabelPresentation({ kind: "airport" }), {
+  mode: "sign",
+  tone: "operational",
+  fontSizePx: 9,
+  fontWeight: 700,
+  heightPx: 16,
+  horizontalPaddingPx: 8,
+  opacity: 1,
+});
 assert.deepEqual(
   resolveThreeOsmLabelPresentation({ kind: "vector-road" }),
   {

@@ -47,11 +47,11 @@ import {
   createThreeOsmAircraftSelectionGeometry,
   resolveThreeOsmAircraftEmphasis,
   resolveThreeOsmAircraftFamily,
-  resolveThreeOsmAircraftPresentation,
+  resolveThreeOsmAircraftLodScale,
   resolveThreeOsmAircraftScale,
   THREE_OSM_AIRCRAFT_SCREEN_SCALE,
   type ThreeOsmAircraftEmphasis,
-  type ThreeOsmAircraftRenderFamily,
+  type ThreeOsmAircraftFamily,
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import {
   isThreeOsmLabelProjectionCandidate,
@@ -250,7 +250,7 @@ type TrafficRenderItem = {
 };
 
 type TrafficRenderBatch = {
-  family: ThreeOsmAircraftRenderFamily;
+  family: ThreeOsmAircraftFamily;
   mesh: THREE.InstancedMesh;
   haloMesh: THREE.InstancedMesh;
   items: TrafficRenderItem[];
@@ -1743,6 +1743,8 @@ export default function ThreeOsmMapPoc({
         const x = ((projected.x + 1) / 2) * width;
         const y = ((1 - projected.y) / 2) * height;
         const presentation = resolveThreeOsmLabelPresentation(label);
+        const railWidth =
+          label.kind === "airport" || label.kind === "focal-airport" ? 4 : 0;
         const font = resolveThreeOsmSceneLabelFont(presentation);
         context.font = font;
         styleById.set(label.id, label);
@@ -1755,7 +1757,8 @@ export default function ThreeOsmMapPoc({
             y,
             width:
               Math.ceil(context.measureText(label.text).width) +
-              presentation.horizontalPaddingPx,
+              presentation.horizontalPaddingPx +
+              railWidth,
             height: presentation.heightPx,
             priority: label.priority,
             pinToViewport: Boolean(label.viewportPin),
@@ -1880,6 +1883,8 @@ export default function ThreeOsmMapPoc({
         const style = styleById.get(label.id);
         const presentation = presentationById.get(label.id);
         if (!style || !presentation) continue;
+        const railWidth =
+          style.kind === "airport" || style.kind === "focal-airport" ? 4 : 0;
         context.font = resolveThreeOsmSceneLabelFont(presentation);
         context.textBaseline = "middle";
         if (presentation.mode === "halo") {
@@ -1906,10 +1911,16 @@ export default function ThreeOsmMapPoc({
         if (presentation.tone === "focal") {
           context.fillStyle = visualPalette.label.focalBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
+          context.fillStyle = "#ffffff";
+          context.fillRect(label.left, label.top, railWidth, label.height);
           context.fillStyle = visualPalette.label.focalText;
         } else if (presentation.tone === "operational") {
           context.fillStyle = visualPalette.label.background;
           context.fillRect(label.left, label.top, label.width, label.height);
+          if (railWidth) {
+            context.fillStyle = visualPalette.label.text;
+            context.fillRect(label.left, label.top, railWidth, label.height);
+          }
           context.strokeStyle = visualPalette.label.border;
           context.lineWidth = visualPalette.label.borderWidth;
           context.strokeRect(
@@ -1940,7 +1951,7 @@ export default function ThreeOsmMapPoc({
         }
         context.fillText(
           label.text,
-          label.left + presentation.horizontalPaddingPx / 2,
+          label.left + presentation.horizontalPaddingPx / 2 + railWidth,
           label.top + label.height / 2 + 0.5,
         );
       }
@@ -1953,6 +1964,10 @@ export default function ThreeOsmMapPoc({
       );
       root.dataset.pocAirspaceLabelsVisible = String(
         placed.filter((label) => styleById.get(label.id)?.kind === "airspace")
+          .length,
+      );
+      root.dataset.pocAirportLabelsVisible = String(
+        placed.filter((label) => styleById.get(label.id)?.kind === "airport")
           .length,
       );
       root.dataset.pocAirspaceContextLabelsVisible = String(
@@ -3189,6 +3204,7 @@ export default function ThreeOsmMapPoc({
       userLocation,
       tileCenter,
       centerLat: sceneCenterLat,
+      centerLon: sceneCenterLon,
       zoom: tileZoom,
       displayZoom: sourceTileZoom,
       theme,
@@ -3627,7 +3643,7 @@ export default function ThreeOsmMapPoc({
     const scale = new THREE.Vector3();
     const yAxis = new THREE.Vector3(0, 1, 0);
     const familyItems = new Map<
-      ThreeOsmAircraftRenderFamily,
+      ThreeOsmAircraftFamily,
       TrafficRenderItem[]
     >();
     const stems: number[] = [];
@@ -3663,7 +3679,7 @@ export default function ThreeOsmMapPoc({
             focalAircraftId,
           });
       const selected = emphasis !== "standard";
-      const presentation = resolveThreeOsmAircraftPresentation({
+      const lodScale = resolveThreeOsmAircraftLodScale({
         sourceZoom: sourceTileZoom,
         emphasis,
         onGround: Boolean(item?.onGround),
@@ -3672,18 +3688,14 @@ export default function ThreeOsmMapPoc({
       position.set(point.x, Math.max(2.5, point.y), point.z);
       quaternion.setFromAxisAngle(yAxis, (-heading * Math.PI) / 180);
       const itemHighlightIndex = selected ? highlightIndex++ : null;
-      const family = presentation.renderFamily === "overview"
-        ? "overview"
-        : resolveThreeOsmAircraftFamily(item);
+      const family = resolveThreeOsmAircraftFamily(item);
       const batchItems = familyItems.get(family) || [];
       batchItems.push({
         id,
         position: position.clone(),
         quaternion: quaternion.clone(),
         emphasis,
-        sizeScale:
-          presentation.sizeScale *
-          (family === "overview" ? 1 : resolveAircraftSizeScale(item)),
+        sizeScale: lodScale * resolveAircraftSizeScale(item),
         highlightIndex: itemHighlightIndex,
       });
       familyItems.set(family, batchItems);

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { AIRPORT_MAP_ZOOM } from "@/config/aviation";
 import { airportDisplayCode } from "@/utils/airport";
+import { getDistanceNm } from "@/utils/aircraftTrafficIntent";
 import { buildNavaidLabels } from "./navaidLabelModel";
 import { buildReportingPointLabels } from "./reportingPointLabelModel";
 import {
@@ -92,6 +93,22 @@ export function resolveThreeOsmSpotMapLabel(value: unknown) {
     .slice(0, THREE_OSM_SPOT_MAP_LABEL_MAX_CHARACTERS - 1)
     .join("")
     .trimEnd()}…`;
+}
+
+export function resolveThreeOsmAirportMapLabel({
+  code,
+  distanceNm,
+}: {
+  code: unknown;
+  distanceNm: unknown;
+}) {
+  const identifier = String(code || "").trim().toUpperCase();
+  if (distanceNm == null || distanceNm === "") return identifier;
+  const distance = Number(distanceNm);
+  if (!identifier || !Number.isFinite(distance) || distance < 0) {
+    return identifier;
+  }
+  return `${identifier} ${distance < 1 ? "<1" : Math.round(distance)}NM`;
 }
 
 export type ThreeOsmContextSelection = {
@@ -266,6 +283,7 @@ export function createThreeOsmContextScene({
   userLocation,
   tileCenter,
   centerLat,
+  centerLon,
   zoom = AIRPORT_MAP_ZOOM.approach,
   displayZoom = zoom,
   theme,
@@ -305,6 +323,7 @@ export function createThreeOsmContextScene({
   userLocation: Record<string, any> | null;
   tileCenter: TileCoordinate;
   centerLat: number;
+  centerLon: number;
   zoom?: number;
   displayZoom?: number;
   theme: string;
@@ -449,7 +468,10 @@ export function createThreeOsmContextScene({
     }
     labels.push({
       id: `airport:${code}:${airportCount}`,
-      text: code,
+      text: resolveThreeOsmAirportMapLabel({
+        code,
+        distanceNm: getDistanceNm(lat, lon, centerLat, centerLon),
+      }),
       kind: "airport",
       position: airportPosition.clone().setY(10 * markerScale),
       priority: selected ? 850 : 650 - Math.hypot(point.x, point.z) / 10,

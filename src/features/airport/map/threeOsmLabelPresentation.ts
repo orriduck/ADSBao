@@ -6,7 +6,7 @@ export type ThreeOsmLabelPresentation = {
   fontSizePx: 9 | 10 | 12;
   fontWeight: 600 | 700;
   heightPx: 16 | 18 | 22;
-  horizontalPaddingPx: 6 | 12;
+  horizontalPaddingPx: 6 | 8 | 12;
   opacity: number;
 };
 
@@ -69,7 +69,19 @@ export function resolveThreeOsmLabelPresentation(
     };
   }
 
-  if (label.kind === "airport" || label.kind === "runway") {
+  if (label.kind === "airport") {
+    return {
+      mode: "sign",
+      tone: "operational",
+      fontSizePx: 9,
+      fontWeight: 700,
+      heightPx: 16,
+      horizontalPaddingPx: 8,
+      opacity: 1,
+    };
+  }
+
+  if (label.kind === "runway") {
     return {
       mode: "sign",
       tone: "operational",
