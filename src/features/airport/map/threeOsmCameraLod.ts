@@ -77,19 +77,70 @@ export function resolveThreeOsmSourceTileTransform({
   projectionCenter: TileCoordinate;
   sceneZoom: number;
 }) {
-  const worldSize =
+  const baseWorldSize =
     THREE_OSM_TILE_SIZE * 2 ** (sceneZoom - projectionCenter.z);
+  const sourceScale = 2 ** (projectionCenter.z - tile.z);
+  const worldSize = baseWorldSize * sourceScale;
   return {
     worldSize,
     seamGuard: worldSize / 1_024,
     x:
       shortestWrappedTileDelta(
-        tile.x + 0.5,
+        (tile.x + 0.5) * sourceScale,
         projectionCenter.x,
         projectionCenter.z,
-      ) * worldSize,
-    z: (tile.y + 0.5 - projectionCenter.y) * worldSize,
+      ) * baseWorldSize,
+    z:
+      ((tile.y + 0.5) * sourceScale - projectionCenter.y) *
+      baseWorldSize,
   };
+}
+
+export function buildThreeOsmParentRasterFallbackTiles({
+  center,
+  fineRadius,
+}: {
+  center: TileCoordinate;
+  fineRadius: number;
+}) {
+  if (center.z <= 0) return [];
+  const radius = Math.max(1, Math.round(fineRadius));
+  const fallbackRadius = radius + 1;
+  const childScale = 2 ** center.z;
+  const parentZoom = center.z - 1;
+  const parentScale = 2 ** parentZoom;
+  const centerX = Math.floor(center.x);
+  const centerY = Math.floor(center.y);
+  const uniqueParents = new Map<string, TileCoordinate>();
+
+  for (
+    let y = centerY - fallbackRadius;
+    y <= centerY + fallbackRadius;
+    y += 1
+  ) {
+    if (y < 0 || y >= childScale) continue;
+    for (
+      let x = centerX - fallbackRadius;
+      x <= centerX + fallbackRadius;
+      x += 1
+    ) {
+      if (
+        Math.abs(x - centerX) <= radius &&
+        Math.abs(y - centerY) <= radius
+      ) {
+        continue;
+      }
+      const childX = ((x % childScale) + childScale) % childScale;
+      const parent = {
+        x: Math.floor(childX / 2) % parentScale,
+        y: Math.floor(y / 2),
+        z: parentZoom,
+      };
+      uniqueParents.set(`${parent.z}/${parent.x}/${parent.y}`, parent);
+    }
+  }
+
+  return [...uniqueParents.values()];
 }
 
 export function resolveThreeOsmSourceViewCenter({

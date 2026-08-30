@@ -21,6 +21,23 @@ assert.ok(regional.xSpanTiles <= 4.35);
 assert.ok(regional.framedWidthTiles <= 4.5);
 assert.ok(regional.centerLat < 42.3656 && regional.centerLat > 40.6413);
 
+const mobileNearbyRoute = resolveThreeOsmFitViewport({
+  points: [
+    [42.3656, -71.0096],
+    [42.5842, -70.9165],
+  ],
+  requestedZoom: 14,
+  tileRadius: 1,
+  aspect: 390 / 844,
+});
+assert.ok(mobileNearbyRoute);
+assert.ok(
+  mobileNearbyRoute.zoom >= 10,
+  "a portrait route fit should not fall through to the global minimum zoom",
+);
+assert.ok(mobileNearbyRoute.framedWidthTiles <= 2.75);
+assert.ok(mobileNearbyRoute.framedHeightTiles <= 2.75);
+
 const dateline = resolveThreeOsmFitViewport({
   points: [
     [35, 179.5],

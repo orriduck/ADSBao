@@ -61,7 +61,10 @@ export function resolveThreeOsmFitViewport({
   const maxZoom = clampThreeOsmZoom(requestedZoom);
   const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
   const safeAspect = Math.max(0.35, Number(aspect) || 1);
-  const tileSpanCapacity = radius * 2 + 0.5;
+  // The loaded grid spans 2r + 1 tiles. Keep a quarter-tile safety margin,
+  // while still allowing a portrait viewport's minimum frame to fit inside a
+  // compact 3x3 window instead of falling through to the global minimum zoom.
+  const tileSpanCapacity = radius * 2 + 0.75;
 
   let resolved:
     | {

@@ -95,17 +95,17 @@ export function createThreeOsmRouteScene({
   group.add(
     createRouteLine({
       points,
-      color: palette.route,
-      width: contrastMode === "standard" ? 7 : 8,
-      opacity: contrastMode === "standard" ? 0.16 : 0.32,
+      color: palette.background,
+      width: contrastMode === "standard" ? 8.8 : 10,
+      opacity: contrastMode === "standard" ? 0.72 : 1,
       name: "three-osm-flight-route-glow",
       renderOrder: 45,
     }),
     createRouteLine({
       points,
       color: palette.route,
-      width: contrastMode === "standard" ? 2.8 : 3.4,
-      opacity: contrastMode === "standard" ? 0.82 : 1,
+      width: contrastMode === "standard" ? 3.2 : 3.8,
+      opacity: contrastMode === "standard" ? 0.92 : 1,
       name: "three-osm-flight-route-line",
       renderOrder: 46,
     }),

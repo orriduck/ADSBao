@@ -57,6 +57,17 @@ const forcedRoute = createThreeOsmRouteScene({
 const forcedRouteLine = forcedRoute.group.getObjectByName(
   "three-osm-flight-route-line",
 ) as THREE.Mesh;
+const forcedRouteGlow = forcedRoute.group.getObjectByName(
+  "three-osm-flight-route-glow",
+) as THREE.Mesh;
+assert.equal(
+  (forcedRouteGlow.material as THREE.MeshBasicMaterial).color.getHex(),
+  0x000000,
+);
+assert.equal(
+  (forcedRouteGlow.material as THREE.MeshBasicMaterial).opacity,
+  1,
+);
 assert.equal(
   (forcedRouteLine.material as THREE.MeshBasicMaterial).color.getHex(),
   0xffffff,

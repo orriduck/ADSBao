@@ -75,6 +75,7 @@ import {
   type TileCoordinate,
 } from "@/features/airport/map/threeOsmProjection";
 import {
+  buildThreeOsmParentRasterFallbackTiles,
   resolveThreeOsmCameraScale,
   resolveThreeOsmContinuousLod,
   resolveThreeOsmLodBounds,
@@ -798,6 +799,7 @@ export default function ThreeOsmMapPoc({
     Number.isFinite(debugZoom) ? debugZoom : zoom,
   );
   const tileRadius = isCompact ? 1 : 2;
+  const rasterTileRadius = viewMode === "3d" ? 2 : tileRadius;
   const routeWorkloadAirportSnapshot = routeWorkloadEnabled
     ? JSON.stringify(
         nearbyAirports.map((item) => ({
@@ -943,8 +945,8 @@ export default function ThreeOsmMapPoc({
     );
   }, [airspaceFocusAnchor]);
   const visibleTiles = useMemo(
-    () => buildVisibleTileGrid(tileCenter, tileRadius),
-    [tileCenter, tileRadius],
+    () => buildVisibleTileGrid(tileCenter, rasterTileRadius),
+    [rasterTileRadius, tileCenter],
   );
   const sourceProjectionCenter = useMemo(
     () => lonLatToTileCoordinate(sceneCenterLon, sceneCenterLat, sourceTileZoom),
@@ -961,6 +963,10 @@ export default function ThreeOsmMapPoc({
     [sourceProjectionCenter, sourceTargetX, sourceTargetZ, tileZoom],
   );
   const sourceTileWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
+  const parentRasterFallbackEnabled = viewMode === "3d" && tileRadius === 1;
+  const rasterTileWindowKey = `${sourceTileWindowKey}/r${rasterTileRadius}/p${
+    parentRasterFallbackEnabled ? 1 : 0
+  }`;
   const contextViewport = useMemo(
     () =>
       resolveThreeOsmContextViewport({
@@ -972,9 +978,23 @@ export default function ThreeOsmMapPoc({
   useEffect(() => {
     onContextViewportChange?.(contextViewport);
   }, [contextViewport, onContextViewportChange]);
+  const fineRasterTiles = useMemo(
+    () => buildVisibleTileGrid(sourceTileCenter, rasterTileRadius),
+    [rasterTileRadius, sourceTileCenter],
+  );
+  const parentRasterTiles = useMemo(
+    () =>
+      parentRasterFallbackEnabled
+        ? buildThreeOsmParentRasterFallbackTiles({
+            center: sourceTileCenter,
+            fineRadius: rasterTileRadius,
+          })
+        : [],
+    [parentRasterFallbackEnabled, rasterTileRadius, sourceTileCenter],
+  );
   const rasterTiles = useMemo(
-    () => buildVisibleTileGrid(sourceTileCenter, tileRadius),
-    [sourceTileCenter, tileRadius],
+    () => [...parentRasterTiles, ...fineRasterTiles],
+    [fineRasterTiles, parentRasterTiles],
   );
   const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
   const vectorTileCenter = sourceTileCenter;
@@ -2137,7 +2157,7 @@ export default function ThreeOsmMapPoc({
       group,
       materials: tileMaterials,
       releases,
-      windowKey: sourceTileWindowKey,
+      windowKey: rasterTileWindowKey,
       disposed: false,
     };
     pendingRasterTileSceneRef.current = tileSceneHandle;
@@ -2211,7 +2231,7 @@ export default function ThreeOsmMapPoc({
       );
       rootRef.current?.setAttribute(
         "data-poc-raster-visible-window",
-        sourceTileWindowKey,
+        rasterTileWindowKey,
       );
       rootRef.current?.setAttribute(
         "data-poc-raster-retained-window",
@@ -2247,7 +2267,7 @@ export default function ThreeOsmMapPoc({
         debugSwapDelayMs > 0 &&
         nextState !== "degraded" &&
         Boolean(displayedRasterTileSceneRef.current) &&
-        displayedRasterTileSceneRef.current?.windowKey !== sourceTileWindowKey;
+        displayedRasterTileSceneRef.current?.windowKey !== rasterTileWindowKey;
       if (shouldHoldSwap) {
         rootRef.current?.setAttribute(
           "data-poc-raster-swap",
@@ -2281,15 +2301,7 @@ export default function ThreeOsmMapPoc({
         String(tileCacheMissCountRef.current),
       );
     };
-    const sourceTileTransform = resolveThreeOsmSourceTileTransform({
-      tile: rasterTiles[0] || sourceProjectionCenter,
-      projectionCenter: sourceProjectionCenter,
-      sceneZoom: tileZoom,
-    });
-    const tileGeometry = new THREE.PlaneGeometry(
-      sourceTileTransform.worldSize + sourceTileTransform.seamGuard,
-      sourceTileTransform.worldSize + sourceTileTransform.seamGuard,
-    );
+    const tileGeometryByZoom = new Map<number, THREE.PlaneGeometry>();
     rasterTiles.forEach((tile) => {
       const material = new THREE.MeshBasicMaterial({
         color: contrastMode === "standard"
@@ -2299,7 +2311,9 @@ export default function ThreeOsmMapPoc({
           : 0xffffff,
         side: THREE.DoubleSide,
       });
+      const isParentFallback = tile.z < sourceTileZoom;
       const vectorCovered =
+        !isParentFallback &&
         vectorContextEnabled &&
         vectorTileKeys.has(`${tile.z}/${tile.x}/${tile.y}`);
       applyThreeOsmRasterComposition(
@@ -2310,15 +2324,24 @@ export default function ThreeOsmMapPoc({
         ),
       );
       tileMaterials.push({ material, vectorCovered });
-      const mesh = new THREE.Mesh(tileGeometry, material);
-      mesh.rotation.x = -Math.PI / 2;
       const transform = resolveThreeOsmSourceTileTransform({
         tile,
         projectionCenter: sourceProjectionCenter,
         sceneZoom: tileZoom,
       });
-      mesh.position.set(transform.x, 0, transform.z);
+      let tileGeometry = tileGeometryByZoom.get(tile.z);
+      if (!tileGeometry) {
+        tileGeometry = new THREE.PlaneGeometry(
+          transform.worldSize + transform.seamGuard,
+          transform.worldSize + transform.seamGuard,
+        );
+        tileGeometryByZoom.set(tile.z, tileGeometry);
+      }
+      const mesh = new THREE.Mesh(tileGeometry, material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(transform.x, isParentFallback ? -0.5 : 0, transform.z);
       mesh.userData.tile = tile;
+      mesh.userData.parentFallback = isParentFallback;
       group.add(mesh);
 
       const settleReady = (texture: THREE.Texture) => {
@@ -2362,6 +2385,10 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute("data-poc-source-zoom", String(sourceTileZoom));
     rootRef.current?.setAttribute("data-poc-tiles-requested", String(rasterTiles.length));
     rootRef.current?.setAttribute(
+      "data-poc-raster-parent-tiles",
+      String(parentRasterTiles.length),
+    );
+    rootRef.current?.setAttribute(
       "data-poc-raster-vector-covered-tiles",
       String(tileMaterials.filter((item) => item.vectorCovered).length),
     );
@@ -2395,10 +2422,10 @@ export default function ThreeOsmMapPoc({
     debugSwapDelayMs,
     debugLayerMode,
     rasterTiles,
+    rasterTileWindowKey,
+    parentRasterTiles.length,
     sceneCenterLat,
     sceneCenterLon,
-    sourceTileCenter,
-    sourceTileWindowKey,
     sourceProjectionCenter,
     sourceTileZoom,
     theme,
@@ -3900,7 +3927,7 @@ export default function ThreeOsmMapPoc({
     sourceTileCenter,
     sourceTileWindowKey,
     sceneZoom: tileZoom,
-    tileRadius,
+    tileRadius: rasterTileRadius,
     buildUrl: activeTileSource.buildUrl,
     hasDisplayedContent: () =>
       Boolean(
@@ -4168,6 +4195,7 @@ export default function ThreeOsmMapPoc({
       data-poc-tile-window-key={sourceTileWindowKey}
       data-poc-context-window-key={contextViewport.signature}
       data-poc-raster-composition={rasterComposition.mode}
+      data-poc-raster-tile-radius={rasterTileRadius}
       data-poc-raster-wash={rasterComposition.washStrength.toFixed(3)}
       data-poc-raster-context-only-wash={
         rasterContextOnlyComposition.washStrength.toFixed(3)

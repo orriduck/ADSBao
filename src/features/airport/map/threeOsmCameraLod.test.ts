@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  buildThreeOsmParentRasterFallbackTiles,
   resolveThreeOsmCameraScale,
   resolveThreeOsmContinuousLod,
   resolveThreeOsmLodBounds,
@@ -100,6 +101,32 @@ assert.equal(source13.worldSize, 128);
 assert.equal(source11.worldSize, 512);
 assert.ok(Math.abs(source13.x) <= source13.worldSize / 2);
 assert.ok(Math.abs(source13.z) <= source13.worldSize / 2);
+
+const parentSource12 = resolveThreeOsmSourceTileTransform({
+  tile: {
+    x: Math.floor(sourceCenter13.x / 2),
+    y: Math.floor(sourceCenter13.y / 2),
+    z: 12,
+  },
+  projectionCenter: sourceCenter13,
+  sceneZoom: sceneCenter.z,
+});
+assert.equal(parentSource12.worldSize, 256);
+assert.ok(Math.abs(parentSource12.x) <= parentSource12.worldSize / 2);
+assert.ok(Math.abs(parentSource12.z) <= parentSource12.worldSize / 2);
+
+const parentFallbackTiles = buildThreeOsmParentRasterFallbackTiles({
+  center: sourceCenter13,
+  fineRadius: 2,
+});
+assert.ok(parentFallbackTiles.length > 0);
+assert.ok(parentFallbackTiles.length < 16);
+assert.ok(parentFallbackTiles.every((tile) => tile.z === 12));
+assert.equal(
+  new Set(parentFallbackTiles.map((tile) => `${tile.z}/${tile.x}/${tile.y}`))
+    .size,
+  parentFallbackTiles.length,
+);
 
 const pannedSourceCenter = resolveThreeOsmSourceViewCenter({
   projectionCenter: sourceCenter13,
