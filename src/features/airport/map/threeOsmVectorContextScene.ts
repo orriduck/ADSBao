@@ -93,18 +93,18 @@ export function createThreeOsmVectorContextScene({
     { color: number; opacity: number }
   > = dark
     ? {
-        motorway: { color: 0xd7ddd8, opacity: 0.64 },
-        arterial: { color: 0xa7aeaa, opacity: 0.54 },
-        collector: { color: 0x777e7a, opacity: 0.43 },
-        local: { color: 0x5f6662, opacity: 0.34 },
-        service: { color: 0x4d534f, opacity: 0.28 },
+        motorway: { color: 0xd7ddd8, opacity: 0.72 },
+        arterial: { color: 0xa7aeaa, opacity: 0.52 },
+        collector: { color: 0x777e7a, opacity: 0.34 },
+        local: { color: 0x5f6662, opacity: 0.24 },
+        service: { color: 0x4d534f, opacity: 0.18 },
       }
     : {
-        motorway: { color: 0x2e3431, opacity: 0.68 },
-        arterial: { color: 0x4b524f, opacity: 0.58 },
-        collector: { color: 0x686f6c, opacity: 0.48 },
-        local: { color: 0x7b827f, opacity: 0.38 },
-        service: { color: 0x8e9491, opacity: 0.3 },
+        motorway: { color: 0x2e3431, opacity: 0.76 },
+        arterial: { color: 0x4b524f, opacity: 0.56 },
+        collector: { color: 0x686f6c, opacity: 0.38 },
+        local: { color: 0x7b827f, opacity: 0.26 },
+        service: { color: 0x8e9491, opacity: 0.2 },
       };
   [...THREE_OSM_ROAD_TIERS].reverse().forEach(
     (tier, index) => {

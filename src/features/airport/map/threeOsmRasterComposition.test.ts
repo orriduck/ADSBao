@@ -44,6 +44,10 @@ const regional = resolveThreeOsmRasterComposition({ ...baseInput, zoom: 11 });
 assert.equal(regional.mode, "transition");
 assert.equal(regional.washStrength, 0.92 * 0.78);
 
+const approach = resolveThreeOsmRasterComposition({ ...baseInput, zoom: 12 });
+assert.equal(approach.mode, "transition");
+assert.equal(approach.washStrength, 0.96 * 0.78);
+
 const transition = resolveThreeOsmRasterComposition({
   ...baseInput,
   zoom: 13,

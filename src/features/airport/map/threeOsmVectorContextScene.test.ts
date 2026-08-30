@@ -175,7 +175,7 @@ const roadOpacities = labelScene.group.children.slice(1, 6).map(
         .material.opacity.toFixed(4),
     ),
 );
-assert.deepEqual(roadOpacities, [0.2016, 0.2448, 0.3096, 0.3888, 0.4608]);
+assert.deepEqual(roadOpacities, [0.1296, 0.1728, 0.2448, 0.3744, 0.5184]);
 assert.equal(labelScene.labels[0].kind, "vector-place");
 assert.deepEqual(labelScene.labels[0].position.toArray(), [12, 2.5, -8]);
 

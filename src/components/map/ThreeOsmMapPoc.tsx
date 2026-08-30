@@ -388,6 +388,7 @@ function configureThreeOsmControls({
   controls.maxDistance = 1_600;
   controls.minZoom = 0.4;
   controls.maxZoom = 4;
+  controls.minPolarAngle = viewMode === "3d" ? Math.PI / 6 : 0;
   controls.maxPolarAngle = Math.PI / 2.15;
   controls.mouseButtons.LEFT =
     viewMode === "3d" ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;

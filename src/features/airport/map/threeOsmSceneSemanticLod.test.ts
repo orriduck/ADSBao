@@ -12,7 +12,7 @@ assert.equal(overview.roadStrength, 0.06);
 
 const approach = resolveThreeOsmSceneSemanticLod(12);
 assert.equal(approach.id, "approach");
-assert.ok(approach.rasterUnderlayStrength < overview.rasterUnderlayStrength);
+assert.equal(approach.rasterUnderlayStrength, overview.rasterUnderlayStrength);
 assert.ok(approach.roadStrength > overview.roadStrength);
 
 const detail = resolveThreeOsmSceneSemanticLod(15);

@@ -32,7 +32,7 @@ const PROFILES: Record<
   },
   12: {
     id: "approach",
-    rasterUnderlayStrength: 0.9,
+    rasterUnderlayStrength: 0.96,
     roadStrength: 0.42,
     labelBudgets: { compact: 4, desktop2d: 12, desktop3d: 9 },
   },
