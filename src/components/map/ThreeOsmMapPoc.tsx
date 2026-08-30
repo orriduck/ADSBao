@@ -21,6 +21,7 @@ import { resolveAircraftSizeScale } from "@/utils/aircraftIcon";
 import { ZOOM_DETAIL } from "@/utils/airportMapDisplay";
 import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileResourceCache";
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
+import { buildThreeOsmAirspaceGeometry } from "@/features/airport/map/threeOsmAirspaceGeometry";
 import {
   buildRenderableAirportSurfaceFeatureCollection,
   buildRunwayApproachVisualization,
@@ -1059,6 +1060,17 @@ export default function ThreeOsmMapPoc({
   const airspaceFeatures = useMemo(
     () => buildAirspaceOverlayFeatures(airspaces),
     [airspaces],
+  );
+  const preparedAirspaceGeometry = useMemo(
+    () =>
+      buildThreeOsmAirspaceGeometry({
+        airspaceFeatures,
+        showAirspaces,
+        tileCenter,
+        centerLat: sceneCenterLat,
+        zoom: tileZoom,
+      }),
+    [airspaceFeatures, sceneCenterLat, showAirspaces, tileCenter, tileZoom],
   );
   const accessibleAircraft = useMemo(
     () =>
@@ -2585,6 +2597,7 @@ export default function ThreeOsmMapPoc({
     ) {
       return;
     }
+    const contextBuildStartedAt = performance.now();
     disposeObject(contextGroupRef.current);
     const contextScene = createThreeOsmContextScene({
       airportCode,
@@ -2617,7 +2630,9 @@ export default function ThreeOsmMapPoc({
       systemColors,
       locale,
       selectedAirspaceId,
+      preparedAirspaceGeometry,
     });
+    const contextBuildMs = performance.now() - contextBuildStartedAt;
     const { group } = contextScene;
     group.visible = isDebugLayerVisible(debugLayerMode, "context");
     contextGroupRef.current = group;
@@ -2738,8 +2753,43 @@ export default function ThreeOsmMapPoc({
       String(contextScene.counts.selectedAirspaces),
     );
     rootRef.current?.setAttribute(
+      "data-poc-airspace-build-ms",
+      contextScene.airspaceDiagnostics.buildMs.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-prepare-ms",
+      contextScene.airspaceDiagnostics.prepareMs.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-scene-ms",
+      contextScene.airspaceDiagnostics.sceneMs.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-context-build-ms",
+      contextBuildMs.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-context-build-max-ms",
+      Math.max(
+        Number(rootRef.current?.dataset.pocContextBuildMaxMs || 0),
+        contextBuildMs,
+      ).toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-context-build-count",
+      String(Number(rootRef.current?.dataset.pocContextBuildCount || 0) + 1),
+    );
+    rootRef.current?.setAttribute(
       "data-poc-airspace-segments",
       String(contextScene.airspaceDiagnostics.segments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-raw-segments",
+      String(contextScene.airspaceDiagnostics.rawSegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-simplification-tolerance",
+      String(contextScene.airspaceDiagnostics.simplificationTolerance),
     );
     rootRef.current?.setAttribute(
       "data-poc-airspace-batches",
@@ -2821,6 +2871,7 @@ export default function ThreeOsmMapPoc({
     navaids,
     locale,
     onSelectAirspace,
+    preparedAirspaceGeometry,
     reportingPoints,
     runwayCollection,
     runwayApproachVisualization,

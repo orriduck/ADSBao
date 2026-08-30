@@ -16,12 +16,14 @@ import { createThreeOsmGroundLightingScene } from "./threeOsmGroundLightingScene
 import { createThreeOsmSurfaceScene } from "./threeOsmSurfaceScene";
 import {
   THREE_OSM_AIRSPACE_TIERS,
-  resolveThreeOsmAirspaceAltitudeBand,
-  resolveThreeOsmAirspaceLowerAltitudeFt,
-  resolveThreeOsmAirspaceTier,
-  type ThreeOsmAirspaceAltitudeBand,
   type ThreeOsmAirspaceTier,
 } from "./threeOsmAirspaceModel";
+import {
+  buildThreeOsmAirspaceGeometry,
+  type ThreeOsmPreparedAirspaceGeometry,
+} from "./threeOsmAirspaceGeometry";
+
+export { collectAirspaceLineCoordinates } from "./threeOsmAirspaceGeometry";
 
 export type ThreeOsmSceneLabel = {
   id: string;
@@ -203,21 +205,6 @@ function addContextPointInstances({
   return { count: rendered, pickTargets };
 }
 
-export function collectAirspaceLineCoordinates(geometry: Record<string, any> | null) {
-  if (!geometry) return [] as number[][][];
-  if (geometry.type === "Polygon") {
-    return Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
-  }
-  if (geometry.type === "MultiPolygon") {
-    return Array.isArray(geometry.coordinates)
-      ? geometry.coordinates.flatMap((polygon: unknown) =>
-          Array.isArray(polygon) ? polygon : [],
-        )
-      : [];
-  }
-  return [] as number[][][];
-}
-
 export function resolveThreeOsmAirspaceHitIds(
   intersections: Array<{ index?: number | null; object?: THREE.Object3D }> = [],
 ) {
@@ -267,6 +254,7 @@ export function createThreeOsmContextScene({
   systemColors = null,
   locale = "en",
   selectedAirspaceId = "",
+  preparedAirspaceGeometry = null,
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -298,6 +286,7 @@ export function createThreeOsmContextScene({
   systemColors?: ThreeOsmSystemColors | null;
   locale?: string;
   selectedAirspaceId?: string;
+  preparedAirspaceGeometry?: ThreeOsmPreparedAirspaceGeometry | null;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -466,116 +455,15 @@ export function createThreeOsmContextScene({
     runwayEndCount += 1;
   }
 
-  const airspaceSegmentsByTier = Object.fromEntries(
-    THREE_OSM_AIRSPACE_TIERS.map((tier) => [tier, [] as number[]]),
-  ) as Record<ThreeOsmAirspaceTier, number[]>;
-  const airspaceSegmentIdsByTier = Object.fromEntries(
-    THREE_OSM_AIRSPACE_TIERS.map((tier) => [tier, [] as string[]]),
-  ) as Record<ThreeOsmAirspaceTier, string[]>;
-  const airspaceFeaturesByTier = Object.fromEntries(
-    THREE_OSM_AIRSPACE_TIERS.map((tier) => [tier, 0]),
-  ) as Record<ThreeOsmAirspaceTier, number>;
-  const airspaceFeaturesByAltitudeBand = {
-    surface: 0,
-    low: 0,
-    high: 0,
-  } satisfies Record<ThreeOsmAirspaceAltitudeBand, number>;
-  const selectedAirspaceSegments: number[] = [];
-  let selectedAirspaceCount = 0;
-  let renderedAirspaceCount = 0;
-  if (showAirspaces) {
-    for (const feature of airspaceFeatures) {
-      const featureId = String(feature?.properties?.id || "");
-      const selected = Boolean(featureId && featureId === selectedAirspaceId);
-      const tier = resolveThreeOsmAirspaceTier(feature?.properties);
-      const lowerAltitudeFt = resolveThreeOsmAirspaceLowerAltitudeFt(
-        feature?.properties,
-      );
-      const altitudeBand = resolveThreeOsmAirspaceAltitudeBand(lowerAltitudeFt);
-      let minX = Infinity;
-      let minZ = Infinity;
-      let maxX = -Infinity;
-      let maxZ = -Infinity;
-      let boundaryYForFeature = 2.4;
-      for (const ring of collectAirspaceLineCoordinates(feature?.geometry)) {
-        for (let index = 1; index < ring.length; index += 1) {
-          const from = ring[index - 1];
-          const to = ring[index];
-          const fromPoint = lonLatAltitudeToThreeOsmWorld({
-            lon: from?.[0],
-            lat: from?.[1],
-            center: tileCenter,
-            centerLat,
-          });
-          const toPoint = lonLatAltitudeToThreeOsmWorld({
-            lon: to?.[0],
-            lat: to?.[1],
-            center: tileCenter,
-            centerLat,
-          });
-          if (!fromPoint || !toPoint) continue;
-          const altitudeY = lonLatAltitudeToThreeOsmWorld({
-            lon: from?.[0],
-            lat: from?.[1],
-            altitudeFt: lowerAltitudeFt,
-            center: tileCenter,
-            centerLat,
-          })?.y || 0;
-          const boundaryY = Math.max(2.4, altitudeY + 2.4);
-          boundaryYForFeature = boundaryY;
-          airspaceSegmentsByTier[tier].push(
-            fromPoint.x,
-            boundaryY,
-            fromPoint.z,
-            toPoint.x,
-            boundaryY,
-            toPoint.z,
-          );
-          airspaceSegmentIdsByTier[tier].push(featureId);
-          minX = Math.min(minX, fromPoint.x, toPoint.x);
-          minZ = Math.min(minZ, fromPoint.z, toPoint.z);
-          maxX = Math.max(maxX, fromPoint.x, toPoint.x);
-          maxZ = Math.max(maxZ, fromPoint.z, toPoint.z);
-          if (selected) {
-            selectedAirspaceSegments.push(
-              fromPoint.x,
-              boundaryY + 1.6,
-              fromPoint.z,
-              toPoint.x,
-              boundaryY + 1.6,
-              toPoint.z,
-            );
-          }
-        }
-      }
-      if (Number.isFinite(minX) && Number.isFinite(minZ)) {
-        renderedAirspaceCount += 1;
-        airspaceFeaturesByTier[tier] += 1;
-        airspaceFeaturesByAltitudeBand[altitudeBand] += 1;
-      }
-      if (selected && Number.isFinite(minX) && Number.isFinite(minZ)) {
-        const name = String(feature?.properties?.name || "Airspace").trim();
-        const classLabel = String(feature?.properties?.classLabel || "").trim();
-        const verticalLimit = String(
-          feature?.properties?.verticalLimit || "",
-        ).trim();
-        const metadata = [classLabel, verticalLimit].filter(Boolean).join(" · ");
-        labels.push({
-          id: `airspace:${featureId}`,
-          text: metadata ? `${name} · ${metadata}` : name,
-          kind: "airspace",
-          position: new THREE.Vector3(
-            (minX + maxX) / 2,
-            boundaryYForFeature + 5.6,
-            (minZ + maxZ) / 2,
-          ),
-          priority: 880,
-          selected: true,
-        });
-        selectedAirspaceCount += 1;
-      }
-    }
-  }
+  const airspaceSceneStartedAt = performance.now();
+  const preparedAirspaces = preparedAirspaceGeometry ??
+    buildThreeOsmAirspaceGeometry({
+      airspaceFeatures,
+      showAirspaces,
+      tileCenter,
+      centerLat,
+      zoom,
+    });
   const airspaceHitObjects: THREE.LineSegments[] = [];
   const airspaceColors: Record<ThreeOsmAirspaceTier, number> = {
     "special-use": palette.airspaceSpecialUse,
@@ -592,7 +480,7 @@ export function createThreeOsmContextScene({
     advisory: [1.5, 5],
   };
   for (const tier of THREE_OSM_AIRSPACE_TIERS) {
-    const airspaceSegments = airspaceSegmentsByTier[tier];
+    const airspaceSegments = preparedAirspaces.segmentsByTier[tier];
     if (!airspaceSegments.length) continue;
     const airspaceGeometry = new THREE.BufferGeometry();
     airspaceGeometry.setAttribute(
@@ -613,12 +501,17 @@ export function createThreeOsmContextScene({
     );
     airspaceLines.computeLineDistances();
     airspaceLines.name = `three-osm-airspace-${tier}`;
-    airspaceLines.userData.airspaceSegmentIds = airspaceSegmentIdsByTier[tier];
+    airspaceLines.userData.airspaceSegmentIds =
+      preparedAirspaces.segmentIdsByTier[tier];
     airspaceLines.renderOrder = 45;
     group.add(airspaceLines);
     airspaceHitObjects.push(airspaceLines);
   }
-  if (selectedAirspaceSegments.length) {
+  const selectedAirspace = preparedAirspaces.featuresById[selectedAirspaceId];
+  if (selectedAirspace?.positions.length) {
+    const selectedAirspaceSegments = selectedAirspace.positions.map(
+      (value, index) => index % 3 === 1 ? value + 1.6 : value,
+    );
     const selectedGeometry = new THREE.BufferGeometry();
     selectedGeometry.setAttribute(
       "position",
@@ -635,7 +528,20 @@ export function createThreeOsmContextScene({
     selectedLines.name = "three-osm-selected-airspace-boundary";
     selectedLines.renderOrder = 46;
     group.add(selectedLines);
+    labels.push({
+      id: `airspace:${selectedAirspace.id}`,
+      text: selectedAirspace.label,
+      kind: "airspace",
+      position: new THREE.Vector3(
+        selectedAirspace.labelPosition.x,
+        selectedAirspace.labelPosition.y,
+        selectedAirspace.labelPosition.z,
+      ),
+      priority: 880,
+      selected: true,
+    });
   }
+  const airspaceSceneMs = performance.now() - airspaceSceneStartedAt;
 
   const navaidItems: ContextPoint[] = !showNavaidMarkers
     ? []
@@ -765,23 +671,24 @@ export function createThreeOsmContextScene({
       airports: airportCount,
       runways: runwayScene.runwayCount,
       runwayEnds: runwayEndCount,
-      airspaces: renderedAirspaceCount,
-      selectedAirspaces: selectedAirspaceCount,
+      airspaces: preparedAirspaces.features,
+      selectedAirspaces: selectedAirspace ? 1 : 0,
       navaids: navaidResult.count,
       reportingPoints: reportingResult.count,
       spots: spotResult.count,
       userLocation: userLocationCount,
     },
     airspaceDiagnostics: {
-      features: renderedAirspaceCount,
-      segments:
-        Object.values(airspaceSegmentsByTier).reduce(
-          (total, positions) => total + positions.length,
-          0,
-        ) / 6,
+      buildMs: preparedAirspaces.prepareMs + airspaceSceneMs,
+      prepareMs: preparedAirspaces.prepareMs,
+      sceneMs: airspaceSceneMs,
+      features: preparedAirspaces.features,
+      rawSegments: preparedAirspaces.rawSegments,
+      segments: preparedAirspaces.segments,
       batches: airspaceHitObjects.length,
-      featuresByTier: airspaceFeaturesByTier,
-      featuresByAltitudeBand: airspaceFeaturesByAltitudeBand,
+      simplificationTolerance: preparedAirspaces.simplificationTolerance,
+      featuresByTier: preparedAirspaces.featuresByTier,
+      featuresByAltitudeBand: preparedAirspaces.featuresByAltitudeBand,
     },
     runwayDiagnostics: {
       segments: runwayScene.segmentCount,

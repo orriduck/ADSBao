@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import {
   resolveThreeOsmAirspaceAltitudeBand,
   resolveThreeOsmAirspaceLowerAltitudeFt,
+  resolveThreeOsmAirspaceSimplificationTolerance,
   resolveThreeOsmAirspaceTier,
+  simplifyThreeOsmAirspaceRing,
 } from "./threeOsmAirspaceModel";
 
 assert.equal(
@@ -55,5 +57,31 @@ assert.equal(
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(0), "surface");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(2_000), "low");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(3_000), "high");
+
+assert.equal(resolveThreeOsmAirspaceSimplificationTolerance(10), 0.75);
+assert.equal(resolveThreeOsmAirspaceSimplificationTolerance(12), 0.35);
+assert.equal(resolveThreeOsmAirspaceSimplificationTolerance(14), 0.1);
+
+const closedRing = [
+  { x: 0, z: 0 },
+  { x: 1, z: 0.02 },
+  { x: 2, z: 0 },
+  { x: 2, z: 1 },
+  { x: 2, z: 2 },
+  { x: 1, z: 1.98 },
+  { x: 0, z: 2 },
+  { x: 0, z: 1 },
+  { x: 0, z: 0 },
+];
+const simplifiedRing = simplifyThreeOsmAirspaceRing(closedRing, 0.1);
+assert.ok(simplifiedRing.length < closedRing.length);
+assert.deepEqual(simplifiedRing[0], simplifiedRing[simplifiedRing.length - 1]);
+assert.ok(simplifiedRing.length >= 4);
+
+assert.deepEqual(
+  simplifyThreeOsmAirspaceRing(closedRing, 0),
+  closedRing,
+  "zero tolerance keeps every source point",
+);
 
 console.log("threeOsmAirspaceModel.test.ts ok");

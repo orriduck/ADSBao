@@ -194,10 +194,21 @@ assert.ok(
   ),
 );
 assert.equal(context.counts.selectedAirspaces, 1);
-assert.deepEqual(context.airspaceDiagnostics, {
+const {
+  buildMs: airspaceBuildMs,
+  prepareMs: airspacePrepareMs,
+  sceneMs: airspaceSceneMs,
+  ...airspaceDiagnostics
+} = context.airspaceDiagnostics;
+assert.ok(airspaceBuildMs >= 0);
+assert.ok(airspacePrepareMs >= 0);
+assert.ok(airspaceSceneMs >= 0);
+assert.deepEqual(airspaceDiagnostics, {
   features: 1,
+  rawSegments: 2,
   segments: 2,
   batches: 1,
+  simplificationTolerance: 0.55,
   featuresByTier: {
     "special-use": 0,
     "terminal-controlled": 1,
