@@ -11,8 +11,13 @@ import {
 import {
   resolveThreeOsmOperationalProminence,
 } from "./threeOsmOperationalProminence";
+import {
+  pushThreeOsmCorridorQuad,
+  pushThreeOsmDashedCorridor,
+  type ThreeOsmCorridorPoint,
+} from "./threeOsmCorridorGeometry";
 
-type ProjectedPoint = { x: number; z: number };
+type ProjectedPoint = ThreeOsmCorridorPoint;
 
 function finiteCoordinate(value: unknown) {
   if (value === null || value === undefined || value === "") return null;
@@ -39,60 +44,6 @@ function projectCoordinate({
     center: tileCenter,
     centerLat,
   });
-}
-
-function pushCorridorQuad(
-  positions: number[],
-  from: ProjectedPoint,
-  to: ProjectedPoint,
-  width: number,
-  y: number,
-) {
-  const deltaX = to.x - from.x;
-  const deltaZ = to.z - from.z;
-  const length = Math.hypot(deltaX, deltaZ);
-  if (!length) return false;
-  const halfWidth = width / 2;
-  const offsetX = (-deltaZ / length) * halfWidth;
-  const offsetZ = (deltaX / length) * halfWidth;
-  positions.push(
-    from.x + offsetX, y, from.z + offsetZ,
-    from.x - offsetX, y, from.z - offsetZ,
-    to.x + offsetX, y, to.z + offsetZ,
-    to.x + offsetX, y, to.z + offsetZ,
-    from.x - offsetX, y, from.z - offsetZ,
-    to.x - offsetX, y, to.z - offsetZ,
-  );
-  return true;
-}
-
-function pushDashedCorridor(
-  positions: number[],
-  from: ProjectedPoint,
-  to: ProjectedPoint,
-  { dash, gap, width, y }: { dash: number; gap: number; width: number; y: number },
-) {
-  const deltaX = to.x - from.x;
-  const deltaZ = to.z - from.z;
-  const length = Math.hypot(deltaX, deltaZ);
-  if (!length) return 0;
-  const directionX = deltaX / length;
-  const directionZ = deltaZ / length;
-  let count = 0;
-  for (let start = 0; start < length; start += dash + gap) {
-    const end = Math.min(length, start + dash);
-    if (end - start < 0.15) continue;
-    const dashFrom = {
-      x: from.x + directionX * start,
-      z: from.z + directionZ * start,
-    };
-    const dashTo = {
-      x: from.x + directionX * end,
-      z: from.z + directionZ * end,
-    };
-    if (pushCorridorQuad(positions, dashFrom, dashTo, width, y)) count += 1;
-  }
-  return count;
 }
 
 function lineStringsFromGeometry(geometry: Record<string, any> | null) {
@@ -172,8 +123,8 @@ function appendProjectedLine({
     });
     if (!from || !to) continue;
     const added = dashed
-      ? pushDashedCorridor(positions, from, to, { ...dashed, width, y })
-      : Number(pushCorridorQuad(positions, from, to, width, y));
+      ? pushThreeOsmDashedCorridor(positions, from, to, { ...dashed, width, y })
+      : Number(pushThreeOsmCorridorQuad(positions, from, to, width, y));
     if (!added) continue;
     segments += 1;
     dashes += dashed ? added : 0;

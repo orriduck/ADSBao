@@ -847,7 +847,7 @@ export default function ThreeOsmMapPoc({
     fitFallbackAnchor,
     allowRouteOnlyFit: routeWorkload.active || allowRouteOnlyFit,
     keepRouteInView: routeWorkload.active || keepRouteInView,
-    followsCenter,
+    followsCenter: followsCenter && !routeWorkload.active,
     requestedTileZoom,
     tileRadius,
   });

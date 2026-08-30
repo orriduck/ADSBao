@@ -8,8 +8,55 @@ import {
   type ThreeOsmContrastMode,
   type ThreeOsmSystemColors,
 } from "./threeOsmAccessibilityPreferences";
+import { buildThreeOsmDashedPolylineCorridor } from "./threeOsmCorridorGeometry";
 
 type RoutePoint = [unknown, unknown];
+
+function createRouteLine({
+  points,
+  color,
+  width,
+  opacity,
+  name,
+  renderOrder,
+}: {
+  points: THREE.Vector3[];
+  color: number;
+  width: number;
+  opacity: number;
+  name: string;
+  renderOrder: number;
+}) {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(
+      buildThreeOsmDashedPolylineCorridor({
+        points,
+        dash: 13,
+        gap: 9,
+        width,
+        y: points[0]?.y || 1.8,
+      }),
+      3,
+    ),
+  );
+  geometry.computeBoundingSphere();
+  const line = new THREE.Mesh(
+    geometry,
+    new THREE.MeshBasicMaterial({
+      color,
+      opacity,
+      transparent: opacity < 1,
+      depthTest: false,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  line.name = name;
+  line.renderOrder = renderOrder;
+  return line;
+}
 
 export function createThreeOsmRouteScene({
   path,
@@ -45,20 +92,24 @@ export function createThreeOsmRouteScene({
   });
   if (points.length < 2) return { group, pointCount: 0 };
 
-  const route = new THREE.Line(
-    new THREE.BufferGeometry().setFromPoints(points),
-    new THREE.LineDashedMaterial({
+  group.add(
+    createRouteLine({
+      points,
       color: palette.route,
-      dashSize: 13,
-      gapSize: 9,
-      opacity: contrastMode === "standard" ? 0.68 : 1,
-      transparent: true,
-      depthTest: false,
+      width: contrastMode === "standard" ? 7 : 8,
+      opacity: contrastMode === "standard" ? 0.16 : 0.32,
+      name: "three-osm-flight-route-glow",
+      renderOrder: 45,
+    }),
+    createRouteLine({
+      points,
+      color: palette.route,
+      width: contrastMode === "standard" ? 2.8 : 3.4,
+      opacity: contrastMode === "standard" ? 0.82 : 1,
+      name: "three-osm-flight-route-line",
+      renderOrder: 46,
     }),
   );
-  route.name = "three-osm-flight-route-line";
-  route.computeLineDistances();
-  group.add(route);
 
   const destination = points.at(-1);
   if (destination) {
@@ -73,6 +124,7 @@ export function createThreeOsmRouteScene({
       }),
     );
     destinationRing.name = "three-osm-flight-route-destination";
+    destinationRing.renderOrder = 47;
     destinationRing.position.copy(destination);
     destinationRing.rotation.x = -Math.PI / 2;
     group.add(destinationRing);
