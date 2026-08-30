@@ -10,6 +10,7 @@ type CacheEntry<T> = {
   value: T | null;
   lastUsed: number;
   failedAt: number | null;
+  discardErrorWhenUnused: boolean;
   consumers: Map<symbol, CacheListener<T>>;
 };
 
@@ -76,9 +77,27 @@ export class BoundedTileResourceCache<T> {
         if (released) return;
         released = true;
         entry.consumers.delete(token);
+        if (
+          entry.status === "error" &&
+          entry.discardErrorWhenUnused &&
+          entry.consumers.size === 0 &&
+          this.entries.get(key) === entry
+        ) {
+          this.entries.delete(key);
+        }
         this.prune();
       },
     };
+  }
+
+  acquirePrefetch(
+    key: string,
+    listener: CacheListener<T> = {},
+  ): BoundedTileCacheHandle<T> {
+    const handle = this.acquire(key, listener);
+    const entry = this.entries.get(key);
+    if (entry) entry.discardErrorWhenUnused = true;
+    return handle;
   }
 
   snapshot() {
@@ -112,6 +131,7 @@ export class BoundedTileResourceCache<T> {
       value: null,
       lastUsed: ++this.clock,
       failedAt: null,
+      discardErrorWhenUnused: false,
       consumers: new Map(),
     };
     this.entries.set(key, entry);
@@ -132,6 +152,13 @@ export class BoundedTileResourceCache<T> {
         entry.status = "error";
         entry.failedAt = this.now();
         entry.consumers.forEach((listener) => listener.error?.());
+        if (
+          entry.discardErrorWhenUnused &&
+          entry.consumers.size === 0 &&
+          this.entries.get(key) === entry
+        ) {
+          this.entries.delete(key);
+        }
         this.prune();
       },
     );

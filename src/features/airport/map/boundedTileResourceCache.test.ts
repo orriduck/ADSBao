@@ -73,6 +73,47 @@ assert.equal(retryCache.snapshot().ready, 1);
 retried.release();
 retryCache.disposeAll();
 
+let prefetchReject: ((error: Error) => void) | null = null;
+const prefetchCache = new BoundedTileResourceCache<string>({
+  maxEntries: 2,
+  load: () =>
+    new Promise((_resolve, reject) => {
+      prefetchReject = reject;
+    }),
+  dispose: () => {},
+});
+const speculative = prefetchCache.acquirePrefetch("speculative");
+speculative.release();
+prefetchReject?.(new Error("prefetch failed"));
+await Promise.resolve();
+assert.equal(prefetchCache.snapshot().size, 0);
+prefetchCache.disposeAll();
+
+let activePrefetchLoads = 0;
+let releaseActivePrefetch = () => {};
+const activePrefetchCache = new BoundedTileResourceCache<string>({
+  maxEntries: 2,
+  load: async () => {
+    activePrefetchLoads += 1;
+    if (activePrefetchLoads === 1) throw new Error("prefetch failed");
+    return "texture:recovered";
+  },
+  dispose: () => {},
+});
+const activePrefetch = activePrefetchCache.acquirePrefetch("active", {
+  error: () => releaseActivePrefetch(),
+});
+releaseActivePrefetch = activePrefetch.release;
+await Promise.resolve();
+assert.equal(activePrefetchCache.snapshot().size, 0);
+const foregroundAfterPrefetchFailure = activePrefetchCache.acquire("active");
+await Promise.resolve();
+assert.equal(activePrefetchLoads, 2);
+assert.equal(foregroundAfterPrefetchFailure.status, "pending");
+assert.equal(activePrefetchCache.snapshot().ready, 1);
+foregroundAfterPrefetchFailure.release();
+activePrefetchCache.disposeAll();
+
 const pendingResolvers = new Map<string, (value: string) => void>();
 const pendingDisposed: string[] = [];
 const pendingCache = new BoundedTileResourceCache<string>({
