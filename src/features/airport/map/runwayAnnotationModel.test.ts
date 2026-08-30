@@ -22,6 +22,7 @@ const runwayMap = {
   runways: [
     {
       id: "04R/22L",
+      lengthFt: 10007,
       widthFt: 150,
       ends: [
         { ident: "04R", lat: 42.35404, lon: -71.010352 },
@@ -55,6 +56,7 @@ assert.deepEqual(buildRunwayEndLabels(runwayMap), [
   {
     key: "04R/22L-04R",
     runwayId: "04R/22L",
+    lengthFt: 10007,
     ident: "04R",
     lat: 42.35404,
     lon: -71.010352,
@@ -62,6 +64,7 @@ assert.deepEqual(buildRunwayEndLabels(runwayMap), [
   {
     key: "04R/22L-22L",
     runwayId: "04R/22L",
+    lengthFt: 10007,
     ident: "22L",
     lat: 42.377344,
     lon: -70.999076,
@@ -231,6 +234,7 @@ const surfaceRunwayMap = buildRunwayMapFromSurfaceMap(
 assert.equal(surfaceRunwayMap?.source, "OpenStreetMap");
 assert.equal(surfaceRunwayMap?.runways.length, 1);
 assert.equal(surfaceRunwayMap?.runways[0].id, "04R/22L");
+assert.equal(surfaceRunwayMap?.runways[0].lengthFt, 10007);
 assert.deepEqual(
   surfaceRunwayMap?.runways[0].ends.map((end) => end.ident),
   ["04R", "22L"],

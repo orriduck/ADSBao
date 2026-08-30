@@ -501,6 +501,7 @@ export function createThreeOsmContextScene({
     const lon = finiteCoordinate(item?.lon);
     const ident = String(item?.ident || "").trim().toUpperCase();
     if (lat === null || lon === null || !ident) continue;
+    const lengthFt = Math.max(0, finiteCoordinate(item?.lengthFt) || 0);
     const point = lonLatAltitudeToThreeOsmWorld({
       lon,
       lat,
@@ -513,7 +514,7 @@ export function createThreeOsmContextScene({
       text: ident,
       kind: "runway",
       position: new THREE.Vector3(point.x, 6, point.z),
-      priority: 780,
+      priority: 760 + Math.min(20, lengthFt / 1_000),
     });
     runwayEndCount += 1;
   }

@@ -132,6 +132,7 @@ const context = createThreeOsmContextScene({
   runwayEndLabels: [
     {
       key: "04R/22L-04R",
+      lengthFt: 10000,
       ident: "04R",
       lat: 42.35404,
       lon: -71.010352,
@@ -231,6 +232,12 @@ assert.ok(
   context.labels.some(
     (label) => label.kind === "runway" && label.text === "04R",
   ),
+);
+assert.equal(
+  context.labels.find(
+    (label) => label.kind === "runway" && label.text === "04R",
+  )?.priority,
+  770,
 );
 assert.ok(
   context.group.getObjectByName(

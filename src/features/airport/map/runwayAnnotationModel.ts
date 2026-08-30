@@ -427,13 +427,17 @@ export function buildRunwayMapFromSurfaceMap(
   referenceRunwayMap: RunwayAnnotationRecord = null,
 ) {
   const runways = canonicalSurfaceRunwayFeatures(surfaceMap, referenceRunwayMap)
-    .map(({ feature, id, coordinates, referenceRunway }) => {
+    .map(({ feature, id, coordinates, referenceRunway, lengthMeters }) => {
       const ends = runwayEndsFromSurfaceFeature(id, coordinates, referenceRunway);
       if (ends.length < 2) return null;
+      const referenceLengthFt = Number(referenceRunway?.lengthFt);
 
       return {
         id,
         sourceId: feature?.properties?.id || "",
+        lengthFt: Number.isFinite(referenceLengthFt)
+          ? referenceLengthFt
+          : lengthMeters / 0.3048,
         widthFt: Number(feature?.properties?.widthFt),
         ends,
         centerline: {
@@ -679,6 +683,7 @@ export function buildRunwayEndLabels(runwayMap: RunwayAnnotationRecord, { zoom }
       .map((end) => ({
         key: `${runway.id}-${end.ident}`,
         runwayId: runway.id,
+        lengthFt: runway.lengthFt,
         ident: end.ident,
         lat: end.lat,
         lon: end.lon,
