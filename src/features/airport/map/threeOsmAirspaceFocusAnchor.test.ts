@@ -58,4 +58,23 @@ const nextScope = resolveThreeOsmAirspaceFocusAnchor({
 assert.equal(nextScope.mode, "camera");
 assert.equal(nextScope.scopeKey, "kbos:2d");
 
+const compactCamera = resolveThreeOsmAirspaceFocusAnchor({
+  current: focal,
+  scopeKey: "kbos:3d",
+  targetX: 80,
+  targetZ: 0,
+  compact: true,
+});
+assert.equal(compactCamera.mode, "camera");
+assert.equal(compactCamera.x, 64);
+
+const compactReturned = resolveThreeOsmAirspaceFocusAnchor({
+  current: compactCamera,
+  scopeKey: "kbos:3d",
+  targetX: 45,
+  targetZ: 0,
+  compact: true,
+});
+assert.equal(compactReturned.mode, "focal");
+
 console.log("threeOsmAirspaceFocusAnchor.test.ts ok");

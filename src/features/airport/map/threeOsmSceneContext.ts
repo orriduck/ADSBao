@@ -49,6 +49,9 @@ export type ThreeOsmSceneLabel = {
   position: THREE.Vector3;
   priority: number;
   selected?: boolean;
+  layoutGroup?: "airspace-context";
+  layoutGroupLimit?: number;
+  pinToViewport?: boolean;
 };
 
 type ContextPoint = {
@@ -264,6 +267,8 @@ export function createThreeOsmContextScene({
   airspaceLabelLimit = 2,
   airspaceFocusX = 0,
   airspaceFocusZ = 0,
+  airspaceLabelFocusX = airspaceFocusX,
+  airspaceLabelFocusZ = airspaceFocusZ,
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -300,6 +305,8 @@ export function createThreeOsmContextScene({
   airspaceLabelLimit?: number;
   airspaceFocusX?: number;
   airspaceFocusZ?: number;
+  airspaceLabelFocusX?: number;
+  airspaceLabelFocusZ?: number;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -500,6 +507,8 @@ export function createThreeOsmContextScene({
     maxLabels: airspaceLabelLimit,
     focusX: airspaceFocusX,
     focusZ: airspaceFocusZ,
+    labelFocusX: airspaceLabelFocusX,
+    labelFocusZ: airspaceLabelFocusZ,
   });
   let focusAirspaceBatches = 0;
   let contextAirspaceBatches = 0;
@@ -553,17 +562,20 @@ export function createThreeOsmContextScene({
     airspaceFocus.focus.positionsByTier,
     airspaceFocus.focus.segmentIdsByTier,
   );
-  for (const feature of airspaceFocus.labelFeatures) {
+  for (const [labelIndex, { feature, anchor }] of airspaceFocus.labelCandidates.entries()) {
     labels.push({
       id: `airspace-context:${feature.key}`,
       text: feature.contextLabel,
       kind: "airspace",
       position: new THREE.Vector3(
-        feature.cueAnchor.x,
+        anchor.x,
         feature.lowerY + 5.6,
-        feature.cueAnchor.z,
+        anchor.z,
       ),
-      priority: 735,
+      priority: 735 - labelIndex,
+      layoutGroup: "airspace-context",
+      layoutGroupLimit: airspaceFocus.labelLimit,
+      pinToViewport: true,
     });
   }
   const nearbyAirspaceCues = buildThreeOsmNearbyAirspaceCueGeometry({
@@ -595,6 +607,8 @@ export function createThreeOsmContextScene({
   const selectedAirspaceVolume =
     buildThreeOsmSelectedAirspaceVolumeGeometry(selectedAirspace);
   if (selectedAirspace?.positions.length) {
+    const selectedBoundaryAnchor = airspaceFocus.selectedAnchor ||
+      selectedAirspace.cueAnchor;
     const selectedAirspaceSegments = selectedAirspace.positions.map(
       (value, index) => index % 3 === 1 ? value + 1.6 : value,
     );
@@ -685,9 +699,9 @@ export function createThreeOsmContextScene({
       text: selectedAirspace.label,
       kind: "airspace",
       position: new THREE.Vector3(
-        selectedAirspace.labelPosition.x,
+        selectedBoundaryAnchor.x,
         selectedAirspace.labelPosition.y,
-        selectedAirspace.labelPosition.z,
+        selectedBoundaryAnchor.z,
       ),
       priority: 880,
       selected: true,
@@ -844,7 +858,10 @@ export function createThreeOsmContextScene({
       contextSegments: airspaceFocus.context.segments,
       focusBatches: focusAirspaceBatches,
       contextBatches: contextAirspaceBatches,
-      contextLabels: airspaceFocus.labelFeatures.length,
+      contextLabels: Math.min(
+        airspaceFocus.labelLimit,
+        airspaceFocus.labelCandidates.length,
+      ),
       focusAnchorX: Number.isFinite(Number(airspaceFocusX))
         ? Number(airspaceFocusX)
         : 0,

@@ -88,4 +88,62 @@ assert.ok(
     placedAroundBlocked[0].top >= blocked[0].bottom,
 );
 
+const edgePinned = layoutThreeOsmLabels(
+  [
+    {
+      id: "pinned",
+      text: "PINNED",
+      x: 120,
+      y: 8,
+      width: 48,
+      height: 18,
+      priority: 10,
+      pinToViewport: true,
+    },
+  ],
+  { viewportWidth: 240, viewportHeight: 160, reservedTop: 40 },
+);
+assert.equal(edgePinned.length, 1);
+assert.equal(edgePinned[0].placement, "edge");
+assert.equal(edgePinned[0].top, 40);
+
+const pinnedAroundPanel = layoutThreeOsmLabels(
+  [
+    {
+      id: "panel-candidate",
+      text: "AIRSPACE",
+      x: 120,
+      y: 180,
+      width: 100,
+      height: 18,
+      priority: 10,
+      pinToViewport: true,
+    },
+  ],
+  {
+    viewportWidth: 390,
+    viewportHeight: 844,
+    reservedTop: 92,
+    reservedBottom: 64,
+    blocked: [
+      {
+        id: "panel",
+        text: "",
+        x: 0,
+        y: 0,
+        width: 250,
+        height: 205,
+        priority: 100,
+        left: 9,
+        top: 9,
+        right: 267,
+        bottom: 222,
+        placement: "edge",
+      },
+    ],
+  },
+);
+assert.equal(pinnedAroundPanel.length, 1);
+assert.ok(pinnedAroundPanel[0].top >= 227);
+
 console.log("threeOsmLabelLayout.test.ts ok");

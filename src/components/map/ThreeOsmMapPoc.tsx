@@ -921,12 +921,14 @@ export default function ThreeOsmMapPoc({
         scopeKey: airspaceFocusScopeKey,
         targetX: sourceTargetX,
         targetZ: sourceTargetZ,
+        compact: tileRadius === 1,
       }),
     [
       airspaceFocusAnchorState,
       airspaceFocusScopeKey,
       sourceTargetX,
       sourceTargetZ,
+      tileRadius,
     ],
   );
   useEffect(() => {
@@ -1432,13 +1434,14 @@ export default function ThreeOsmMapPoc({
       const styleById = new Map<string, ThreeOsmSceneLabel>();
       const candidates = labels.flatMap((label) => {
         projected.copy(label.position).project(camera);
+        const projectionLimit = label.pinToViewport ? 1.25 : 1.08;
         if (
           projected.z < -1 ||
           projected.z > 1 ||
-          projected.x < -1.08 ||
-          projected.x > 1.08 ||
-          projected.y < -1.08 ||
-          projected.y > 1.08
+          projected.x < -projectionLimit ||
+          projected.x > projectionLimit ||
+          projected.y < -projectionLimit ||
+          projected.y > projectionLimit
         ) {
           return [];
         }
@@ -1463,6 +1466,7 @@ export default function ThreeOsmMapPoc({
                   ? 16
                   : 18,
             priority: label.priority,
+            pinToViewport: label.pinToViewport,
           },
         ];
       });
@@ -1474,13 +1478,45 @@ export default function ThreeOsmMapPoc({
         reservedTop: compact ? 92 : 70,
         reservedBottom: compact ? 64 : 24,
       };
-      const vectorCandidates = candidates.filter((candidate) => {
-        const style = styleById.get(candidate.id);
-        return Boolean(style && isThreeOsmVectorSceneLabel(style));
-      });
+      const debugPanel = root.querySelector<HTMLElement>(
+        "[data-poc-debug-panel]",
+      );
+      const debugPanelBounds = debugPanel?.getBoundingClientRect();
+      const rootBounds = root.getBoundingClientRect();
+      const structuralBlocked = debugPanelBounds
+        ? [
+            {
+              id: "poc-debug-panel",
+              text: "",
+              x: 0,
+              y: 0,
+              width: debugPanelBounds.width,
+              height: debugPanelBounds.height,
+              priority: Number.MAX_SAFE_INTEGER,
+              left: debugPanelBounds.left - rootBounds.left - 4,
+              top: debugPanelBounds.top - rootBounds.top - 4,
+              right: debugPanelBounds.right - rootBounds.left + 4,
+              bottom: debugPanelBounds.bottom - rootBounds.top + 4,
+              placement: "edge" as const,
+            },
+          ]
+        : [];
       const operationalCandidates = candidates.filter((candidate) => {
         const style = styleById.get(candidate.id);
         return Boolean(style && !isThreeOsmVectorSceneLabel(style));
+      });
+      const operationalTexts = new Set(
+        operationalCandidates.map((candidate) =>
+          candidate.text.trim().toLocaleLowerCase(),
+        ),
+      );
+      const vectorCandidates = candidates.filter((candidate) => {
+        const style = styleById.get(candidate.id);
+        return Boolean(
+          style &&
+            isThreeOsmVectorSceneLabel(style) &&
+            !operationalTexts.has(candidate.text.trim().toLocaleLowerCase()),
+        );
       });
       const vectorBudget =
         debugMode === "vector"
@@ -1495,23 +1531,47 @@ export default function ThreeOsmMapPoc({
       const criticalOperational = operationalCandidates.filter(
         (candidate) => candidate.priority >= 750,
       );
+      const airspaceOperational = operationalCandidates.filter(
+        (candidate) =>
+          styleById.get(candidate.id)?.layoutGroup === "airspace-context",
+      );
       const standardOperational = operationalCandidates.filter(
-        (candidate) => candidate.priority < 750,
+        (candidate) =>
+          candidate.priority < 750 &&
+          styleById.get(candidate.id)?.layoutGroup !== "airspace-context",
       );
       const criticalPlaced = layoutThreeOsmLabels(criticalOperational, {
         ...layoutOptions,
         maxLabels: Math.max(0, maxLabels - vectorBudget),
+        blocked: structuralBlocked,
       });
       const vectorPlaced = layoutThreeOsmLabels(vectorCandidates, {
         ...layoutOptions,
         maxLabels: Math.min(vectorBudget, maxLabels - criticalPlaced.length),
-        blocked: criticalPlaced,
+        blocked: [...structuralBlocked, ...criticalPlaced],
       });
       const occupied = [...criticalPlaced, ...vectorPlaced];
+      const airspaceGroupLimit = airspaceOperational.reduce(
+        (limit, candidate) =>
+          Math.max(
+            limit,
+            styleById.get(candidate.id)?.layoutGroupLimit || 0,
+          ),
+        0,
+      );
+      const airspacePlaced = layoutThreeOsmLabels(airspaceOperational, {
+        ...layoutOptions,
+        maxLabels: Math.min(
+          airspaceGroupLimit,
+          Math.max(0, maxLabels - occupied.length),
+        ),
+        blocked: [...structuralBlocked, ...occupied],
+      });
+      occupied.push(...airspacePlaced);
       const standardPlaced = layoutThreeOsmLabels(standardOperational, {
         ...layoutOptions,
         maxLabels: Math.max(0, maxLabels - occupied.length),
-        blocked: occupied,
+        blocked: [...structuralBlocked, ...occupied],
       });
       const placed = [...occupied, ...standardPlaced];
 
@@ -2160,7 +2220,7 @@ export default function ThreeOsmMapPoc({
       const material = new THREE.MeshBasicMaterial({
         color: contrastMode === "standard"
           ? theme === "light"
-            ? 0xffffff
+            ? visualPalette.background
             : 0x7a7a76
           : 0xffffff,
         side: THREE.DoubleSide,
@@ -2703,6 +2763,8 @@ export default function ThreeOsmMapPoc({
       airspaceLabelLimit: tileRadius === 1 ? 1 : 2,
       airspaceFocusX: airspaceFocusAnchor.x,
       airspaceFocusZ: airspaceFocusAnchor.z,
+      airspaceLabelFocusX: sourceTargetX,
+      airspaceLabelFocusZ: sourceTargetZ,
     });
     const contextBuildMs = performance.now() - contextBuildStartedAt;
     const { group } = contextScene;
@@ -3050,6 +3112,8 @@ export default function ThreeOsmMapPoc({
     showCandidateWatchingSpots,
     showNavaidMarkers,
     showReportingPoints,
+    sourceTargetX,
+    sourceTargetZ,
     systemColors,
     theme,
     tileCenter,
@@ -4109,7 +4173,10 @@ export default function ThreeOsmMapPoc({
         ) : null}
       </div>
 
-      <div className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm md:left-[312px]">
+      <div
+        className="pointer-events-none absolute left-3 top-3 border border-white/15 bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white shadow-sm backdrop-blur-sm md:left-[312px]"
+        data-poc-debug-panel
+      >
         <strong className="block text-[11px] font-semibold text-[#f5c542]">
           Three + OSM / POC
         </strong>

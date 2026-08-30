@@ -10,6 +10,8 @@ export type ThreeOsmAirspaceFocusAnchor = {
 
 const ENTER_CAMERA_RADIUS = THREE_OSM_TILE_SIZE * 0.55;
 const RETURN_FOCAL_RADIUS = THREE_OSM_TILE_SIZE * 0.35;
+const COMPACT_ENTER_CAMERA_RADIUS = THREE_OSM_TILE_SIZE * 0.3;
+const COMPACT_RETURN_FOCAL_RADIUS = THREE_OSM_TILE_SIZE * 0.18;
 const CAMERA_FOCUS_GRID = THREE_OSM_TILE_SIZE * 0.25;
 const CAMERA_FOCUS_UPDATE_RADIUS = CAMERA_FOCUS_GRID * 0.75;
 
@@ -44,20 +46,28 @@ export function resolveThreeOsmAirspaceFocusAnchor({
   scopeKey,
   targetX,
   targetZ,
+  compact = false,
 }: {
   current?: ThreeOsmAirspaceFocusAnchor | null;
   scopeKey: string;
   targetX: unknown;
   targetZ: unknown;
+  compact?: boolean;
 }): ThreeOsmAirspaceFocusAnchor {
   const safeScopeKey = String(scopeKey || "default");
   const x = Number.isFinite(Number(targetX)) ? Number(targetX) : 0;
   const z = Number.isFinite(Number(targetZ)) ? Number(targetZ) : 0;
   const distanceFromFocal = Math.hypot(x, z);
   const sameScope = current?.scopeKey === safeScopeKey;
+  const enterCameraRadius = compact
+    ? COMPACT_ENTER_CAMERA_RADIUS
+    : ENTER_CAMERA_RADIUS;
+  const returnFocalRadius = compact
+    ? COMPACT_RETURN_FOCAL_RADIUS
+    : RETURN_FOCAL_RADIUS;
 
   if (sameScope && current?.mode === "camera") {
-    if (distanceFromFocal <= RETURN_FOCAL_RADIUS) {
+    if (distanceFromFocal <= returnFocalRadius) {
       return focalAnchor(safeScopeKey);
     }
     if (
@@ -68,7 +78,7 @@ export function resolveThreeOsmAirspaceFocusAnchor({
     return cameraAnchor(safeScopeKey, x, z);
   }
 
-  if (distanceFromFocal <= ENTER_CAMERA_RADIUS) {
+  if (distanceFromFocal <= enterCameraRadius) {
     return sameScope && current?.mode === "focal"
       ? current
       : focalAnchor(safeScopeKey);

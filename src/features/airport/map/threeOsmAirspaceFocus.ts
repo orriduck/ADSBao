@@ -18,7 +18,12 @@ export type ThreeOsmAirspaceFocusResolution = {
   focus: ThreeOsmAirspaceSegmentLayer;
   context: ThreeOsmAirspaceSegmentLayer;
   focusFeatures: ThreeOsmPreparedAirspaceFeature[];
-  labelFeatures: ThreeOsmPreparedAirspaceFeature[];
+  labelCandidates: Array<{
+    feature: ThreeOsmPreparedAirspaceFeature;
+    anchor: { x: number; z: number; distance: number };
+  }>;
+  labelLimit: number;
+  selectedAnchor: { x: number; z: number; distance: number } | null;
 };
 
 const TIER_PENALTY_WORLD: Record<ThreeOsmAirspaceTier, number> = {
@@ -61,26 +66,58 @@ function appendFeature(
   );
 }
 
-function focusScore(
+function resolveBoundaryAnchor(
   feature: ThreeOsmPreparedAirspaceFeature,
   focusX: number,
   focusZ: number,
 ) {
-  const distance = focusX === 0 && focusZ === 0
-    ? feature.distanceFromFocusWorld
-    : Math.hypot(
-        feature.cueAnchor.x - focusX,
-        feature.cueAnchor.z - focusZ,
-      );
+  let bestX = feature.cueAnchor.x;
+  let bestZ = feature.cueAnchor.z;
+  let bestDistanceSquared =
+    (bestX - focusX) ** 2 + (bestZ - focusZ) ** 2;
+
+  for (let index = 0; index + 5 < feature.positions.length; index += 6) {
+    const fromX = feature.positions[index];
+    const fromZ = feature.positions[index + 2];
+    const toX = feature.positions[index + 3];
+    const toZ = feature.positions[index + 5];
+    if (![fromX, fromZ, toX, toZ].every(Number.isFinite)) continue;
+    const deltaX = toX - fromX;
+    const deltaZ = toZ - fromZ;
+    const lengthSquared = deltaX ** 2 + deltaZ ** 2;
+    const ratio = lengthSquared > 0
+      ? Math.max(
+          0,
+          Math.min(
+            1,
+            ((focusX - fromX) * deltaX + (focusZ - fromZ) * deltaZ) /
+              lengthSquared,
+          ),
+        )
+      : 0;
+    const x = fromX + deltaX * ratio;
+    const z = fromZ + deltaZ * ratio;
+    const distanceSquared = (x - focusX) ** 2 + (z - focusZ) ** 2;
+    if (distanceSquared >= bestDistanceSquared) continue;
+    bestX = x;
+    bestZ = z;
+    bestDistanceSquared = distanceSquared;
+  }
+
+  return {
+    x: bestX,
+    z: bestZ,
+    distance: Math.sqrt(bestDistanceSquared),
+  };
+}
+
+function focusScore(
+  feature: ThreeOsmPreparedAirspaceFeature,
+  distance: number,
+) {
   return distance +
     TIER_PENALTY_WORLD[feature.tier] +
     ALTITUDE_PENALTY_WORLD[feature.altitudeBand];
-}
-
-function canLabelFocusFeature(feature: ThreeOsmPreparedAirspaceFeature) {
-  return feature.tier === "terminal-controlled" ||
-    feature.tier === "special-use" ||
-    feature.altitudeBand === "surface";
 }
 
 export function resolveThreeOsmAirspaceFocus({
@@ -90,6 +127,8 @@ export function resolveThreeOsmAirspaceFocus({
   maxLabels = 2,
   focusX = 0,
   focusZ = 0,
+  labelFocusX = focusX,
+  labelFocusZ = focusZ,
 }: {
   prepared: ThreeOsmPreparedAirspaceGeometry;
   selectedAirspaceId?: string;
@@ -97,6 +136,8 @@ export function resolveThreeOsmAirspaceFocus({
   maxLabels?: number;
   focusX?: number;
   focusZ?: number;
+  labelFocusX?: number;
+  labelFocusZ?: number;
 }): ThreeOsmAirspaceFocusResolution {
   const safeFocusLimit = Math.max(
     0,
@@ -108,12 +149,27 @@ export function resolveThreeOsmAirspaceFocus({
   );
   const safeFocusX = Number.isFinite(Number(focusX)) ? Number(focusX) : 0;
   const safeFocusZ = Number.isFinite(Number(focusZ)) ? Number(focusZ) : 0;
-  const ranked = [...prepared.featureList].sort(
-    (left, right) =>
-      focusScore(left, safeFocusX, safeFocusZ) -
-        focusScore(right, safeFocusX, safeFocusZ) ||
-      left.key.localeCompare(right.key),
+  const safeLabelFocusX = Number.isFinite(Number(labelFocusX))
+    ? Number(labelFocusX)
+    : safeFocusX;
+  const safeLabelFocusZ = Number.isFinite(Number(labelFocusZ))
+    ? Number(labelFocusZ)
+    : safeFocusZ;
+  const rankedEntries = prepared.featureList
+    .map((feature) => ({
+      feature,
+      anchor: resolveBoundaryAnchor(feature, safeFocusX, safeFocusZ),
+    }))
+    .sort(
+      (left, right) =>
+        focusScore(left.feature, left.anchor.distance) -
+          focusScore(right.feature, right.anchor.distance) ||
+        left.feature.key.localeCompare(right.feature.key),
+    );
+  const rankingAnchorsByKey = new Map(
+    rankedEntries.map(({ feature, anchor }) => [feature.key, anchor]),
   );
+  const ranked = rankedEntries.map(({ feature }) => feature);
   const selected = selectedAirspaceId
     ? prepared.featuresById[selectedAirspaceId] || null
     : null;
@@ -134,7 +190,6 @@ export function resolveThreeOsmAirspaceFocus({
   const labelFeatures = focusFeatures.filter((feature) => {
     if (
       feature.id === selectedAirspaceId ||
-      !canLabelFocusFeature(feature) ||
       !feature.contextLabel ||
       seenLabels.has(feature.contextLabel)
     ) {
@@ -142,12 +197,21 @@ export function resolveThreeOsmAirspaceFocus({
     }
     seenLabels.add(feature.contextLabel);
     return true;
-  }).slice(0, safeLabelLimit);
+  });
+  const resolveLabelAnchor = (feature: ThreeOsmPreparedAirspaceFeature) =>
+    safeLabelFocusX === safeFocusX && safeLabelFocusZ === safeFocusZ
+      ? rankingAnchorsByKey.get(feature.key)!
+      : resolveBoundaryAnchor(feature, safeLabelFocusX, safeLabelFocusZ);
 
   return {
     focus,
     context,
     focusFeatures,
-    labelFeatures,
+    labelCandidates: labelFeatures.map((feature) => ({
+      feature,
+      anchor: resolveLabelAnchor(feature),
+    })),
+    labelLimit: safeLabelLimit,
+    selectedAnchor: selected ? resolveLabelAnchor(selected) : null,
   };
 }

@@ -104,9 +104,10 @@ assert.deepEqual(
   ["bos-b", "norwood-d", "bedford-d", "bos-shelf"],
 );
 assert.deepEqual(
-  resolved.labelFeatures.map((item) => item.id),
-  ["bos-b", "norwood-d"],
+  resolved.labelCandidates.map(({ feature }) => feature.id),
+  ["bos-b", "norwood-d", "bedford-d", "bos-shelf"],
 );
+assert.equal(resolved.labelLimit, 2);
 assert.equal(resolved.focus.features, 4);
 assert.equal(resolved.focus.segments, 4);
 assert.equal(resolved.context.features, 3);
@@ -121,7 +122,7 @@ const selected = resolveThreeOsmAirspaceFocus({
 assert.equal(selected.focusFeatures[0].id, "far-sua");
 assert.equal(selected.focusFeatures.length, 4);
 assert.equal(
-  selected.labelFeatures.some((item) => item.id === "far-sua"),
+  selected.labelCandidates.some(({ feature }) => feature.id === "far-sua"),
   false,
 );
 
@@ -137,8 +138,56 @@ assert.deepEqual(
   ["far-sua", "bedford-d"],
 );
 assert.deepEqual(
-  cameraFocused.labelFeatures.map((item) => item.id),
-  ["far-sua"],
+  cameraFocused.labelCandidates.map(({ feature }) => feature.id),
+  ["far-sua", "bedford-d"],
 );
+assert.deepEqual(cameraFocused.labelCandidates[0].anchor, {
+  x: 400,
+  z: 0,
+  distance: 0,
+});
+
+const movingLabelsWithinFocalFocus = resolveThreeOsmAirspaceFocus({
+  prepared,
+  focusX: 0,
+  focusZ: 0,
+  labelFocusX: 400,
+  labelFocusZ: 0,
+  maxFocusFeatures: 4,
+  maxLabels: 2,
+});
+assert.deepEqual(
+  movingLabelsWithinFocalFocus.focusFeatures.map((item) => item.id),
+  resolved.focusFeatures.map((item) => item.id),
+);
+assert.equal(
+  movingLabelsWithinFocalFocus.labelCandidates[0].anchor.x,
+  111,
+);
+
+const crossingBoundary = feature({
+  id: "crossing-boundary",
+  tier: "terminal-controlled",
+  altitudeBand: "surface",
+  distance: 300,
+  label: "CROSSING",
+});
+crossingBoundary.positions = [300, 2.4, -100, 300, 2.4, 100];
+crossingBoundary.cueAnchor = { x: 300, y: 2.4, z: -100 };
+const crossing = resolveThreeOsmAirspaceFocus({
+  prepared: {
+    featureList: [crossingBoundary],
+    featuresById: { [crossingBoundary.id]: crossingBoundary },
+  } as ThreeOsmPreparedAirspaceGeometry,
+  focusX: 300,
+  focusZ: 25,
+  maxFocusFeatures: 1,
+  maxLabels: 1,
+});
+assert.deepEqual(crossing.labelCandidates[0].anchor, {
+  x: 300,
+  z: 25,
+  distance: 0,
+});
 
 console.log("threeOsmAirspaceFocus.test.ts ok");
