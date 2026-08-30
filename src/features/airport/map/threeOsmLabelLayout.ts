@@ -9,6 +9,29 @@ export type ThreeOsmLabelCandidate = {
   pinToViewport?: boolean;
 };
 
+export type ThreeOsmViewportPin = "near" | "always";
+
+export function isThreeOsmLabelProjectionCandidate({
+  x,
+  y,
+  z,
+  viewportPin,
+}: {
+  x: number;
+  y: number;
+  z: number;
+  viewportPin?: ThreeOsmViewportPin;
+}) {
+  if (z < -1 || z > 1) return false;
+  const projectionLimit =
+    viewportPin === "always"
+      ? Number.POSITIVE_INFINITY
+      : viewportPin
+        ? 1.25
+        : 1.08;
+  return Math.abs(x) <= projectionLimit && Math.abs(y) <= projectionLimit;
+}
+
 export type ThreeOsmPlacedLabel = ThreeOsmLabelCandidate & {
   left: number;
   top: number;

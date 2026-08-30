@@ -28,6 +28,7 @@ import {
 } from "./threeOsmAirspaceVolume";
 import { resolveThreeOsmAirspaceFocus } from "./threeOsmAirspaceFocus";
 import { resolveThreeOsmNearestScreenTarget } from "./threeOsmScreenHit";
+import type { ThreeOsmViewportPin } from "./threeOsmLabelLayout";
 
 export { collectAirspaceLineCoordinates } from "./threeOsmAirspaceGeometry";
 
@@ -52,7 +53,7 @@ export type ThreeOsmSceneLabel = {
   selected?: boolean;
   layoutGroup?: "airspace-context";
   layoutGroupLimit?: number;
-  pinToViewport?: boolean;
+  viewportPin?: ThreeOsmViewportPin;
 };
 
 type ContextPoint = {
@@ -595,7 +596,7 @@ export function createThreeOsmContextScene({
       priority: 735 - labelIndex,
       layoutGroup: "airspace-context",
       layoutGroupLimit: airspaceFocus.labelLimit,
-      pinToViewport: true,
+      viewportPin: "near",
     });
   }
   const nearbyAirspaceCues = buildThreeOsmNearbyAirspaceCueGeometry({

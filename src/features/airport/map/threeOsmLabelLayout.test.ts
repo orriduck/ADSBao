@@ -1,5 +1,36 @@
 import assert from "node:assert/strict";
-import { layoutThreeOsmLabels } from "./threeOsmLabelLayout";
+import {
+  isThreeOsmLabelProjectionCandidate,
+  layoutThreeOsmLabels,
+} from "./threeOsmLabelLayout";
+
+assert.equal(
+  isThreeOsmLabelProjectionCandidate({
+    x: 4,
+    y: -3,
+    z: 0,
+    viewportPin: "always",
+  }),
+  true,
+);
+assert.equal(
+  isThreeOsmLabelProjectionCandidate({
+    x: 4,
+    y: -3,
+    z: 0,
+    viewportPin: "near",
+  }),
+  false,
+);
+assert.equal(
+  isThreeOsmLabelProjectionCandidate({
+    x: 0,
+    y: 0,
+    z: 1.1,
+    viewportPin: "always",
+  }),
+  false,
+);
 
 const placed = layoutThreeOsmLabels(
   [
@@ -145,5 +176,45 @@ const pinnedAroundPanel = layoutThreeOsmLabels(
 );
 assert.equal(pinnedAroundPanel.length, 1);
 assert.ok(pinnedAroundPanel[0].top >= 227);
+
+const farPinnedAroundSidebar = layoutThreeOsmLabels(
+  [
+    {
+      id: "far-selected-aircraft",
+      text: "AAL3036",
+      x: -800,
+      y: -500,
+      width: 64,
+      height: 18,
+      priority: 900,
+      pinToViewport: true,
+    },
+  ],
+  {
+    viewportWidth: 1440,
+    viewportHeight: 900,
+    reservedTop: 70,
+    reservedBottom: 24,
+    blocked: [
+      {
+        id: "sidebar",
+        text: "",
+        x: 0,
+        y: 0,
+        width: 305,
+        height: 900,
+        priority: 100,
+        left: -4,
+        top: -4,
+        right: 305,
+        bottom: 904,
+        placement: "edge",
+      },
+    ],
+  },
+);
+assert.equal(farPinnedAroundSidebar.length, 1);
+assert.ok(farPinnedAroundSidebar[0].left >= 313);
+assert.ok(farPinnedAroundSidebar[0].top >= 70);
 
 console.log("threeOsmLabelLayout.test.ts ok");

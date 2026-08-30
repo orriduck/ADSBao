@@ -52,7 +52,10 @@ import {
   type ThreeOsmAircraftEmphasis,
   type ThreeOsmAircraftRenderFamily,
 } from "@/features/airport/map/threeOsmAircraftVisual";
-import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
+import {
+  isThreeOsmLabelProjectionCandidate,
+  layoutThreeOsmLabels,
+} from "@/features/airport/map/threeOsmLabelLayout";
 import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
 import { buildReportingPointLabels } from "@/features/airport/map/reportingPointLabelModel";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
@@ -1437,15 +1440,12 @@ export default function ThreeOsmMapPoc({
       const styleById = new Map<string, ThreeOsmSceneLabel>();
       const candidates = labels.flatMap((label) => {
         projected.copy(label.position).project(camera);
-        const projectionLimit = label.pinToViewport ? 1.25 : 1.08;
-        if (
-          projected.z < -1 ||
-          projected.z > 1 ||
-          projected.x < -projectionLimit ||
-          projected.x > projectionLimit ||
-          projected.y < -projectionLimit ||
-          projected.y > projectionLimit
-        ) {
+        if (!isThreeOsmLabelProjectionCandidate({
+          x: projected.x,
+          y: projected.y,
+          z: projected.z,
+          viewportPin: label.viewportPin,
+        })) {
           return [];
         }
         const x = ((projected.x + 1) / 2) * width;
@@ -1469,7 +1469,7 @@ export default function ThreeOsmMapPoc({
                   ? 16
                   : 18,
             priority: label.priority,
-            pinToViewport: label.pinToViewport,
+            pinToViewport: Boolean(label.viewportPin),
           },
         ];
       });
@@ -1481,29 +1481,42 @@ export default function ThreeOsmMapPoc({
         reservedTop: compact ? 92 : 70,
         reservedBottom: compact ? 64 : 24,
       };
-      const debugPanel = root.querySelector<HTMLElement>(
-        "[data-poc-debug-panel]",
-      );
-      const debugPanelBounds = debugPanel?.getBoundingClientRect();
       const rootBounds = root.getBoundingClientRect();
-      const structuralBlocked = debugPanelBounds
-        ? [
-            {
-              id: "poc-debug-panel",
-              text: "",
-              x: 0,
-              y: 0,
-              width: debugPanelBounds.width,
-              height: debugPanelBounds.height,
-              priority: Number.MAX_SAFE_INTEGER,
-              left: debugPanelBounds.left - rootBounds.left - 4,
-              top: debugPanelBounds.top - rootBounds.top - 4,
-              right: debugPanelBounds.right - rootBounds.left + 4,
-              bottom: debugPanelBounds.bottom - rootBounds.top + 4,
-              placement: "edge" as const,
-            },
-          ]
-        : [];
+      const structuralElements = [
+        root.querySelector<HTMLElement>("[data-poc-debug-panel]"),
+        document.querySelector<HTMLElement>(
+          '.airport-desktop-sidebar[data-open="true"]',
+        ),
+        document.querySelector<HTMLElement>(
+          '[data-ui="mobile-preview-card"]',
+        ),
+      ].filter((element): element is HTMLElement => Boolean(element));
+      const structuralBlocked = structuralElements.flatMap((element, index) => {
+        const bounds = element.getBoundingClientRect();
+        const intersectsRoot =
+          bounds.width > 0 &&
+          bounds.height > 0 &&
+          bounds.right > rootBounds.left &&
+          bounds.left < rootBounds.right &&
+          bounds.bottom > rootBounds.top &&
+          bounds.top < rootBounds.bottom;
+        if (!intersectsRoot) return [];
+        return [{
+          id: `poc-structural-block-${index}`,
+          text: "",
+          x: 0,
+          y: 0,
+          width: bounds.width,
+          height: bounds.height,
+          priority: Number.MAX_SAFE_INTEGER,
+          left: bounds.left - rootBounds.left - 4,
+          top: bounds.top - rootBounds.top - 4,
+          right: bounds.right - rootBounds.left + 4,
+          bottom: bounds.bottom - rootBounds.top + 4,
+          placement: "edge" as const,
+        }];
+      });
+      root.dataset.pocLabelStructuralBlocks = String(structuralBlocked.length);
       const operationalCandidates = candidates.filter((candidate) => {
         const style = styleById.get(candidate.id);
         return Boolean(style && !isThreeOsmVectorSceneLabel(style));
@@ -1675,6 +1688,13 @@ export default function ThreeOsmMapPoc({
       root.dataset.pocLabelFallbacks = String(
         placed.filter((label) => label.placement !== "top-right").length,
       );
+      const selectedAircraftLabel = placed.find((label) => {
+        const style = styleById.get(label.id);
+        return style?.kind === "aircraft" && style.selected;
+      });
+      root.dataset.pocSelectedAircraftLabelPlacement = selectedAircraftLabel
+        ? `${selectedAircraftLabel.placement}:${Math.round(selectedAircraftLabel.left)},${Math.round(selectedAircraftLabel.top)}`
+        : "hidden";
     };
     const render = () => {
       frameId = 0;
@@ -3322,6 +3342,7 @@ export default function ThreeOsmMapPoc({
           position: position.clone().add(new THREE.Vector3(0, 5, 0)),
           priority: selected ? 900 : 300 - Math.hypot(point.x, point.z) / 12,
           selected,
+          viewportPin: selected ? "always" : undefined,
         });
       }
     });
