@@ -4,8 +4,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { ThreeOsmActiveCameraFit } from "./useThreeOsmCameraFitState";
 import {
   resolveThreeOsmCameraFrame,
-  resolveThreeOsmDefaultPerspectiveFrame,
+  resolveThreeOsmDefaultCameraFrame,
+  type ThreeOsmCameraViewportOffsets,
 } from "@/features/airport/map/threeOsmCameraFit";
+import { getFloatingSidebarOcclusionWidth } from "./mapViewportOffset";
 import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
@@ -22,6 +24,7 @@ export function useThreeOsmCameraFraming({
   viewMode,
   keepRouteInView,
   tileRadius,
+  cameraViewportOffsetRef,
   restoredCameraModeRef,
 }: {
   rootRef: RefObject<HTMLElement | null>;
@@ -34,6 +37,7 @@ export function useThreeOsmCameraFraming({
   viewMode: "2d" | "3d";
   keepRouteInView: boolean;
   tileRadius: number;
+  cameraViewportOffsetRef: MutableRefObject<ThreeOsmCameraViewportOffsets>;
   restoredCameraModeRef: MutableRefObject<"2d" | "3d" | null>;
 }) {
   const applyCameraFitRef = useRef<() => void>(() => {});
@@ -45,36 +49,50 @@ export function useThreeOsmCameraFraming({
     if (!root || !camera || !controls) return;
 
     const resetCamera = () => {
-      controls.target.set(0, 0, 0);
+      const frame = resolveThreeOsmDefaultCameraFrame({
+        mode: viewMode,
+        width: root.clientWidth,
+        height: root.clientHeight,
+        occlusionWidth: getFloatingSidebarOcclusionWidth(root),
+        tileRadius,
+      });
+      controls.target.set(frame.target.x, frame.target.y, frame.target.z);
+      cameraViewportOffsetRef.current[viewMode] = {
+        x: frame.target.x,
+        z: frame.target.z,
+      };
       controls.minDistance = 180;
       controls.maxDistance = 1_600;
       controls.minZoom = 0.5;
       controls.maxZoom = 4;
       if (camera instanceof THREE.PerspectiveCamera) {
-        const frame = resolveThreeOsmDefaultPerspectiveFrame({
-          aspect: root.clientWidth / Math.max(1, root.clientHeight),
-          tileRadius,
-        });
         camera.position.set(frame.position.x, frame.position.y, frame.position.z);
         camera.up.set(frame.up.x, frame.up.y, frame.up.z);
         camera.near = 1;
         camera.far = 6_000;
-        camera.lookAt(0, 0, 0);
+        camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
         camera.updateProjectionMatrix();
-        controls.minDistance = Math.max(100, frame.distance * 0.2);
-        controls.maxDistance = Math.max(1_600, frame.distance * 2.5);
-        root.dataset.pocDefaultPerspectiveDistance = frame.distance.toFixed(1);
-        root.dataset.pocDefaultPerspectiveElevation = String(frame.elevationDegrees);
+        controls.minDistance = Math.max(100, Number(frame.distance) * 0.2);
+        controls.maxDistance = Math.max(1_600, Number(frame.distance) * 2.5);
+        root.dataset.pocDefaultPerspectiveDistance = Number(
+          frame.distance,
+        ).toFixed(1);
+        root.dataset.pocDefaultPerspectiveElevation = String(
+          frame.elevationDegrees,
+        );
       } else if (camera instanceof THREE.OrthographicCamera) {
-        camera.position.set(0, 900, 0.01);
-        camera.up.set(0, 0, -1);
-        camera.zoom = 1;
-        camera.lookAt(0, 0, 0);
+        camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+        camera.up.set(frame.up.x, frame.up.y, frame.up.z);
+        camera.zoom = Number(frame.orthographicZoom);
+        camera.lookAt(frame.target.x, frame.target.y, frame.target.z);
         camera.updateProjectionMatrix();
         root.removeAttribute("data-poc-default-perspective-distance");
         root.removeAttribute("data-poc-default-perspective-elevation");
       }
       controls.update();
+      root.dataset.pocViewportOcclusionWidth = frame.occlusionWidth.toFixed(1);
+      root.dataset.pocDefaultVisibleAspect = frame.visibleAspect.toFixed(3);
+      root.dataset.pocCameraViewportOffset = `${frame.target.x.toFixed(2)},${frame.target.z.toFixed(2)}`;
       root.dataset.pocFitCamera = "default";
       root.removeAttribute("data-poc-fit-distance");
       root.removeAttribute("data-poc-fit-ortho-zoom");
@@ -131,6 +149,7 @@ export function useThreeOsmCameraFraming({
       });
       if (!frame) return;
       controls.target.set(frame.target.x, frame.target.y, frame.target.z);
+      cameraViewportOffsetRef.current[viewMode] = { x: 0, z: 0 };
       camera.position.set(frame.position.x, frame.position.y, frame.position.z);
       if (camera instanceof THREE.OrthographicCamera) {
         camera.zoom = frame.orthographicZoom;
@@ -166,6 +185,7 @@ export function useThreeOsmCameraFraming({
   }, [
     activeCameraFit,
     activeCameraRef,
+    cameraViewportOffsetRef,
     controlsRef,
     requestRenderRef,
     rootRef,

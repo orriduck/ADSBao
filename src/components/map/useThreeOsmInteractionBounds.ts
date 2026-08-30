@@ -5,36 +5,40 @@ import {
   clampThreeOsmCameraTarget,
   resolveThreeOsmMinimumOrthoZoom,
   resolveThreeOsmTileWorldBounds,
+  resolveThreeOsmVisibleHorizontalFraction,
   type ThreeOsmGroundFootprint,
 } from "@/features/airport/map/threeOsmInteractionBounds";
 import type { TileCoordinate } from "@/features/airport/map/threeOsmProjection";
-
-const FOOTPRINT_SAMPLES = [
-  [-1, -1],
-  [0, -1],
-  [1, -1],
-  [-1, 0],
-  [0, 0],
-  [1, 0],
-] as const;
+import type { ThreeOsmCameraViewportOffsets } from "@/features/airport/map/threeOsmCameraFit";
+import { getFloatingSidebarOcclusionWidth } from "./mapViewportOffset";
 
 function resolveGroundFootprint(
   camera: THREE.Camera,
   target: THREE.Vector3,
+  visibleLeftNdc: number,
 ): ThreeOsmGroundFootprint | null {
   if (camera instanceof THREE.OrthographicCamera) {
     const halfWidth = (camera.right - camera.left) / (2 * camera.zoom);
     const halfHeight = (camera.top - camera.bottom) / (2 * camera.zoom);
     return {
-      minX: -halfWidth,
+      minX: -halfWidth + (visibleLeftNdc + 1) * halfWidth,
       maxX: halfWidth,
       minZ: -halfHeight,
       maxZ: halfHeight,
     };
   }
   if (!(camera instanceof THREE.PerspectiveCamera)) return null;
+  const middleX = (visibleLeftNdc + 1) / 2;
+  const footprintSamples = [
+    [visibleLeftNdc, -1],
+    [middleX, -1],
+    [1, -1],
+    [visibleLeftNdc, 0],
+    [middleX, 0],
+    [1, 0],
+  ] as const;
   const raycaster = new THREE.Raycaster();
-  const offsets = FOOTPRINT_SAMPLES.flatMap(([x, y]) => {
+  const offsets = footprintSamples.flatMap(([x, y]) => {
     raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
     const directionY = raycaster.ray.direction.y;
     if (directionY >= -0.0001) return [];
@@ -57,6 +61,8 @@ export function useThreeOsmInteractionBounds({
   activeCameraRef,
   controlsRef,
   requestRenderRef,
+  cameraViewportOffsetRef,
+  lifecycleKey,
   tileCenter,
   visibleTiles,
   viewMode,
@@ -65,6 +71,8 @@ export function useThreeOsmInteractionBounds({
   activeCameraRef: MutableRefObject<THREE.Camera | null>;
   controlsRef: MutableRefObject<OrbitControls | null>;
   requestRenderRef: MutableRefObject<() => void>;
+  cameraViewportOffsetRef: MutableRefObject<ThreeOsmCameraViewportOffsets>;
+  lifecycleKey: string;
   tileCenter: TileCoordinate;
   visibleTiles: TileCoordinate[];
   viewMode: "2d" | "3d";
@@ -78,10 +86,17 @@ export function useThreeOsmInteractionBounds({
       center: tileCenter,
     });
     if (!root || !camera || !controls || !bounds) return;
+    const occlusionWidth = getFloatingSidebarOcclusionWidth(root);
+    const visibleHorizontalFraction = resolveThreeOsmVisibleHorizontalFraction({
+      viewportWidth: root.clientWidth,
+      occlusionWidth,
+    });
+    const visibleLeftNdc = 1 - 2 * visibleHorizontalFraction;
 
     if (camera instanceof THREE.OrthographicCamera) {
       const minimumZoom = resolveThreeOsmMinimumOrthoZoom({
-        cameraWidth: camera.right - camera.left,
+        cameraWidth:
+          (camera.right - camera.left) * visibleHorizontalFraction,
         cameraHeight: camera.top - camera.bottom,
         bounds,
       });
@@ -106,11 +121,17 @@ export function useThreeOsmInteractionBounds({
     root.dataset.pocInteractionBounds = `${Math.round(
       bounds.maxX - bounds.minX,
     )}x${Math.round(bounds.maxZ - bounds.minZ)}`;
+    root.dataset.pocInteractionVisibleFraction =
+      visibleHorizontalFraction.toFixed(3);
 
     let applying = false;
-    const clampCamera = () => {
+    const clampCamera = (adjustViewportOffset = false) => {
       if (applying) return;
-      const footprint = resolveGroundFootprint(camera, controls.target);
+      const footprint = resolveGroundFootprint(
+        camera,
+        controls.target,
+        visibleLeftNdc,
+      );
       if (!footprint) return;
       const next = clampThreeOsmCameraTarget({
         target: controls.target,
@@ -126,6 +147,12 @@ export function useThreeOsmInteractionBounds({
       );
       controls.target.add(delta);
       camera.position.add(delta);
+      if (adjustViewportOffset) {
+        const offset = cameraViewportOffsetRef.current[viewMode];
+        offset.x += delta.x;
+        offset.z += delta.z;
+        root.dataset.pocCameraViewportOffset = `${offset.x.toFixed(2)},${offset.z.toFixed(2)}`;
+      }
       controls.update();
       applying = false;
       root.dataset.pocInteractionClamps = String(
@@ -133,12 +160,15 @@ export function useThreeOsmInteractionBounds({
       );
       requestRenderRef.current();
     };
-    controls.addEventListener("change", clampCamera);
-    clampCamera();
-    return () => controls.removeEventListener("change", clampCamera);
+    const clampChangedCamera = () => clampCamera(false);
+    controls.addEventListener("change", clampChangedCamera);
+    clampCamera(true);
+    return () => controls.removeEventListener("change", clampChangedCamera);
   }, [
     activeCameraRef,
+    cameraViewportOffsetRef,
     controlsRef,
+    lifecycleKey,
     requestRenderRef,
     rootRef,
     tileCenter,

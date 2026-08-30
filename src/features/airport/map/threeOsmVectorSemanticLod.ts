@@ -34,7 +34,7 @@ export function resolveThreeOsmVectorSemanticLod(
       id: "overview",
       sourceZoom: zoom,
       roadClasses: OVERVIEW_ROADS,
-      surfaceKinds: ["water", "aeroway"],
+      surfaceKinds: ["aeroway"],
       showBuildings: false,
       maxLabels: 28,
     };

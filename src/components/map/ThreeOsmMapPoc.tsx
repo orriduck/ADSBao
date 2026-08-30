@@ -60,6 +60,12 @@ import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
 import { buildReportingPointLabels } from "@/features/airport/map/reportingPointLabelModel";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
 import {
+  THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT,
+  resolveThreeOsmDefaultCameraFrame,
+  type ThreeOsmCameraViewportOffsets,
+} from "@/features/airport/map/threeOsmCameraFit";
+import { getFloatingSidebarOcclusionWidth } from "@/components/map/mapViewportOffset";
+import {
   THREE_OSM_CONFIG_UNAVAILABLE_TILE_SOURCE,
   THREE_OSM_DEBUG_FAILURE_TILE_SOURCE,
   THREE_OSM_STANDARD_TILE_SOURCE,
@@ -478,19 +484,28 @@ function createThreeOsmCompileSnapshot(scene: THREE.Scene) {
 function initializeThreeOsmCamera(
   camera: THREE.OrthographicCamera | THREE.PerspectiveCamera,
   target: THREE.Vector3,
+  width: number,
+  height: number,
+  occlusionWidth: number,
+  tileRadius: number,
 ) {
-  target.set(0, 0, 0);
-  if (camera instanceof THREE.PerspectiveCamera) {
-    camera.position.set(440, 360, 520);
-    camera.up.set(0, 1, 0);
-  } else {
-    camera.position.set(0, 900, 0.01);
-    camera.up.set(0, 0, -1);
-    camera.zoom = 1;
+  const frame = resolveThreeOsmDefaultCameraFrame({
+    mode: camera instanceof THREE.PerspectiveCamera ? "3d" : "2d",
+    width,
+    height,
+    occlusionWidth,
+    tileRadius,
+  });
+  target.set(frame.target.x, frame.target.y, frame.target.z);
+  camera.position.set(frame.position.x, frame.position.y, frame.position.z);
+  camera.up.set(frame.up.x, frame.up.y, frame.up.z);
+  if (camera instanceof THREE.OrthographicCamera) {
+    camera.zoom = Number(frame.orthographicZoom);
     camera.updateProjectionMatrix();
   }
   camera.lookAt(target);
   camera.updateMatrixWorld();
+  return frame;
 }
 
 function disposeObject(object: THREE.Object3D | null) {
@@ -619,6 +634,10 @@ export default function ThreeOsmMapPoc({
   const cameraSnapshotsRef = useRef<
     Partial<Record<ThreeOsmCameraMode, ThreeOsmCameraSnapshot>>
   >({});
+  const cameraViewportOffsetRef = useRef<ThreeOsmCameraViewportOffsets>({
+    "2d": { x: 0, z: 0 },
+    "3d": { x: 0, z: 0 },
+  });
   const manuallyChangedCameraModesRef = useRef<Set<ThreeOsmCameraMode>>(new Set());
   const restoredCameraModeRef = useRef<ThreeOsmCameraMode | null>(null);
   const cameraStateScopeKeyRef = useRef("");
@@ -907,8 +926,8 @@ export default function ThreeOsmMapPoc({
   const requestedTileZoom = clampThreeOsmZoom(
     Number.isFinite(debugZoom) ? debugZoom : zoom,
   );
-  const tileRadius = isCompact ? 1 : 2;
-  const rasterTileRadius = viewMode === "3d" ? 2 : tileRadius;
+  const tileRadius = 2;
+  const rasterTileRadius = tileRadius;
   const routeWorkloadAirportSnapshot = routeWorkloadEnabled
     ? JSON.stringify(
         nearbyAirports.map((item) => ({
@@ -1028,12 +1047,14 @@ export default function ThreeOsmMapPoc({
   const sourceTargetX =
     cameraLodState.scopeKey === cameraStateScopeKey &&
     cameraLodState.mode === viewMode
-      ? cameraLodState.targetX
+      ? cameraLodState.targetX -
+        cameraViewportOffsetRef.current[viewMode].x
       : 0;
   const sourceTargetZ =
     cameraLodState.scopeKey === cameraStateScopeKey &&
     cameraLodState.mode === viewMode
-      ? cameraLodState.targetZ
+      ? cameraLodState.targetZ -
+        cameraViewportOffsetRef.current[viewMode].z
       : 0;
   const airspaceFocusScopeKey = `${cameraStateScopeKey}:${viewMode}`;
   const [airspaceFocusAnchorState, setAirspaceFocusAnchorState] =
@@ -1045,14 +1066,14 @@ export default function ThreeOsmMapPoc({
         scopeKey: airspaceFocusScopeKey,
         targetX: sourceTargetX,
         targetZ: sourceTargetZ,
-        compact: tileRadius === 1,
+        compact: isCompact,
       }),
     [
       airspaceFocusAnchorState,
       airspaceFocusScopeKey,
       sourceTargetX,
       sourceTargetZ,
-      tileRadius,
+      isCompact,
     ],
   );
   useEffect(() => {
@@ -1079,7 +1100,7 @@ export default function ThreeOsmMapPoc({
     [sourceProjectionCenter, sourceTargetX, sourceTargetZ, tileZoom],
   );
   const sourceTileWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
-  const parentRasterFallbackEnabled = viewMode === "3d" && tileRadius === 1;
+  const parentRasterFallbackEnabled = viewMode === "3d" && isCompact;
   const rasterTileWindowKey = `${sourceTileWindowKey}/r${rasterTileRadius}/p${
     parentRasterFallbackEnabled ? 1 : 0
   }`;
@@ -2006,7 +2027,7 @@ export default function ThreeOsmMapPoc({
       labelCanvas.height = Math.max(1, Math.floor(height * pixelRatio));
 
       const aspect = width / height;
-      const halfHeight = 300;
+      const halfHeight = THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT;
       orthographicCamera.left = -halfHeight * aspect;
       orthographicCamera.right = halfHeight * aspect;
       orthographicCamera.top = halfHeight;
@@ -3034,8 +3055,8 @@ export default function ThreeOsmMapPoc({
       locale,
       selectedAirspaceId,
       preparedAirspaceGeometry,
-      airspaceFocusLimit: tileRadius === 1 ? 4 : 6,
-      airspaceLabelLimit: tileRadius === 1 ? 1 : 2,
+      airspaceFocusLimit: isCompact ? 4 : 6,
+      airspaceLabelLimit: isCompact ? 1 : 2,
       airspaceFocusX: airspaceFocusAnchor.x,
       airspaceFocusZ: airspaceFocusAnchor.z,
       airspaceLabelFocusX: sourceTargetX,
@@ -3397,7 +3418,7 @@ export default function ThreeOsmMapPoc({
     systemColors,
     theme,
     tileCenter,
-    tileRadius,
+    isCompact,
     tileZoom,
     useNavaidCounts,
     userLocation,
@@ -3842,7 +3863,19 @@ export default function ThreeOsmMapPoc({
       );
     } else {
       restoredCameraModeRef.current = null;
-      initializeThreeOsmCamera(camera, controls.target);
+      const frame = initializeThreeOsmCamera(
+        camera,
+        controls.target,
+        root.clientWidth,
+        root.clientHeight,
+        getFloatingSidebarOcclusionWidth(root),
+        tileRadius,
+      );
+      cameraViewportOffsetRef.current[viewMode] = {
+        x: frame.target.x,
+        z: frame.target.z,
+      };
+      root.dataset.pocCameraViewportOffset = `${frame.target.x.toFixed(2)},${frame.target.z.toFixed(2)}`;
       root.dataset.pocCameraState = activeCameraFit ? "fit" : "default";
     }
     controls.update();
@@ -3893,6 +3926,7 @@ export default function ThreeOsmMapPoc({
     viewMode,
     keepRouteInView,
     tileRadius,
+    cameraViewportOffsetRef,
     restoredCameraModeRef,
   });
 
@@ -3931,12 +3965,13 @@ export default function ThreeOsmMapPoc({
         sceneCenterLat,
         zoom,
       );
+      const viewportOffset = cameraViewportOffsetRef.current[viewMode];
       return resolveThreeOsmTileWindowKey(
         resolveThreeOsmSourceViewCenter({
           projectionCenter,
           sceneZoom: tileZoom,
-          targetX,
-          targetZ,
+          targetX: targetX - viewportOffset.x,
+          targetZ: targetZ - viewportOffset.z,
         }),
       );
     };
@@ -4133,6 +4168,8 @@ export default function ThreeOsmMapPoc({
     activeCameraRef,
     controlsRef,
     requestRenderRef,
+    cameraViewportOffsetRef,
+    lifecycleKey: cameraStateScopeKey,
     tileCenter,
     visibleTiles,
     viewMode,
@@ -4365,6 +4402,8 @@ export default function ThreeOsmMapPoc({
       data-poc-vector-context-state={vectorContextState}
       data-poc-scene-zoom={tileZoom}
       data-poc-source-zoom={sourceTileZoom}
+      data-poc-source-target={`${sourceTargetX.toFixed(2)},${sourceTargetZ.toFixed(2)}`}
+      data-poc-lod-target={`${cameraLodState.targetX.toFixed(2)},${cameraLodState.targetZ.toFixed(2)}`}
       data-poc-semantic-lod={sceneSemanticLod.id}
       data-poc-semantic-raster-strength={
         sceneSemanticLod.rasterUnderlayStrength.toFixed(3)

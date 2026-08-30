@@ -8,8 +8,7 @@ function pair(value: any, fallback: number[]) {
   return fallback;
 }
 
-function getFloatingSidebarOcclusionWidth(map: any) {
-  const container = map?.getContainer?.();
+export function getFloatingSidebarOcclusionWidth(container: Element | null) {
   const kit = container?.closest?.(".airport-map-kit");
   const sidebar = kit?.querySelector?.(SIDEBAR_SELECTOR);
   if (!container || !sidebar) return 0;
@@ -23,7 +22,9 @@ function getFloatingSidebarOcclusionWidth(map: any) {
 }
 
 export function getOffsetMapCenter(map: any, center: any, zoom: any) {
-  const occlusionWidth = getFloatingSidebarOcclusionWidth(map);
+  const occlusionWidth = getFloatingSidebarOcclusionWidth(
+    map?.getContainer?.() || null,
+  );
   if (!occlusionWidth || !center) return center;
 
   const projected = map.project([center.lat, center.lon], zoom);
@@ -32,7 +33,9 @@ export function getOffsetMapCenter(map: any, center: any, zoom: any) {
 }
 
 export function withFloatingSidebarFitPadding(map: any, fitOptions: Record<string, any> = {}) {
-  const occlusionWidth = getFloatingSidebarOcclusionWidth(map);
+  const occlusionWidth = getFloatingSidebarOcclusionWidth(
+    map?.getContainer?.() || null,
+  );
   if (!occlusionWidth) return fitOptions;
 
   const basePadding = pair(fitOptions.padding, [60, 60]);

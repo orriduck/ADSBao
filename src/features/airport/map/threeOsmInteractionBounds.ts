@@ -13,6 +13,21 @@ export type ThreeOsmWorldBounds = {
 
 export type ThreeOsmGroundFootprint = ThreeOsmWorldBounds;
 
+export function resolveThreeOsmVisibleHorizontalFraction({
+  viewportWidth,
+  occlusionWidth = 0,
+}: {
+  viewportWidth: unknown;
+  occlusionWidth?: unknown;
+}) {
+  const width = Math.max(1, Number(viewportWidth) || 1);
+  const occluded = Math.min(
+    width - 1,
+    Math.max(0, Number(occlusionWidth) || 0),
+  );
+  return (width - occluded) / width;
+}
+
 export function resolveThreeOsmTileWorldBounds({
   tiles,
   center,

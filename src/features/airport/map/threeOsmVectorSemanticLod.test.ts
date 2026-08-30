@@ -22,6 +22,14 @@ assert.equal(
   isThreeOsmVectorSurfaceKindVisible({ kind: "natural", lod: overview }),
   false,
 );
+assert.equal(
+  isThreeOsmVectorSurfaceKindVisible({ kind: "water", lod: overview }),
+  false,
+);
+assert.equal(
+  isThreeOsmVectorSurfaceKindVisible({ kind: "aeroway", lod: overview }),
+  true,
+);
 
 const regional = resolveThreeOsmVectorSemanticLod(11);
 assert.equal(regional.id, "regional");

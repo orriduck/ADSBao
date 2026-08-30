@@ -11,6 +11,13 @@ import {
 
 type LatLonTuple = [number, number];
 
+export const THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT = 300;
+
+export type ThreeOsmCameraViewportOffsets = Record<
+  "2d" | "3d",
+  { x: number; z: number }
+>;
+
 function finiteFitPoints(points: Array<[unknown, unknown]> = []) {
   return points.flatMap((point) => {
     const lat = Number(point?.[0]);
@@ -161,6 +168,89 @@ function threeOsmPerspectiveUp() {
     x: 0,
     y: Math.cos(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
     z: -Math.sin(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS),
+  };
+}
+
+export function resolveThreeOsmDefaultOrthographicZoom({
+  aspect = 1,
+  tileRadius = 2,
+}: {
+  aspect?: unknown;
+  tileRadius?: unknown;
+}) {
+  const safeAspect = Math.max(0.35, Number(aspect) || 1);
+  const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
+  const safeTileHalfSpan =
+    (radius + 0.5) * THREE_OSM_TILE_SIZE * 0.9;
+  const viewportHalfSpan =
+    THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT * Math.max(1, safeAspect);
+  return Math.max(0.5, viewportHalfSpan / safeTileHalfSpan);
+}
+
+export function resolveThreeOsmDefaultCameraFrame({
+  mode,
+  width,
+  height,
+  occlusionWidth = 0,
+  tileRadius = 2,
+}: {
+  mode: "2d" | "3d";
+  width: unknown;
+  height: unknown;
+  occlusionWidth?: unknown;
+  tileRadius?: unknown;
+}) {
+  const safeWidth = Math.max(1, Number(width) || 1);
+  const safeHeight = Math.max(1, Number(height) || 1);
+  const occludedWidth = Math.min(
+    safeWidth - 1,
+    Math.max(0, Number(occlusionWidth) || 0),
+  );
+  const visibleAspect = (safeWidth - occludedWidth) / safeHeight;
+
+  if (mode === "2d") {
+    const orthographicZoom = resolveThreeOsmDefaultOrthographicZoom({
+      aspect: visibleAspect,
+      tileRadius,
+    });
+    const worldPerPixel =
+      (2 * THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT) /
+      (orthographicZoom * safeHeight);
+    const targetX = occludedWidth ? -(occludedWidth / 2) * worldPerPixel : 0;
+    return {
+      mode,
+      target: { x: targetX, y: 0, z: 0 },
+      position: { x: targetX, y: 900, z: 0.01 },
+      up: { x: 0, y: 0, z: -1 },
+      orthographicZoom,
+      distance: null,
+      elevationDegrees: null,
+      visibleAspect,
+      occlusionWidth: occludedWidth,
+    };
+  }
+
+  const perspective = resolveThreeOsmDefaultPerspectiveFrame({
+    aspect: visibleAspect,
+    tileRadius,
+  });
+  const worldPerPixel =
+    (2 * Math.tan((45 * Math.PI) / 360) * perspective.distance) / safeHeight;
+  const targetX = occludedWidth ? -(occludedWidth / 2) * worldPerPixel : 0;
+  return {
+    mode,
+    target: { x: targetX, y: 0, z: 0 },
+    position: {
+      x: targetX + perspective.position.x,
+      y: perspective.position.y,
+      z: perspective.position.z,
+    },
+    up: perspective.up,
+    orthographicZoom: null,
+    distance: perspective.distance,
+    elevationDegrees: perspective.elevationDegrees,
+    visibleAspect,
+    occlusionWidth: occludedWidth,
   };
 }
 

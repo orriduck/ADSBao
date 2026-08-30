@@ -3,6 +3,7 @@ import {
   clampThreeOsmCameraTarget,
   resolveThreeOsmMinimumOrthoZoom,
   resolveThreeOsmTileWorldBounds,
+  resolveThreeOsmVisibleHorizontalFraction,
 } from "./threeOsmInteractionBounds";
 import {
   buildVisibleTileGrid,
@@ -40,6 +41,14 @@ assert.ok(
     cameraHeight: 600,
     bounds,
   }) > 0.6,
+);
+
+assert.equal(
+  resolveThreeOsmVisibleHorizontalFraction({
+    viewportWidth: 1440,
+    occlusionWidth: 300,
+  }),
+  1140 / 1440,
 );
 
 console.log("threeOsmInteractionBounds.test.ts ok");

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import {
   resolveThreeOsmCameraFrame,
+  resolveThreeOsmDefaultCameraFrame,
+  resolveThreeOsmDefaultOrthographicZoom,
   resolveThreeOsmDefaultPerspectiveFrame,
   resolveThreeOsmFitViewport,
 } from "./threeOsmCameraFit";
@@ -104,5 +106,41 @@ assert.ok(
 assert.ok(desktopDefault.distance > mobileDefault.distance);
 assert.ok(desktopDefault.distance < 700);
 assert.ok(mobileDefault.distance >= 300);
+
+const mobileOrthographicZoom = resolveThreeOsmDefaultOrthographicZoom({
+  aspect: 390 / 844,
+  tileRadius: 2,
+});
+const desktopOrthographicZoom = resolveThreeOsmDefaultOrthographicZoom({
+  aspect: 1140 / 900,
+  tileRadius: 2,
+});
+assert.ok(mobileOrthographicZoom > 0.5 && mobileOrthographicZoom < 0.53);
+assert.ok(desktopOrthographicZoom > 0.65 && desktopOrthographicZoom < 0.67);
+
+const desktopOccludedFrame = resolveThreeOsmDefaultCameraFrame({
+  mode: "2d",
+  width: 1440,
+  height: 900,
+  occlusionWidth: 300,
+  tileRadius: 2,
+});
+assert.ok(
+  Number(desktopOccludedFrame.orthographicZoom) > 0.65 &&
+    Number(desktopOccludedFrame.orthographicZoom) < 0.67,
+);
+assert.equal(desktopOccludedFrame.visibleAspect, 1140 / 900);
+assert.ok(desktopOccludedFrame.target.x < 0);
+assert.equal(desktopOccludedFrame.position.x, desktopOccludedFrame.target.x);
+
+const mobileUnoccludedFrame = resolveThreeOsmDefaultCameraFrame({
+  mode: "3d",
+  width: 390,
+  height: 844,
+  tileRadius: 2,
+});
+assert.equal(mobileUnoccludedFrame.target.x, 0);
+assert.equal(mobileUnoccludedFrame.position.x, 0);
+assert.ok(Number(mobileUnoccludedFrame.distance) > 900);
 
 console.log("threeOsmCameraFit.test.ts ok");
