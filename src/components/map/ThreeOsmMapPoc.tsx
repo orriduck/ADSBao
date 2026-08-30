@@ -1191,24 +1191,6 @@ export default function ThreeOsmMapPoc({
   const rasterTileWindow = rasterTileWindowSnapshot.window;
   const vectorLabelFocusX = rasterTileWindowSnapshot.focusX;
   const vectorLabelFocusZ = rasterTileWindowSnapshot.focusZ;
-  const interactionTileWindow = useMemo(
-    () =>
-      resolveThreeOsmViewportTileWindow({
-        center: tileCenter,
-        sceneZoom: tileZoom,
-        sourceZoom: tileZoom,
-        footprint: viewportFootprint,
-      }),
-    [tileCenter, tileZoom, viewportFootprint],
-  );
-  const visibleTiles = useMemo(
-    () =>
-      buildThreeOsmTileWindowGrid({
-        center: tileCenter,
-        window: interactionTileWindow,
-      }),
-    [interactionTileWindow, tileCenter],
-  );
   const sourceTileBaseWindowKey = resolveThreeOsmTileWindowKey(rasterTileCenter);
   const sourceTileWindowKey = `${sourceTileBaseWindowKey}/w${rasterTileWindow.key}`;
   const parentRasterFallbackEnabled =
@@ -4422,7 +4404,6 @@ export default function ThreeOsmMapPoc({
     cameraViewportOffsetRef,
     lifecycleKey: cameraStateScopeKey,
     tileCenter,
-    visibleTiles,
     viewMode,
   });
 
@@ -4511,6 +4492,7 @@ export default function ThreeOsmMapPoc({
         );
       }
     }
+    controls.dispatchEvent({ type: "change" });
     controls.update();
     controls.dispatchEvent({ type: "end" });
     if (root) {

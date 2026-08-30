@@ -3,6 +3,7 @@ import {
   resolveThreeOsmCameraFrame,
   resolveThreeOsmDefaultCameraFrame,
   resolveThreeOsmDefaultOrthographicZoom,
+  resolveThreeOsmViewportOffsetForScale,
   resolveThreeOsmDefaultPerspectiveFrame,
   resolveThreeOsmFitViewport,
 } from "./threeOsmCameraFit";
@@ -142,5 +143,22 @@ const mobileUnoccludedFrame = resolveThreeOsmDefaultCameraFrame({
 assert.equal(mobileUnoccludedFrame.target.x, 0);
 assert.equal(mobileUnoccludedFrame.position.x, 0);
 assert.ok(Number(mobileUnoccludedFrame.distance) > 900);
+
+assert.deepEqual(
+  resolveThreeOsmViewportOffsetForScale({
+    offset: { x: -120, z: 16 },
+    previousScale: 2,
+    currentScale: 0.5,
+  }),
+  { x: -30, z: 4 },
+);
+assert.deepEqual(
+  resolveThreeOsmViewportOffsetForScale({
+    offset: { x: -120, z: 16 },
+    previousScale: 0,
+    currentScale: 0.5,
+  }),
+  { x: -120, z: 16 },
+);
 
 console.log("threeOsmCameraFit.test.ts ok");

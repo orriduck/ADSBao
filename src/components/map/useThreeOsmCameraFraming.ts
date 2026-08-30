@@ -5,6 +5,7 @@ import type { ThreeOsmActiveCameraFit } from "./useThreeOsmCameraFitState";
 import {
   resolveThreeOsmCameraFrame,
   resolveThreeOsmDefaultCameraFrame,
+  resolveThreeOsmViewportOffsetForScale,
   type ThreeOsmCameraViewportOffsets,
 } from "@/features/airport/map/threeOsmCameraFit";
 import { getFloatingSidebarOcclusionWidth } from "./mapViewportOffset";
@@ -193,6 +194,72 @@ export function useThreeOsmCameraFraming({
     sceneCenterLat,
     tileCenter,
     tileRadius,
+    viewMode,
+  ]);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const camera = activeCameraRef.current;
+    const controls = controlsRef.current;
+    if (!root || !camera || !controls || activeCameraFit) return;
+
+    const readScale = () =>
+      camera instanceof THREE.OrthographicCamera
+        ? 1 / Math.max(0.001, camera.zoom)
+        : camera instanceof THREE.PerspectiveCamera
+          ? camera.position.distanceTo(controls.target)
+          : null;
+    let previousScale = readScale();
+    let previousOffset = { ...cameraViewportOffsetRef.current[viewMode] };
+    let applying = false;
+    root.dataset.pocCameraViewportScale = previousScale?.toFixed(4) || "unavailable";
+
+    const keepViewportOffsetStable = () => {
+      if (applying) return;
+      const currentScale = readScale();
+      const currentOffset = cameraViewportOffsetRef.current[viewMode];
+      if (currentScale == null || previousScale == null) return;
+      if (
+        Math.abs(currentOffset.x - previousOffset.x) > 0.001 ||
+        Math.abs(currentOffset.z - previousOffset.z) > 0.001
+      ) {
+        previousScale = currentScale;
+        previousOffset = { ...currentOffset };
+        return;
+      }
+      const nextOffset = resolveThreeOsmViewportOffsetForScale({
+        offset: currentOffset,
+        previousScale,
+        currentScale,
+      });
+      const deltaX = nextOffset.x - currentOffset.x;
+      const deltaZ = nextOffset.z - currentOffset.z;
+      previousScale = currentScale;
+      previousOffset = nextOffset;
+      root.dataset.pocCameraViewportScale = currentScale.toFixed(4);
+      if (Math.abs(deltaX) <= 0.001 && Math.abs(deltaZ) <= 0.001) return;
+
+      applying = true;
+      cameraViewportOffsetRef.current[viewMode] = nextOffset;
+      controls.target.x += deltaX;
+      controls.target.z += deltaZ;
+      camera.position.x += deltaX;
+      camera.position.z += deltaZ;
+      root.dataset.pocCameraViewportOffset = `${nextOffset.x.toFixed(2)},${nextOffset.z.toFixed(2)}`;
+      controls.update();
+      requestRenderRef.current();
+      applying = false;
+    };
+
+    controls.addEventListener("change", keepViewportOffsetStable);
+    return () => controls.removeEventListener("change", keepViewportOffsetStable);
+  }, [
+    activeCameraFit,
+    activeCameraRef,
+    cameraViewportOffsetRef,
+    controlsRef,
+    requestRenderRef,
+    rootRef,
     viewMode,
   ]);
 

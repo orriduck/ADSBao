@@ -187,6 +187,32 @@ export function resolveThreeOsmDefaultOrthographicZoom({
   return Math.max(0.4, viewportHalfSpan / safeTileHalfSpan);
 }
 
+export function resolveThreeOsmViewportOffsetForScale({
+  offset,
+  previousScale,
+  currentScale,
+}: {
+  offset: { x: number; z: number };
+  previousScale: unknown;
+  currentScale: unknown;
+}) {
+  const previous = Number(previousScale);
+  const current = Number(currentScale);
+  if (
+    !Number.isFinite(previous) ||
+    previous <= 0 ||
+    !Number.isFinite(current) ||
+    current <= 0
+  ) {
+    return offset;
+  }
+  const ratio = current / previous;
+  return {
+    x: offset.x * ratio,
+    z: offset.z * ratio,
+  };
+}
+
 export function resolveThreeOsmDefaultCameraFrame({
   mode,
   width,

@@ -1,4 +1,4 @@
-import { useEffect, type MutableRefObject, type RefObject } from "react";
+import { useEffect, useRef, type MutableRefObject, type RefObject } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import {
@@ -10,6 +10,10 @@ import {
 import { resolveThreeOsmCameraGroundFootprint } from "@/features/airport/map/threeOsmCameraGroundFootprint";
 import type { TileCoordinate } from "@/features/airport/map/threeOsmProjection";
 import type { ThreeOsmCameraViewportOffsets } from "@/features/airport/map/threeOsmCameraFit";
+import {
+  buildThreeOsmTileWindowGrid,
+  createThreeOsmSquareTileWindow,
+} from "@/features/airport/map/threeOsmTileWindow";
 import { getFloatingSidebarOcclusionWidth } from "./mapViewportOffset";
 
 export function useThreeOsmInteractionBounds({
@@ -20,7 +24,6 @@ export function useThreeOsmInteractionBounds({
   cameraViewportOffsetRef,
   lifecycleKey,
   tileCenter,
-  visibleTiles,
   viewMode,
 }: {
   rootRef: RefObject<HTMLElement | null>;
@@ -30,15 +33,21 @@ export function useThreeOsmInteractionBounds({
   cameraViewportOffsetRef: MutableRefObject<ThreeOsmCameraViewportOffsets>;
   lifecycleKey: string;
   tileCenter: TileCoordinate;
-  visibleTiles: TileCoordinate[];
   viewMode: "2d" | "3d";
 }) {
+  const minimumZoomFloorByCameraRef = useRef(
+    new WeakMap<THREE.Camera, number>(),
+  );
+
   useEffect(() => {
     const root = rootRef.current;
     const camera = activeCameraRef.current;
     const controls = controlsRef.current;
     const bounds = resolveThreeOsmTileWorldBounds({
-      tiles: visibleTiles,
+      tiles: buildThreeOsmTileWindowGrid({
+        center: tileCenter,
+        window: createThreeOsmSquareTileWindow(3),
+      }),
       center: tileCenter,
     });
     if (!root || !camera || !controls || !bounds) return;
@@ -50,13 +59,19 @@ export function useThreeOsmInteractionBounds({
     const visibleLeftNdc = 1 - 2 * visibleHorizontalFraction;
 
     if (camera instanceof THREE.OrthographicCamera) {
+      if (!minimumZoomFloorByCameraRef.current.has(camera)) {
+        minimumZoomFloorByCameraRef.current.set(camera, controls.minZoom);
+      }
       const minimumZoom = resolveThreeOsmMinimumOrthoZoom({
         cameraWidth:
           (camera.right - camera.left) * visibleHorizontalFraction,
         cameraHeight: camera.top - camera.bottom,
         bounds,
       });
-      controls.minZoom = Math.max(controls.minZoom, minimumZoom);
+      controls.minZoom = Math.max(
+        minimumZoomFloorByCameraRef.current.get(camera) || 0.4,
+        minimumZoom,
+      );
       if (camera.zoom < controls.minZoom) {
         camera.zoom = controls.minZoom;
         camera.updateProjectionMatrix();
@@ -129,6 +144,5 @@ export function useThreeOsmInteractionBounds({
     rootRef,
     tileCenter,
     viewMode,
-    visibleTiles,
   ]);
 }
