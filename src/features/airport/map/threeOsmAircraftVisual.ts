@@ -7,6 +7,7 @@ export type ThreeOsmAircraftFamily =
   | "light"
   | "rotorcraft"
   | "high-performance";
+export type ThreeOsmAircraftRenderFamily = ThreeOsmAircraftFamily | "overview";
 
 export const THREE_OSM_AIRCRAFT_SCREEN_SCALE = 1.42;
 
@@ -30,6 +31,35 @@ export function resolveThreeOsmAircraftScale(
   if (emphasis === "focal") return 1.18;
   if (emphasis === "selected") return 1.12;
   return 1;
+}
+
+export function resolveThreeOsmAircraftPresentation({
+  sourceZoom,
+  emphasis,
+  onGround = false,
+}: {
+  sourceZoom: number;
+  emphasis: ThreeOsmAircraftEmphasis;
+  onGround?: boolean;
+}) {
+  if (emphasis !== "standard") {
+    return { renderFamily: "silhouette" as const, sizeScale: 1 };
+  }
+  if (sourceZoom <= 11) {
+    return {
+      renderFamily: "overview" as const,
+      sizeScale: onGround ? 0.72 : 1,
+    };
+  }
+  return {
+    renderFamily: "silhouette" as const,
+    sizeScale:
+      sourceZoom < 13
+        ? onGround ? 0.62 : 0.82
+        : sourceZoom < 14 && onGround
+          ? 0.82
+          : 1,
+  };
 }
 
 function normalizeAircraftCode(value: unknown) {
@@ -79,9 +109,15 @@ export function resolveThreeOsmAircraftFamily(
 }
 
 const AIRCRAFT_FAMILY_BOUNDARIES: Record<
-  ThreeOsmAircraftFamily,
+  ThreeOsmAircraftRenderFamily,
   Array<[number, number]>
 > = {
+  overview: [
+    [0, -3.2],
+    [-2.1, 2.2],
+    [0, 1.35],
+    [2.1, 2.2],
+  ],
   transport: [
     [0, -8.2],
     [-0.85, -4.2],
@@ -176,7 +212,7 @@ const AIRCRAFT_FAMILY_BOUNDARIES: Record<
  * can use one instanced mesh in both orthographic and perspective modes.
  */
 export function createThreeOsmAircraftGeometry(
-  family: ThreeOsmAircraftFamily = "transport",
+  family: ThreeOsmAircraftRenderFamily = "transport",
 ) {
   const boundary = AIRCRAFT_FAMILY_BOUNDARIES[family];
   const positions = [0, 0, 0];

@@ -4,6 +4,7 @@ import {
   collectAirspaceLineCoordinates,
   createThreeOsmContextScene,
   resolveThreeOsmAirspaceHitIds,
+  resolveThreeOsmContextMarkerScale,
   resolveThreeOsmContextScreenHit,
   resolveThreeOsmSpotMapLabel,
 } from "./threeOsmSceneContext";
@@ -40,6 +41,18 @@ assert.equal(
   "AVIS Car Rental",
 );
 assert.equal(resolveThreeOsmSpotMapLabel("北侧观景台 - 午后顺光"), "北侧观景台");
+assert.equal(
+  resolveThreeOsmContextMarkerScale({ sceneZoom: 10, displayZoom: 10 }),
+  1,
+);
+assert.equal(
+  resolveThreeOsmContextMarkerScale({ sceneZoom: 10, displayZoom: 12 }),
+  0.25,
+);
+assert.equal(
+  resolveThreeOsmContextMarkerScale({ sceneZoom: 10, displayZoom: 9 }),
+  1,
+);
 
 const context = createThreeOsmContextScene({
   airportCode: "BOS",
@@ -155,6 +168,7 @@ const context = createThreeOsmContextScene({
   tileCenter: lonLatToTileCoordinate(-71.0096, 42.3656, 10),
   centerLat: 42.3656,
   zoom: 11,
+  displayZoom: 13,
   theme: "dark",
   contrastMode: "standard",
   selectedAirspaceId: "bos-class-b",
@@ -188,6 +202,11 @@ assert.deepEqual(context.surfaceDiagnostics, {
   vertices: 36,
 });
 assert.ok(context.labels.some((label) => label.text === "BOS"));
+assert.equal(context.markerScale, 0.25);
+assert.equal(
+  context.group.getObjectByName("three-osm-focal-airport-marker")?.scale.x,
+  0.25,
+);
 assert.ok(context.labels.some((label) => label.text === "OWD"));
 assert.ok(context.labels.some((label) => label.text === "OWD" && label.selected));
 assert.ok(
@@ -297,7 +316,7 @@ assert.deepEqual(
     camera,
     width: 800,
     height: 600,
-    x: airportX + 10,
+    x: airportX,
     y: airportY,
   }),
   { kind: "airport", id: "KOWD" },

@@ -171,6 +171,9 @@ export function resolveThreeOsmDefaultPerspectiveFrame({
   const safeAspect = Math.max(0.35, Number(aspect) || 1);
   const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
   const tileHalfSpan = (radius + 0.5) * THREE_OSM_TILE_SIZE;
+  const focalHalfSpan = safeAspect >= 1
+    ? Math.min(tileHalfSpan * 0.9, radius * THREE_OSM_TILE_SIZE - 12)
+    : tileHalfSpan * 0.9;
   const verticalFov = (45 * Math.PI) / 180;
   const verticalHalfFov = verticalFov / 2;
   const horizontalFov = 2 * Math.atan(Math.tan(verticalHalfFov) * safeAspect);
@@ -178,12 +181,12 @@ export function resolveThreeOsmDefaultPerspectiveFrame({
     Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS) /
       Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS - verticalHalfFov) -
     1;
-  let horizontalDistance = (tileHalfSpan * 0.9) / farGroundFactor;
+  let horizontalDistance = focalHalfSpan / farGroundFactor;
   let height =
     horizontalDistance * Math.tan(THREE_OSM_PERSPECTIVE_ELEVATION_RADIANS);
   let distance = Math.hypot(horizontalDistance, height);
   const horizontalDistanceLimit =
-    (tileHalfSpan * 0.9) / Math.max(0.05, Math.tan(horizontalFov / 2));
+    focalHalfSpan / Math.max(0.05, Math.tan(horizontalFov / 2));
   if (distance > horizontalDistanceLimit) {
     const scale = horizontalDistanceLimit / distance;
     horizontalDistance *= scale;

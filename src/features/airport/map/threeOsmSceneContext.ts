@@ -67,6 +67,17 @@ type ContextPoint = {
 
 const THREE_OSM_SPOT_MAP_LABEL_MAX_CHARACTERS = 28;
 
+export function resolveThreeOsmContextMarkerScale({
+  sceneZoom,
+  displayZoom,
+}: {
+  sceneZoom: number;
+  displayZoom: number;
+}) {
+  if (!Number.isFinite(sceneZoom) || !Number.isFinite(displayZoom)) return 1;
+  return Math.min(1, 2 ** (sceneZoom - displayZoom));
+}
+
 export function resolveThreeOsmSpotMapLabel(value: unknown) {
   const fullLabel = String(value || "Spot").trim().replace(/\s+/g, " ");
   const locationLabel =
@@ -138,6 +149,7 @@ function addContextPointInstances({
   tileCenter,
   centerLat,
   palette,
+  markerScale,
 }: {
   group: THREE.Group;
   labels: ThreeOsmSceneLabel[];
@@ -146,6 +158,7 @@ function addContextPointInstances({
   tileCenter: TileCoordinate;
   centerLat: number;
   palette: ThreeOsmVisualPalette;
+  markerScale: number;
 }) {
   if (!items.length) {
     geometry.dispose();
@@ -175,8 +188,8 @@ function addContextPointInstances({
       centerLat,
     });
     if (!point) return;
-    position.set(point.x, 4, point.z);
-    scale.setScalar(item.selected ? 1.5 : 1);
+    position.set(point.x, 4 * markerScale, point.z);
+    scale.setScalar(markerScale * (item.selected ? 1.5 : 1));
     matrix.compose(position, quaternion, scale);
     mesh.setMatrixAt(rendered, matrix);
     mesh.setColorAt(
@@ -191,7 +204,7 @@ function addContextPointInstances({
       id: `${item.kind}:${item.id}`,
       text: item.label,
       kind: item.kind,
-      position: position.clone().setY(9),
+      position: position.clone().setY(9 * markerScale),
       priority: item.selected ? 850 : item.priority,
       selected: item.selected,
     });
@@ -257,6 +270,7 @@ export function createThreeOsmContextScene({
   tileCenter,
   centerLat,
   zoom = AIRPORT_MAP_ZOOM.approach,
+  displayZoom = zoom,
   theme,
   contrastMode,
   systemColors = null,
@@ -295,6 +309,7 @@ export function createThreeOsmContextScene({
   tileCenter: TileCoordinate;
   centerLat: number;
   zoom?: number;
+  displayZoom?: number;
   theme: string;
   contrastMode: ThreeOsmContrastMode;
   systemColors?: ThreeOsmSystemColors | null;
@@ -315,6 +330,10 @@ export function createThreeOsmContextScene({
     theme,
     contrastMode,
     systemColors,
+  });
+  const markerScale = resolveThreeOsmContextMarkerScale({
+    sceneZoom: zoom,
+    displayZoom,
   });
 
   const surfaceScene = createThreeOsmSurfaceScene({
@@ -352,7 +371,9 @@ export function createThreeOsmContextScene({
     new THREE.CylinderGeometry(5, 5, 18, 12),
     new THREE.MeshBasicMaterial({ color: palette.focalAirport }),
   );
-  focalMarker.position.set(0, 9, 0);
+  focalMarker.position.set(0, 9 * markerScale, 0);
+  focalMarker.scale.setScalar(markerScale);
+  focalMarker.name = "three-osm-focal-airport-marker";
   group.add(focalMarker);
   const focalRing = new THREE.Mesh(
     new THREE.RingGeometry(8, 10, 28),
@@ -364,14 +385,16 @@ export function createThreeOsmContextScene({
     }),
   );
   focalRing.rotation.x = -Math.PI / 2;
-  focalRing.position.y = 1.5;
+  focalRing.position.y = 1.5 * markerScale;
+  focalRing.scale.setScalar(markerScale);
+  focalRing.name = "three-osm-focal-airport-ring";
   group.add(focalRing);
   if (airportCode) {
     labels.push({
       id: `focal-airport:${airportCode}`,
       text: airportCode,
       kind: "focal-airport",
-      position: new THREE.Vector3(0, 24, 0),
+      position: new THREE.Vector3(0, 24 * markerScale, 0),
       priority: 1_000,
     });
   }
@@ -408,8 +431,8 @@ export function createThreeOsmContextScene({
     const selected = Boolean(
       selectionId && selectionId === selectedAirportIcao,
     );
-    airportPosition.set(point.x, 5, point.z);
-    airportScale.setScalar(selected ? 1.5 : 1);
+    airportPosition.set(point.x, 5 * markerScale, point.z);
+    airportScale.setScalar(markerScale * (selected ? 1.5 : 1));
     airportMatrix.compose(airportPosition, airportQuaternion, airportScale);
     airportMesh.setMatrixAt(airportCount, airportMatrix);
     airportMesh.setColorAt(
@@ -431,7 +454,7 @@ export function createThreeOsmContextScene({
       id: `airport:${code}:${airportCount}`,
       text: code,
       kind: "airport",
-      position: airportPosition.clone().setY(10),
+      position: airportPosition.clone().setY(10 * markerScale),
       priority: selected ? 850 : 650 - Math.hypot(point.x, point.z) / 10,
       selected,
     });
@@ -744,6 +767,7 @@ export function createThreeOsmContextScene({
     tileCenter,
     centerLat,
     palette,
+    markerScale,
   });
 
   const reportingItems: ContextPoint[] = showReportingPoints
@@ -766,6 +790,7 @@ export function createThreeOsmContextScene({
     tileCenter,
     centerLat,
     palette,
+    markerScale,
   });
 
   const spotItems: ContextPoint[] = showCandidateWatchingSpots
@@ -796,6 +821,7 @@ export function createThreeOsmContextScene({
     tileCenter,
     centerLat,
     palette,
+    markerScale,
   });
 
   let userLocationCount = 0;
@@ -817,7 +843,8 @@ export function createThreeOsmContextScene({
       }),
     );
     marker.rotation.x = Math.PI / 2;
-    marker.position.set(userPoint.x, 3, userPoint.z);
+    marker.position.set(userPoint.x, 3 * markerScale, userPoint.z);
+    marker.scale.setScalar(markerScale);
     marker.name = "three-osm-user-location";
     group.add(marker);
     userLocationCount = 1;
@@ -825,6 +852,7 @@ export function createThreeOsmContextScene({
 
   return {
     group,
+    markerScale,
     labels,
     airspaceHitObjects,
     contextPickTargets: [

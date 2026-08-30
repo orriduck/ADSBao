@@ -85,6 +85,7 @@ assert.ok(
   ) < 0.0001,
 );
 assert.ok(desktopDefault.distance > mobileDefault.distance);
+assert.ok(desktopDefault.distance < 700);
 assert.ok(mobileDefault.distance >= 300);
 
 console.log("threeOsmCameraFit.test.ts ok");

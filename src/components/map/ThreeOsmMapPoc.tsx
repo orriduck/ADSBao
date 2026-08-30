@@ -46,10 +46,11 @@ import {
   createThreeOsmAircraftSelectionGeometry,
   resolveThreeOsmAircraftEmphasis,
   resolveThreeOsmAircraftFamily,
+  resolveThreeOsmAircraftPresentation,
   resolveThreeOsmAircraftScale,
   THREE_OSM_AIRCRAFT_SCREEN_SCALE,
   type ThreeOsmAircraftEmphasis,
-  type ThreeOsmAircraftFamily,
+  type ThreeOsmAircraftRenderFamily,
 } from "@/features/airport/map/threeOsmAircraftVisual";
 import { layoutThreeOsmLabels } from "@/features/airport/map/threeOsmLabelLayout";
 import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
@@ -236,7 +237,7 @@ type TrafficRenderItem = {
 };
 
 type TrafficRenderBatch = {
-  family: ThreeOsmAircraftFamily;
+  family: ThreeOsmAircraftRenderFamily;
   mesh: THREE.InstancedMesh;
   haloMesh: THREE.InstancedMesh;
   items: TrafficRenderItem[];
@@ -2753,6 +2754,7 @@ export default function ThreeOsmMapPoc({
       tileCenter,
       centerLat: sceneCenterLat,
       zoom: tileZoom,
+      displayZoom: sourceTileZoom,
       theme,
       contrastMode,
       systemColors,
@@ -2901,6 +2903,10 @@ export default function ThreeOsmMapPoc({
     rootRef.current?.setAttribute(
       "data-poc-context-build-ms",
       contextBuildMs.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-context-marker-scale",
+      contextScene.markerScale.toFixed(4),
     );
     rootRef.current?.setAttribute(
       "data-poc-context-build-max-ms",
@@ -3114,6 +3120,7 @@ export default function ThreeOsmMapPoc({
     showReportingPoints,
     sourceTargetX,
     sourceTargetZ,
+    sourceTileZoom,
     systemColors,
     theme,
     tileCenter,
@@ -3184,7 +3191,7 @@ export default function ThreeOsmMapPoc({
     const scale = new THREE.Vector3();
     const yAxis = new THREE.Vector3(0, 1, 0);
     const familyItems = new Map<
-      ThreeOsmAircraftFamily,
+      ThreeOsmAircraftRenderFamily,
       TrafficRenderItem[]
     >();
     const stems: number[] = [];
@@ -3220,18 +3227,27 @@ export default function ThreeOsmMapPoc({
             focalAircraftId,
           });
       const selected = emphasis !== "standard";
+      const presentation = resolveThreeOsmAircraftPresentation({
+        sourceZoom: sourceTileZoom,
+        emphasis,
+        onGround: Boolean(item?.onGround),
+      });
       const heading = Number(item?.track ?? item?.heading ?? 0) || 0;
       position.set(point.x, Math.max(2.5, point.y), point.z);
       quaternion.setFromAxisAngle(yAxis, (-heading * Math.PI) / 180);
       const itemHighlightIndex = selected ? highlightIndex++ : null;
-      const family = resolveThreeOsmAircraftFamily(item);
+      const family = presentation.renderFamily === "overview"
+        ? "overview"
+        : resolveThreeOsmAircraftFamily(item);
       const batchItems = familyItems.get(family) || [];
       batchItems.push({
         id,
         position: position.clone(),
         quaternion: quaternion.clone(),
         emphasis,
-        sizeScale: resolveAircraftSizeScale(item),
+        sizeScale:
+          presentation.sizeScale *
+          (family === "overview" ? 1 : resolveAircraftSizeScale(item)),
         highlightIndex: itemHighlightIndex,
       });
       familyItems.set(family, batchItems);
@@ -3307,6 +3323,10 @@ export default function ThreeOsmMapPoc({
     trafficBatchesRef.current = trafficBatches;
     trafficHighlightMeshRef.current = highlightMesh;
     trafficLabelsRef.current = labels;
+    rootRef.current?.setAttribute(
+      "data-poc-aircraft-label-candidates",
+      String(labels.length),
+    );
 
     if (stems.length) {
       const stemGeometry = new THREE.BufferGeometry();
@@ -3370,6 +3390,7 @@ export default function ThreeOsmMapPoc({
     focalAircraftId,
     selectedAircraftId,
     showCallsigns,
+    sourceTileZoom,
     tileCenter,
     visualPalette,
     syntheticTrafficCount,
