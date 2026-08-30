@@ -113,7 +113,16 @@ const context = createThreeOsmContextScene({
     { key: "invalid", ident: "", lat: null, lon: null },
   ],
   airspaceFeatures: [{
-    properties: { id: "bos-class-b", name: "BOSTON CLASS B", classLabel: "B" },
+    properties: {
+      id: "bos-class-b",
+      name: "BOSTON CLASS B",
+      classLabel: "B",
+      accessLevel: "controlled",
+      lowerLimit: { value: 2000, unit: 1, referenceDatum: 1 },
+      lowerLimitLabel: "2000 ft MSL",
+      upperLimitLabel: "7000 ft MSL",
+      verticalLimit: "2000 ft MSL - 7000 ft MSL",
+    },
     geometry: { type: "Polygon", coordinates: [ring] },
   }],
   showAirspaces: true,
@@ -171,19 +180,37 @@ assert.ok(
     (label) => label.kind === "runway" && label.text === "04R",
   ),
 );
-assert.ok(context.group.getObjectByName("three-osm-airspace-boundaries"));
+assert.ok(context.group.getObjectByName("three-osm-airspace-terminal-controlled"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.group.getObjectByName("three-osm-runway-halo"));
 assert.ok(context.group.getObjectByName("three-osm-runway-surfaces"));
 assert.ok(context.group.getObjectByName("three-osm-runway-approach-lines"));
 assert.ok(context.group.getObjectByName("three-osm-apron-fills"));
 assert.ok(context.group.getObjectByName("three-osm-taxiway-corridors"));
-assert.ok(context.labels.some((label) => label.text === "BOSTON CLASS B · B"));
+assert.ok(
+  context.labels.some(
+    (label) =>
+      label.text === "BOSTON CLASS B · B · 2000 ft MSL - 7000 ft MSL",
+  ),
+);
 assert.equal(context.counts.selectedAirspaces, 1);
+assert.deepEqual(context.airspaceDiagnostics, {
+  features: 1,
+  segments: 2,
+  batches: 1,
+  featuresByTier: {
+    "special-use": 0,
+    "terminal-controlled": 1,
+    "transition-controlled": 0,
+    "upper-controlled": 0,
+    advisory: 0,
+  },
+  featuresByAltitudeBand: { surface: 0, low: 1, high: 0 },
+});
 assert.deepEqual(
   resolveThreeOsmAirspaceHitIds([
-    { index: 0, object: context.airspaceHitObject || undefined },
-    { index: 2, object: context.airspaceHitObject || undefined },
+    { index: 0, object: context.airspaceHitObjects[0] },
+    { index: 2, object: context.airspaceHitObjects[0] },
   ]),
   ["bos-class-b"],
 );

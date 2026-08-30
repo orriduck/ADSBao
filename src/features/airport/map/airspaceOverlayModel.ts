@@ -11,6 +11,8 @@ type AirspaceOverlayFeature = {
     classLabel: string;
     accessLevel: string;
     accessLabel: string;
+    lowerLimit: Record<string, any> | null;
+    upperLimit: Record<string, any> | null;
     lowerLimitLabel: string;
     upperLimitLabel: string;
     verticalLimit: string;
@@ -69,6 +71,8 @@ export function buildAirspaceOverlayFeatures(
         classLabel: String(airspace.classLabel || ""),
         accessLevel,
         accessLabel: String(airspace.accessTag?.shortLabel || airspace.accessTag?.label || ""),
+        lowerLimit: airspace.lowerLimit || null,
+        upperLimit: airspace.upperLimit || null,
         lowerLimitLabel: String(airspace.lowerLimitLabel || ""),
         upperLimitLabel: String(airspace.upperLimitLabel || ""),
         verticalLimit: verticalLimitLabel(airspace),

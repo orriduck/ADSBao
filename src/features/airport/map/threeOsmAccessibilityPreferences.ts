@@ -42,7 +42,11 @@ export type ThreeOsmVisualPalette = {
   runwayLightAmber: number;
   taxiwayLightBlue: number;
   taxiwayLightGreen: number;
-  airspace: number;
+  airspaceSpecialUse: number;
+  airspaceTerminalControlled: number;
+  airspaceTransitionControlled: number;
+  airspaceUpperControlled: number;
+  airspaceAdvisory: number;
   selectedAirspace: number;
   userLocation: number;
   tracePrimary: number;
@@ -146,7 +150,11 @@ export function resolveThreeOsmVisualPalette({
       runwayLightAmber: canvasText,
       taxiwayLightBlue: canvasText,
       taxiwayLightGreen: canvasText,
-      airspace: canvasText,
+      airspaceSpecialUse: canvasText,
+      airspaceTerminalControlled: canvasText,
+      airspaceTransitionControlled: canvasText,
+      airspaceUpperControlled: canvasText,
+      airspaceAdvisory: canvasText,
       selectedAirspace: highlight,
       userLocation: canvasText,
       tracePrimary: canvasText,
@@ -188,7 +196,11 @@ export function resolveThreeOsmVisualPalette({
       runwayLightAmber: foreground,
       taxiwayLightBlue: foreground,
       taxiwayLightGreen: foreground,
-      airspace: foreground,
+      airspaceSpecialUse: foreground,
+      airspaceTerminalControlled: foreground,
+      airspaceTransitionControlled: foreground,
+      airspaceUpperControlled: foreground,
+      airspaceAdvisory: foreground,
       selectedAirspace: foreground,
       userLocation: foreground,
       tracePrimary: foreground,
@@ -230,7 +242,11 @@ export function resolveThreeOsmVisualPalette({
     runwayLightAmber: 0xffc23d,
     taxiwayLightBlue: 0x3f86ff,
     taxiwayLightGreen: 0x46ff8c,
-    airspace: light ? 0x515451 : 0xc6c9c6,
+    airspaceSpecialUse: light ? 0x8c4f12 : 0xf0b84b,
+    airspaceTerminalControlled: light ? 0x005f8f : 0x78c9f2,
+    airspaceTransitionControlled: light ? 0x514989 : 0xaaa3ef,
+    airspaceUpperControlled: light ? 0x236257 : 0x76c9b9,
+    airspaceAdvisory: light ? 0x5d615d : 0xb9bdb9,
     selectedAirspace: light ? 0x242624 : 0xf5c542,
     userLocation: light ? 0x414341 : 0xd7d9d7,
     tracePrimary: light ? 0x353735 : 0xd8dad8,

@@ -529,7 +529,7 @@ export default function ThreeOsmMapPoc({
   const vectorTileCacheMissCountRef = useRef(0);
   const trafficBatchesRef = useRef<TrafficRenderBatch[]>([]);
   const trafficHighlightMeshRef = useRef<THREE.InstancedMesh | null>(null);
-  const airspaceHitObjectRef = useRef<THREE.LineSegments | null>(null);
+  const airspaceHitObjectsRef = useRef<THREE.LineSegments[]>([]);
   const contextPickTargetsRef = useRef<ThreeOsmContextPickTarget[]>([]);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
@@ -1778,14 +1778,14 @@ export default function ThreeOsmMapPoc({
         root.dataset.pocLastPick = "none";
         return;
       }
-      const airspaceHitObject = airspaceHitObjectRef.current;
-      if (!airspaceHitObject || typeof onSelectAirspaceRef.current !== "function") {
+      const airspaceHitObjects = airspaceHitObjectsRef.current;
+      if (!airspaceHitObjects.length || typeof onSelectAirspaceRef.current !== "function") {
         root.dataset.pocLastPick = "none";
         return;
       }
       raycaster.params.Line.threshold = 6;
       const airspaceIds = resolveThreeOsmAirspaceHitIds(
-        raycaster.intersectObject(airspaceHitObject, false),
+        raycaster.intersectObjects(airspaceHitObjects, false),
       );
       if (airspaceIds.length) {
         root.dataset.pocLastPick = `airspace:${airspaceIds.join(",")}`;
@@ -1877,7 +1877,7 @@ export default function ThreeOsmMapPoc({
       }
       trafficBatchesRef.current = [];
       trafficHighlightMeshRef.current = null;
-      airspaceHitObjectRef.current = null;
+      airspaceHitObjectsRef.current = [];
       contextPickTargetsRef.current = [];
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
@@ -2621,7 +2621,7 @@ export default function ThreeOsmMapPoc({
     const { group } = contextScene;
     group.visible = isDebugLayerVisible(debugLayerMode, "context");
     contextGroupRef.current = group;
-    airspaceHitObjectRef.current = contextScene.airspaceHitObject;
+    airspaceHitObjectsRef.current = contextScene.airspaceHitObjects;
     contextPickTargetsRef.current = contextScene.contextPickTargets;
     scene.add(group);
     contextLabelsRef.current = contextScene.labels;
@@ -2738,8 +2738,32 @@ export default function ThreeOsmMapPoc({
       String(contextScene.counts.selectedAirspaces),
     );
     rootRef.current?.setAttribute(
+      "data-poc-airspace-segments",
+      String(contextScene.airspaceDiagnostics.segments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-batches",
+      String(contextScene.airspaceDiagnostics.batches),
+    );
+    for (const [tier, count] of Object.entries(
+      contextScene.airspaceDiagnostics.featuresByTier,
+    )) {
+      rootRef.current?.setAttribute(
+        `data-poc-airspace-tier-${tier}`,
+        String(count),
+      );
+    }
+    for (const [band, count] of Object.entries(
+      contextScene.airspaceDiagnostics.featuresByAltitudeBand,
+    )) {
+      rootRef.current?.setAttribute(
+        `data-poc-airspace-altitude-${band}`,
+        String(count),
+      );
+    }
+    rootRef.current?.setAttribute(
       "data-poc-airspace-selectable",
-      contextScene.airspaceHitObject && typeof onSelectAirspace === "function"
+      contextScene.airspaceHitObjects.length && typeof onSelectAirspace === "function"
         ? "true"
         : "false",
     );
@@ -2777,8 +2801,8 @@ export default function ThreeOsmMapPoc({
     return () => {
       disposeObject(group);
       if (contextGroupRef.current === group) contextGroupRef.current = null;
-      if (airspaceHitObjectRef.current === contextScene.airspaceHitObject) {
-        airspaceHitObjectRef.current = null;
+      if (airspaceHitObjectsRef.current === contextScene.airspaceHitObjects) {
+        airspaceHitObjectsRef.current = [];
       }
       if (contextPickTargetsRef.current === contextScene.contextPickTargets) {
         contextPickTargetsRef.current = [];
