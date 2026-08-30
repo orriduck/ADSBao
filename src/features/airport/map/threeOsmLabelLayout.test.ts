@@ -67,4 +67,25 @@ for (const [index, item] of edgeAware.entries()) {
   }
 }
 
+const blocked = layoutThreeOsmLabels(
+  [
+    { id: "blocker", text: "BLOCK", x: 100, y: 100, width: 60, height: 18, priority: 10 },
+  ],
+  { viewportWidth: 240, viewportHeight: 180 },
+);
+const placedAroundBlocked = layoutThreeOsmLabels(
+  [
+    { id: "candidate", text: "NEXT", x: 100, y: 100, width: 60, height: 18, priority: 10 },
+  ],
+  { viewportWidth: 240, viewportHeight: 180, blocked },
+);
+assert.equal(placedAroundBlocked.length, 1);
+assert.notEqual(placedAroundBlocked[0].placement, blocked[0].placement);
+assert.ok(
+  placedAroundBlocked[0].right <= blocked[0].left ||
+    placedAroundBlocked[0].left >= blocked[0].right ||
+    placedAroundBlocked[0].bottom <= blocked[0].top ||
+    placedAroundBlocked[0].top >= blocked[0].bottom,
+);
+
 console.log("threeOsmLabelLayout.test.ts ok");

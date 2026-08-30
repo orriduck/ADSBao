@@ -26,7 +26,11 @@ export type ThreeOsmSceneLabel = {
     | "airspace"
     | "navaid"
     | "reporting"
-    | "spot";
+    | "spot"
+    | "vector-aerodrome"
+    | "vector-place"
+    | "vector-road"
+    | "vector-water";
   position: THREE.Vector3;
   priority: number;
   selected?: boolean;

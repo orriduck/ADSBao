@@ -184,6 +184,33 @@ const MAX_TILE_TEXTURES = 72;
 const MAX_VECTOR_TILE_BUFFERS = 24;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
+const THREE_OSM_VECTOR_LABEL_KINDS = new Set<ThreeOsmSceneLabel["kind"]>([
+  "vector-aerodrome",
+  "vector-place",
+  "vector-road",
+  "vector-water",
+]);
+
+function isThreeOsmVectorSceneLabel(label: ThreeOsmSceneLabel) {
+  return THREE_OSM_VECTOR_LABEL_KINDS.has(label.kind);
+}
+
+function resolveThreeOsmSceneLabelFont(label: ThreeOsmSceneLabel) {
+  if (label.kind === "focal-airport") {
+    return `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+  }
+  if (
+    label.kind === "airport" ||
+    label.kind === "runway" ||
+    label.kind === "vector-aerodrome"
+  ) {
+    return `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+  }
+  if (label.kind === "vector-place") {
+    return `600 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+  }
+  return `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+}
 
 type TrafficRenderItem = {
   id: string;
@@ -502,6 +529,7 @@ export default function ThreeOsmMapPoc({
   const contextPickTargetsRef = useRef<ThreeOsmContextPickTarget[]>([]);
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
+  const vectorLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
@@ -975,8 +1003,17 @@ export default function ThreeOsmMapPoc({
     0,
   );
   const visibleAirports = useMemo(
-    () => nearbyAirports.filter((item) => isFiniteCoordinate(item?.lat, item?.lon)),
-    [nearbyAirports],
+    () => {
+      const focalCode = airportCode.trim().toUpperCase();
+      return nearbyAirports.filter((item) => {
+        if (!isFiniteCoordinate(item?.lat, item?.lon)) return false;
+        if (!focalCode) return true;
+        const displayCode = airportDisplayCode(item).trim().toUpperCase();
+        const icao = String(item?.icao || "").trim().toUpperCase();
+        return displayCode !== focalCode && icao !== focalCode;
+      });
+    },
+    [airportCode, nearbyAirports],
   );
   const runwayCollection = useMemo(
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
@@ -1304,6 +1341,9 @@ export default function ThreeOsmMapPoc({
       context.clearRect(0, 0, width, height);
       const debugMode = debugLayerModeRef.current;
       const labels = [
+        ...(isDebugLayerVisible(debugMode, "vector")
+          ? vectorLabelsRef.current
+          : []),
         ...(isDebugLayerVisible(debugMode, "context")
           ? contextLabelsRef.current
           : []),
@@ -1326,12 +1366,7 @@ export default function ThreeOsmMapPoc({
         }
         const x = ((projected.x + 1) / 2) * width;
         const y = ((1 - projected.y) / 2) * height;
-        const font =
-          label.kind === "focal-airport"
-            ? `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`
-            : label.kind === "airport" || label.kind === "runway"
-              ? `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`
-              : `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+        const font = resolveThreeOsmSceneLabelFont(label);
         context.font = font;
         styleById.set(label.id, label);
         return [
@@ -1340,25 +1375,98 @@ export default function ThreeOsmMapPoc({
             text: label.text,
             x,
             y,
-            width: Math.ceil(context.measureText(label.text).width) + 12,
-            height: label.kind === "focal-airport" ? 22 : 18,
+            width:
+              Math.ceil(context.measureText(label.text).width) +
+              (isThreeOsmVectorSceneLabel(label) ? 6 : 12),
+            height:
+              label.kind === "focal-airport"
+                ? 22
+                : isThreeOsmVectorSceneLabel(label)
+                  ? 16
+                  : 18,
             priority: label.priority,
           },
         ];
       });
       const compact = width <= 700;
-      const placed = layoutThreeOsmLabels(candidates, {
+      const maxLabels = compact ? 24 : root.dataset.pocMode === "3d" ? 38 : 54;
+      const layoutOptions = {
         viewportWidth: width,
         viewportHeight: height,
-        maxLabels: compact ? 24 : root.dataset.pocMode === "3d" ? 38 : 54,
         reservedTop: compact ? 92 : 70,
         reservedBottom: compact ? 64 : 24,
+      };
+      const vectorCandidates = candidates.filter((candidate) => {
+        const style = styleById.get(candidate.id);
+        return Boolean(style && isThreeOsmVectorSceneLabel(style));
       });
+      const operationalCandidates = candidates.filter((candidate) => {
+        const style = styleById.get(candidate.id);
+        return Boolean(style && !isThreeOsmVectorSceneLabel(style));
+      });
+      const vectorBudget =
+        debugMode === "vector"
+          ? maxLabels
+          : vectorCandidates.length
+            ? compact
+              ? 4
+              : root.dataset.pocMode === "3d"
+                ? 10
+                : 14
+            : 0;
+      const criticalOperational = operationalCandidates.filter(
+        (candidate) => candidate.priority >= 750,
+      );
+      const standardOperational = operationalCandidates.filter(
+        (candidate) => candidate.priority < 750,
+      );
+      const criticalPlaced = layoutThreeOsmLabels(criticalOperational, {
+        ...layoutOptions,
+        maxLabels: Math.max(0, maxLabels - vectorBudget),
+      });
+      const vectorPlaced = layoutThreeOsmLabels(vectorCandidates, {
+        ...layoutOptions,
+        maxLabels: Math.min(vectorBudget, maxLabels - criticalPlaced.length),
+        blocked: criticalPlaced,
+      });
+      const occupied = [...criticalPlaced, ...vectorPlaced];
+      const standardPlaced = layoutThreeOsmLabels(standardOperational, {
+        ...layoutOptions,
+        maxLabels: Math.max(0, maxLabels - occupied.length),
+        blocked: occupied,
+      });
+      const placed = [...occupied, ...standardPlaced];
 
       for (const label of placed) {
         const style = styleById.get(label.id);
         if (!style) continue;
-        if (style.kind === "focal-airport") {
+        if (isThreeOsmVectorSceneLabel(style)) {
+          context.save();
+          context.font = resolveThreeOsmSceneLabelFont(style);
+          context.textBaseline = "middle";
+          context.lineJoin = "round";
+          context.miterLimit = 2;
+          context.lineWidth = visualPalette.label.borderWidth > 1 ? 4 : 3;
+          context.strokeStyle = visualPalette.label.background;
+          context.strokeText(
+            style.text,
+            label.left + 3,
+            label.top + label.height / 2 + 0.5,
+          );
+          context.globalAlpha =
+            style.kind === "vector-water"
+              ? 0.72
+              : style.kind === "vector-road"
+                ? 0.84
+                : 0.94;
+          context.fillStyle = visualPalette.label.text;
+          context.fillText(
+            style.text,
+            label.left + 3,
+            label.top + label.height / 2 + 0.5,
+          );
+          context.restore();
+        } else if (style.kind === "focal-airport") {
           context.fillStyle = visualPalette.label.focalBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
           context.fillStyle = visualPalette.label.focalText;
@@ -1396,10 +1504,23 @@ export default function ThreeOsmMapPoc({
           }
           context.font = `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         }
-        context.textBaseline = "middle";
-        context.fillText(label.text, label.left + 6, label.top + label.height / 2 + 0.5);
+        if (!isThreeOsmVectorSceneLabel(style)) {
+          context.textBaseline = "middle";
+          context.fillText(
+            label.text,
+            label.left + 6,
+            label.top + label.height / 2 + 0.5,
+          );
+        }
       }
       root.dataset.pocLabelsVisible = String(placed.length);
+      root.dataset.pocVectorLabelsVisible = String(
+        placed.filter((label) => {
+          const style = styleById.get(label.id);
+          return Boolean(style && isThreeOsmVectorSceneLabel(style));
+        }).length,
+      );
+      root.dataset.pocVectorLabelBudget = String(vectorBudget);
       root.dataset.pocLabelFallbacks = String(
         placed.filter((label) => label.placement !== "top-right").length,
       );
@@ -1752,6 +1873,7 @@ export default function ThreeOsmMapPoc({
       contextPickTargetsRef.current = [];
       trafficLabelsRef.current = [];
       contextLabelsRef.current = [];
+      vectorLabelsRef.current = [];
       renderer.dispose();
       rendererRef.current = null;
       sceneRef.current = null;
@@ -2083,6 +2205,14 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
+      root?.setAttribute("data-poc-vector-label-candidates", "0");
+      root?.setAttribute("data-poc-vector-labels", "0");
+      root?.setAttribute("data-poc-vector-label-aerodromes", "0");
+      root?.setAttribute("data-poc-vector-label-places", "0");
+      root?.setAttribute("data-poc-vector-label-roads", "0");
+      root?.setAttribute("data-poc-vector-label-waters", "0");
+      root?.setAttribute("data-poc-vector-label-skipped-features", "0");
+      vectorLabelsRef.current = [];
       root?.setAttribute(
         "data-poc-vector-worker",
         workerClient ? "idle" : "unavailable",
@@ -2123,6 +2253,7 @@ export default function ThreeOsmMapPoc({
     const dropRetainedVector = (reason: string) => {
       disposeObject(vectorContextGroupRef.current);
       vectorContextGroupRef.current = null;
+      vectorLabelsRef.current = [];
       root.dataset.pocVectorSwap = reason;
       root.dataset.pocVectorRetainedWindow = "none";
       root.removeAttribute("data-poc-vector-visible-window");
@@ -2156,6 +2287,10 @@ export default function ThreeOsmMapPoc({
         centerLat: sceneCenterLat,
         sceneZoom: tileZoom,
         sourceZoom: vectorTileZoom,
+        locale,
+        focusAirportCode: airportCode,
+        labelFocusX: sourceTargetX,
+        labelFocusZ: sourceTargetZ,
       });
       const submitMs = performance.now() - submitStartedAt;
       root.dataset.pocVectorSubmitMs = submitMs.toFixed(2);
@@ -2188,6 +2323,7 @@ export default function ThreeOsmMapPoc({
             if (disposed || builtGroup !== context.group) return;
             const previousGroup = vectorContextGroupRef.current;
             vectorContextGroupRef.current = context.group;
+            vectorLabelsRef.current = context.labels;
             scene.add(context.group);
             disposeObject(previousGroup);
             setVectorContextState(nextState);
@@ -2216,6 +2352,19 @@ export default function ThreeOsmMapPoc({
             );
             root.dataset.pocVectorBuildingSourcePoints = String(
               context.buildingSourcePoints,
+            );
+            root.dataset.pocVectorLabelCandidates = String(
+              context.labelCandidates,
+            );
+            root.dataset.pocVectorLabels = String(context.labels.length);
+            root.dataset.pocVectorLabelAerodromes = String(
+              context.labelAerodromes,
+            );
+            root.dataset.pocVectorLabelPlaces = String(context.labelPlaces);
+            root.dataset.pocVectorLabelRoads = String(context.labelRoads);
+            root.dataset.pocVectorLabelWaters = String(context.labelWaters);
+            root.dataset.pocVectorLabelSkippedFeatures = String(
+              context.labelSkippedFeatures,
             );
             root.dataset.pocVectorSkippedFeatures = String(
               context.skippedFeatures,
@@ -2321,8 +2470,12 @@ export default function ThreeOsmMapPoc({
     };
   }, [
     debugSwapDelayMs,
+    airportCode,
+    locale,
     sceneCenterLat,
     sourceTileWindowKey,
+    sourceTargetX,
+    sourceTargetZ,
     theme,
     tileCenter,
     tileZoom,

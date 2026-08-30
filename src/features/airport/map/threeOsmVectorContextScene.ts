@@ -3,6 +3,7 @@ import type {
   ThreeOsmRoadTier,
   ThreeOsmVectorContextGeometry,
 } from "./threeOsmVectorContextGeometry";
+import type { ThreeOsmSceneLabel } from "./threeOsmSceneContext";
 
 function createBasicMesh(
   positions: Float32Array,
@@ -80,5 +81,22 @@ export function createThreeOsmVectorContextScene({
       ),
     );
   }
-  return { group, ...geometry.diagnostics };
+  const labels: ThreeOsmSceneLabel[] = geometry.labels.map((label) => ({
+    id: label.id,
+    text: label.text,
+    kind: `vector-${label.kind}`,
+    position: new THREE.Vector3(
+      label.x,
+      label.kind === "aerodrome"
+        ? 5
+        : label.kind === "place"
+          ? 2.5
+          : label.kind === "road"
+            ? 1.4
+            : 1.2,
+      label.z,
+    ),
+    priority: label.priority,
+  }));
+  return { group, labels, ...geometry.diagnostics };
 }

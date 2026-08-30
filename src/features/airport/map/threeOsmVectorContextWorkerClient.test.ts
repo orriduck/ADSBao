@@ -49,6 +49,7 @@ const resultPromise = client.build({
   centerLat: 42.3656,
   sceneZoom: 13,
   sourceZoom: 13,
+  locale: "en",
 });
 const firstWorker = workers[0];
 assert.equal(firstWorker.posted?.type, "build");
@@ -66,6 +67,7 @@ firstWorker.respond({
     },
     buildingRoofPositions: new Float32Array(),
     buildingWallPositions: new Float32Array(),
+    labels: [],
     diagnostics: {
       tileCount: 1,
       decodeFailures: 0,
@@ -75,6 +77,13 @@ firstWorker.respond({
       buildings: 0,
       buildingRoofTriangles: 0,
       buildingSourcePoints: 0,
+      labelCandidates: 0,
+      labelCount: 0,
+      labelAerodromes: 0,
+      labelPlaces: 0,
+      labelRoads: 0,
+      labelWaters: 0,
+      labelSkippedFeatures: 0,
       skippedFeatures: 0,
       vertexCount: 1,
     },
@@ -92,6 +101,7 @@ const superseded = client.build({
   centerLat: 0,
   sceneZoom: 13,
   sourceZoom: 13,
+  locale: "en",
 });
 const replacement = client.build({
   tiles: [],
@@ -99,6 +109,7 @@ const replacement = client.build({
   centerLat: 1,
   sceneZoom: 13,
   sourceZoom: 13,
+  locale: "en",
 });
 await assert.rejects(
   superseded,

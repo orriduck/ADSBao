@@ -58,6 +58,7 @@ export function layoutThreeOsmLabels(
     padding = 4,
     reservedTop = 0,
     reservedBottom = 0,
+    blocked = [],
   }: {
     viewportWidth: number;
     viewportHeight: number;
@@ -65,6 +66,7 @@ export function layoutThreeOsmLabels(
     padding?: number;
     reservedTop?: number;
     reservedBottom?: number;
+    blocked?: ThreeOsmPlacedLabel[];
   },
 ) {
   const placed: ThreeOsmPlacedLabel[] = [];
@@ -89,7 +91,11 @@ export function layoutThreeOsmLabels(
           placement.right > viewportWidth - padding ||
           placement.top < Math.max(padding, reservedTop) ||
           placement.bottom > viewportHeight - Math.max(padding, reservedBottom);
-        return !outsideViewport && !placed.some((item) => intersects(item, placement));
+        return (
+          !outsideViewport &&
+          !blocked.some((item) => intersects(item, placement)) &&
+          !placed.some((item) => intersects(item, placement))
+        );
       });
     if (next) placed.push(next);
   }

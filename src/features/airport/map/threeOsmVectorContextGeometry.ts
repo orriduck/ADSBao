@@ -8,6 +8,14 @@ import {
   metersPerTileAtLatitude,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  isThreeOsmVectorLabelClassVisible,
+  resolveThreeOsmVectorLabelText,
+  selectThreeOsmVectorLabels,
+  type ThreeOsmVectorLabel,
+  type ThreeOsmVectorLabelCandidate,
+  type ThreeOsmVectorLabelKind,
+} from "./threeOsmVectorLabelModel";
 
 export type ThreeOsmVectorTilePayload = {
   tile: TileCoordinate;
@@ -25,6 +33,13 @@ export type ThreeOsmVectorContextDiagnostics = {
   buildings: number;
   buildingRoofTriangles: number;
   buildingSourcePoints: number;
+  labelCandidates: number;
+  labelCount: number;
+  labelAerodromes: number;
+  labelPlaces: number;
+  labelRoads: number;
+  labelWaters: number;
+  labelSkippedFeatures: number;
   skippedFeatures: number;
   vertexCount: number;
 };
@@ -33,6 +48,7 @@ export type ThreeOsmVectorContextGeometry = {
   roadPositions: Record<ThreeOsmRoadTier, Float32Array>;
   buildingRoofPositions: Float32Array;
   buildingWallPositions: Float32Array;
+  labels: ThreeOsmVectorLabel[];
   diagnostics: ThreeOsmVectorContextDiagnostics;
 };
 
@@ -42,6 +58,10 @@ export type ThreeOsmVectorContextGeometryInput = {
   centerLat: number;
   sceneZoom: number;
   sourceZoom: number;
+  locale: string;
+  focusAirportCode?: string;
+  labelFocusX?: number;
+  labelFocusZ?: number;
 };
 
 type Point2 = { x: number; z: number };
@@ -78,6 +98,21 @@ const BUILDING_MAX_SOURCE_POINTS = 30_000;
 const BUILDING_MIN_HEIGHT_METERS = 3;
 const BUILDING_DEFAULT_HEIGHT_METERS = 12;
 const BUILDING_MAX_HEIGHT_METERS = 180;
+const VECTOR_LABEL_CANDIDATE_LIMITS: Record<ThreeOsmVectorLabelKind, number> = {
+  aerodrome: 32,
+  place: 128,
+  road: 320,
+  water: 48,
+};
+const VECTOR_LABEL_LAYERS: Array<{
+  layerName: string;
+  kind: ThreeOsmVectorLabelKind;
+}> = [
+  { layerName: "aerodrome_label", kind: "aerodrome" },
+  { layerName: "place", kind: "place" },
+  { layerName: "transportation_name", kind: "road" },
+  { layerName: "water_name", kind: "water" },
+];
 
 function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, value));
@@ -162,6 +197,12 @@ function geometryPolygons(geometry: Record<string, any> | null) {
   return [];
 }
 
+function geometryPoints(geometry: Record<string, any> | null) {
+  if (geometry?.type === "Point") return [geometry.coordinates];
+  if (geometry?.type === "MultiPoint") return geometry.coordinates || [];
+  return [];
+}
+
 function projectedRing(
   ring: unknown,
   tileCenter: TileCoordinate,
@@ -180,6 +221,85 @@ function projectedRing(
     }
   }
   return points;
+}
+
+function projectedLineMidpoint(
+  line: unknown,
+  tileCenter: TileCoordinate,
+  centerLat: number,
+) {
+  if (!Array.isArray(line)) return null;
+  const points = line.flatMap((coordinate) => {
+    const point = projectCoordinate(coordinate, tileCenter, centerLat);
+    return point ? [point] : [];
+  });
+  if (points.length < 2) return null;
+  const segmentLengths = points.slice(1).map((point, index) =>
+    Math.hypot(point.x - points[index].x, point.z - points[index].z),
+  );
+  const totalLength = segmentLengths.reduce((total, length) => total + length, 0);
+  if (!totalLength) return null;
+  let remaining = totalLength / 2;
+  for (let index = 0; index < segmentLengths.length; index += 1) {
+    const segmentLength = segmentLengths[index];
+    if (remaining > segmentLength) {
+      remaining -= segmentLength;
+      continue;
+    }
+    const ratio = segmentLength ? remaining / segmentLength : 0;
+    return {
+      point: {
+        x: points[index].x + (points[index + 1].x - points[index].x) * ratio,
+        z: points[index].z + (points[index + 1].z - points[index].z) * ratio,
+      },
+      length: totalLength,
+    };
+  }
+  return { point: points[points.length - 1], length: totalLength };
+}
+
+function resolveVectorLabelAnchor({
+  geometry,
+  tileCenter,
+  centerLat,
+  focusX,
+  focusZ,
+}: {
+  geometry: Record<string, any> | null;
+  tileCenter: TileCoordinate;
+  centerLat: number;
+  focusX: number;
+  focusZ: number;
+}) {
+  const points = geometryPoints(geometry)
+    .flatMap((coordinate) => {
+      const point = projectCoordinate(coordinate, tileCenter, centerLat);
+      return point ? [point] : [];
+    })
+    .sort(
+      (left, right) =>
+        Math.hypot(left.x - focusX, left.z - focusZ) -
+        Math.hypot(right.x - focusX, right.z - focusZ),
+    );
+  if (points.length) return points[0];
+
+  const lineAnchor = geometryLineStrings(geometry)
+    .flatMap((line) => {
+      const midpoint = projectedLineMidpoint(line, tileCenter, centerLat);
+      return midpoint ? [midpoint] : [];
+    })
+    .sort((left, right) => right.length - left.length)[0];
+  if (lineAnchor) return lineAnchor.point;
+
+  const ring = geometryPolygons(geometry)
+    .flatMap((polygon) => (Array.isArray(polygon) ? polygon.slice(0, 1) : []))
+    .map((value) => projectedRing(value, tileCenter, centerLat))
+    .find((value) => value.length >= 3);
+  if (!ring) return null;
+  return {
+    x: ring.reduce((total, point) => total + point.x, 0) / ring.length,
+    z: ring.reduce((total, point) => total + point.z, 0) / ring.length,
+  };
 }
 
 function pushCorridorQuad(
@@ -245,6 +365,10 @@ export function buildThreeOsmVectorContextGeometry({
   centerLat,
   sceneZoom,
   sourceZoom,
+  locale,
+  focusAirportCode = "",
+  labelFocusX = 0,
+  labelFocusZ = 0,
 }: ThreeOsmVectorContextGeometryInput): ThreeOsmVectorContextGeometry {
   const roadPositions: Record<ThreeOsmRoadTier, number[]> = {
     major: [],
@@ -253,6 +377,13 @@ export function buildThreeOsmVectorContextGeometry({
   };
   const buildingRoofPositions: number[] = [];
   const buildingWallPositions: number[] = [];
+  const labelCandidates: ThreeOsmVectorLabelCandidate[] = [];
+  const labelCandidateCounts: Record<ThreeOsmVectorLabelKind, number> = {
+    aerodrome: 0,
+    place: 0,
+    road: 0,
+    water: 0,
+  };
   const diagnostics: ThreeOsmVectorContextDiagnostics = {
     tileCount: tiles.length,
     decodeFailures: 0,
@@ -262,6 +393,13 @@ export function buildThreeOsmVectorContextGeometry({
     buildings: 0,
     buildingRoofTriangles: 0,
     buildingSourcePoints: 0,
+    labelCandidates: 0,
+    labelCount: 0,
+    labelAerodromes: 0,
+    labelPlaces: 0,
+    labelRoads: 0,
+    labelWaters: 0,
+    labelSkippedFeatures: 0,
     skippedFeatures: 0,
     vertexCount: 0,
   };
@@ -357,6 +495,73 @@ export function buildThreeOsmVectorContextGeometry({
       }
     }
 
+    for (const { layerName, kind } of VECTOR_LABEL_LAYERS) {
+      const layer = vectorTile.layers[layerName];
+      if (!layer) continue;
+      for (let index = 0; index < layer.length; index += 1) {
+        if (
+          labelCandidateCounts[kind] >= VECTOR_LABEL_CANDIDATE_LIMITS[kind]
+        ) {
+          diagnostics.labelSkippedFeatures += layer.length - index;
+          break;
+        }
+        const feature = layer.feature(index);
+        const className = String(feature.properties.class || "")
+          .trim()
+          .toLowerCase();
+        if (
+          !isThreeOsmVectorLabelClassVisible({
+            kind,
+            className,
+            sourceZoom,
+          })
+        ) {
+          continue;
+        }
+        const text = resolveThreeOsmVectorLabelText({
+          properties: feature.properties,
+          kind,
+          locale,
+        });
+        if (!text) continue;
+        if (kind === "aerodrome") {
+          const excludedCode = focusAirportCode.trim().toUpperCase();
+          const featureCodes = [
+            feature.properties.iata,
+            feature.properties.icao,
+          ].map((value) => String(value || "").trim().toUpperCase());
+          if (excludedCode && featureCodes.includes(excludedCode)) continue;
+        }
+        try {
+          const geojson = feature.toGeoJSON(
+            payload.tile.x,
+            payload.tile.y,
+            payload.tile.z,
+          ) as any;
+          const anchor = resolveVectorLabelAnchor({
+            geometry: geojson.geometry,
+            tileCenter,
+            centerLat,
+            focusX: labelFocusX,
+            focusZ: labelFocusZ,
+          });
+          if (!anchor) continue;
+          labelCandidates.push({
+            id: `vector:${kind}:${payload.tile.z}/${payload.tile.x}/${payload.tile.y}:${index}`,
+            text,
+            kind,
+            className,
+            rank: finiteNumber(feature.properties.rank),
+            x: anchor.x,
+            z: anchor.z,
+          });
+          labelCandidateCounts[kind] += 1;
+        } catch {
+          diagnostics.labelSkippedFeatures += 1;
+        }
+      }
+    }
+
     if (sourceZoom < 13) continue;
     const buildingLayer = vectorTile.layers.building;
     if (!buildingLayer) continue;
@@ -425,6 +630,19 @@ export function buildThreeOsmVectorContextGeometry({
   };
   const typedBuildingRoofPositions = new Float32Array(buildingRoofPositions);
   const typedBuildingWallPositions = new Float32Array(buildingWallPositions);
+  const labels = selectThreeOsmVectorLabels(labelCandidates, {
+    sourceZoom,
+    focusX: labelFocusX,
+    focusZ: labelFocusZ,
+  });
+  diagnostics.labelCandidates = labelCandidates.length;
+  diagnostics.labelCount = labels.length;
+  diagnostics.labelAerodromes = labels.filter(
+    (label) => label.kind === "aerodrome",
+  ).length;
+  diagnostics.labelPlaces = labels.filter((label) => label.kind === "place").length;
+  diagnostics.labelRoads = labels.filter((label) => label.kind === "road").length;
+  diagnostics.labelWaters = labels.filter((label) => label.kind === "water").length;
   diagnostics.vertexCount =
     (typedRoadPositions.major.length +
       typedRoadPositions.minor.length +
@@ -436,6 +654,7 @@ export function buildThreeOsmVectorContextGeometry({
     roadPositions: typedRoadPositions,
     buildingRoofPositions: typedBuildingRoofPositions,
     buildingWallPositions: typedBuildingWallPositions,
+    labels,
     diagnostics,
   };
 }
