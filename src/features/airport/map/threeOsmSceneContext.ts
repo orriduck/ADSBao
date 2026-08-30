@@ -27,6 +27,7 @@ import {
   buildThreeOsmSelectedAirspaceVolumeGeometry,
 } from "./threeOsmAirspaceVolume";
 import { resolveThreeOsmAirspaceFocus } from "./threeOsmAirspaceFocus";
+import { resolveThreeOsmNearestScreenTarget } from "./threeOsmScreenHit";
 
 export { collectAirspaceLineCoordinates } from "./threeOsmAirspaceGeometry";
 
@@ -118,21 +119,16 @@ export function resolveThreeOsmContextScreenHit({
   y: number;
   radiusPx?: number;
 }) {
-  if (width <= 0 || height <= 0 || radiusPx <= 0) return null;
-  const projected = new THREE.Vector3();
-  let nearest: ThreeOsmContextSelection | null = null;
-  let nearestDistanceSquared = radiusPx * radiusPx;
-  for (const target of targets) {
-    projected.copy(target.position).project(camera);
-    if (projected.z < -1 || projected.z > 1) continue;
-    const screenX = (projected.x * 0.5 + 0.5) * width;
-    const screenY = (-projected.y * 0.5 + 0.5) * height;
-    const distanceSquared = (screenX - x) ** 2 + (screenY - y) ** 2;
-    if (distanceSquared >= nearestDistanceSquared) continue;
-    nearestDistanceSquared = distanceSquared;
-    nearest = { kind: target.kind, id: target.id };
-  }
-  return nearest;
+  const nearest = resolveThreeOsmNearestScreenTarget({
+    targets,
+    camera,
+    width,
+    height,
+    x,
+    y,
+    radiusPx,
+  });
+  return nearest ? { kind: nearest.kind, id: nearest.id } : null;
 }
 
 function finiteCoordinate(value: unknown) {

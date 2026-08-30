@@ -95,6 +95,9 @@ import {
   type ThreeOsmSceneLabel,
 } from "@/features/airport/map/threeOsmSceneContext";
 import {
+  resolveThreeOsmNearestScreenTarget,
+} from "@/features/airport/map/threeOsmScreenHit";
+import {
   selectThreeOsmDebugContextTargets,
   type ThreeOsmContextKind,
 } from "@/features/airport/map/threeOsmContextInteraction";
@@ -547,7 +550,6 @@ export default function ThreeOsmMapPoc({
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const vectorLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const requestRenderRef = useRef<() => void>(() => {});
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const onSelectAircraftRef = useRef(onSelectAircraft);
   const onSelectAirportRef = useRef(onSelectAirport);
   const onSelectNavaidRef = useRef(onSelectNavaid);
@@ -1828,13 +1830,37 @@ export default function ThreeOsmMapPoc({
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
+    const activePointerIds = new Set<number>();
+    let tapCandidate: {
+      pointerId: number;
+      pointerType: string;
+      x: number;
+      y: number;
+    } | null = null;
     const handlePointerDown = (event: PointerEvent) => {
-      pointerStartRef.current = { x: event.clientX, y: event.clientY };
+      activePointerIds.add(event.pointerId);
+      tapCandidate = activePointerIds.size === 1
+        ? {
+            pointerId: event.pointerId,
+            pointerType: event.pointerType,
+            x: event.clientX,
+            y: event.clientY,
+          }
+        : null;
     };
     const handlePointerUp = (event: PointerEvent) => {
-      const start = pointerStartRef.current;
-      pointerStartRef.current = null;
-      if (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 6) {
+      const start = tapCandidate;
+      const wasSinglePointer =
+        activePointerIds.size === 1 && start?.pointerId === event.pointerId;
+      activePointerIds.delete(event.pointerId);
+      if (!activePointerIds.size) tapCandidate = null;
+      const movementThreshold = start?.pointerType === "touch" ? 10 : 6;
+      if (
+        !wasSinglePointer ||
+        !start ||
+        Math.hypot(event.clientX - start.x, event.clientY - start.y) >
+          movementThreshold
+      ) {
         return;
       }
       const camera = activeCameraRef.current;
@@ -1862,13 +1888,34 @@ export default function ThreeOsmMapPoc({
             )[0]
           : null;
       const hitBatch = batches.find((batch) => batch.mesh === hit?.object);
-      const id =
+      const geometryHitId =
         hit?.instanceId == null ? "" : hitBatch?.items[hit.instanceId]?.id || "";
+      const screenHit =
+        !geometryHitId &&
+        trafficSelectable &&
+        typeof onSelectAircraftRef.current === "function"
+          ? resolveThreeOsmNearestScreenTarget({
+              targets: batches.flatMap((batch) =>
+                batch.items.filter((item) => item.id),
+              ),
+              camera,
+              width: bounds.width,
+              height: bounds.height,
+              x: pointerX,
+              y: pointerY,
+              radiusPx: event.pointerType === "touch" ? 22 : 14,
+            })
+          : null;
+      const id = geometryHitId || screenHit?.id || "";
       if (id) {
         root.dataset.pocLastPick = `aircraft:${id}`;
+        root.dataset.pocLastAircraftPickMode = geometryHitId
+          ? "geometry"
+          : "screen";
         onSelectAircraftRef.current?.(id);
         return;
       }
+      root.dataset.pocLastAircraftPickMode = "none";
       const contextSelectable = isDebugLayerVisible(
         debugLayerModeRef.current,
         "context",
@@ -1935,6 +1982,10 @@ export default function ThreeOsmMapPoc({
         root.dataset.pocLastPick = "none";
       }
     };
+    const handlePointerCancel = (event: PointerEvent) => {
+      activePointerIds.delete(event.pointerId);
+      tapCandidate = null;
+    };
     const handleContextLost = (event: Event) => {
       event.preventDefault();
       root.dataset.pocContext = "lost";
@@ -1970,12 +2021,14 @@ export default function ThreeOsmMapPoc({
     root.dataset.pocContext = "ready";
     canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerCancel);
     canvas.addEventListener("webglcontextlost", handleContextLost);
     canvas.addEventListener("webglcontextrestored", handleContextRestored);
 
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("webglcontextlost", handleContextLost);
       canvas.removeEventListener("webglcontextrestored", handleContextRestored);
       resizeObserver.disconnect();
