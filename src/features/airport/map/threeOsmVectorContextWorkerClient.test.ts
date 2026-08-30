@@ -61,8 +61,10 @@ firstWorker.respond({
   requestId: firstWorker.posted!.requestId,
   geometry: {
     roadPositions: {
-      major: new Float32Array([0, 0, 0]),
-      minor: new Float32Array(),
+      motorway: new Float32Array([0, 0, 0]),
+      arterial: new Float32Array(),
+      collector: new Float32Array(),
+      local: new Float32Array(),
       service: new Float32Array(),
     },
     surfacePositions: {
@@ -80,6 +82,13 @@ firstWorker.respond({
       semanticLodProfile: "detail",
       semanticLodSkippedFeatures: 0,
       roadFeatures: 1,
+      roadFeaturesByTier: {
+        motorway: 1,
+        arterial: 0,
+        collector: 0,
+        local: 0,
+        service: 0,
+      },
       roadSegments: 1,
       roadSourcePoints: 2,
       buildings: 0,

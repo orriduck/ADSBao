@@ -2212,6 +2212,11 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-loaded", "0");
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
+      root?.setAttribute("data-poc-vector-road-motorway", "0");
+      root?.setAttribute("data-poc-vector-road-arterial", "0");
+      root?.setAttribute("data-poc-vector-road-collector", "0");
+      root?.setAttribute("data-poc-vector-road-local", "0");
+      root?.setAttribute("data-poc-vector-road-service", "0");
       root?.setAttribute("data-poc-vector-tile-radius", "0");
       root?.setAttribute("data-poc-vector-semantic-lod", "disabled");
       root?.setAttribute("data-poc-vector-semantic-skipped-features", "0");
@@ -2362,6 +2367,21 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorTileZoom = String(vectorTileZoom);
             root.dataset.pocVectorTileRadius = String(vectorTileRadius);
             root.dataset.pocVectorRoads = String(context.roadFeatures);
+            root.dataset.pocVectorRoadMotorway = String(
+              context.roadFeaturesByTier.motorway,
+            );
+            root.dataset.pocVectorRoadArterial = String(
+              context.roadFeaturesByTier.arterial,
+            );
+            root.dataset.pocVectorRoadCollector = String(
+              context.roadFeaturesByTier.collector,
+            );
+            root.dataset.pocVectorRoadLocal = String(
+              context.roadFeaturesByTier.local,
+            );
+            root.dataset.pocVectorRoadService = String(
+              context.roadFeaturesByTier.service,
+            );
             root.dataset.pocVectorSemanticLod = context.semanticLodProfile;
             root.dataset.pocVectorSemanticSkippedFeatures = String(
               context.semanticLodSkippedFeatures,

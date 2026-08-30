@@ -26,13 +26,15 @@ import {
   resolveThreeOsmVectorSemanticLod,
   type ThreeOsmVectorSemanticLodId,
 } from "./threeOsmVectorSemanticLod";
+import {
+  THREE_OSM_ROAD_TIERS,
+  type ThreeOsmRoadTier,
+} from "./threeOsmVectorRoadModel";
 
 export type ThreeOsmVectorTilePayload = {
   tile: TileCoordinate;
   data: ArrayBuffer;
 };
-
-export type ThreeOsmRoadTier = "major" | "minor" | "service";
 
 export type ThreeOsmVectorContextDiagnostics = {
   tileCount: number;
@@ -40,6 +42,7 @@ export type ThreeOsmVectorContextDiagnostics = {
   semanticLodProfile: ThreeOsmVectorSemanticLodId;
   semanticLodSkippedFeatures: number;
   roadFeatures: number;
+  roadFeaturesByTier: Record<ThreeOsmRoadTier, number>;
   roadSegments: number;
   roadSourcePoints: number;
   buildings: number;
@@ -88,31 +91,44 @@ export type ThreeOsmVectorContextGeometryInput = {
 type Point2 = { x: number; z: number };
 
 const ROAD_CLASSES: Record<string, ThreeOsmRoadTier> = {
-  motorway: "major",
-  trunk: "major",
-  primary: "major",
-  secondary: "minor",
-  tertiary: "minor",
-  minor: "minor",
-  busway: "minor",
-  bridge: "minor",
+  motorway: "motorway",
+  trunk: "arterial",
+  primary: "arterial",
+  secondary: "collector",
+  tertiary: "collector",
+  busway: "collector",
+  minor: "local",
+  bridge: "local",
   service: "service",
   pier: "service",
 };
 const ROAD_WIDTH_METERS: Record<ThreeOsmRoadTier, number> = {
-  major: 20,
-  minor: 12,
-  service: 7,
+  motorway: 24,
+  arterial: 18,
+  collector: 12,
+  local: 8,
+  service: 5,
 };
 const ROAD_MIN_WIDTH_WORLD: Record<ThreeOsmRoadTier, number> = {
-  major: 1.4,
-  minor: 0.9,
-  service: 0.6,
+  motorway: 1.8,
+  arterial: 1.35,
+  collector: 0.9,
+  local: 0.65,
+  service: 0.5,
 };
 const ROAD_MAX_WIDTH_WORLD: Record<ThreeOsmRoadTier, number> = {
-  major: 12,
-  minor: 8,
-  service: 5,
+  motorway: 14,
+  arterial: 11,
+  collector: 8,
+  local: 6,
+  service: 4,
+};
+const ROAD_Y_WORLD: Record<ThreeOsmRoadTier, number> = {
+  motorway: 0.42,
+  arterial: 0.38,
+  collector: 0.32,
+  local: 0.27,
+  service: 0.22,
 };
 const ROAD_MAX_SOURCE_POINTS = 70_000;
 const BUILDING_MAX_SOURCE_POINTS = 30_000;
@@ -439,8 +455,10 @@ export function buildThreeOsmVectorContextGeometry({
   labelFocusZ = 0,
 }: ThreeOsmVectorContextGeometryInput): ThreeOsmVectorContextGeometry {
   const roadPositions: Record<ThreeOsmRoadTier, number[]> = {
-    major: [],
-    minor: [],
+    motorway: [],
+    arterial: [],
+    collector: [],
+    local: [],
     service: [],
   };
   const surfacePositions: Record<ThreeOsmVectorSurfaceKind, number[]> = {
@@ -471,6 +489,13 @@ export function buildThreeOsmVectorContextGeometry({
     semanticLodProfile: semanticLod.id,
     semanticLodSkippedFeatures: 0,
     roadFeatures: 0,
+    roadFeaturesByTier: {
+      motorway: 0,
+      arterial: 0,
+      collector: 0,
+      local: 0,
+      service: 0,
+    },
     roadSegments: 0,
     roadSourcePoints: 0,
     buildings: 0,
@@ -495,13 +520,23 @@ export function buildThreeOsmVectorContextGeometry({
     vertexCount: 0,
   };
   const roadWidths: Record<ThreeOsmRoadTier, number> = {
-    major: resolveThreeOsmRoadWidthWorld({
-      tier: "major",
+    motorway: resolveThreeOsmRoadWidthWorld({
+      tier: "motorway",
       centerLat,
       zoom: sceneZoom,
     }),
-    minor: resolveThreeOsmRoadWidthWorld({
-      tier: "minor",
+    arterial: resolveThreeOsmRoadWidthWorld({
+      tier: "arterial",
+      centerLat,
+      zoom: sceneZoom,
+    }),
+    collector: resolveThreeOsmRoadWidthWorld({
+      tier: "collector",
+      centerLat,
+      zoom: sceneZoom,
+    }),
+    local: resolveThreeOsmRoadWidthWorld({
+      tier: "local",
       centerLat,
       zoom: sceneZoom,
     }),
@@ -565,7 +600,7 @@ export function buildThreeOsmVectorContextGeometry({
                 projected[pointIndex - 1],
                 projected[pointIndex],
                 roadWidths[tier],
-                tier === "major" ? 0.38 : tier === "minor" ? 0.3 : 0.22,
+                ROAD_Y_WORLD[tier],
               )
             ) {
               diagnostics.roadSegments += 1;
@@ -580,7 +615,7 @@ export function buildThreeOsmVectorContextGeometry({
             centerLat,
           );
           if (!triangulated) continue;
-          const y = tier === "major" ? 0.38 : tier === "minor" ? 0.3 : 0.22;
+          const y = ROAD_Y_WORLD[tier];
           for (const pointIndex of triangulated.triangles) {
             const point = triangulated.points[pointIndex];
             roadPositions[tier].push(point.x, y, point.z);
@@ -588,7 +623,10 @@ export function buildThreeOsmVectorContextGeometry({
           diagnostics.roadSegments += triangulated.triangles.length / 3;
           rendered = true;
         }
-        if (rendered) diagnostics.roadFeatures += 1;
+        if (rendered) {
+          diagnostics.roadFeatures += 1;
+          diagnostics.roadFeaturesByTier[tier] += 1;
+        }
       }
     }
 
@@ -830,8 +868,10 @@ export function buildThreeOsmVectorContextGeometry({
   }
 
   const typedRoadPositions: Record<ThreeOsmRoadTier, Float32Array> = {
-    major: new Float32Array(roadPositions.major),
-    minor: new Float32Array(roadPositions.minor),
+    motorway: new Float32Array(roadPositions.motorway),
+    arterial: new Float32Array(roadPositions.arterial),
+    collector: new Float32Array(roadPositions.collector),
+    local: new Float32Array(roadPositions.local),
     service: new Float32Array(roadPositions.service),
   };
   const typedSurfacePositions: Record<
@@ -860,9 +900,10 @@ export function buildThreeOsmVectorContextGeometry({
   diagnostics.labelRoads = labels.filter((label) => label.kind === "road").length;
   diagnostics.labelWaters = labels.filter((label) => label.kind === "water").length;
   diagnostics.vertexCount =
-    (typedRoadPositions.major.length +
-      typedRoadPositions.minor.length +
-      typedRoadPositions.service.length +
+    (THREE_OSM_ROAD_TIERS.reduce(
+      (total, tier) => total + typedRoadPositions[tier].length,
+      0,
+    ) +
       typedSurfacePositions.water.length +
       typedSurfacePositions.natural.length +
       typedSurfacePositions.developed.length +

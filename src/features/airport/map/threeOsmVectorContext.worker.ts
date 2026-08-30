@@ -1,4 +1,5 @@
 import { buildThreeOsmVectorContextGeometry } from "./threeOsmVectorContextGeometry";
+import { THREE_OSM_ROAD_TIERS } from "./threeOsmVectorRoadModel";
 import type {
   ThreeOsmVectorContextWorkerRequest,
   ThreeOsmVectorContextWorkerResponse,
@@ -23,9 +24,9 @@ workerScope.onmessage = (event) => {
   try {
     const geometry = buildThreeOsmVectorContextGeometry(request.input);
     const transfer = [
-      geometry.roadPositions.major.buffer,
-      geometry.roadPositions.minor.buffer,
-      geometry.roadPositions.service.buffer,
+      ...THREE_OSM_ROAD_TIERS.map(
+        (tier) => geometry.roadPositions[tier].buffer,
+      ),
       geometry.surfacePositions.water.buffer,
       geometry.surfacePositions.natural.buffer,
       geometry.surfacePositions.developed.buffer,

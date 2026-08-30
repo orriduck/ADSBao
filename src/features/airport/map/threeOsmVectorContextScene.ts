@@ -1,9 +1,12 @@
 import * as THREE from "three";
 import type {
-  ThreeOsmRoadTier,
   ThreeOsmVectorContextGeometry,
 } from "./threeOsmVectorContextGeometry";
 import type { ThreeOsmSceneLabel } from "./threeOsmSceneContext";
+import {
+  THREE_OSM_ROAD_TIERS,
+  type ThreeOsmRoadTier,
+} from "./threeOsmVectorRoadModel";
 import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";
 
 function createBasicMesh(
@@ -81,20 +84,36 @@ export function createThreeOsmVectorContextScene({
       );
     },
   );
-  const roadColors: Record<ThreeOsmRoadTier, number> = dark
-    ? { major: 0xb8bfbb, minor: 0x777e7a, service: 0x555b58 }
-    : { major: 0x3f4643, minor: 0x686f6c, service: 0x858b88 };
-  (["service", "minor", "major"] as ThreeOsmRoadTier[]).forEach(
+  const roadStyles: Record<
+    ThreeOsmRoadTier,
+    { color: number; opacity: number }
+  > = dark
+    ? {
+        motorway: { color: 0xd7ddd8, opacity: 0.64 },
+        arterial: { color: 0xa7aeaa, opacity: 0.54 },
+        collector: { color: 0x777e7a, opacity: 0.43 },
+        local: { color: 0x5f6662, opacity: 0.34 },
+        service: { color: 0x4d534f, opacity: 0.28 },
+      }
+    : {
+        motorway: { color: 0x2e3431, opacity: 0.68 },
+        arterial: { color: 0x4b524f, opacity: 0.58 },
+        collector: { color: 0x686f6c, opacity: 0.48 },
+        local: { color: 0x7b827f, opacity: 0.38 },
+        service: { color: 0x8e9491, opacity: 0.3 },
+      };
+  [...THREE_OSM_ROAD_TIERS].reverse().forEach(
     (tier, index) => {
       const positions = geometry.roadPositions[tier];
       if (!positions.length) return;
+      const style = roadStyles[tier];
       group.add(
         createBasicMesh(
           positions,
-          roadColors[tier],
+          style.color,
           `three-osm-vector-road-${tier}`,
           1 + index,
-          0.42,
+          style.opacity,
         ),
       );
     },
