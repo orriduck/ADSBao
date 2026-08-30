@@ -46,12 +46,10 @@ export function classifyThreeOsmVectorSurface({
   layerName,
   className,
   geometryType,
-  sourceZoom,
 }: {
   layerName: string;
   className: string;
   geometryType: number;
-  sourceZoom: number;
 }): ThreeOsmVectorSurfaceKind | null {
   const normalizedClass = className.trim().toLowerCase();
   if (layerName === "water") {
@@ -63,15 +61,12 @@ export function classifyThreeOsmVectorSurface({
       : null;
   }
   if (layerName === "landuse") {
-    return sourceZoom >= 11 &&
-      geometryType === 3 &&
-      DEVELOPED_CLASSES.has(normalizedClass)
+    return geometryType === 3 && DEVELOPED_CLASSES.has(normalizedClass)
       ? "developed"
       : null;
   }
   if (layerName === "aeroway") {
-    return sourceZoom >= 10 &&
-      (geometryType === 2 || geometryType === 3) &&
+    return (geometryType === 2 || geometryType === 3) &&
       AEROWAY_CLASSES.has(normalizedClass)
       ? "aeroway"
       : null;

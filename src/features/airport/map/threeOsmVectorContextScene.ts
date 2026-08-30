@@ -12,6 +12,7 @@ function createBasicMesh(
   name: string,
   renderOrder: number,
   opacity = 1,
+  polygonOffset = false,
 ) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
@@ -27,6 +28,9 @@ function createBasicMesh(
       opacity,
       transparent: opacity < 1,
       depthWrite: opacity >= 1,
+      polygonOffset,
+      polygonOffsetFactor: polygonOffset ? -2 : 0,
+      polygonOffsetUnits: polygonOffset ? -4 : 0,
     }),
   );
   mesh.name = name;
@@ -72,6 +76,7 @@ export function createThreeOsmVectorContextScene({
           `three-osm-vector-surface-${kind}`,
           -4 + index,
           style.opacity,
+          true,
         ),
       );
     },

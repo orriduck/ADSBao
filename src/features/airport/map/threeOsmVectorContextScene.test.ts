@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import * as THREE from "three";
 import {
   classifyThreeOsmRoadTier,
   resolveThreeOsmAerowayWidthWorld,
@@ -94,6 +95,8 @@ const labelScene = createThreeOsmVectorContextScene({
     diagnostics: {
       tileCount: 1,
       decodeFailures: 0,
+      semanticLodProfile: "detail",
+      semanticLodSkippedFeatures: 0,
       roadFeatures: 0,
       roadSegments: 0,
       roadSourcePoints: 0,
@@ -124,6 +127,13 @@ const labelScene = createThreeOsmVectorContextScene({
 assert.equal(labelScene.labels.length, 1);
 assert.equal(labelScene.surfaceFeatures, 1);
 assert.equal(labelScene.group.children[0].name, "three-osm-vector-surface-water");
+assert.equal(
+  (labelScene.group.children[0] as THREE.Mesh<
+    THREE.BufferGeometry,
+    THREE.MeshBasicMaterial
+  >).material.polygonOffset,
+  true,
+);
 assert.equal(labelScene.labels[0].kind, "vector-place");
 assert.deepEqual(labelScene.labels[0].position.toArray(), [12, 2.5, -8]);
 

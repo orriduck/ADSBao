@@ -20,6 +20,12 @@ import {
   classifyThreeOsmVectorSurface,
   type ThreeOsmVectorSurfaceKind,
 } from "./threeOsmVectorSurfaceModel";
+import {
+  isThreeOsmVectorRoadClassVisible,
+  isThreeOsmVectorSurfaceKindVisible,
+  resolveThreeOsmVectorSemanticLod,
+  type ThreeOsmVectorSemanticLodId,
+} from "./threeOsmVectorSemanticLod";
 
 export type ThreeOsmVectorTilePayload = {
   tile: TileCoordinate;
@@ -31,6 +37,8 @@ export type ThreeOsmRoadTier = "major" | "minor" | "service";
 export type ThreeOsmVectorContextDiagnostics = {
   tileCount: number;
   decodeFailures: number;
+  semanticLodProfile: ThreeOsmVectorSemanticLodId;
+  semanticLodSkippedFeatures: number;
   roadFeatures: number;
   roadSegments: number;
   roadSourcePoints: number;
@@ -112,9 +120,9 @@ const BUILDING_MIN_HEIGHT_METERS = 3;
 const BUILDING_DEFAULT_HEIGHT_METERS = 12;
 const BUILDING_MAX_HEIGHT_METERS = 180;
 const SURFACE_MAX_SOURCE_POINTS: Record<ThreeOsmVectorSurfaceKind, number> = {
-  water: 12_000,
+  water: 40_000,
   natural: 24_000,
-  developed: 12_000,
+  developed: 20_000,
   aeroway: 12_000,
 };
 const SURFACE_LAYERS = ["water", "landcover", "landuse", "aeroway"] as const;
@@ -455,9 +463,12 @@ export function buildThreeOsmVectorContextGeometry({
     road: 0,
     water: 0,
   };
+  const semanticLod = resolveThreeOsmVectorSemanticLod(sourceZoom);
   const diagnostics: ThreeOsmVectorContextDiagnostics = {
     tileCount: tiles.length,
     decodeFailures: 0,
+    semanticLodProfile: semanticLod.id,
+    semanticLodSkippedFeatures: 0,
     roadFeatures: 0,
     roadSegments: 0,
     roadSourcePoints: 0,
@@ -499,7 +510,6 @@ export function buildThreeOsmVectorContextGeometry({
       zoom: sceneZoom,
     }),
   };
-
   for (const payload of tiles) {
     let vectorTile: VectorTile;
     try {
@@ -513,8 +523,15 @@ export function buildThreeOsmVectorContextGeometry({
     if (transportation) {
       for (let index = 0; index < transportation.length; index += 1) {
         const feature = transportation.feature(index);
-        const tier = classifyThreeOsmRoadTier(feature.properties.class);
+        const className = String(feature.properties.class || "")
+          .trim()
+          .toLowerCase();
+        const tier = classifyThreeOsmRoadTier(className);
         if (!tier) continue;
+        if (!isThreeOsmVectorRoadClassVisible({ className, lod: semanticLod })) {
+          diagnostics.semanticLodSkippedFeatures += 1;
+          continue;
+        }
         const pointCount = sourcePointCount(feature);
         if (
           diagnostics.roadSourcePoints + pointCount >
@@ -586,9 +603,12 @@ export function buildThreeOsmVectorContextGeometry({
           layerName,
           className,
           geometryType: feature.type,
-          sourceZoom,
         });
         if (!kind) continue;
+        if (!isThreeOsmVectorSurfaceKindVisible({ kind, lod: semanticLod })) {
+          diagnostics.semanticLodSkippedFeatures += 1;
+          continue;
+        }
         const pointCount = sourcePointCount(feature);
         if (
           surfaceSourcePoints[kind] + pointCount >
@@ -747,7 +767,7 @@ export function buildThreeOsmVectorContextGeometry({
       }
     }
 
-    if (sourceZoom < 13) continue;
+    if (!semanticLod.showBuildings) continue;
     const buildingLayer = vectorTile.layers.building;
     if (!buildingLayer) continue;
     for (let index = 0; index < buildingLayer.length; index += 1) {
@@ -826,6 +846,7 @@ export function buildThreeOsmVectorContextGeometry({
   const typedBuildingWallPositions = new Float32Array(buildingWallPositions);
   const labels = selectThreeOsmVectorLabels(labelCandidates, {
     sourceZoom,
+    maxLabels: semanticLod.maxLabels,
     focusX: labelFocusX,
     focusZ: labelFocusZ,
   });

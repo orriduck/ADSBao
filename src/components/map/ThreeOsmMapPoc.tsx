@@ -2204,6 +2204,8 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-loaded", "0");
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
+      root?.setAttribute("data-poc-vector-semantic-lod", "disabled");
+      root?.setAttribute("data-poc-vector-semantic-skipped-features", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
       root?.setAttribute("data-poc-vector-surfaces", "0");
       root?.setAttribute("data-poc-vector-surface-water", "0");
@@ -2350,6 +2352,10 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorTilesFailed = String(failed);
             root.dataset.pocVectorTileZoom = String(vectorTileZoom);
             root.dataset.pocVectorRoads = String(context.roadFeatures);
+            root.dataset.pocVectorSemanticLod = context.semanticLodProfile;
+            root.dataset.pocVectorSemanticSkippedFeatures = String(
+              context.semanticLodSkippedFeatures,
+            );
             root.dataset.pocVectorRoadSegments = String(context.roadSegments);
             root.dataset.pocVectorRoadSourcePoints = String(
               context.roadSourcePoints,

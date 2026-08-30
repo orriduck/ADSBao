@@ -77,6 +77,8 @@ firstWorker.respond({
     diagnostics: {
       tileCount: 1,
       decodeFailures: 0,
+      semanticLodProfile: "detail",
+      semanticLodSkippedFeatures: 0,
       roadFeatures: 1,
       roadSegments: 1,
       roadSourcePoints: 2,
