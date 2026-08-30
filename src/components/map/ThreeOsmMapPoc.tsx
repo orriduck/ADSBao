@@ -23,6 +23,10 @@ import { BoundedTileResourceCache } from "@/features/airport/map/boundedTileReso
 import { buildAirspaceOverlayFeatures } from "@/features/airport/map/airspaceOverlayModel";
 import { buildThreeOsmAirspaceGeometry } from "@/features/airport/map/threeOsmAirspaceGeometry";
 import {
+  resolveThreeOsmAirspaceFocusAnchor,
+  type ThreeOsmAirspaceFocusAnchor,
+} from "@/features/airport/map/threeOsmAirspaceFocusAnchor";
+import {
   buildRenderableAirportSurfaceFeatureCollection,
   buildRunwayApproachVisualization,
   buildRunwayCenterlineCollection,
@@ -907,6 +911,29 @@ export default function ThreeOsmMapPoc({
     cameraLodState.mode === viewMode
       ? cameraLodState.targetZ
       : 0;
+  const airspaceFocusScopeKey = `${cameraStateScopeKey}:${viewMode}`;
+  const [airspaceFocusAnchorState, setAirspaceFocusAnchorState] =
+    useState<ThreeOsmAirspaceFocusAnchor | null>(null);
+  const airspaceFocusAnchor = useMemo(
+    () =>
+      resolveThreeOsmAirspaceFocusAnchor({
+        current: airspaceFocusAnchorState,
+        scopeKey: airspaceFocusScopeKey,
+        targetX: sourceTargetX,
+        targetZ: sourceTargetZ,
+      }),
+    [
+      airspaceFocusAnchorState,
+      airspaceFocusScopeKey,
+      sourceTargetX,
+      sourceTargetZ,
+    ],
+  );
+  useEffect(() => {
+    setAirspaceFocusAnchorState((current) =>
+      current?.key === airspaceFocusAnchor.key ? current : airspaceFocusAnchor,
+    );
+  }, [airspaceFocusAnchor]);
   const visibleTiles = useMemo(
     () => buildVisibleTileGrid(tileCenter, tileRadius),
     [tileCenter, tileRadius],
@@ -2674,6 +2701,8 @@ export default function ThreeOsmMapPoc({
       preparedAirspaceGeometry,
       airspaceFocusLimit: tileRadius === 1 ? 4 : 6,
       airspaceLabelLimit: tileRadius === 1 ? 1 : 2,
+      airspaceFocusX: airspaceFocusAnchor.x,
+      airspaceFocusZ: airspaceFocusAnchor.z,
     });
     const contextBuildMs = performance.now() - contextBuildStartedAt;
     const { group } = contextScene;
@@ -2866,6 +2895,37 @@ export default function ThreeOsmMapPoc({
       "data-poc-airspace-context-labels",
       String(contextScene.airspaceDiagnostics.contextLabels),
     );
+    const previousAirspaceFocusKey =
+      rootRef.current?.dataset.pocAirspaceFocusKey || "";
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-mode",
+      airspaceFocusAnchor.mode,
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-anchor",
+      `${contextScene.airspaceDiagnostics.focusAnchorX.toFixed(2)},${contextScene.airspaceDiagnostics.focusAnchorZ.toFixed(2)}`,
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-key",
+      airspaceFocusAnchor.key,
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-ids",
+      contextScene.airspaceDiagnostics.focusFeatureIds.join(","),
+    );
+    if (
+      previousAirspaceFocusKey &&
+      previousAirspaceFocusKey !== airspaceFocusAnchor.key
+    ) {
+      rootRef.current?.setAttribute(
+        "data-poc-airspace-focus-updates",
+        String(
+          Number(rootRef.current?.dataset.pocAirspaceFocusUpdates || 0) + 1,
+        ),
+      );
+    } else if (!rootRef.current?.dataset.pocAirspaceFocusUpdates) {
+      rootRef.current?.setAttribute("data-poc-airspace-focus-updates", "0");
+    }
     rootRef.current?.setAttribute(
       "data-poc-airspace-selected-volumes",
       String(contextScene.airspaceDiagnostics.selectedVolumes),
@@ -2959,6 +3019,10 @@ export default function ThreeOsmMapPoc({
       if (contextGroupRef.current == null) contextLabelsRef.current = [];
     };
   }, [
+    airspaceFocusAnchor.key,
+    airspaceFocusAnchor.mode,
+    airspaceFocusAnchor.x,
+    airspaceFocusAnchor.z,
     airspaceFeatures,
     airportCode,
     candidateWatchingSpots,

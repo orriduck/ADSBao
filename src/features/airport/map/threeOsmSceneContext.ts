@@ -262,6 +262,8 @@ export function createThreeOsmContextScene({
   preparedAirspaceGeometry = null,
   airspaceFocusLimit = 6,
   airspaceLabelLimit = 2,
+  airspaceFocusX = 0,
+  airspaceFocusZ = 0,
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -296,6 +298,8 @@ export function createThreeOsmContextScene({
   preparedAirspaceGeometry?: ThreeOsmPreparedAirspaceGeometry | null;
   airspaceFocusLimit?: number;
   airspaceLabelLimit?: number;
+  airspaceFocusX?: number;
+  airspaceFocusZ?: number;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -494,6 +498,8 @@ export function createThreeOsmContextScene({
     selectedAirspaceId,
     maxFocusFeatures: airspaceFocusLimit,
     maxLabels: airspaceLabelLimit,
+    focusX: airspaceFocusX,
+    focusZ: airspaceFocusZ,
   });
   let focusAirspaceBatches = 0;
   let contextAirspaceBatches = 0;
@@ -839,6 +845,13 @@ export function createThreeOsmContextScene({
       focusBatches: focusAirspaceBatches,
       contextBatches: contextAirspaceBatches,
       contextLabels: airspaceFocus.labelFeatures.length,
+      focusAnchorX: Number.isFinite(Number(airspaceFocusX))
+        ? Number(airspaceFocusX)
+        : 0,
+      focusAnchorZ: Number.isFinite(Number(airspaceFocusZ))
+        ? Number(airspaceFocusZ)
+        : 0,
+      focusFeatureIds: airspaceFocus.focusFeatures.map((feature) => feature.id),
       simplificationTolerance: preparedAirspaces.simplificationTolerance,
       featuresByTier: preparedAirspaces.featuresByTier,
       featuresByAltitudeBand: preparedAirspaces.featuresByAltitudeBand,

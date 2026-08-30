@@ -61,8 +61,18 @@ function appendFeature(
   );
 }
 
-function focusScore(feature: ThreeOsmPreparedAirspaceFeature) {
-  return feature.distanceFromFocusWorld +
+function focusScore(
+  feature: ThreeOsmPreparedAirspaceFeature,
+  focusX: number,
+  focusZ: number,
+) {
+  const distance = focusX === 0 && focusZ === 0
+    ? feature.distanceFromFocusWorld
+    : Math.hypot(
+        feature.cueAnchor.x - focusX,
+        feature.cueAnchor.z - focusZ,
+      );
+  return distance +
     TIER_PENALTY_WORLD[feature.tier] +
     ALTITUDE_PENALTY_WORLD[feature.altitudeBand];
 }
@@ -78,11 +88,15 @@ export function resolveThreeOsmAirspaceFocus({
   selectedAirspaceId = "",
   maxFocusFeatures = 6,
   maxLabels = 2,
+  focusX = 0,
+  focusZ = 0,
 }: {
   prepared: ThreeOsmPreparedAirspaceGeometry;
   selectedAirspaceId?: string;
   maxFocusFeatures?: number;
   maxLabels?: number;
+  focusX?: number;
+  focusZ?: number;
 }): ThreeOsmAirspaceFocusResolution {
   const safeFocusLimit = Math.max(
     0,
@@ -92,9 +106,13 @@ export function resolveThreeOsmAirspaceFocus({
     0,
     Math.min(3, Math.trunc(Number(maxLabels)) || 0),
   );
+  const safeFocusX = Number.isFinite(Number(focusX)) ? Number(focusX) : 0;
+  const safeFocusZ = Number.isFinite(Number(focusZ)) ? Number(focusZ) : 0;
   const ranked = [...prepared.featureList].sort(
     (left, right) =>
-      focusScore(left) - focusScore(right) || left.key.localeCompare(right.key),
+      focusScore(left, safeFocusX, safeFocusZ) -
+        focusScore(right, safeFocusX, safeFocusZ) ||
+      left.key.localeCompare(right.key),
   );
   const selected = selectedAirspaceId
     ? prepared.featuresById[selectedAirspaceId] || null

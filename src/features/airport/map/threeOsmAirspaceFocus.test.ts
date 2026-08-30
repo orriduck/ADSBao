@@ -125,4 +125,20 @@ assert.equal(
   false,
 );
 
+const cameraFocused = resolveThreeOsmAirspaceFocus({
+  prepared,
+  focusX: 400,
+  focusZ: 0,
+  maxFocusFeatures: 2,
+  maxLabels: 1,
+});
+assert.deepEqual(
+  cameraFocused.focusFeatures.map((item) => item.id),
+  ["far-sua", "bedford-d"],
+);
+assert.deepEqual(
+  cameraFocused.labelFeatures.map((item) => item.id),
+  ["far-sua"],
+);
+
 console.log("threeOsmAirspaceFocus.test.ts ok");

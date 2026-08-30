@@ -244,6 +244,9 @@ assert.deepEqual(airspaceDiagnostics, {
   focusBatches: 1,
   contextBatches: 1,
   contextLabels: 0,
+  focusAnchorX: 0,
+  focusAnchorZ: 0,
+  focusFeatureIds: ["bos-class-b"],
   simplificationTolerance: 0.55,
   featuresByTier: {
     "special-use": 0,
