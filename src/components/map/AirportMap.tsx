@@ -75,10 +75,8 @@ import {
   resolveAirportMapInteraction,
 } from "@/features/airport/map/mapInteractionMode";
 import {
-  buildThreeOsmTileGridBounds,
-  clampThreeOsmZoom,
-  lonLatToTileCoordinate,
-} from "@/features/airport/map/threeOsmProjection";
+  type ThreeOsmContextViewport,
+} from "@/features/airport/map/threeOsmContextViewport";
 import { resolveThreeOsmAcceptanceOverlayProfile } from "@/features/airport/map/threeOsmAcceptanceProfile";
 import { subscribeAircraftMotionFrame } from "./aircraftMotionFrameLoop";
 import { shouldAnimateAircraftVisualPosition } from "@/utils/aircraftMotion";
@@ -192,6 +190,24 @@ export default function AirportMap({
     threeOsmSearchParams.get("threeOsmAcceptance") === "1";
   const threeOsmSoakEnabled =
     threeOsmDebugEnabled && threeOsmSearchParams.get("threeOsmSoak") === "1";
+  const debugAirspacePromotionDelayMs = threeOsmDebugEnabled
+    ? Math.min(
+        2_000,
+        Math.max(
+          0,
+          Math.round(
+            Number(threeOsmSearchParams.get("threeOsmContextDelay")) || 0,
+          ),
+        ),
+      )
+    : 0;
+  const debugAirspaceFailAfterRaw = threeOsmDebugEnabled
+    ? threeOsmSearchParams.get("threeOsmContextFailAfter")
+    : null;
+  const debugAirspaceFailAfterPromotions =
+    debugAirspaceFailAfterRaw == null
+      ? Number.NaN
+      : Number(debugAirspaceFailAfterRaw);
   const operationalOverlayProfile = resolveThreeOsmAcceptanceOverlayProfile({
     enabled: threeOsmAcceptanceEnabled,
     settings: {
@@ -221,6 +237,8 @@ export default function AirportMap({
   viewModeRef.current = viewMode;
   const [mapTilesReady, setMapTilesReady] = useState(false);
   const [threeOsmPocReady, setThreeOsmPocReady] = useState(false);
+  const [threeOsmDynamicContextViewport, setThreeOsmDynamicContextViewport] =
+    useState<ThreeOsmContextViewport | null>(null);
   const [threeOsmSoakState, setThreeOsmSoakState] = useState<{
     viewMode: "2d" | "3d";
     switches: number;
@@ -281,19 +299,7 @@ export default function AirportMap({
       }),
     [fallbackCenter, focalCenter, shouldDeferInitialCenter],
   );
-  const threeOsmContextViewport = useMemo(() => {
-    if (!threeOsmPocEnabled || !initialCenter) return null;
-    const contextZoom = clampThreeOsmZoom(zoom);
-    const tileCenter = lonLatToTileCoordinate(
-      initialCenter.lon,
-      initialCenter.lat,
-      contextZoom,
-    );
-    return {
-      bounds: buildThreeOsmTileGridBounds(tileCenter, 2),
-      zoom: contextZoom,
-    };
-  }, [initialCenter, threeOsmPocEnabled, zoom]);
+  const threeOsmContextViewport = threeOsmDynamicContextViewport;
   const canInitializeMap = Boolean(initialCenter);
   const visualGateKey = resolveMapVisualGateKey({
     variant: loadingOverlayVariant,
@@ -916,6 +922,20 @@ export default function AirportMap({
     navaidCountsEnabled:
       operationalOverlaySettings.showNavaidMarkers && useNavaidCountTiles,
     refreshKey: contextTileRefreshKey,
+    debugAirspacePromotionDelayMs,
+    debugAirspaceFailAfterPromotions: Number.isFinite(
+      debugAirspaceFailAfterPromotions,
+    )
+      ? Math.max(0, Math.round(debugAirspaceFailAfterPromotions))
+      : null,
+    airspaceRequest:
+      threeOsmPocEnabled && threeOsmContextViewport
+        ? {
+            signature: threeOsmContextViewport.signature,
+            url: `${threeOsmContextViewport.requestPath}?v=2`,
+            coverageTiles: threeOsmContextViewport.tileCount,
+          }
+        : null,
   });
   const renderedAirspaces = useMemo(() => {
     if (!contextTileOverlays) return airspaces;
@@ -1057,6 +1077,14 @@ export default function AirportMap({
   const handleThreeOsmPocReady = useCallback((state) => {
     setThreeOsmPocReady(Boolean(state?.ready));
   }, []);
+  const handleThreeOsmContextViewportChange = useCallback(
+    (viewport: ThreeOsmContextViewport) => {
+      setThreeOsmDynamicContextViewport((current) =>
+        current?.signature === viewport.signature ? current : viewport,
+      );
+    },
+    [],
+  );
 
   return (
     <div
@@ -1074,6 +1102,38 @@ export default function AirportMap({
       data-map-context-navaids={contextTiles.navaids.length}
       data-map-context-navaid-counts={contextTiles.navaidCounts.length}
       data-map-context-loading={contextTiles.loading ? "true" : "false"}
+      data-map-context-window-key={threeOsmContextViewport?.signature || ""}
+      data-map-context-airspace-requested-window={
+        contextTiles.airspaceWindow.requestedSignature
+      }
+      data-map-context-airspace-visible-window={
+        contextTiles.airspaceWindow.visibleSignature
+      }
+      data-map-context-airspace-requested-tiles={
+        contextTiles.airspaceWindow.requestedTiles
+      }
+      data-map-context-airspace-coverage-tiles={
+        contextTiles.airspaceWindow.coverageTiles
+      }
+      data-map-context-airspace-loaded-tiles={
+        contextTiles.airspaceWindow.loadedTiles
+      }
+      data-map-context-airspace-failed-tiles={
+        contextTiles.airspaceWindow.failedTiles
+      }
+      data-map-context-airspace-requests={contextTiles.airspaceWindow.requestCount}
+      data-map-context-airspace-promotions={
+        contextTiles.airspaceWindow.promotionCount
+      }
+      data-map-context-airspace-retained-failures={
+        contextTiles.airspaceWindow.retainedFailureCount
+      }
+      data-map-context-airspace-retry-attempt={
+        contextTiles.airspaceWindow.retryAttempt
+      }
+      data-map-context-airspace-retry-scheduled={
+        contextTiles.airspaceWindow.retryScheduled ? "true" : "false"
+      }
     >
       <div
         ref={nativeMapEl}
@@ -1155,6 +1215,7 @@ export default function AirportMap({
               onSelectReportingPoint={onSelectReportingPoint}
               onSelectCandidateWatchingSpot={onSelectCandidateWatchingSpot}
               onSelectAirspace={onSelectAirspace}
+              onContextViewportChange={handleThreeOsmContextViewportChange}
               onReady={handleThreeOsmPocReady}
             />
           </div>

@@ -2,6 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getContextTilesForBounds,
 } from "./aviationContextTileModel";
+import {
+  resolveContextTileWindowPromotion,
+  resolveContextTileWindowRetryDelay,
+  resolveContextTileWindowResults,
+} from "./aviationContextWindowModel";
 import { createRequestCache } from "@/utils/requestCache";
 
 type ContextTileRecord = Record<string, any>;
@@ -66,6 +71,273 @@ async function fetchTile(url: string) {
   );
 }
 
+type ContextTileResourceWindow = {
+  items: ContextTileRecord[];
+  loading: boolean;
+  error: unknown;
+  requestedSignature: string;
+  visibleSignature: string;
+  requestedTiles: number;
+  coverageTiles: number;
+  loadedTiles: number;
+  failedTiles: number;
+  requestCount: number;
+  promotionCount: number;
+  retainedFailureCount: number;
+  retryAttempt: number;
+  retryScheduled: boolean;
+};
+
+const EMPTY_RESOURCE_WINDOW: ContextTileResourceWindow = {
+  items: [],
+  loading: false,
+  error: null,
+  requestedSignature: "",
+  visibleSignature: "",
+  requestedTiles: 0,
+  coverageTiles: 0,
+  loadedTiles: 0,
+  failedTiles: 0,
+  requestCount: 0,
+  promotionCount: 0,
+  retainedFailureCount: 0,
+  retryAttempt: 0,
+  retryScheduled: false,
+};
+
+function useContextTileResourceWindow({
+  tiles,
+  enabled,
+  resource,
+  collect,
+  debugPromotionDelayMs = 0,
+  debugFailAfterPromotions = null,
+  requestOverride = null,
+  requireComplete = false,
+  retryLimit = 0,
+  retryDelayMs = 30_000,
+}: {
+  tiles: ContextTileRecord[];
+  enabled: boolean;
+  resource: string;
+  collect: (payloads: ContextTileRecord[]) => ContextTileRecord[];
+  debugPromotionDelayMs?: number;
+  debugFailAfterPromotions?: number | null;
+  requestOverride?: {
+    signature: string;
+    url: string;
+    coverageTiles?: number;
+  } | null;
+  requireComplete?: boolean;
+  retryLimit?: number;
+  retryDelayMs?: number;
+}) {
+  const [windowState, setWindowState] = useState<ContextTileResourceWindow>(
+    EMPTY_RESOURCE_WINDOW,
+  );
+  const promotionCountRef = useRef(0);
+  const [retryState, setRetryState] = useState({
+    signature: "",
+    attempt: 0,
+  });
+  const requestOverrideEnabled = requestOverride != null;
+  const requestOverrideSignature = requestOverride?.signature ?? "";
+  const requestOverrideUrl = requestOverride?.url ?? "";
+  const requestOverrideCoverageTiles = requestOverride?.coverageTiles ?? 0;
+  const request = useMemo(() => {
+    if (!enabled || (!requestOverrideEnabled && tiles.length === 0)) {
+      return { signature: "", urls: [] as string[], coverageTiles: 0 };
+    }
+    if (requestOverrideEnabled) {
+      return {
+        signature: requestOverrideSignature,
+        urls: [requestOverrideUrl],
+        coverageTiles: Math.max(
+          1,
+          Math.round(Number(requestOverrideCoverageTiles) || 1),
+        ),
+      };
+    }
+    return {
+      signature: tiles.map(tileSignature).join("|"),
+      urls: tiles.map((tile) => tilePath(resource, tile)),
+      coverageTiles: tiles.length,
+    };
+  }, [
+    enabled,
+    requestOverrideCoverageTiles,
+    requestOverrideEnabled,
+    requestOverrideSignature,
+    requestOverrideUrl,
+    resource,
+    tiles,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let retryTimer: number | null = null;
+    if (!request.urls.length) {
+      setWindowState((current) => ({
+        ...current,
+        items: [],
+        loading: false,
+        error: null,
+        requestedSignature: "",
+        visibleSignature: "",
+        requestedTiles: 0,
+        coverageTiles: 0,
+        loadedTiles: 0,
+        failedTiles: 0,
+        retryAttempt: 0,
+        retryScheduled: false,
+      }));
+      return undefined;
+    }
+
+    setWindowState((current) => ({
+      ...current,
+      loading: true,
+      error: null,
+      requestedSignature: request.signature,
+      requestedTiles: request.urls.length,
+      coverageTiles: request.coverageTiles,
+      loadedTiles: 0,
+      failedTiles: 0,
+      requestCount: current.requestCount + 1,
+      retryAttempt:
+        retryState.signature === request.signature ? retryState.attempt : 0,
+      retryScheduled: false,
+    }));
+
+    void Promise.allSettled(request.urls.map(fetchTile)).then(async (results) => {
+      if (cancelled) return;
+      if (debugPromotionDelayMs > 0) {
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, debugPromotionDelayMs),
+        );
+      }
+      if (cancelled) return;
+
+      const shouldDebugFail =
+        debugFailAfterPromotions != null &&
+        promotionCountRef.current >= debugFailAfterPromotions &&
+        results.length > 0;
+      const effectiveResults = shouldDebugFail
+        ? [
+            {
+              status: "rejected" as const,
+              reason: new Error("Debug context window failure"),
+            },
+            ...results.slice(1),
+          ]
+        : results;
+      const resolution = resolveContextTileWindowResults(effectiveResults, {
+        requireComplete,
+      });
+
+      if (!resolution.canPromote) {
+        const retryAttempt =
+          retryState.signature === request.signature ? retryState.attempt : 0;
+        const retryDelay = resolveContextTileWindowRetryDelay({
+          attempt: retryAttempt,
+          retryLimit,
+          baseDelayMs: retryDelayMs,
+        });
+        setWindowState((current) => {
+          const promotion = resolveContextTileWindowPromotion({
+            currentItems: current.items,
+            currentVisibleSignature: current.visibleSignature,
+            requestSignature: request.signature,
+            resolution,
+            nextItems: [],
+          });
+          return {
+            ...current,
+            items: promotion.items,
+            visibleSignature: promotion.visibleSignature,
+            loading: false,
+            error: resolution.error,
+            requestedSignature: request.signature,
+            requestedTiles: request.urls.length,
+            coverageTiles: request.coverageTiles,
+            loadedTiles: resolution.loaded,
+            failedTiles: resolution.failed,
+            retainedFailureCount: current.retainedFailureCount + 1,
+            retryAttempt,
+            retryScheduled: retryDelay != null,
+          };
+        });
+        if (retryDelay != null) {
+          retryTimer = window.setTimeout(() => {
+            if (cancelled) return;
+            setRetryState({
+              signature: request.signature,
+              attempt: retryAttempt + 1,
+            });
+          }, retryDelay);
+        }
+        return;
+      }
+
+      promotionCountRef.current += 1;
+      const items = collect(resolution.payloads);
+      setWindowState((current) => {
+        const promotion = resolveContextTileWindowPromotion({
+          currentItems: current.items,
+          currentVisibleSignature: current.visibleSignature,
+          requestSignature: request.signature,
+          resolution,
+          nextItems: items,
+        });
+        return {
+          ...current,
+          items: promotion.items,
+          visibleSignature: promotion.visibleSignature,
+          loading: false,
+          error: null,
+          requestedSignature: request.signature,
+          requestedTiles: request.urls.length,
+          coverageTiles: request.coverageTiles,
+          loadedTiles: resolution.loaded,
+          failedTiles: 0,
+          promotionCount: current.promotionCount + 1,
+          retryAttempt:
+            retryState.signature === request.signature ? retryState.attempt : 0,
+          retryScheduled: false,
+        };
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      if (retryTimer != null) window.clearTimeout(retryTimer);
+    };
+  }, [
+    collect,
+    debugFailAfterPromotions,
+    debugPromotionDelayMs,
+    request.signature,
+    request.urls,
+    request.coverageTiles,
+    requireComplete,
+    retryDelayMs,
+    retryLimit,
+    retryState.attempt,
+    retryState.signature,
+  ]);
+
+  return windowState;
+}
+
+const collectAirspaces = (payloads: ContextTileRecord[]) =>
+  collectContextTileRecords(payloads).airspaces;
+const collectNavaids = (payloads: ContextTileRecord[]) =>
+  collectContextTileRecords(payloads).navaids;
+const collectNavaidCounts = (payloads: ContextTileRecord[]) =>
+  collectContextTileRecords(payloads).navaidCounts;
+const collectWaypoints = (payloads: ContextTileRecord[]) =>
+  collectContextTileRecords(payloads).waypoints;
+
 export function useAviationContextTiles({
   map = null,
   bounds = null,
@@ -76,14 +348,11 @@ export function useAviationContextTiles({
   navaidCountsEnabled = false,
   waypointsEnabled = false,
   refreshKey = "",
+  debugAirspacePromotionDelayMs = 0,
+  debugAirspaceFailAfterPromotions = null,
+  airspaceRequest = null,
 }: ContextTileRecord = {}) {
   const [tiles, setTiles] = useState([]);
-  const [airspaces, setAirspaces] = useState([]);
-  const [navaids, setNavaids] = useState([]);
-  const [navaidCounts, setNavaidCounts] = useState([]);
-  const [waypoints, setWaypoints] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const lastTileSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -130,75 +399,49 @@ export function useAviationContextTiles({
     };
   }, [bounds, enabled, map, refreshKey, zoom]);
 
-  const requestUrls = useMemo(() => {
-    if (!enabled || tiles.length === 0) return [];
-    return tiles.flatMap((tile) => {
-      const urls = [];
-      if (airspacesEnabled) urls.push(tilePath("airspace", tile));
-      if (navaidsEnabled) urls.push(tilePath("navaids", tile));
-      if (navaidCountsEnabled) urls.push(tilePath("navaid-counts", tile));
-      if (waypointsEnabled) urls.push(tilePath("waypoints", tile));
-      return urls;
-    });
-  }, [
-    airspacesEnabled,
-    enabled,
-    navaidCountsEnabled,
-    navaidsEnabled,
+  const airspaceWindow = useContextTileResourceWindow({
     tiles,
-    waypointsEnabled,
-  ]);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (requestUrls.length === 0) {
-      setAirspaces([]);
-      setNavaids([]);
-      setNavaidCounts([]);
-      setWaypoints([]);
-      setLoading(false);
-      setError(null);
-      return undefined;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    void Promise.allSettled(requestUrls.map(fetchTile))
-      .then((results) => {
-        if (cancelled) return;
-        const payloads = results.flatMap((result) =>
-          result.status === "fulfilled" ? [result.value] : [],
-        );
-        const rejected = results.find(
-          (result) => result.status === "rejected",
-        );
-        if (rejected) setError(rejected.reason);
-        if (payloads.length === 0 && rejected) throw rejected.reason;
-        const next = collectContextTileRecords(payloads);
-        setAirspaces(next.airspaces);
-        setNavaids(next.navaids);
-        setNavaidCounts(next.navaidCounts);
-        setWaypoints(next.waypoints);
-      })
-      .catch((reason) => {
-        if (!cancelled) setError(reason);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [requestUrls]);
+    enabled: enabled && airspacesEnabled,
+    resource: "airspace",
+    collect: collectAirspaces,
+    debugPromotionDelayMs: debugAirspacePromotionDelayMs,
+    debugFailAfterPromotions: debugAirspaceFailAfterPromotions,
+    requestOverride: airspaceRequest,
+    requireComplete: Boolean(airspaceRequest),
+    retryLimit: airspaceRequest ? 2 : 0,
+  });
+  const navaidWindow = useContextTileResourceWindow({
+    tiles,
+    enabled: enabled && navaidsEnabled,
+    resource: "navaids",
+    collect: collectNavaids,
+  });
+  const navaidCountWindow = useContextTileResourceWindow({
+    tiles,
+    enabled: enabled && navaidCountsEnabled,
+    resource: "navaid-counts",
+    collect: collectNavaidCounts,
+  });
+  const waypointWindow = useContextTileResourceWindow({
+    tiles,
+    enabled: enabled && waypointsEnabled,
+    resource: "waypoints",
+    collect: collectWaypoints,
+  });
+  const resourceWindows = [
+    airspaceWindow,
+    navaidWindow,
+    navaidCountWindow,
+    waypointWindow,
+  ];
 
   return {
-    airspaces,
-    navaids,
-    navaidCounts,
-    waypoints,
-    loading,
-    error,
+    airspaces: airspaceWindow.items,
+    navaids: navaidWindow.items,
+    navaidCounts: navaidCountWindow.items,
+    waypoints: waypointWindow.items,
+    loading: resourceWindows.some((window) => window.loading),
+    error: resourceWindows.find((window) => window.error)?.error ?? null,
+    airspaceWindow,
   };
 }

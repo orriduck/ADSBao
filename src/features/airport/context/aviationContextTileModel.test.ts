@@ -5,6 +5,7 @@ import {
   NAVAID_TILE_CACHE_HEADERS,
   WAYPOINT_TILE_CACHE_HEADERS,
   buildContextTileCacheKey,
+  getContextTilesForBounds,
   normalizeContextTileParams,
   tileToBbox,
 } from "./aviationContextTileModel";
@@ -14,6 +15,20 @@ import {
   assert.deepEqual(tile, { z: 8, x: 47, y: 94 });
   assert.equal(normalizeContextTileParams({ z: "2", x: "8", y: "1" }), null);
   assert.equal(normalizeContextTileParams({ z: "19", x: "0", y: "0" }), null);
+}
+
+{
+  const centerTile = { z: 10, x: 310, y: 378 };
+  const bounds = {
+    west: (308 / 2 ** 10) * 360 - 180,
+    east: (313 / 2 ** 10) * 360 - 180,
+    north: tileToBbox({ ...centerTile, x: 308, y: 376 }).north,
+    south: tileToBbox({ ...centerTile, x: 312, y: 380 }).south,
+  };
+  const tiles = getContextTilesForBounds({ bounds, zoom: 10, maxTiles: 25 });
+  assert.equal(tiles.length, 25);
+  assert.deepEqual(tiles[0], { z: 10, x: 308, y: 376 });
+  assert.deepEqual(tiles.at(-1), { z: 10, x: 312, y: 380 });
 }
 
 {

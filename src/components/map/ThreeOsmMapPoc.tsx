@@ -119,6 +119,10 @@ import {
   resolveThreeOsmVectorTileRadius,
 } from "@/features/airport/map/threeOsmVectorSemanticLod";
 import {
+  resolveThreeOsmContextViewport,
+  type ThreeOsmContextViewport,
+} from "@/features/airport/map/threeOsmContextViewport";
+import {
   THREE_OSM_AIRCRAFT_CAPACITY,
   buildThreeOsmTrafficRenderSources,
   parseThreeOsmTrafficStressTarget,
@@ -181,6 +185,7 @@ type ThreeOsmPocProps = {
   onSelectReportingPoint?: ((reportingPointKey: string) => void) | null;
   onSelectCandidateWatchingSpot?: ((spotId: string) => void) | null;
   onSelectAirspace?: ((airspaceId: string | string[]) => void) | null;
+  onContextViewportChange?: ((viewport: ThreeOsmContextViewport) => void) | null;
   onReady?: ((state: { ready: boolean; tilesLoaded: number }) => void) | null;
 };
 
@@ -473,6 +478,7 @@ export default function ThreeOsmMapPoc({
   onSelectReportingPoint = null,
   onSelectCandidateWatchingSpot = null,
   onSelectAirspace = null,
+  onContextViewportChange = null,
   onReady = null,
 }: ThreeOsmPocProps) {
   const { locale, t } = useI18n();
@@ -920,6 +926,17 @@ export default function ThreeOsmMapPoc({
     [sourceProjectionCenter, sourceTargetX, sourceTargetZ, tileZoom],
   );
   const sourceTileWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
+  const contextViewport = useMemo(
+    () =>
+      resolveThreeOsmContextViewport({
+        sourceCenter: sourceTileCenter,
+        radius: tileRadius,
+      }),
+    [sourceTileCenter, tileRadius],
+  );
+  useEffect(() => {
+    onContextViewportChange?.(contextViewport);
+  }, [contextViewport, onContextViewportChange]);
   const rasterTiles = useMemo(
     () => buildVisibleTileGrid(sourceTileCenter, tileRadius),
     [sourceTileCenter, tileRadius],
@@ -3885,6 +3902,7 @@ export default function ThreeOsmMapPoc({
       data-poc-scene-zoom={tileZoom}
       data-poc-source-zoom={sourceTileZoom}
       data-poc-tile-window-key={sourceTileWindowKey}
+      data-poc-context-window-key={contextViewport.signature}
       data-poc-raster-composition={rasterComposition.mode}
       data-poc-raster-wash={rasterComposition.washStrength.toFixed(3)}
       data-poc-raster-context-only-wash={

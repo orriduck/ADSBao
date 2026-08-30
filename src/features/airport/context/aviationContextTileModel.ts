@@ -31,16 +31,16 @@ const numberOrNull = (value: unknown) => {
   return Number.isFinite(number) ? number : null;
 };
 
-function longitudeToTileX(lon: number, z: number) {
-  return Math.floor(((lon + 180) / 360) * 2 ** z);
+function longitudeToTilePosition(lon: number, z: number) {
+  return ((lon + 180) / 360) * 2 ** z;
 }
 
-function latitudeToTileY(lat: number, z: number) {
+function latitudeToTilePosition(lat: number, z: number) {
   const safeLat = clamp(lat, -WEB_MERCATOR_MAX_LAT, WEB_MERCATOR_MAX_LAT);
   const latRad = (safeLat * Math.PI) / 180;
-  return Math.floor(
+  return (
     ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
-      2 ** z,
+    2 ** z
   );
 }
 
@@ -105,10 +105,26 @@ export function getContextTilesForBounds({
   const north = numberOrNull(bounds.getNorth?.() ?? bounds.north);
   if (west == null || east == null || south == null || north == null) return [];
 
-  const minX = clamp(longitudeToTileX(Math.min(west, east), z), 0, 2 ** z - 1);
-  const maxX = clamp(longitudeToTileX(Math.max(west, east), z), 0, 2 ** z - 1);
-  const minY = clamp(latitudeToTileY(Math.max(south, north), z), 0, 2 ** z - 1);
-  const maxY = clamp(latitudeToTileY(Math.min(south, north), z), 0, 2 ** z - 1);
+  const minX = clamp(
+    Math.floor(longitudeToTilePosition(Math.min(west, east), z)),
+    0,
+    2 ** z - 1,
+  );
+  const maxX = clamp(
+    Math.ceil(longitudeToTilePosition(Math.max(west, east), z)) - 1,
+    0,
+    2 ** z - 1,
+  );
+  const minY = clamp(
+    Math.floor(latitudeToTilePosition(Math.max(south, north), z)),
+    0,
+    2 ** z - 1,
+  );
+  const maxY = clamp(
+    Math.ceil(latitudeToTilePosition(Math.min(south, north), z)) - 1,
+    0,
+    2 ** z - 1,
+  );
   const tiles: ContextTile[] = [];
   for (let x = minX; x <= maxX; x += 1) {
     for (let y = minY; y <= maxY; y += 1) {
