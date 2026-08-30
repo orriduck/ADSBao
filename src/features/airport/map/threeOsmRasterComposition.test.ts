@@ -58,7 +58,7 @@ const darkUnderlay = resolveThreeOsmRasterComposition({
   ...baseInput,
   theme: "dark",
 });
-assert.equal(darkUnderlay.washStrength, 0.72);
+assert.equal(darkUnderlay.washStrength, 0.94);
 assert.equal(
   resolveThreeOsmRasterTileComposition(lightUnderlay, true),
   lightUnderlay,

@@ -8,7 +8,7 @@ const overview = resolveThreeOsmSceneSemanticLod(9);
 assert.equal(overview.id, "overview");
 assert.equal(overview.sourceZoom, 10);
 assert.equal(overview.rasterUnderlayStrength, 0.96);
-assert.equal(overview.roadStrength, 0.24);
+assert.equal(overview.roadStrength, 0.06);
 
 const approach = resolveThreeOsmSceneSemanticLod(12);
 assert.equal(approach.id, "approach");

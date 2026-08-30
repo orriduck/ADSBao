@@ -61,7 +61,10 @@ export function resolveThreeOsmRasterComposition({
   }
 
   const semanticLod = resolveThreeOsmSceneSemanticLod(zoom);
-  const maximumWash = theme === "light" ? 0.78 : 0.72;
+  // Standard OSM raster tiles are authored for a light canvas. In dark mode
+  // they need a stronger neutral wash so the vector scene, rather than the
+  // baked raster roads and labels, owns the operational hierarchy.
+  const maximumWash = theme === "light" ? 0.78 : 0.94;
   const washStrength = semanticLod.rasterUnderlayStrength * maximumWash;
   return {
     mode:

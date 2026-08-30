@@ -763,7 +763,7 @@ export default function ThreeOsmMapPoc({
     acceptanceEnabled &&
     debugSearchParams.get("threeOsmRouteStress") === "1";
   const vectorContextEnabled =
-    debugEnabled && debugSearchParams.get("threeOsmVector") === "1";
+    debugSearchParams.get("threeOsmVector") === "1";
   const trafficStressTarget = debugEnabled
     ? parseThreeOsmTrafficStressTarget(
         debugSearchParams.get("threeOsmStress"),
@@ -951,7 +951,7 @@ export default function ThreeOsmMapPoc({
     Number.isFinite(debugZoom) ? debugZoom : zoom,
   );
   const cameraFitTileRadius = 2;
-  const defaultFrameTileRadius = 3;
+  const defaultFrameTileRadius = isCompact ? 2 : 3;
   const routeWorkloadAirportSnapshot = routeWorkloadEnabled
     ? JSON.stringify(
         nearbyAirports.map((item) => ({
@@ -4052,6 +4052,7 @@ export default function ThreeOsmMapPoc({
     activeCameraFit,
     allowsMapInteraction,
     cameraStateScopeKey,
+    defaultFrameTileRadius,
     followsCenter,
     theme,
     viewMode,
