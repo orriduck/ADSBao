@@ -468,6 +468,7 @@ export function createThreeOsmContextScene({
     tileCenter,
     centerLat,
     palette,
+    contrastMode,
   });
   group.add(runwayScene.group);
 

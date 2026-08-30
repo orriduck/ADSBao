@@ -1,5 +1,11 @@
 import * as THREE from "three";
-import type { ThreeOsmVisualPalette } from "./threeOsmAccessibilityPreferences";
+import type {
+  ThreeOsmContrastMode,
+  ThreeOsmVisualPalette,
+} from "./threeOsmAccessibilityPreferences";
+import {
+  resolveThreeOsmOperationalProminence,
+} from "./threeOsmOperationalProminence";
 import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
@@ -125,11 +131,13 @@ export function createThreeOsmRunwayScene({
   tileCenter,
   centerLat,
   palette,
+  contrastMode,
 }: {
   runwayCollection: Record<string, any> | null;
   tileCenter: TileCoordinate;
   centerLat: number;
   palette: ThreeOsmVisualPalette;
+  contrastMode: ThreeOsmContrastMode;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-runway-corridors";
@@ -137,6 +145,7 @@ export function createThreeOsmRunwayScene({
   const surfacePositions: number[] = [];
   let runwayCount = 0;
   let segmentCount = 0;
+  const prominence = resolveThreeOsmOperationalProminence(contrastMode);
 
   for (const feature of runwayCollection?.features || []) {
     const coordinates = feature?.geometry?.coordinates;
@@ -200,7 +209,7 @@ export function createThreeOsmRunwayScene({
       createRunwayMesh({
         positions: haloPositions,
         color: palette.inverse,
-        opacity: 1,
+        opacity: prominence.runwayHalo,
         name: "three-osm-runway-halo",
         renderOrder: 28,
       }),
@@ -211,7 +220,7 @@ export function createThreeOsmRunwayScene({
       createRunwayMesh({
         positions: surfacePositions,
         color: palette.runway,
-        opacity: 1,
+        opacity: prominence.runwaySurface,
         name: "three-osm-runway-surfaces",
         renderOrder: 29,
       }),

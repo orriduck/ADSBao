@@ -8,6 +8,9 @@ import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  resolveThreeOsmOperationalProminence,
+} from "./threeOsmOperationalProminence";
 
 type ProjectedPoint = { x: number; z: number };
 
@@ -288,12 +291,12 @@ export function createThreeOsmGroundLightingScene({
     if (rendered) diagnostics.taxiwayFeatures += 1;
   }
 
-  const elevatedContrast = contrastMode !== "standard";
+  const prominence = resolveThreeOsmOperationalProminence(contrastMode);
   const meshSpecs = [
-    [runwayWhitePositions, palette.runwayLightWhite, elevatedContrast ? 1 : 0.92, "three-osm-runway-white-lights", 32],
-    [runwayAmberPositions, palette.runwayLightAmber, elevatedContrast ? 1 : 0.97, "three-osm-runway-amber-lights", 33],
-    [taxiwayBluePositions, palette.taxiwayLightBlue, elevatedContrast ? 1 : 0.5, "three-osm-taxiway-blue-lights", 26],
-    [taxiwayGreenPositions, palette.taxiwayLightGreen, elevatedContrast ? 1 : 0.82, "three-osm-taxiway-green-lights", 27],
+    [runwayWhitePositions, palette.runwayLightWhite, prominence.runwayLightWhite, "three-osm-runway-white-lights", 32],
+    [runwayAmberPositions, palette.runwayLightAmber, prominence.runwayLightAmber, "three-osm-runway-amber-lights", 33],
+    [taxiwayBluePositions, palette.taxiwayLightBlue, prominence.taxiwayLightBlue, "three-osm-taxiway-blue-lights", 26],
+    [taxiwayGreenPositions, palette.taxiwayLightGreen, prominence.taxiwayLightGreen, "three-osm-taxiway-green-lights", 27],
   ] as const;
   for (const [positions, color, opacity, name, renderOrder] of meshSpecs) {
     if (!positions.length) continue;
@@ -307,8 +310,8 @@ export function createThreeOsmGroundLightingScene({
       geometry,
       new THREE.MeshBasicMaterial({
         color: palette.runwayLightWhite,
-        transparent: !elevatedContrast,
-        opacity: elevatedContrast ? 1 : 0.95,
+        transparent: prominence.reil < 1,
+        opacity: prominence.reil,
         depthWrite: false,
         side: THREE.DoubleSide,
       }),

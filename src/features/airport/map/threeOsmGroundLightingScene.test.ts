@@ -77,5 +77,11 @@ assert.ok(scene.group.getObjectByName("three-osm-runway-amber-lights") instanceo
 assert.ok(scene.group.getObjectByName("three-osm-taxiway-blue-lights") instanceof THREE.Mesh);
 assert.ok(scene.group.getObjectByName("three-osm-taxiway-green-lights") instanceof THREE.Mesh);
 assert.ok(scene.group.getObjectByName("three-osm-runway-reil-lights") instanceof THREE.InstancedMesh);
+const runwayLights = scene.group.getObjectByName("three-osm-runway-white-lights");
+const reilLights = scene.group.getObjectByName("three-osm-runway-reil-lights");
+assert.ok(runwayLights instanceof THREE.Mesh);
+assert.ok(reilLights instanceof THREE.InstancedMesh);
+assert.equal(runwayLights.material.opacity, 0.38);
+assert.equal(reilLights.material.opacity, 0.64);
 
 console.log("threeOsmGroundLightingScene.test.ts ok");

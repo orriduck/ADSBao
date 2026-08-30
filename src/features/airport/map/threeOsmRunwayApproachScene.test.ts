@@ -41,6 +41,7 @@ assert.ok(lines.dashCount > 1);
 assert.equal(lines.vertexCount, lines.dashCount * 6);
 const lineMesh = lines.group.getObjectByName("three-osm-runway-approach-lines");
 assert.ok(lineMesh instanceof THREE.Mesh);
+assert.equal(lineMesh.material.opacity, 0.34);
 assert.equal(lines.group.children.length, 1, "all approach lines stay in one draw batch");
 
 const beams = createThreeOsmRunwayApproachScene({

@@ -7,6 +7,9 @@ import {
   lonLatAltitudeToThreeOsmWorld,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  resolveThreeOsmOperationalProminence,
+} from "./threeOsmOperationalProminence";
 
 const APPROACH_LINE_WIDTH_WORLD = 1.4;
 const APPROACH_DASH_WORLD = 6;
@@ -195,6 +198,7 @@ export function createThreeOsmRunwayApproachScene({
   let featureCount = 0;
   let dashCount = 0;
   let triangleCount = 0;
+  const prominence = resolveThreeOsmOperationalProminence(contrastMode);
 
   if (visualization?.kind === "approach-lines") {
     for (const feature of features) {
@@ -283,7 +287,7 @@ export function createThreeOsmRunwayApproachScene({
       createMesh({
         positions: linePositions,
         color: palette.runway,
-        opacity: contrastMode === "standard" ? 0.82 : 1,
+        opacity: prominence.approachLine,
         name: "three-osm-runway-approach-lines",
         renderOrder: 24,
       }),
