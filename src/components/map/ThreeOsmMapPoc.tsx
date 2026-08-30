@@ -2205,6 +2205,14 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
+      root?.setAttribute("data-poc-vector-surfaces", "0");
+      root?.setAttribute("data-poc-vector-surface-water", "0");
+      root?.setAttribute("data-poc-vector-surface-natural", "0");
+      root?.setAttribute("data-poc-vector-surface-developed", "0");
+      root?.setAttribute("data-poc-vector-surface-aeroway", "0");
+      root?.setAttribute("data-poc-vector-surface-triangles", "0");
+      root?.setAttribute("data-poc-vector-surface-source-points", "0");
+      root?.setAttribute("data-poc-vector-surface-skipped-features", "0");
       root?.setAttribute("data-poc-vector-label-candidates", "0");
       root?.setAttribute("data-poc-vector-labels", "0");
       root?.setAttribute("data-poc-vector-label-aerodromes", "0");
@@ -2352,6 +2360,28 @@ export default function ThreeOsmMapPoc({
             );
             root.dataset.pocVectorBuildingSourcePoints = String(
               context.buildingSourcePoints,
+            );
+            root.dataset.pocVectorSurfaces = String(context.surfaceFeatures);
+            root.dataset.pocVectorSurfaceWater = String(
+              context.surfaceWaterFeatures,
+            );
+            root.dataset.pocVectorSurfaceNatural = String(
+              context.surfaceNaturalFeatures,
+            );
+            root.dataset.pocVectorSurfaceDeveloped = String(
+              context.surfaceDevelopedFeatures,
+            );
+            root.dataset.pocVectorSurfaceAeroway = String(
+              context.surfaceAerowayFeatures,
+            );
+            root.dataset.pocVectorSurfaceTriangles = String(
+              context.surfaceTriangles,
+            );
+            root.dataset.pocVectorSurfaceSourcePoints = String(
+              context.surfaceSourcePoints,
+            );
+            root.dataset.pocVectorSurfaceSkippedFeatures = String(
+              context.surfaceSkippedFeatures,
             );
             root.dataset.pocVectorLabelCandidates = String(
               context.labelCandidates,

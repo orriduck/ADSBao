@@ -16,6 +16,10 @@ import {
   type ThreeOsmVectorLabelCandidate,
   type ThreeOsmVectorLabelKind,
 } from "./threeOsmVectorLabelModel";
+import {
+  classifyThreeOsmVectorSurface,
+  type ThreeOsmVectorSurfaceKind,
+} from "./threeOsmVectorSurfaceModel";
 
 export type ThreeOsmVectorTilePayload = {
   tile: TileCoordinate;
@@ -33,6 +37,14 @@ export type ThreeOsmVectorContextDiagnostics = {
   buildings: number;
   buildingRoofTriangles: number;
   buildingSourcePoints: number;
+  surfaceFeatures: number;
+  surfaceWaterFeatures: number;
+  surfaceNaturalFeatures: number;
+  surfaceDevelopedFeatures: number;
+  surfaceAerowayFeatures: number;
+  surfaceTriangles: number;
+  surfaceSourcePoints: number;
+  surfaceSkippedFeatures: number;
   labelCandidates: number;
   labelCount: number;
   labelAerodromes: number;
@@ -46,6 +58,7 @@ export type ThreeOsmVectorContextDiagnostics = {
 
 export type ThreeOsmVectorContextGeometry = {
   roadPositions: Record<ThreeOsmRoadTier, Float32Array>;
+  surfacePositions: Record<ThreeOsmVectorSurfaceKind, Float32Array>;
   buildingRoofPositions: Float32Array;
   buildingWallPositions: Float32Array;
   labels: ThreeOsmVectorLabel[];
@@ -98,6 +111,31 @@ const BUILDING_MAX_SOURCE_POINTS = 30_000;
 const BUILDING_MIN_HEIGHT_METERS = 3;
 const BUILDING_DEFAULT_HEIGHT_METERS = 12;
 const BUILDING_MAX_HEIGHT_METERS = 180;
+const SURFACE_MAX_SOURCE_POINTS: Record<ThreeOsmVectorSurfaceKind, number> = {
+  water: 12_000,
+  natural: 24_000,
+  developed: 12_000,
+  aeroway: 12_000,
+};
+const SURFACE_LAYERS = ["water", "landcover", "landuse", "aeroway"] as const;
+const AEROWAY_WIDTH_METERS: Record<string, number> = {
+  runway: 45,
+  taxiway: 18,
+  helipad: 18,
+  heliport: 18,
+};
+const AEROWAY_MIN_WIDTH_WORLD: Record<string, number> = {
+  runway: 2.4,
+  taxiway: 1.15,
+  helipad: 1.15,
+  heliport: 1.15,
+};
+const AEROWAY_MAX_WIDTH_WORLD: Record<string, number> = {
+  runway: 18,
+  taxiway: 9,
+  helipad: 9,
+  heliport: 9,
+};
 const VECTOR_LABEL_CANDIDATE_LIMITS: Record<ThreeOsmVectorLabelKind, number> = {
   aerodrome: 32,
   place: 128,
@@ -159,6 +197,27 @@ export function resolveThreeOsmRoadWidthWorld({
     ROAD_WIDTH_METERS[tier] / metersPerWorldUnit,
     ROAD_MIN_WIDTH_WORLD[tier],
     ROAD_MAX_WIDTH_WORLD[tier],
+  );
+}
+
+export function resolveThreeOsmAerowayWidthWorld({
+  className,
+  centerLat,
+  zoom,
+}: {
+  className: string;
+  centerLat: number;
+  zoom: number;
+}) {
+  const normalizedClass = className.trim().toLowerCase();
+  const meters = AEROWAY_WIDTH_METERS[normalizedClass];
+  if (!meters) return null;
+  const metersPerWorldUnit =
+    metersPerTileAtLatitude(centerLat, zoom) / THREE_OSM_TILE_SIZE;
+  return clamp(
+    meters / metersPerWorldUnit,
+    AEROWAY_MIN_WIDTH_WORLD[normalizedClass],
+    AEROWAY_MAX_WIDTH_WORLD[normalizedClass],
   );
 }
 
@@ -375,6 +434,18 @@ export function buildThreeOsmVectorContextGeometry({
     minor: [],
     service: [],
   };
+  const surfacePositions: Record<ThreeOsmVectorSurfaceKind, number[]> = {
+    water: [],
+    natural: [],
+    developed: [],
+    aeroway: [],
+  };
+  const surfaceSourcePoints: Record<ThreeOsmVectorSurfaceKind, number> = {
+    water: 0,
+    natural: 0,
+    developed: 0,
+    aeroway: 0,
+  };
   const buildingRoofPositions: number[] = [];
   const buildingWallPositions: number[] = [];
   const labelCandidates: ThreeOsmVectorLabelCandidate[] = [];
@@ -393,6 +464,14 @@ export function buildThreeOsmVectorContextGeometry({
     buildings: 0,
     buildingRoofTriangles: 0,
     buildingSourcePoints: 0,
+    surfaceFeatures: 0,
+    surfaceWaterFeatures: 0,
+    surfaceNaturalFeatures: 0,
+    surfaceDevelopedFeatures: 0,
+    surfaceAerowayFeatures: 0,
+    surfaceTriangles: 0,
+    surfaceSourcePoints: 0,
+    surfaceSkippedFeatures: 0,
     labelCandidates: 0,
     labelCount: 0,
     labelAerodromes: 0,
@@ -492,6 +571,112 @@ export function buildThreeOsmVectorContextGeometry({
           rendered = true;
         }
         if (rendered) diagnostics.roadFeatures += 1;
+      }
+    }
+
+    for (const layerName of SURFACE_LAYERS) {
+      const layer = vectorTile.layers[layerName];
+      if (!layer) continue;
+      for (let index = 0; index < layer.length; index += 1) {
+        const feature = layer.feature(index);
+        const className = String(feature.properties.class || "")
+          .trim()
+          .toLowerCase();
+        const kind = classifyThreeOsmVectorSurface({
+          layerName,
+          className,
+          geometryType: feature.type,
+          sourceZoom,
+        });
+        if (!kind) continue;
+        const pointCount = sourcePointCount(feature);
+        if (
+          surfaceSourcePoints[kind] + pointCount >
+          SURFACE_MAX_SOURCE_POINTS[kind]
+        ) {
+          diagnostics.surfaceSkippedFeatures += 1;
+          continue;
+        }
+        surfaceSourcePoints[kind] += pointCount;
+        diagnostics.surfaceSourcePoints += pointCount;
+        let geojson: Record<string, any>;
+        try {
+          geojson = feature.toGeoJSON(
+            payload.tile.x,
+            payload.tile.y,
+            payload.tile.z,
+          ) as any;
+        } catch {
+          diagnostics.surfaceSkippedFeatures += 1;
+          continue;
+        }
+        let rendered = false;
+        if (kind === "aeroway") {
+          const width = resolveThreeOsmAerowayWidthWorld({
+            className,
+            centerLat,
+            zoom: sceneZoom,
+          });
+          if (width) {
+            for (const line of geometryLineStrings(geojson.geometry)) {
+              if (!Array.isArray(line)) continue;
+              const projected = line.flatMap((coordinate: unknown) => {
+                const point = projectCoordinate(
+                  coordinate,
+                  tileCenter,
+                  centerLat,
+                );
+                return point ? [point] : [];
+              });
+              for (
+                let pointIndex = 1;
+                pointIndex < projected.length;
+                pointIndex += 1
+              ) {
+                if (
+                  pushCorridorQuad(
+                    surfacePositions.aeroway,
+                    projected[pointIndex - 1],
+                    projected[pointIndex],
+                    width,
+                    0.16,
+                  )
+                ) {
+                  diagnostics.surfaceTriangles += 2;
+                  rendered = true;
+                }
+              }
+            }
+          }
+        }
+        for (const polygon of geometryPolygons(geojson.geometry)) {
+          const triangulated = triangulatePolygon(
+            polygon,
+            tileCenter,
+            centerLat,
+          );
+          if (!triangulated) continue;
+          const y =
+            kind === "water"
+              ? 0.04
+              : kind === "natural"
+                ? 0.08
+                : kind === "developed"
+                  ? 0.12
+                  : 0.16;
+          for (const pointIndex of triangulated.triangles) {
+            const point = triangulated.points[pointIndex];
+            surfacePositions[kind].push(point.x, y, point.z);
+          }
+          diagnostics.surfaceTriangles += triangulated.triangles.length / 3;
+          rendered = rendered || triangulated.triangles.length > 0;
+        }
+        if (!rendered) continue;
+        diagnostics.surfaceFeatures += 1;
+        if (kind === "water") diagnostics.surfaceWaterFeatures += 1;
+        if (kind === "natural") diagnostics.surfaceNaturalFeatures += 1;
+        if (kind === "developed") diagnostics.surfaceDevelopedFeatures += 1;
+        if (kind === "aeroway") diagnostics.surfaceAerowayFeatures += 1;
       }
     }
 
@@ -628,6 +813,15 @@ export function buildThreeOsmVectorContextGeometry({
     minor: new Float32Array(roadPositions.minor),
     service: new Float32Array(roadPositions.service),
   };
+  const typedSurfacePositions: Record<
+    ThreeOsmVectorSurfaceKind,
+    Float32Array
+  > = {
+    water: new Float32Array(surfacePositions.water),
+    natural: new Float32Array(surfacePositions.natural),
+    developed: new Float32Array(surfacePositions.developed),
+    aeroway: new Float32Array(surfacePositions.aeroway),
+  };
   const typedBuildingRoofPositions = new Float32Array(buildingRoofPositions);
   const typedBuildingWallPositions = new Float32Array(buildingWallPositions);
   const labels = selectThreeOsmVectorLabels(labelCandidates, {
@@ -647,11 +841,16 @@ export function buildThreeOsmVectorContextGeometry({
     (typedRoadPositions.major.length +
       typedRoadPositions.minor.length +
       typedRoadPositions.service.length +
+      typedSurfacePositions.water.length +
+      typedSurfacePositions.natural.length +
+      typedSurfacePositions.developed.length +
+      typedSurfacePositions.aeroway.length +
       typedBuildingRoofPositions.length +
       typedBuildingWallPositions.length) /
     3;
   return {
     roadPositions: typedRoadPositions,
+    surfacePositions: typedSurfacePositions,
     buildingRoofPositions: typedBuildingRoofPositions,
     buildingWallPositions: typedBuildingWallPositions,
     labels,

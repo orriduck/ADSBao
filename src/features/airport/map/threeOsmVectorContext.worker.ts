@@ -26,6 +26,10 @@ workerScope.onmessage = (event) => {
       geometry.roadPositions.major.buffer,
       geometry.roadPositions.minor.buffer,
       geometry.roadPositions.service.buffer,
+      geometry.surfacePositions.water.buffer,
+      geometry.surfacePositions.natural.buffer,
+      geometry.surfacePositions.developed.buffer,
+      geometry.surfacePositions.aeroway.buffer,
       geometry.buildingRoofPositions.buffer,
       geometry.buildingWallPositions.buffer,
     ] as ArrayBuffer[];

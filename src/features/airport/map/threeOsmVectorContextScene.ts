@@ -4,6 +4,7 @@ import type {
   ThreeOsmVectorContextGeometry,
 } from "./threeOsmVectorContextGeometry";
 import type { ThreeOsmSceneLabel } from "./threeOsmSceneContext";
+import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";
 
 function createBasicMesh(
   positions: Float32Array,
@@ -43,6 +44,38 @@ export function createThreeOsmVectorContextScene({
   const group = new THREE.Group();
   group.name = "three-osm-vector-context";
   const dark = theme !== "light";
+  const surfaceStyles: Record<
+    ThreeOsmVectorSurfaceKind,
+    { color: number; opacity: number }
+  > = dark
+    ? {
+        water: { color: 0x344246, opacity: 0.86 },
+        natural: { color: 0x242a26, opacity: 0.68 },
+        developed: { color: 0x2a2a28, opacity: 0.56 },
+        aeroway: { color: 0x41413e, opacity: 0.76 },
+      }
+    : {
+        water: { color: 0xc4d2d4, opacity: 0.88 },
+        natural: { color: 0xd7ddd2, opacity: 0.68 },
+        developed: { color: 0xdfddd7, opacity: 0.56 },
+        aeroway: { color: 0xc6c6bf, opacity: 0.76 },
+      };
+  (["water", "natural", "developed", "aeroway"] as const).forEach(
+    (kind, index) => {
+      const positions = geometry.surfacePositions[kind];
+      if (!positions.length) return;
+      const style = surfaceStyles[kind];
+      group.add(
+        createBasicMesh(
+          positions,
+          style.color,
+          `three-osm-vector-surface-${kind}`,
+          -4 + index,
+          style.opacity,
+        ),
+      );
+    },
+  );
   const roadColors: Record<ThreeOsmRoadTier, number> = dark
     ? { major: 0xb8bfbb, minor: 0x777e7a, service: 0x555b58 }
     : { major: 0x3f4643, minor: 0x686f6c, service: 0x858b88 };

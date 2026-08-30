@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   classifyThreeOsmRoadTier,
+  resolveThreeOsmAerowayWidthWorld,
   resolveThreeOsmBuildingHeights,
   resolveThreeOsmRoadWidthWorld,
 } from "./threeOsmVectorContextGeometry";
@@ -28,6 +29,26 @@ const serviceWidth = resolveThreeOsmRoadWidthWorld({
 });
 assert.ok(majorWidth > minorWidth);
 assert.ok(minorWidth > serviceWidth);
+assert.ok(
+  resolveThreeOsmAerowayWidthWorld({
+    className: "runway",
+    centerLat: 42.3656,
+    zoom: 13,
+  })! >
+    resolveThreeOsmAerowayWidthWorld({
+      className: "taxiway",
+      centerLat: 42.3656,
+      zoom: 13,
+    })!,
+);
+assert.equal(
+  resolveThreeOsmAerowayWidthWorld({
+    className: "gate",
+    centerLat: 42.3656,
+    zoom: 13,
+  }),
+  null,
+);
 assert.deepEqual(resolveThreeOsmBuildingHeights({}), {
   minimum: 0,
   height: 12,
@@ -51,6 +72,12 @@ const labelScene = createThreeOsmVectorContextScene({
       minor: new Float32Array(),
       service: new Float32Array(),
     },
+    surfacePositions: {
+      water: new Float32Array([0, 0.04, 0, 4, 0.04, 0, 0, 0.04, 4]),
+      natural: new Float32Array(),
+      developed: new Float32Array(),
+      aeroway: new Float32Array(),
+    },
     buildingRoofPositions: new Float32Array(),
     buildingWallPositions: new Float32Array(),
     labels: [
@@ -73,6 +100,14 @@ const labelScene = createThreeOsmVectorContextScene({
       buildings: 0,
       buildingRoofTriangles: 0,
       buildingSourcePoints: 0,
+      surfaceFeatures: 1,
+      surfaceWaterFeatures: 1,
+      surfaceNaturalFeatures: 0,
+      surfaceDevelopedFeatures: 0,
+      surfaceAerowayFeatures: 0,
+      surfaceTriangles: 1,
+      surfaceSourcePoints: 3,
+      surfaceSkippedFeatures: 0,
       labelCandidates: 1,
       labelCount: 1,
       labelAerodromes: 0,
@@ -87,6 +122,8 @@ const labelScene = createThreeOsmVectorContextScene({
   theme: "dark",
 });
 assert.equal(labelScene.labels.length, 1);
+assert.equal(labelScene.surfaceFeatures, 1);
+assert.equal(labelScene.group.children[0].name, "three-osm-vector-surface-water");
 assert.equal(labelScene.labels[0].kind, "vector-place");
 assert.deepEqual(labelScene.labels[0].position.toArray(), [12, 2.5, -8]);
 
