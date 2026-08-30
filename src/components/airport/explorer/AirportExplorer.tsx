@@ -741,6 +741,7 @@ function AirportExplorerContent({
             <Suspense fallback={<MapLoadingFallback />}>
               <AirportMap
               icao={airportProfile.icao}
+              iata={airportProfile.iata}
               lat={airportProfile.lat}
               lon={airportProfile.lon}
               airportElevationFt={airportProfile.elevationFt}

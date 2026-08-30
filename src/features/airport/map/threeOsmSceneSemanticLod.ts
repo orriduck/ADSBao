@@ -21,19 +21,19 @@ const PROFILES: Record<
   10: {
     id: "overview",
     rasterUnderlayStrength: 0.96,
-    roadStrength: 0.06,
+    roadStrength: 0.22,
     labelBudgets: { compact: 2, desktop2d: 8, desktop3d: 6 },
   },
   11: {
     id: "regional",
     rasterUnderlayStrength: 0.92,
-    roadStrength: 0.14,
+    roadStrength: 0.3,
     labelBudgets: { compact: 3, desktop2d: 10, desktop3d: 8 },
   },
   12: {
     id: "approach",
     rasterUnderlayStrength: 0.96,
-    roadStrength: 0.42,
+    roadStrength: 0.46,
     labelBudgets: { compact: 4, desktop2d: 12, desktop3d: 9 },
   },
   13: {

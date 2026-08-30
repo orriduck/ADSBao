@@ -101,6 +101,7 @@ const WEB_MERCATOR_BOUNDS = [
 
 export default function AirportMap({
   icao = "",
+  iata = "",
   lat = null,
   lon = null,
   airportElevationFt = null,
@@ -219,7 +220,11 @@ export default function AirportMap({
     },
   });
   const operationalOverlaySettings = operationalOverlayProfile.settings;
-  const focalAirportDisplayCode = airportDisplayCode({ ...(airport || {}), icao });
+  const focalAirportDisplayCode = airportDisplayCode({
+    ...(airport || {}),
+    icao,
+    iata: iata || airport?.iata,
+  });
   const groundRadiusNm =
     focalRangeRings === false ? null : (focalRangeRings?.intervalNm || 3);
   const mapEl = useRef(null);
