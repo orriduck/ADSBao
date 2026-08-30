@@ -367,6 +367,106 @@ function configureThreeOsmControls({
     viewMode === "3d" ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
 }
 
+function resolveThreeOsmVisibleMaterialKey(
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+) {
+  const variants = new Set<string>();
+  scene.traverseVisible((object) => {
+    const renderable = object as THREE.Object3D & {
+      geometry?: THREE.BufferGeometry;
+      instanceColor?: THREE.InstancedBufferAttribute | null;
+      isInstancedMesh?: boolean;
+      material?: THREE.Material | THREE.Material[];
+    };
+    const objectMaterials = Array.isArray(renderable.material)
+      ? renderable.material
+      : renderable.material
+        ? [renderable.material]
+        : [];
+    objectMaterials.forEach((material) => {
+      const shaderMaterial = material as THREE.Material & {
+        alphaMap?: THREE.Texture | null;
+        aoMap?: THREE.Texture | null;
+        bumpMap?: THREE.Texture | null;
+        defines?: Record<string, unknown>;
+        displacementMap?: THREE.Texture | null;
+        emissiveMap?: THREE.Texture | null;
+        envMap?: THREE.Texture | null;
+        fog?: boolean;
+        lightMap?: THREE.Texture | null;
+        map?: THREE.Texture | null;
+        normalMap?: THREE.Texture | null;
+        specularMap?: THREE.Texture | null;
+        vertexColors?: boolean;
+      };
+      const defines = Object.entries(shaderMaterial.defines || {})
+        .sort(([left], [right]) => left.localeCompare(right));
+      const geometry = renderable.geometry;
+      const attributes = geometry
+        ? Object.keys(geometry.attributes).sort()
+        : [];
+      const morphAttributes = geometry
+        ? Object.keys(geometry.morphAttributes).sort()
+        : [];
+      variants.add(
+        JSON.stringify({
+          type: material.type,
+          side: material.side,
+          alphaTest: material.alphaTest > 0,
+          clippingPlanes: material.clippingPlanes?.length || 0,
+          customProgram: material.customProgramCacheKey(),
+          defines,
+          fog: Boolean(shaderMaterial.fog),
+          vertexColors: Boolean(shaderMaterial.vertexColors),
+          maps: [
+            shaderMaterial.map,
+            shaderMaterial.alphaMap,
+            shaderMaterial.aoMap,
+            shaderMaterial.lightMap,
+            shaderMaterial.bumpMap,
+            shaderMaterial.normalMap,
+            shaderMaterial.displacementMap,
+            shaderMaterial.emissiveMap,
+            shaderMaterial.specularMap,
+            shaderMaterial.envMap,
+          ].map(Boolean),
+          attributes,
+          morphAttributes,
+          instanced: Boolean(renderable.isInstancedMesh),
+          instanceColor: Boolean(renderable.instanceColor),
+        }),
+      );
+    });
+  });
+  return `${camera.uuid}|${[...variants].sort().join("|")}`;
+}
+
+function createThreeOsmCompileSnapshot(scene: THREE.Scene) {
+  const snapshot = scene.clone(true);
+  const materials: THREE.Material[] = [];
+  snapshot.traverse((object) => {
+    const renderable = object as THREE.Object3D & {
+      material?: THREE.Material | THREE.Material[];
+    };
+    if (Array.isArray(renderable.material)) {
+      renderable.material = renderable.material.map((material) => {
+        const clone = material.clone();
+        materials.push(clone);
+        return clone;
+      });
+    } else if (renderable.material) {
+      const clone = renderable.material.clone();
+      materials.push(clone);
+      renderable.material = clone;
+    }
+  });
+  return {
+    scene: snapshot,
+    dispose: () => materials.forEach((material) => material.dispose()),
+  };
+}
+
 function initializeThreeOsmCamera(
   camera: THREE.OrthographicCamera | THREE.PerspectiveCamera,
   target: THREE.Vector3,
@@ -1354,6 +1454,14 @@ export default function ThreeOsmMapPoc({
     const vectorContextWorker = new ThreeOsmVectorContextWorkerClient();
     vectorContextWorkerRef.current = vectorContextWorker;
     root.dataset.pocVectorWorker = "idle";
+    root.dataset.pocParallelShaderCompile = renderer.extensions.has(
+      "KHR_parallel_shader_compile",
+    )
+      ? "available"
+      : "unavailable";
+    root.dataset.pocSceneCompileState = "idle";
+    root.dataset.pocSceneCompileCount = "0";
+    root.dataset.pocSceneCompileMaxMs = "0.00";
 
     const orthographicCamera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
     const perspectiveCamera = new THREE.PerspectiveCamera(45, 1, 1, 6_000);
@@ -1373,6 +1481,9 @@ export default function ThreeOsmMapPoc({
     let longTaskTotalMs = 0;
     let longTaskMaxMs = 0;
     let longTaskObserver: PerformanceObserver | null = null;
+    let disposed = false;
+    let compileInFlight = false;
+    const compiledMaterialKeys = new Set<string>();
     const projected = new THREE.Vector3();
     const instanceMatrix = new THREE.Matrix4();
     const instanceScale = new THREE.Vector3();
@@ -1795,7 +1906,55 @@ export default function ThreeOsmMapPoc({
       root.dataset.pocRenderSlowSceneCount = String(slowSceneRenderCount);
     };
     const requestRender = () => {
-      if (!frameId) frameId = window.requestAnimationFrame(render);
+      if (frameId || compileInFlight || disposed) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        const camera = activeCameraRef.current;
+        if (!camera) return;
+        const materialKey = resolveThreeOsmVisibleMaterialKey(scene, camera);
+        if (compiledMaterialKeys.has(materialKey)) {
+          render();
+          return;
+        }
+
+        compileInFlight = true;
+        root.dataset.pocSceneCompileState = "compiling";
+        const compileStartedAt = performance.now();
+        const compileSnapshot = createThreeOsmCompileSnapshot(scene);
+        void renderer
+          .compileAsync(compileSnapshot.scene, camera, scene)
+          .then(() => {
+            compiledMaterialKeys.add(materialKey);
+            root.dataset.pocSceneCompileState = "ready";
+          })
+          .catch(() => {
+            compiledMaterialKeys.add(materialKey);
+            root.dataset.pocSceneCompileState = "failed";
+          })
+          .finally(() => {
+            const compileMs = performance.now() - compileStartedAt;
+            root.dataset.pocSceneCompileCount = String(
+              Number(root.dataset.pocSceneCompileCount || 0) + 1,
+            );
+            root.dataset.pocSceneCompileMaxMs = Math.max(
+              Number(root.dataset.pocSceneCompileMaxMs || 0),
+              compileMs,
+            ).toFixed(2);
+            compileInFlight = false;
+            compileSnapshot.dispose();
+            if (disposed) return;
+            const currentCamera = activeCameraRef.current;
+            if (
+              currentCamera === camera &&
+              resolveThreeOsmVisibleMaterialKey(scene, currentCamera) ===
+                materialKey
+            ) {
+              render();
+            } else {
+              requestRender();
+            }
+          });
+      });
     };
     requestRenderRef.current = requestRender;
 
@@ -2066,6 +2225,7 @@ export default function ThreeOsmMapPoc({
     canvas.addEventListener("webglcontextrestored", handleContextRestored);
 
     return () => {
+      disposed = true;
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerCancel);
