@@ -16,12 +16,15 @@ const baseInput = {
   background: 0xd8d8d5,
 };
 
-assert.deepEqual(
-  resolveThreeOsmRasterComposition({
-    ...baseInput,
-    vectorState: "partial",
-  }),
-  { mode: "primary", washColor: 0xd8d8d5, washStrength: 0 },
+const partial = resolveThreeOsmRasterComposition({
+  ...baseInput,
+  vectorState: "partial",
+});
+assert.equal(partial.mode, "context-underlay");
+assert.equal(partial.washStrength, 0.78);
+assert.equal(
+  resolveThreeOsmRasterTileComposition(partial, false).washStrength,
+  0.78 * 0.28,
 );
 assert.equal(
   resolveThreeOsmRasterComposition({

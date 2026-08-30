@@ -51,7 +51,7 @@ export function resolveThreeOsmRasterComposition({
 }): ThreeOsmRasterComposition {
   const canUseVectorUnderlay =
     vectorEnabled &&
-    vectorState === "ready" &&
+    (vectorState === "ready" || vectorState === "partial") &&
     layerMode === "all" &&
     contrastMode === "standard" &&
     Number.isFinite(zoom) &&

@@ -138,6 +138,7 @@ import {
   applyThreeOsmRasterComposition,
   resolveThreeOsmRasterComposition,
   resolveThreeOsmRasterTileComposition,
+  type ThreeOsmRasterComposition,
 } from "@/features/airport/map/threeOsmRasterComposition";
 import {
   OPENFREEMAP_VECTOR_ATTRIBUTION,
@@ -258,7 +259,7 @@ type TrafficRenderBatch = {
 type BasemapState = "loading" | "ready" | "partial" | "degraded";
 type RasterTileMaterialRecord = {
   material: THREE.MeshBasicMaterial;
-  vectorCovered: boolean;
+  vectorTileKey: string | null;
 };
 type RasterTileSceneHandle = {
   group: THREE.Group;
@@ -267,6 +268,29 @@ type RasterTileSceneHandle = {
   windowKey: string;
   disposed: boolean;
 };
+
+function applyRasterTileComposition({
+  materials,
+  composition,
+  coveredVectorTileKeys,
+}: {
+  materials: RasterTileMaterialRecord[];
+  composition: ThreeOsmRasterComposition;
+  coveredVectorTileKeys: ReadonlySet<string>;
+}) {
+  let covered = 0;
+  for (const { material, vectorTileKey } of materials) {
+    const vectorCovered = Boolean(
+      vectorTileKey && coveredVectorTileKeys.has(vectorTileKey),
+    );
+    if (vectorCovered) covered += 1;
+    applyThreeOsmRasterComposition(
+      material,
+      resolveThreeOsmRasterTileComposition(composition, vectorCovered),
+    );
+  }
+  return { covered, contextOnly: materials.length - covered };
+}
 type DebugLayerMode =
   | "all"
   | "basemap"
@@ -692,6 +716,11 @@ export default function ThreeOsmMapPoc({
   const [vectorContextState, setVectorContextState] = useState<
     "disabled" | "loading" | "ready" | "partial" | "degraded"
   >("disabled");
+  const [coveredVectorTileKeys, setCoveredVectorTileKeys] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
+  const coveredVectorTileKeysRef = useRef(coveredVectorTileKeys);
+  coveredVectorTileKeysRef.current = coveredVectorTileKeys;
   const [tileRetryEpoch, setTileRetryEpoch] = useState(0);
   const [cameraLodState, setCameraLodState] = useState<{
     scopeKey: string;
@@ -1240,13 +1269,6 @@ export default function ThreeOsmMapPoc({
         vectorTileCenter,
       ),
     [vectorTileCenter, vectorTileWindow],
-  );
-  const vectorTileKeys = useMemo(
-    () =>
-      new Set(
-        vectorTiles.map((tile) => `${tile.z}/${tile.x}/${tile.y}`),
-      ),
-    [vectorTiles],
   );
   const vectorContextActive =
     vectorContextEnabled && sourceTileZoom >= 10 && Boolean(vectorTileTemplate);
@@ -2515,15 +2537,11 @@ export default function ThreeOsmMapPoc({
         requestRenderRef.current();
         return;
       }
-      tileMaterials.forEach(({ material, vectorCovered }) =>
-        applyThreeOsmRasterComposition(
-          material,
-          resolveThreeOsmRasterTileComposition(
-            rasterCompositionRef.current,
-            vectorCovered,
-          ),
-        ),
-      );
+      applyRasterTileComposition({
+        materials: tileMaterials,
+        composition: rasterCompositionRef.current,
+        coveredVectorTileKeys: coveredVectorTileKeysRef.current,
+      });
       group.visible = isDebugLayerVisible(debugLayerMode, "basemap");
       displayedRasterTileSceneRef.current = tileSceneHandle;
       pendingRasterTileSceneRef.current = null;
@@ -2617,18 +2635,10 @@ export default function ThreeOsmMapPoc({
         side: THREE.DoubleSide,
       });
       const isParentFallback = tile.z < sourceTileZoom;
-      const vectorCovered =
-        !isParentFallback &&
-        vectorContextEnabled &&
-        vectorTileKeys.has(`${tile.z}/${tile.x}/${tile.y}`);
-      applyThreeOsmRasterComposition(
-        material,
-        resolveThreeOsmRasterTileComposition(
-          rasterCompositionRef.current,
-          vectorCovered,
-        ),
-      );
-      tileMaterials.push({ material, vectorCovered });
+      const vectorTileKey = isParentFallback
+        ? null
+        : `${tile.z}/${tile.x}/${tile.y}`;
+      tileMaterials.push({ material, vectorTileKey });
       const transform = resolveThreeOsmSourceTileTransform({
         tile,
         projectionCenter: sourceProjectionCenter,
@@ -2693,13 +2703,18 @@ export default function ThreeOsmMapPoc({
       "data-poc-raster-parent-tiles",
       String(parentRasterTiles.length),
     );
+    const coverage = applyRasterTileComposition({
+      materials: tileMaterials,
+      composition: rasterCompositionRef.current,
+      coveredVectorTileKeys: coveredVectorTileKeysRef.current,
+    });
     rootRef.current?.setAttribute(
       "data-poc-raster-vector-covered-tiles",
-      String(tileMaterials.filter((item) => item.vectorCovered).length),
+      String(coverage.covered),
     );
     rootRef.current?.setAttribute(
       "data-poc-raster-context-only-tiles",
-      String(tileMaterials.filter((item) => !item.vectorCovered).length),
+      String(coverage.contextOnly),
     );
     requestRenderRef.current();
 
@@ -2737,8 +2752,6 @@ export default function ThreeOsmMapPoc({
     tileRetryEpoch,
     tileZoom,
     visualPalette,
-    vectorContextEnabled,
-    vectorTileKeys,
   ]);
 
   useEffect(() => {
@@ -2792,6 +2805,9 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-submit-ms", "0");
       root?.setAttribute("data-poc-vector-main-thread-ms", "0");
       root?.setAttribute("data-poc-vector-long-task-delta", "0");
+      setCoveredVectorTileKeys((current) =>
+        current.size ? new Set() : current,
+      );
       setVectorContextState(vectorContextEnabled ? "loading" : "disabled");
       return undefined;
     }
@@ -2810,7 +2826,9 @@ export default function ThreeOsmMapPoc({
         index,
       ]),
     );
-    setVectorContextState("loading");
+    if (!vectorContextGroupRef.current) {
+      setVectorContextState("loading");
+    }
     root.dataset.pocVectorContext = "loading";
     root.dataset.pocVectorTilesRequested = String(vectorTiles.length);
     root.dataset.pocVectorTilesLoaded = "0";
@@ -2824,6 +2842,7 @@ export default function ThreeOsmMapPoc({
       disposeObject(vectorContextGroupRef.current);
       vectorContextGroupRef.current = null;
       vectorLabelsRef.current = [];
+      setCoveredVectorTileKeys(new Set());
       root.dataset.pocVectorSwap = reason;
       root.dataset.pocVectorRetainedWindow = "none";
       root.removeAttribute("data-poc-vector-visible-window");
@@ -2897,6 +2916,13 @@ export default function ThreeOsmMapPoc({
             vectorLabelsRef.current = context.labels;
             scene.add(context.group);
             disposeObject(previousGroup);
+            setCoveredVectorTileKeys(
+              new Set(
+                loaded.map(
+                  ({ tile }) => `${tile.z}/${tile.x}/${tile.y}`,
+                ),
+              ),
+            );
             setVectorContextState(nextState);
             root.dataset.pocVectorContext = nextState;
             root.dataset.pocVectorWorker = "ready";
@@ -3104,17 +3130,18 @@ export default function ThreeOsmMapPoc({
   ]);
 
   useEffect(() => {
-    rasterTileMaterialsRef.current.forEach(({ material, vectorCovered }) =>
-      applyThreeOsmRasterComposition(
-        material,
-        resolveThreeOsmRasterTileComposition(
-          rasterComposition,
-          vectorCovered,
-        ),
-      ),
-    );
+    const coverage = applyRasterTileComposition({
+      materials: rasterTileMaterialsRef.current,
+      composition: rasterComposition,
+      coveredVectorTileKeys,
+    });
+    const root = rootRef.current;
+    if (root) {
+      root.dataset.pocRasterVectorCoveredTiles = String(coverage.covered);
+      root.dataset.pocRasterContextOnlyTiles = String(coverage.contextOnly);
+    }
     requestRenderRef.current();
-  }, [rasterComposition]);
+  }, [coveredVectorTileKeys, rasterComposition]);
 
   useEffect(() => {
     if (vectorContextGroupRef.current) {
