@@ -88,4 +88,18 @@ export function isThreeOsmVectorSurfaceKindVisible({
 }) {
   return lod.surfaceKinds.includes(kind);
 }
+
+export function resolveThreeOsmVectorTileRadius({
+  sourceZoom,
+  rasterTileRadius,
+}: {
+  sourceZoom: number;
+  rasterTileRadius: number;
+}) {
+  const boundedRasterRadius = Math.min(
+    2,
+    Math.max(1, Math.round(Number(rasterTileRadius) || 1)),
+  );
+  return sourceZoom <= 11 ? boundedRasterRadius : 1;
+}
 import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";

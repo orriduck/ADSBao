@@ -3,6 +3,7 @@ import {
   isThreeOsmVectorRoadClassVisible,
   isThreeOsmVectorSurfaceKindVisible,
   resolveThreeOsmVectorSemanticLod,
+  resolveThreeOsmVectorTileRadius,
 } from "./threeOsmVectorSemanticLod";
 
 const overview = resolveThreeOsmVectorSemanticLod(10);
@@ -64,6 +65,23 @@ assert.equal(detail.maxLabels, 48);
 assert.equal(
   isThreeOsmVectorRoadClassVisible({ className: "service", lod: detail }),
   true,
+);
+
+assert.equal(
+  resolveThreeOsmVectorTileRadius({ sourceZoom: 10, rasterTileRadius: 2 }),
+  2,
+);
+assert.equal(
+  resolveThreeOsmVectorTileRadius({ sourceZoom: 11, rasterTileRadius: 2 }),
+  2,
+);
+assert.equal(
+  resolveThreeOsmVectorTileRadius({ sourceZoom: 10, rasterTileRadius: 1 }),
+  1,
+);
+assert.equal(
+  resolveThreeOsmVectorTileRadius({ sourceZoom: 12, rasterTileRadius: 2 }),
+  1,
 );
 
 console.log("threeOsmVectorSemanticLod.test.ts ok");

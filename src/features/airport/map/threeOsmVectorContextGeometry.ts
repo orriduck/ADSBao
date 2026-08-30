@@ -119,11 +119,12 @@ const BUILDING_MAX_SOURCE_POINTS = 30_000;
 const BUILDING_MIN_HEIGHT_METERS = 3;
 const BUILDING_DEFAULT_HEIGHT_METERS = 12;
 const BUILDING_MAX_HEIGHT_METERS = 180;
+// Preserve complete low-zoom surfaces when a desktop overview uses 5x5 tiles.
 const SURFACE_MAX_SOURCE_POINTS: Record<ThreeOsmVectorSurfaceKind, number> = {
-  water: 40_000,
-  natural: 24_000,
+  water: 100_000,
+  natural: 80_000,
   developed: 20_000,
-  aeroway: 12_000,
+  aeroway: 20_000,
 };
 const SURFACE_LAYERS = ["water", "landcover", "landuse", "aeroway"] as const;
 const AEROWAY_WIDTH_METERS: Record<string, number> = {

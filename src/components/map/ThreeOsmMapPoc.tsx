@@ -115,6 +115,9 @@ import {
   openFreeMapVectorSourceClient,
 } from "@/features/airport/map/threeOsmVectorTileSource";
 import {
+  resolveThreeOsmVectorTileRadius,
+} from "@/features/airport/map/threeOsmVectorSemanticLod";
+import {
   THREE_OSM_AIRCRAFT_CAPACITY,
   buildThreeOsmTrafficRenderSources,
   parseThreeOsmTrafficStressTarget,
@@ -181,7 +184,8 @@ type ThreeOsmPocProps = {
 };
 
 const MAX_TILE_TEXTURES = 72;
-const MAX_VECTOR_TILE_BUFFERS = 24;
+// Two atomic 5x5 windows plus the largest nine-tile diagonal prefetch strip.
+const MAX_VECTOR_TILE_BUFFERS = 60;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
 const THREE_OSM_VECTOR_LABEL_KINDS = new Set<ThreeOsmSceneLabel["kind"]>([
@@ -921,30 +925,34 @@ export default function ThreeOsmMapPoc({
   );
   const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
   const vectorTileCenter = sourceTileCenter;
+  const vectorTileRadius = resolveThreeOsmVectorTileRadius({
+    sourceZoom: vectorTileZoom,
+    rasterTileRadius: tileRadius,
+  });
   const vectorTiles = useMemo(
     () =>
-      buildVisibleTileGrid(vectorTileCenter, 1).sort((left, right) => {
-        const leftDistance =
-          Math.abs(
-            shortestWrappedTileDelta(
-              left.x + 0.5,
-              vectorTileCenter.x,
-              vectorTileCenter.z,
-            ),
-          ) +
-          Math.abs(left.y + 0.5 - vectorTileCenter.y);
-        const rightDistance =
-          Math.abs(
-            shortestWrappedTileDelta(
-              right.x + 0.5,
-              vectorTileCenter.x,
-              vectorTileCenter.z,
-            ),
-          ) +
-          Math.abs(right.y + 0.5 - vectorTileCenter.y);
-        return leftDistance - rightDistance;
-      }),
-    [vectorTileCenter],
+      buildVisibleTileGrid(vectorTileCenter, vectorTileRadius).sort(
+        (left, right) => {
+          const leftDistance =
+            Math.abs(
+              shortestWrappedTileDelta(
+                left.x + 0.5,
+                vectorTileCenter.x,
+                vectorTileCenter.z,
+              ),
+            ) + Math.abs(left.y + 0.5 - vectorTileCenter.y);
+          const rightDistance =
+            Math.abs(
+              shortestWrappedTileDelta(
+                right.x + 0.5,
+                vectorTileCenter.x,
+                vectorTileCenter.z,
+              ),
+            ) + Math.abs(right.y + 0.5 - vectorTileCenter.y);
+          return leftDistance - rightDistance;
+        },
+      ),
+    [vectorTileCenter, vectorTileRadius],
   );
   const vectorTileKeys = useMemo(
     () =>
@@ -2204,6 +2212,7 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-tiles-loaded", "0");
       root?.setAttribute("data-poc-vector-tiles-failed", "0");
       root?.setAttribute("data-poc-vector-roads", "0");
+      root?.setAttribute("data-poc-vector-tile-radius", "0");
       root?.setAttribute("data-poc-vector-semantic-lod", "disabled");
       root?.setAttribute("data-poc-vector-semantic-skipped-features", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
@@ -2351,6 +2360,7 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorTilesLoaded = String(loaded.length);
             root.dataset.pocVectorTilesFailed = String(failed);
             root.dataset.pocVectorTileZoom = String(vectorTileZoom);
+            root.dataset.pocVectorTileRadius = String(vectorTileRadius);
             root.dataset.pocVectorRoads = String(context.roadFeatures);
             root.dataset.pocVectorSemanticLod = context.semanticLodProfile;
             root.dataset.pocVectorSemanticSkippedFeatures = String(
@@ -2518,6 +2528,7 @@ export default function ThreeOsmMapPoc({
     vectorContextActive,
     vectorContextEnabled,
     vectorTileTemplate,
+    vectorTileRadius,
     vectorTileZoom,
     vectorTiles,
   ]);
@@ -3492,7 +3503,7 @@ export default function ThreeOsmMapPoc({
     sourceTileCenter,
     sourceTileWindowKey,
     sceneZoom: tileZoom,
-    tileRadius: 1,
+    tileRadius: vectorTileRadius,
     buildUrl: (tile) =>
       buildOpenFreeMapVectorTileUrl(vectorTileTemplate, tile),
     hasDisplayedContent: () => Boolean(vectorContextGroupRef.current),
