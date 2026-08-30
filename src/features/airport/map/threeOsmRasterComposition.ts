@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { ThreeOsmContrastMode } from "./threeOsmAccessibilityPreferences";
+import { resolveThreeOsmSceneSemanticLod } from "./threeOsmSceneSemanticLod";
 
 export type ThreeOsmRasterCompositionMode =
   | "primary"
@@ -29,13 +30,7 @@ type RasterCompositionLayerMode =
   | "traffic"
   | "flight";
 
-const VECTOR_UNDERLAY_START_ZOOM = 11;
 const VECTOR_UNDERLAY_FULL_ZOOM = 14;
-
-function smoothstep(value: number) {
-  const bounded = Math.min(1, Math.max(0, value));
-  return bounded * bounded * (3 - 2 * bounded);
-}
 
 export function resolveThreeOsmRasterComposition({
   vectorEnabled,
@@ -60,17 +55,14 @@ export function resolveThreeOsmRasterComposition({
     layerMode === "all" &&
     contrastMode === "standard" &&
     Number.isFinite(zoom) &&
-    zoom > VECTOR_UNDERLAY_START_ZOOM;
+    zoom >= 10;
   if (!canUseVectorUnderlay) {
     return { mode: "primary", washColor: background, washStrength: 0 };
   }
 
-  const progress = smoothstep(
-    (zoom - VECTOR_UNDERLAY_START_ZOOM) /
-      (VECTOR_UNDERLAY_FULL_ZOOM - VECTOR_UNDERLAY_START_ZOOM),
-  );
+  const semanticLod = resolveThreeOsmSceneSemanticLod(zoom);
   const maximumWash = theme === "light" ? 0.78 : 0.72;
-  const washStrength = progress * maximumWash;
+  const washStrength = semanticLod.rasterUnderlayStrength * maximumWash;
   return {
     mode:
       zoom >= VECTOR_UNDERLAY_FULL_ZOOM

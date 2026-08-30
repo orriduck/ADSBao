@@ -131,6 +131,10 @@ import {
   resolveThreeOsmVectorTileRadius,
 } from "@/features/airport/map/threeOsmVectorSemanticLod";
 import {
+  resolveThreeOsmSceneSemanticLod,
+  resolveThreeOsmSceneVectorLabelBudget,
+} from "@/features/airport/map/threeOsmSceneSemanticLod";
+import {
   resolveThreeOsmContextViewport,
   type ThreeOsmContextViewport,
 } from "@/features/airport/map/threeOsmContextViewport";
@@ -362,6 +366,10 @@ function configureThreeOsmControls({
   controls.minZoom = 0.5;
   controls.maxZoom = 4;
   controls.maxPolarAngle = Math.PI / 2.15;
+  controls.mouseButtons.LEFT =
+    viewMode === "3d" ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
+  controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+  controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
   controls.touches.ONE = THREE.TOUCH.PAN;
   controls.touches.TWO =
     viewMode === "3d" ? THREE.TOUCH.DOLLY_ROTATE : THREE.TOUCH.DOLLY_PAN;
@@ -653,6 +661,7 @@ export default function ThreeOsmMapPoc({
   const trafficLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const contextLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
   const vectorLabelsRef = useRef<ThreeOsmSceneLabel[]>([]);
+  const sceneVectorLabelBudgetRef = useRef(0);
   const requestRenderRef = useRef<() => void>(() => {});
   const onSelectAircraftRef = useRef(onSelectAircraft);
   const onSelectAirportRef = useRef(onSelectAirport);
@@ -1009,6 +1018,13 @@ export default function ThreeOsmMapPoc({
           Math.max(lodBounds.minZoom, cameraLodState.zoom),
         )
       : tileZoom;
+  const sceneSemanticLod = resolveThreeOsmSceneSemanticLod(sourceTileZoom);
+  const sceneVectorLabelBudget = resolveThreeOsmSceneVectorLabelBudget({
+    sourceZoom: sourceTileZoom,
+    compact: isCompact,
+    viewMode,
+  });
+  sceneVectorLabelBudgetRef.current = sceneVectorLabelBudget;
   const sourceTargetX =
     cameraLodState.scopeKey === cameraStateScopeKey &&
     cameraLodState.mode === viewMode
@@ -1669,11 +1685,7 @@ export default function ThreeOsmMapPoc({
         debugMode === "vector"
           ? maxLabels
           : vectorCandidates.length
-            ? compact
-              ? 4
-              : root.dataset.pocMode === "3d"
-                ? 10
-                : 14
+            ? sceneVectorLabelBudgetRef.current
             : 0;
       const criticalOperational = operationalCandidates.filter(
         (candidate) => candidate.priority >= 750,
@@ -2726,6 +2738,7 @@ export default function ThreeOsmMapPoc({
           const context = createThreeOsmVectorContextScene({
             geometry: result.geometry,
             theme,
+            sourceZoom: vectorTileZoom,
           });
           const meshMs = performance.now() - meshStartedAt;
           context.group.visible = isDebugLayerVisible(
@@ -4352,6 +4365,12 @@ export default function ThreeOsmMapPoc({
       data-poc-vector-context-state={vectorContextState}
       data-poc-scene-zoom={tileZoom}
       data-poc-source-zoom={sourceTileZoom}
+      data-poc-semantic-lod={sceneSemanticLod.id}
+      data-poc-semantic-raster-strength={
+        sceneSemanticLod.rasterUnderlayStrength.toFixed(3)
+      }
+      data-poc-semantic-road-strength={sceneSemanticLod.roadStrength.toFixed(3)}
+      data-poc-semantic-vector-label-budget={sceneVectorLabelBudget}
       data-poc-tile-window-key={sourceTileWindowKey}
       data-poc-context-window-key={contextViewport.signature}
       data-poc-raster-composition={rasterComposition.mode}

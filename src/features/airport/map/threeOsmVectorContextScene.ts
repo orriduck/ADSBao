@@ -8,6 +8,7 @@ import {
   type ThreeOsmRoadTier,
 } from "./threeOsmVectorRoadModel";
 import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";
+import { resolveThreeOsmSceneSemanticLod } from "./threeOsmSceneSemanticLod";
 
 function createBasicMesh(
   positions: Float32Array,
@@ -44,13 +45,16 @@ function createBasicMesh(
 export function createThreeOsmVectorContextScene({
   geometry,
   theme,
+  sourceZoom,
 }: {
   geometry: ThreeOsmVectorContextGeometry;
   theme: string;
+  sourceZoom: number;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-vector-context";
   const dark = theme !== "light";
+  const semanticLod = resolveThreeOsmSceneSemanticLod(sourceZoom);
   const surfaceStyles: Record<
     ThreeOsmVectorSurfaceKind,
     { color: number; opacity: number }
@@ -113,7 +117,7 @@ export function createThreeOsmVectorContextScene({
           style.color,
           `three-osm-vector-road-${tier}`,
           1 + index,
-          style.opacity,
+          style.opacity * semanticLod.roadStrength,
         ),
       );
     },

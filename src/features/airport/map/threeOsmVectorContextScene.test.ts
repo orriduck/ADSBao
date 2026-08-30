@@ -146,6 +146,7 @@ const labelScene = createThreeOsmVectorContextScene({
     },
   },
   theme: "dark",
+  sourceZoom: 14,
 });
 assert.equal(labelScene.labels.length, 1);
 assert.equal(labelScene.surfaceFeatures, 1);
@@ -169,10 +170,12 @@ assert.deepEqual(
 );
 const roadOpacities = labelScene.group.children.slice(1, 6).map(
   (child) =>
-    (child as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>).material
-      .opacity,
+    Number(
+      (child as THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>)
+        .material.opacity.toFixed(4),
+    ),
 );
-assert.deepEqual(roadOpacities, [0.28, 0.34, 0.43, 0.54, 0.64]);
+assert.deepEqual(roadOpacities, [0.2016, 0.2448, 0.3096, 0.3888, 0.4608]);
 assert.equal(labelScene.labels[0].kind, "vector-place");
 assert.deepEqual(labelScene.labels[0].position.toArray(), [12, 2.5, -8]);
 

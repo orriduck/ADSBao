@@ -37,17 +37,16 @@ assert.equal(
   }).washStrength,
   0,
 );
-assert.equal(
-  resolveThreeOsmRasterComposition({ ...baseInput, zoom: 11 }).mode,
-  "primary",
-);
+const regional = resolveThreeOsmRasterComposition({ ...baseInput, zoom: 11 });
+assert.equal(regional.mode, "transition");
+assert.equal(regional.washStrength, 0.92 * 0.78);
 
 const transition = resolveThreeOsmRasterComposition({
   ...baseInput,
   zoom: 13,
 });
 assert.equal(transition.mode, "transition");
-assert.ok(transition.washStrength > 0.5 && transition.washStrength < 0.7);
+assert.equal(transition.washStrength, 0.95 * 0.78);
 
 const lightUnderlay = resolveThreeOsmRasterComposition(baseInput);
 assert.equal(lightUnderlay.mode, "context-underlay");
