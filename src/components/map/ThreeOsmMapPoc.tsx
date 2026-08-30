@@ -201,6 +201,17 @@ type TrafficRenderBatch = {
 };
 
 type BasemapState = "loading" | "ready" | "partial" | "degraded";
+type RasterTileMaterialRecord = {
+  material: THREE.MeshBasicMaterial;
+  vectorCovered: boolean;
+};
+type RasterTileSceneHandle = {
+  group: THREE.Group;
+  materials: RasterTileMaterialRecord[];
+  releases: Array<() => void>;
+  windowKey: string;
+  disposed: boolean;
+};
 type DebugLayerMode =
   | "all"
   | "basemap"
@@ -364,6 +375,13 @@ function disposeTileGroup(object: THREE.Object3D | null) {
   object.removeFromParent();
 }
 
+function disposeRasterTileScene(handle: RasterTileSceneHandle | null) {
+  if (!handle || handle.disposed) return;
+  handle.disposed = true;
+  handle.releases.splice(0).forEach((release) => release());
+  disposeTileGroup(handle.group);
+}
+
 function isFiniteCoordinate(lat: unknown, lon: unknown) {
   return Number.isFinite(Number(lat)) && Number.isFinite(Number(lon));
 }
@@ -457,12 +475,9 @@ export default function ThreeOsmMapPoc({
   } | null>(null);
   const cameraLodSettleTimerRef = useRef(0);
   const tileGroupRef = useRef<THREE.Group | null>(null);
-  const rasterTileMaterialsRef = useRef<
-    Array<{
-      material: THREE.MeshBasicMaterial;
-      vectorCovered: boolean;
-    }>
-  >([]);
+  const displayedRasterTileSceneRef = useRef<RasterTileSceneHandle | null>(null);
+  const pendingRasterTileSceneRef = useRef<RasterTileSceneHandle | null>(null);
+  const rasterTileMaterialsRef = useRef<RasterTileMaterialRecord[]>([]);
   const vectorContextGroupRef = useRef<THREE.Group | null>(null);
   const contextGroupRef = useRef<THREE.Group | null>(null);
   const trafficGroupRef = useRef<THREE.Group | null>(null);
@@ -527,6 +542,15 @@ export default function ThreeOsmMapPoc({
     typeof window === "undefined" ? "" : window.location.search,
   );
   const debugEnabled = debugSearchParams.get("threeOsmDebug") === "1";
+  const debugSwapDelayMs = debugEnabled
+    ? Math.min(
+        2_000,
+        Math.max(
+          0,
+          Math.round(Number(debugSearchParams.get("threeOsmSwapDelay")) || 0),
+        ),
+      )
+    : 0;
   const acceptanceEnabled =
     debugEnabled &&
     debugSearchParams.get("threeOsmAcceptance") === "1";
@@ -1691,7 +1715,8 @@ export default function ThreeOsmMapPoc({
         controls.dispose();
         controlsRef.current = null;
       }
-      disposeTileGroup(tileGroupRef.current);
+      disposeRasterTileScene(pendingRasterTileSceneRef.current);
+      disposeRasterTileScene(displayedRasterTileSceneRef.current);
       rasterTileMaterialsRef.current = [];
       disposeObject(vectorContextGroupRef.current);
       disposeObject(contextGroupRef.current);
@@ -1699,6 +1724,8 @@ export default function ThreeOsmMapPoc({
       disposeObject(traceGroupRef.current);
       disposeObject(routeGroupRef.current);
       tileGroupRef.current = null;
+      pendingRasterTileSceneRef.current = null;
+      displayedRasterTileSceneRef.current = null;
       vectorContextGroupRef.current = null;
       contextGroupRef.current = null;
       trafficGroupRef.current = null;
@@ -1741,26 +1768,44 @@ export default function ThreeOsmMapPoc({
       return undefined;
     }
 
-    disposeTileGroup(tileGroupRef.current);
-    const group = new THREE.Group();
-    group.name = "osm-raster-tile-grid";
-    group.visible = isDebugLayerVisible(debugLayerMode, "basemap");
-    tileGroupRef.current = group;
-    scene.add(group);
-    const tileMaterials: Array<{
-      material: THREE.MeshBasicMaterial;
-      vectorCovered: boolean;
-    }> = [];
-    rasterTileMaterialsRef.current = tileMaterials;
-
     const textureCache = tileTextureCacheRef.current;
     if (!textureCache) return undefined;
+    disposeRasterTileScene(pendingRasterTileSceneRef.current);
+    pendingRasterTileSceneRef.current = null;
+    const displayedScene = displayedRasterTileSceneRef.current;
+    if (displayedScene) {
+      displayedScene.group.visible = isDebugLayerVisible(
+        debugLayerMode,
+        "basemap",
+      );
+    }
+    const group = new THREE.Group();
+    group.name = "osm-raster-tile-grid";
+    group.visible =
+      !displayedScene && isDebugLayerVisible(debugLayerMode, "basemap");
+    scene.add(group);
+    const tileMaterials: RasterTileMaterialRecord[] = [];
+    const releases: Array<() => void> = [];
+    const tileSceneHandle: RasterTileSceneHandle = {
+      group,
+      materials: tileMaterials,
+      releases,
+      windowKey: sourceTileWindowKey,
+      disposed: false,
+    };
+    pendingRasterTileSceneRef.current = tileSceneHandle;
+    rootRef.current?.setAttribute("data-poc-raster-swap", "loading");
+    rootRef.current?.setAttribute(
+      "data-poc-raster-retained-window",
+      displayedScene?.windowKey || "none",
+    );
     let disposed = false;
     let loadedCount = 0;
     let failedCount = 0;
     let settledCount = 0;
     let readySent = false;
     let retryTimeout = 0;
+    let promoteTimeout = 0;
     const routeWorkloadFitRevision = routeWorkloadFitRevisionRef.current;
     setBasemapState("loading");
     rootRef.current?.setAttribute("data-poc-tiles-loaded", "0");
@@ -1771,15 +1816,64 @@ export default function ThreeOsmMapPoc({
       onReadyRef.current?.({ ready: true, tilesLoaded: loadedCount });
     };
     const timeout = window.setTimeout(publishReady, 1_500);
-    const publishBasemapState = () => {
-      if (disposed || settledCount < rasterTiles.length) return;
-      const nextState: BasemapState =
-        failedCount === 0
-          ? "ready"
-          : loadedCount > 0
-            ? "partial"
-            : "degraded";
-      setBasemapState(nextState);
+    const promoteRasterScene = (nextState: BasemapState) => {
+      if (
+        disposed ||
+        tileSceneHandle.disposed ||
+        pendingRasterTileSceneRef.current !== tileSceneHandle
+      ) {
+        return;
+      }
+      const previousScene = displayedRasterTileSceneRef.current;
+      if (nextState === "degraded" && previousScene) {
+        pendingRasterTileSceneRef.current = null;
+        disposeRasterTileScene(tileSceneHandle);
+        rootRef.current?.setAttribute(
+          "data-poc-raster-swap",
+          "retained-after-failure",
+        );
+        rootRef.current?.setAttribute(
+          "data-poc-raster-visible-window",
+          previousScene.windowKey,
+        );
+        rootRef.current?.setAttribute(
+          "data-poc-raster-retained-window",
+          previousScene.windowKey,
+        );
+        requestRenderRef.current();
+        return;
+      }
+      tileMaterials.forEach(({ material, vectorCovered }) =>
+        applyThreeOsmRasterComposition(
+          material,
+          resolveThreeOsmRasterTileComposition(
+            rasterCompositionRef.current,
+            vectorCovered,
+          ),
+        ),
+      );
+      group.visible = isDebugLayerVisible(debugLayerMode, "basemap");
+      displayedRasterTileSceneRef.current = tileSceneHandle;
+      pendingRasterTileSceneRef.current = null;
+      tileGroupRef.current = group;
+      rasterTileMaterialsRef.current = tileMaterials;
+      disposeRasterTileScene(previousScene);
+      rootRef.current?.setAttribute(
+        "data-poc-raster-swap",
+        nextState,
+      );
+      rootRef.current?.setAttribute(
+        "data-poc-raster-visible-window",
+        sourceTileWindowKey,
+      );
+      rootRef.current?.setAttribute(
+        "data-poc-raster-retained-window",
+        "none",
+      );
+      rootRef.current?.setAttribute(
+        "data-poc-raster-swaps",
+        String(Number(rootRef.current?.dataset.pocRasterSwaps || 0) + 1),
+      );
       if (nextState === "ready" && routeWorkloadFitRevision >= 1) {
         const root = rootRef.current;
         if (root) {
@@ -1791,6 +1885,34 @@ export default function ThreeOsmMapPoc({
           );
         }
       }
+      requestRenderRef.current();
+    };
+    const publishBasemapState = () => {
+      if (disposed || settledCount < rasterTiles.length) return;
+      const nextState: BasemapState =
+        failedCount === 0
+          ? "ready"
+          : loadedCount > 0
+            ? "partial"
+            : "degraded";
+      setBasemapState(nextState);
+      const shouldHoldSwap =
+        debugSwapDelayMs > 0 &&
+        nextState !== "degraded" &&
+        Boolean(displayedRasterTileSceneRef.current) &&
+        displayedRasterTileSceneRef.current?.windowKey !== sourceTileWindowKey;
+      if (shouldHoldSwap) {
+        rootRef.current?.setAttribute(
+          "data-poc-raster-swap",
+          `holding-${nextState}`,
+        );
+        promoteTimeout = window.setTimeout(
+          () => promoteRasterScene(nextState),
+          debugSwapDelayMs,
+        );
+      } else {
+        promoteRasterScene(nextState);
+      }
       if (failedCount > 0) {
         retryTimeout = window.setTimeout(
           () => setTileRetryEpoch((epoch) => epoch + 1),
@@ -1799,7 +1921,6 @@ export default function ThreeOsmMapPoc({
       }
     };
 
-    const releases: Array<() => void> = [];
     const publishCacheStats = () => {
       const stats = textureCache.snapshot();
       rootRef.current?.setAttribute("data-poc-tile-cache-size", String(stats.size));
@@ -1907,21 +2028,30 @@ export default function ThreeOsmMapPoc({
       disposed = true;
       window.clearTimeout(timeout);
       window.clearTimeout(retryTimeout);
-      releases.forEach((release) => release());
-      disposeTileGroup(group);
-      if (tileGroupRef.current === group) tileGroupRef.current = null;
-      if (rasterTileMaterialsRef.current === tileMaterials) {
+      window.clearTimeout(promoteTimeout);
+      if (pendingRasterTileSceneRef.current === tileSceneHandle) {
+        pendingRasterTileSceneRef.current = null;
+        disposeRasterTileScene(tileSceneHandle);
+      } else if (displayedRasterTileSceneRef.current !== tileSceneHandle) {
+        disposeRasterTileScene(tileSceneHandle);
+      }
+      if (
+        rasterTileMaterialsRef.current === tileMaterials &&
+        displayedRasterTileSceneRef.current !== tileSceneHandle
+      ) {
         rasterTileMaterialsRef.current = [];
       }
     };
   }, [
     activeTileSource,
     contrastMode,
+    debugSwapDelayMs,
     debugLayerMode,
     rasterTiles,
     sceneCenterLat,
     sceneCenterLon,
     sourceTileCenter,
+    sourceTileWindowKey,
     sourceProjectionCenter,
     sourceTileZoom,
     theme,
@@ -1938,9 +2068,9 @@ export default function ThreeOsmMapPoc({
     const workerClient = vectorContextWorkerRef.current;
     const root = rootRef.current;
     workerClient?.cancelActive();
-    disposeObject(vectorContextGroupRef.current);
-    vectorContextGroupRef.current = null;
     if (!scene || !cache || !workerClient || !root || !vectorContextActive) {
+      disposeObject(vectorContextGroupRef.current);
+      vectorContextGroupRef.current = null;
       root?.setAttribute(
         "data-poc-vector-context",
         vectorContextEnabled ? "zoom-gated" : "disabled",
@@ -1964,6 +2094,8 @@ export default function ThreeOsmMapPoc({
     }
 
     let disposed = false;
+    let builtGroup: THREE.Group | null = null;
+    let vectorSwapTimeout = 0;
     let settled = 0;
     let failed = 0;
     let buildStarted = false;
@@ -1981,11 +2113,24 @@ export default function ThreeOsmMapPoc({
     root.dataset.pocVectorTilesLoaded = "0";
     root.dataset.pocVectorTilesFailed = "0";
     root.dataset.pocVectorWorker = "waiting-for-tiles";
+    root.dataset.pocVectorSwap = "loading";
+    root.dataset.pocVectorRetainedWindow =
+      String(vectorContextGroupRef.current?.userData.tileWindowKey || "none");
+
+    const dropRetainedVector = (reason: string) => {
+      disposeObject(vectorContextGroupRef.current);
+      vectorContextGroupRef.current = null;
+      root.dataset.pocVectorSwap = reason;
+      root.dataset.pocVectorRetainedWindow = "none";
+      root.removeAttribute("data-poc-vector-visible-window");
+      requestRenderRef.current();
+    };
 
     const finish = () => {
       if (disposed || buildStarted || settled < vectorTiles.length) return;
       buildStarted = true;
       if (!loaded.length) {
+        dropRetainedVector("degraded");
         setVectorContextState("degraded");
         root.dataset.pocVectorContext = "degraded";
         root.dataset.pocVectorWorker = "idle";
@@ -2021,41 +2166,11 @@ export default function ThreeOsmMapPoc({
             debugLayerModeRef.current,
             "vector",
           );
-          vectorContextGroupRef.current = context.group;
-          scene.add(context.group);
+          context.group.userData.tileWindowKey = sourceTileWindowKey;
+          builtGroup = context.group;
           const nextState = failed === 0 ? "ready" : "partial";
-          setVectorContextState(nextState);
-          root.dataset.pocVectorContext = nextState;
-          root.dataset.pocVectorWorker = "ready";
-          root.dataset.pocVectorWorkerMs = result.workerBuildMs.toFixed(2);
-          root.dataset.pocVectorRoundTripMs = result.roundTripMs.toFixed(2);
-          root.dataset.pocVectorMainThreadMs = (submitMs + meshMs).toFixed(2);
-          root.dataset.pocVectorTilesLoaded = String(loaded.length);
-          root.dataset.pocVectorTilesFailed = String(failed);
-          root.dataset.pocVectorTileZoom = String(vectorTileZoom);
-          root.dataset.pocVectorRoads = String(context.roadFeatures);
-          root.dataset.pocVectorRoadSegments = String(context.roadSegments);
-          root.dataset.pocVectorRoadSourcePoints = String(
-            context.roadSourcePoints,
-          );
-          root.dataset.pocVectorBuildings = String(context.buildings);
-          root.dataset.pocVectorBuildingRoofTriangles = String(
-            context.buildingRoofTriangles,
-          );
-          root.dataset.pocVectorBuildingSourcePoints = String(
-            context.buildingSourcePoints,
-          );
-          root.dataset.pocVectorSkippedFeatures = String(
-            context.skippedFeatures,
-          );
-          root.dataset.pocVectorDecodeFailures = String(
-            context.decodeFailures,
-          );
-          root.dataset.pocVectorVertices = String(context.vertexCount);
-          root.dataset.pocVectorBuildMs = (
-            performance.now() - startedAt
-          ).toFixed(2);
-          root.dataset.pocVectorLongTaskDelta = String(
+          const buildMs = (performance.now() - startedAt).toFixed(2);
+          const longTaskDelta = String(
             Math.max(
               0,
               Number(root.dataset.pocLongTaskCount || 0) -
@@ -2063,12 +2178,73 @@ export default function ThreeOsmMapPoc({
             ),
           );
           const cacheStats = cache.snapshot();
-          root.dataset.pocVectorCacheSize = String(cacheStats.size);
-          root.dataset.pocVectorCacheReady = String(cacheStats.ready);
-          requestRenderRef.current();
+          const promoteVectorContext = () => {
+            if (disposed || builtGroup !== context.group) return;
+            const previousGroup = vectorContextGroupRef.current;
+            vectorContextGroupRef.current = context.group;
+            scene.add(context.group);
+            disposeObject(previousGroup);
+            setVectorContextState(nextState);
+            root.dataset.pocVectorContext = nextState;
+            root.dataset.pocVectorWorker = "ready";
+            root.dataset.pocVectorSwap = nextState;
+            root.dataset.pocVectorVisibleWindow = sourceTileWindowKey;
+            root.dataset.pocVectorRetainedWindow = "none";
+            root.dataset.pocVectorSwaps = String(
+              Number(root.dataset.pocVectorSwaps || 0) + 1,
+            );
+            root.dataset.pocVectorWorkerMs = result.workerBuildMs.toFixed(2);
+            root.dataset.pocVectorRoundTripMs = result.roundTripMs.toFixed(2);
+            root.dataset.pocVectorMainThreadMs = (submitMs + meshMs).toFixed(2);
+            root.dataset.pocVectorTilesLoaded = String(loaded.length);
+            root.dataset.pocVectorTilesFailed = String(failed);
+            root.dataset.pocVectorTileZoom = String(vectorTileZoom);
+            root.dataset.pocVectorRoads = String(context.roadFeatures);
+            root.dataset.pocVectorRoadSegments = String(context.roadSegments);
+            root.dataset.pocVectorRoadSourcePoints = String(
+              context.roadSourcePoints,
+            );
+            root.dataset.pocVectorBuildings = String(context.buildings);
+            root.dataset.pocVectorBuildingRoofTriangles = String(
+              context.buildingRoofTriangles,
+            );
+            root.dataset.pocVectorBuildingSourcePoints = String(
+              context.buildingSourcePoints,
+            );
+            root.dataset.pocVectorSkippedFeatures = String(
+              context.skippedFeatures,
+            );
+            root.dataset.pocVectorDecodeFailures = String(
+              context.decodeFailures,
+            );
+            root.dataset.pocVectorVertices = String(context.vertexCount);
+            root.dataset.pocVectorBuildMs = buildMs;
+            root.dataset.pocVectorLongTaskDelta = longTaskDelta;
+            root.dataset.pocVectorCacheSize = String(cacheStats.size);
+            root.dataset.pocVectorCacheReady = String(cacheStats.ready);
+            requestRenderRef.current();
+          };
+          const retainedWindow = String(
+            vectorContextGroupRef.current?.userData.tileWindowKey || "none",
+          );
+          if (
+            debugSwapDelayMs > 0 &&
+            retainedWindow !== "none" &&
+            retainedWindow !== sourceTileWindowKey
+          ) {
+            root.dataset.pocVectorSwap = `holding-${nextState}`;
+            root.dataset.pocVectorWorker = "ready-holding";
+            vectorSwapTimeout = window.setTimeout(
+              promoteVectorContext,
+              debugSwapDelayMs,
+            );
+          } else {
+            promoteVectorContext();
+          }
         },
         (error) => {
           if (disposed || error?.name === "AbortError") return;
+          dropRetainedVector("error");
           setVectorContextState("degraded");
           root.dataset.pocVectorContext = "degraded";
           root.dataset.pocVectorWorker = "error";
@@ -2123,12 +2299,16 @@ export default function ThreeOsmMapPoc({
     return () => {
       disposed = true;
       workerClient.cancelActive();
+      window.clearTimeout(vectorSwapTimeout);
       releases.forEach((release) => release());
-      disposeObject(vectorContextGroupRef.current);
-      vectorContextGroupRef.current = null;
+      if (builtGroup && vectorContextGroupRef.current !== builtGroup) {
+        disposeObject(builtGroup);
+      }
     };
   }, [
+    debugSwapDelayMs,
     sceneCenterLat,
+    sourceTileWindowKey,
     theme,
     tileCenter,
     tileZoom,
@@ -3215,6 +3395,7 @@ export default function ThreeOsmMapPoc({
       data-poc-locale={locale}
       data-poc-mode={viewMode}
       data-poc-debug={debugEnabled ? "true" : "false"}
+      data-poc-swap-delay-ms={debugSwapDelayMs}
       data-poc-debug-layer={debugLayerMode}
       data-poc-soak={debugEnabled && soakModeSwitches > 0 ? "running" : "idle"}
       data-poc-soak-mode-switches={soakModeSwitches}
