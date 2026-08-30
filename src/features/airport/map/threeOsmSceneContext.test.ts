@@ -182,6 +182,11 @@ assert.ok(
 );
 assert.ok(context.group.getObjectByName("three-osm-airspace-terminal-controlled"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
+assert.ok(context.group.getObjectByName("three-osm-selected-airspace-curtain"));
+assert.ok(
+  context.group.getObjectByName("three-osm-selected-airspace-upper-boundary"),
+);
+assert.ok(context.group.getObjectByName("three-osm-selected-airspace-posts"));
 assert.ok(context.group.getObjectByName("three-osm-runway-halo"));
 assert.ok(context.group.getObjectByName("three-osm-runway-surfaces"));
 assert.ok(context.group.getObjectByName("three-osm-runway-approach-lines"));
@@ -217,6 +222,13 @@ assert.deepEqual(airspaceDiagnostics, {
     advisory: 0,
   },
   featuresByAltitudeBand: { surface: 0, low: 1, high: 0 },
+  selectedVolumes: 1,
+  selectedVolumeTriangles: 4,
+  selectedVolumePosts: 2,
+  selectedCueHeightWorld: 14 + Math.log2(11) * 8,
+  nearbyVerticalCues: 0,
+  nearbyCueSegments: 0,
+  nearbyCueBatches: 0,
 });
 assert.deepEqual(
   resolveThreeOsmAirspaceHitIds([

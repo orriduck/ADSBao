@@ -23,6 +23,7 @@ const prepared = buildThreeOsmAirspaceGeometry({
       classLabel: "B",
       accessLevel: "controlled",
       lowerLimit: { value: 2000, unit: 1, referenceDatum: 1 },
+      upperLimit: { value: 7000, unit: 1, referenceDatum: 1 },
       verticalLimit: "2000 ft MSL - 7000 ft MSL",
     },
     geometry: { type: "Polygon", coordinates: [denseRing] },
@@ -50,6 +51,14 @@ assert.equal(
   prepared.featuresById["bos-class-b"].label,
   "BOSTON CLASS B · B · 2000 ft MSL - 7000 ft MSL",
 );
+assert.equal(prepared.featuresById["bos-class-b"].lowerAltitudeFt, 2000);
+assert.equal(prepared.featuresById["bos-class-b"].upperAltitudeFt, 7000);
+assert.ok(prepared.featuresById["bos-class-b"].cueHeightWorld > 40);
+assert.ok(
+  prepared.featuresById["bos-class-b"].labelPosition.y >
+  prepared.featuresById["bos-class-b"].cueTopY,
+);
+assert.ok(Number.isFinite(prepared.featuresById["bos-class-b"].cueAnchor.x));
 
 const hidden = buildThreeOsmAirspaceGeometry({
   airspaceFeatures: [],

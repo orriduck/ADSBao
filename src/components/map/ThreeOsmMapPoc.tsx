@@ -1072,6 +1072,20 @@ export default function ThreeOsmMapPoc({
       }),
     [airspaceFeatures, sceneCenterLat, showAirspaces, tileCenter, tileZoom],
   );
+  const debugAirspaceTargets = useMemo(
+    () =>
+      Object.values(preparedAirspaceGeometry.featuresById)
+        .filter((feature) => feature.cueHeightWorld > 0)
+        .sort(
+          (left, right) =>
+            left.cueAnchor.x ** 2 + left.cueAnchor.z ** 2 -
+            (right.cueAnchor.x ** 2 + right.cueAnchor.z ** 2),
+        )
+        .slice(0, 8),
+    [preparedAirspaceGeometry],
+  );
+  const selectedDebugAirspace =
+    preparedAirspaceGeometry.featuresById[selectedAirspaceId] || null;
   const accessibleAircraft = useMemo(
     () =>
       visibleAircraft.flatMap((item) => {
@@ -2795,6 +2809,34 @@ export default function ThreeOsmMapPoc({
       "data-poc-airspace-batches",
       String(contextScene.airspaceDiagnostics.batches),
     );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-selected-volumes",
+      String(contextScene.airspaceDiagnostics.selectedVolumes),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-volume-triangles",
+      String(contextScene.airspaceDiagnostics.selectedVolumeTriangles),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-volume-posts",
+      String(contextScene.airspaceDiagnostics.selectedVolumePosts),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-cue-height-world",
+      contextScene.airspaceDiagnostics.selectedCueHeightWorld.toFixed(2),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-nearby-cues",
+      String(contextScene.airspaceDiagnostics.nearbyVerticalCues),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-nearby-cue-segments",
+      String(contextScene.airspaceDiagnostics.nearbyCueSegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-nearby-cue-batches",
+      String(contextScene.airspaceDiagnostics.nearbyCueBatches),
+    );
     for (const [tier, count] of Object.entries(
       contextScene.airspaceDiagnostics.featuresByTier,
     )) {
@@ -3734,6 +3776,88 @@ export default function ThreeOsmMapPoc({
     requestRenderRef.current();
   };
 
+  const handleDebugFrameSelectedAirspace = () => {
+    const camera = activeCameraRef.current;
+    const controls = controlsRef.current;
+    const root = rootRef.current;
+    const feature = selectedDebugAirspace;
+    if (root) {
+      root.dataset.pocAirspaceFrameDebugRequests = String(
+        Number(root.dataset.pocAirspaceFrameDebugRequests || 0) + 1,
+      );
+    }
+    if (!camera || !controls) {
+      if (root) root.dataset.pocAirspaceFrameDebugResult = "runtime-unavailable";
+      return;
+    }
+    if (!feature?.positions.length) {
+      if (root) root.dataset.pocAirspaceFrameDebugResult = "feature-unavailable";
+      return;
+    }
+    let nearestSegment: number[] | null = null;
+    let nearestDistanceSquared = Infinity;
+    for (let index = 0; index < feature.positions.length; index += 6) {
+      const segment = feature.positions.slice(index, index + 6);
+      if (segment.length < 6 || !segment.every(Number.isFinite)) continue;
+      const midpointX = (segment[0] + segment[3]) / 2;
+      const midpointZ = (segment[2] + segment[5]) / 2;
+      const distanceSquared = midpointX ** 2 + midpointZ ** 2;
+      if (distanceSquared >= nearestDistanceSquared) continue;
+      nearestDistanceSquared = distanceSquared;
+      nearestSegment = segment;
+    }
+    if (!nearestSegment) {
+      if (root) root.dataset.pocAirspaceFrameDebugResult = "invalid-bounds";
+      return;
+    }
+    const segmentLength = Math.hypot(
+      nearestSegment[3] - nearestSegment[0],
+      nearestSegment[5] - nearestSegment[2],
+    );
+    const target = new THREE.Vector3(
+      (nearestSegment[0] + nearestSegment[3]) / 2,
+      feature.lowerY + feature.cueHeightWorld * 0.45,
+      (nearestSegment[2] + nearestSegment[5]) / 2,
+    );
+    const frameSpan = Math.max(
+      72,
+      Math.min(220, segmentLength * 12),
+      feature.cueHeightWorld * 3,
+    );
+    if (camera instanceof THREE.OrthographicCamera) {
+      const offset = camera.position.clone().sub(controls.target);
+      camera.zoom = THREE.MathUtils.clamp(
+        ((camera.top - camera.bottom) * 0.72) / frameSpan,
+        controls.minZoom,
+        controls.maxZoom,
+      );
+      camera.position.copy(target).add(offset);
+      camera.updateProjectionMatrix();
+    } else if (camera instanceof THREE.PerspectiveCamera) {
+      const distance = THREE.MathUtils.clamp(
+        (frameSpan * 0.7) /
+          Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)),
+        controls.minDistance,
+        controls.maxDistance,
+      );
+      camera.position.copy(target).add(
+        new THREE.Vector3(0.7, 0.55, 0.7)
+          .normalize()
+          .multiplyScalar(distance),
+      );
+      camera.updateProjectionMatrix();
+    }
+    controls.target.copy(target);
+    controls.update();
+    controls.dispatchEvent({ type: "end" });
+    if (root) {
+      root.dataset.pocAirspaceFrameDebugId = feature.id;
+      root.dataset.pocAirspaceFrameDebugResult = "framed-nearest-boundary";
+      root.dataset.pocAirspaceFrameDebugSpan = frameSpan.toFixed(2);
+    }
+    requestRenderRef.current();
+  };
+
   return (
     <div
       ref={rootRef}
@@ -3951,6 +4075,16 @@ export default function ThreeOsmMapPoc({
             >
               {t("map.poc.simulateGpuReset")}
             </button>
+            {selectedDebugAirspace ? (
+              <button
+                type="button"
+                className="border border-white/35 bg-white/10 px-2 py-1 text-[9px] text-white hover:bg-white/20"
+                aria-label="Frame selected airspace volume"
+                onClick={handleDebugFrameSelectedAirspace}
+              >
+                Frame A/S
+              </button>
+            ) : null}
             {acceptanceEnabled && acceptanceRecorder.evaluation ? (
               <div
                 className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1"
@@ -4150,6 +4284,31 @@ export default function ThreeOsmMapPoc({
                     }}
                   >
                     {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {!acceptanceEnabled &&
+            (debugLayerMode === "all" || debugLayerMode === "context") &&
+            debugAirspaceTargets.length &&
+            typeof onSelectAirspace === "function" ? (
+              <div className="flex w-full flex-wrap gap-1 border-t border-white/15 pt-1">
+                {debugAirspaceTargets.map((feature, index) => (
+                  <button
+                    key={feature.id}
+                    type="button"
+                    className="border border-white/30 px-1.5 py-0.5 text-[9px] text-white data-[selected=true]:border-[#f5c542] data-[selected=true]:text-[#f5c542]"
+                    data-poc-debug-airspace-id={feature.id}
+                    data-selected={feature.id === selectedAirspaceId}
+                    aria-label={`Select airspace volume: ${feature.label}`}
+                    onClick={() => {
+                      if (rootRef.current) {
+                        rootRef.current.dataset.pocLastDebugAirspace = feature.id;
+                      }
+                      onSelectAirspace(feature.id);
+                    }}
+                  >
+                    A/S {index + 1}
                   </button>
                 ))}
               </div>

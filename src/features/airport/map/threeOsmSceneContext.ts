@@ -22,6 +22,10 @@ import {
   buildThreeOsmAirspaceGeometry,
   type ThreeOsmPreparedAirspaceGeometry,
 } from "./threeOsmAirspaceGeometry";
+import {
+  buildThreeOsmNearbyAirspaceCueGeometry,
+  buildThreeOsmSelectedAirspaceVolumeGeometry,
+} from "./threeOsmAirspaceVolume";
 
 export { collectAirspaceLineCoordinates } from "./threeOsmAirspaceGeometry";
 
@@ -508,6 +512,34 @@ export function createThreeOsmContextScene({
     airspaceHitObjects.push(airspaceLines);
   }
   const selectedAirspace = preparedAirspaces.featuresById[selectedAirspaceId];
+  const nearbyAirspaceCues = buildThreeOsmNearbyAirspaceCueGeometry({
+    prepared: preparedAirspaces,
+    selectedAirspaceId,
+  });
+  let nearbyAirspaceCueBatches = 0;
+  for (const tier of THREE_OSM_AIRSPACE_TIERS) {
+    const cuePositions = nearbyAirspaceCues.positionsByTier[tier];
+    if (!cuePositions.length) continue;
+    const cueGeometry = new THREE.BufferGeometry();
+    cueGeometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(cuePositions, 3),
+    );
+    const cueLines = new THREE.LineSegments(
+      cueGeometry,
+      new THREE.LineBasicMaterial({
+        color: airspaceColors[tier],
+        opacity: Math.max(0.5, palette.lineOpacity),
+        transparent: true,
+      }),
+    );
+    cueLines.name = `three-osm-nearby-airspace-cues-${tier}`;
+    cueLines.renderOrder = 46;
+    group.add(cueLines);
+    nearbyAirspaceCueBatches += 1;
+  }
+  const selectedAirspaceVolume =
+    buildThreeOsmSelectedAirspaceVolumeGeometry(selectedAirspace);
   if (selectedAirspace?.positions.length) {
     const selectedAirspaceSegments = selectedAirspace.positions.map(
       (value, index) => index % 3 === 1 ? value + 1.6 : value,
@@ -528,6 +560,72 @@ export function createThreeOsmContextScene({
     selectedLines.name = "three-osm-selected-airspace-boundary";
     selectedLines.renderOrder = 46;
     group.add(selectedLines);
+    if (selectedAirspaceVolume.curtainPositions.length) {
+      const curtainGeometry = new THREE.BufferGeometry();
+      curtainGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(
+          selectedAirspaceVolume.curtainPositions,
+          3,
+        ),
+      );
+      const curtain = new THREE.Mesh(
+        curtainGeometry,
+        new THREE.MeshBasicMaterial({
+          color: palette.selectedAirspace,
+          opacity: contrastMode === "standard" ? 0.09 : 0.16,
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        }),
+      );
+      curtain.name = "three-osm-selected-airspace-curtain";
+      curtain.renderOrder = 45;
+      group.add(curtain);
+
+      const upperGeometry = new THREE.BufferGeometry();
+      upperGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(
+          selectedAirspaceVolume.topPositions,
+          3,
+        ),
+      );
+      const upperLines = new THREE.LineSegments(
+        upperGeometry,
+        new THREE.LineBasicMaterial({
+          color: palette.selectedAirspace,
+          opacity: 0.92,
+          transparent: true,
+        }),
+      );
+      upperLines.name = "three-osm-selected-airspace-upper-boundary";
+      upperLines.renderOrder = 47;
+      group.add(upperLines);
+
+      const postGeometry = new THREE.BufferGeometry();
+      postGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(
+          selectedAirspaceVolume.postPositions,
+          3,
+        ),
+      );
+      const posts = new THREE.LineSegments(
+        postGeometry,
+        new THREE.LineDashedMaterial({
+          color: palette.selectedAirspace,
+          opacity: 0.7,
+          transparent: true,
+          dashSize: 3,
+          gapSize: 2,
+        }),
+      );
+      posts.computeLineDistances();
+      posts.name = "three-osm-selected-airspace-posts";
+      posts.renderOrder = 47;
+      group.add(posts);
+    }
     labels.push({
       id: `airspace:${selectedAirspace.id}`,
       text: selectedAirspace.label,
@@ -689,6 +787,13 @@ export function createThreeOsmContextScene({
       simplificationTolerance: preparedAirspaces.simplificationTolerance,
       featuresByTier: preparedAirspaces.featuresByTier,
       featuresByAltitudeBand: preparedAirspaces.featuresByAltitudeBand,
+      selectedVolumes: selectedAirspaceVolume.triangles > 0 ? 1 : 0,
+      selectedVolumeTriangles: selectedAirspaceVolume.triangles,
+      selectedVolumePosts: selectedAirspaceVolume.posts,
+      selectedCueHeightWorld: selectedAirspace?.cueHeightWorld || 0,
+      nearbyVerticalCues: nearbyAirspaceCues.features,
+      nearbyCueSegments: nearbyAirspaceCues.segments,
+      nearbyCueBatches: nearbyAirspaceCueBatches,
     },
     runwayDiagnostics: {
       segments: runwayScene.segmentCount,

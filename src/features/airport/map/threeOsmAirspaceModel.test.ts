@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import {
   resolveThreeOsmAirspaceAltitudeBand,
+  resolveThreeOsmAirspaceCueHeightWorld,
   resolveThreeOsmAirspaceLowerAltitudeFt,
   resolveThreeOsmAirspaceSimplificationTolerance,
   resolveThreeOsmAirspaceTier,
+  resolveThreeOsmAirspaceUpperAltitudeFt,
   simplifyThreeOsmAirspaceRing,
 } from "./threeOsmAirspaceModel";
 
@@ -57,6 +59,21 @@ assert.equal(
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(0), "surface");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(2_000), "low");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(3_000), "high");
+
+assert.equal(
+  resolveThreeOsmAirspaceUpperAltitudeFt({
+    upperLimit: { value: 7_000, unit: 1 },
+  }),
+  7_000,
+);
+assert.equal(
+  resolveThreeOsmAirspaceUpperAltitudeFt({ upperLimitLabel: "FL 85" }),
+  8_500,
+);
+assert.equal(resolveThreeOsmAirspaceUpperAltitudeFt({}), null);
+assert.equal(resolveThreeOsmAirspaceCueHeightWorld(0, 500), 22);
+assert.equal(resolveThreeOsmAirspaceCueHeightWorld(2_000, 2_000), 0);
+assert.equal(resolveThreeOsmAirspaceCueHeightWorld(0, 60_000), 64);
 
 assert.equal(resolveThreeOsmAirspaceSimplificationTolerance(10), 0.75);
 assert.equal(resolveThreeOsmAirspaceSimplificationTolerance(12), 0.35);

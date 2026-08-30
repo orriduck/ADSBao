@@ -1,9 +1,11 @@
 import {
   THREE_OSM_AIRSPACE_TIERS,
   resolveThreeOsmAirspaceAltitudeBand,
+  resolveThreeOsmAirspaceCueHeightWorld,
   resolveThreeOsmAirspaceLowerAltitudeFt,
   resolveThreeOsmAirspaceSimplificationTolerance,
   resolveThreeOsmAirspaceTier,
+  resolveThreeOsmAirspaceUpperAltitudeFt,
   simplifyThreeOsmAirspaceRing,
   type ThreeOsmAirspaceAltitudeBand,
   type ThreeOsmAirspaceTier,
@@ -17,7 +19,14 @@ import {
 export type ThreeOsmPreparedAirspaceFeature = {
   id: string;
   label: string;
+  tier: ThreeOsmAirspaceTier;
   positions: number[];
+  lowerAltitudeFt: number;
+  upperAltitudeFt: number | null;
+  lowerY: number;
+  cueTopY: number;
+  cueHeightWorld: number;
+  cueAnchor: { x: number; y: number; z: number };
   labelPosition: { x: number; y: number; z: number };
 };
 
@@ -99,6 +108,13 @@ export function buildThreeOsmAirspaceGeometry({
       const lowerAltitudeFt = resolveThreeOsmAirspaceLowerAltitudeFt(
         feature?.properties,
       );
+      const upperAltitudeFt = resolveThreeOsmAirspaceUpperAltitudeFt(
+        feature?.properties,
+      );
+      const cueHeightWorld = resolveThreeOsmAirspaceCueHeightWorld(
+        lowerAltitudeFt,
+        upperAltitudeFt,
+      );
       const altitudeBand = resolveThreeOsmAirspaceAltitudeBand(lowerAltitudeFt);
       const featurePositions: number[] = [];
       let minX = Infinity;
@@ -106,6 +122,9 @@ export function buildThreeOsmAirspaceGeometry({
       let maxX = -Infinity;
       let maxZ = -Infinity;
       let boundaryYForFeature = 2.4;
+      let cueAnchorX = 0;
+      let cueAnchorZ = 0;
+      let cueAnchorDistanceSquared = Infinity;
 
       for (const ring of collectAirspaceLineCoordinates(feature?.geometry)) {
         type SourcePoint = {
@@ -183,6 +202,18 @@ export function buildThreeOsmAirspaceGeometry({
             minZ = Math.min(minZ, fromPoint.z, toPoint.z);
             maxX = Math.max(maxX, fromPoint.x, toPoint.x);
             maxZ = Math.max(maxZ, fromPoint.z, toPoint.z);
+            const fromDistanceSquared = fromPoint.x ** 2 + fromPoint.z ** 2;
+            if (fromDistanceSquared < cueAnchorDistanceSquared) {
+              cueAnchorDistanceSquared = fromDistanceSquared;
+              cueAnchorX = fromPoint.x;
+              cueAnchorZ = fromPoint.z;
+            }
+            const toDistanceSquared = toPoint.x ** 2 + toPoint.z ** 2;
+            if (toDistanceSquared < cueAnchorDistanceSquared) {
+              cueAnchorDistanceSquared = toDistanceSquared;
+              cueAnchorX = toPoint.x;
+              cueAnchorZ = toPoint.z;
+            }
           }
         }
       }
@@ -198,13 +229,25 @@ export function buildThreeOsmAirspaceGeometry({
         feature?.properties?.verticalLimit || "",
       ).trim();
       const metadata = [classLabel, verticalLimit].filter(Boolean).join(" · ");
+      const cueTopY = boundaryYForFeature + cueHeightWorld;
       featuresById[featureId] = {
         id: featureId,
         label: metadata ? `${name} · ${metadata}` : name,
+        tier,
         positions: featurePositions,
+        lowerAltitudeFt,
+        upperAltitudeFt,
+        lowerY: boundaryYForFeature,
+        cueTopY,
+        cueHeightWorld,
+        cueAnchor: {
+          x: cueAnchorX,
+          y: boundaryYForFeature,
+          z: cueAnchorZ,
+        },
         labelPosition: {
           x: (minX + maxX) / 2,
-          y: boundaryYForFeature + 5.6,
+          y: (cueHeightWorld > 0 ? cueTopY : boundaryYForFeature) + 5.6,
           z: (minZ + maxZ) / 2,
         },
       };

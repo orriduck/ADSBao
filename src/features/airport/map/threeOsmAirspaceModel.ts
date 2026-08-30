@@ -65,6 +65,34 @@ export function resolveThreeOsmAirspaceLowerAltitudeFt(
   return Math.min(60_000, Math.max(0, Number(altitudeFt)));
 }
 
+export function resolveThreeOsmAirspaceUpperAltitudeFt(
+  properties: Record<string, any> = {},
+) {
+  const altitudeFt =
+    rawLimitAltitudeFt(properties.upperLimit) ??
+    labelAltitudeFt(properties.upperLimitLabel);
+  if (!Number.isFinite(altitudeFt)) return null;
+  return Math.min(60_000, Math.max(0, Number(altitudeFt)));
+}
+
+export function resolveThreeOsmAirspaceCueHeightWorld(
+  lowerAltitudeFt: unknown,
+  upperAltitudeFt: unknown,
+) {
+  const lower = Number(lowerAltitudeFt);
+  const upper = Number(upperAltitudeFt);
+  if (!Number.isFinite(lower) || !Number.isFinite(upper) || upper <= lower) {
+    return 0;
+  }
+  const verticalSpanFt = upper - lower;
+  // This is a bounded semantic cue, not a second physical altitude scale.
+  // The full lower/upper values remain visible in the selected-airspace label.
+  return Math.min(
+    64,
+    Math.max(14, 14 + Math.log2(1 + verticalSpanFt / 500) * 8),
+  );
+}
+
 export function resolveThreeOsmAirspaceAltitudeBand(
   altitudeFt: unknown,
 ): ThreeOsmAirspaceAltitudeBand {
