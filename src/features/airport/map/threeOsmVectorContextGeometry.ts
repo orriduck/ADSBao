@@ -24,6 +24,7 @@ import {
   isThreeOsmVectorRoadClassVisible,
   isThreeOsmVectorSurfaceKindVisible,
   resolveThreeOsmVectorSemanticLod,
+  resolveThreeOsmVectorTileSemanticZoom,
   type ThreeOsmVectorSemanticLodId,
 } from "./threeOsmVectorSemanticLod";
 import {
@@ -34,6 +35,7 @@ import {
 export type ThreeOsmVectorTilePayload = {
   tile: TileCoordinate;
   data: ArrayBuffer;
+  contextOnly: boolean;
 };
 
 export type ThreeOsmVectorContextDiagnostics = {
@@ -552,6 +554,11 @@ export function buildThreeOsmVectorContextGeometry({
     }),
   };
   for (const payload of tiles) {
+    const tileSemanticZoom = resolveThreeOsmVectorTileSemanticZoom({
+      sourceZoom,
+      contextOnly: payload.contextOnly,
+    });
+    const tileSemanticLod = resolveThreeOsmVectorSemanticLod(tileSemanticZoom);
     let vectorTile: VectorTile;
     try {
       vectorTile = new VectorTile(new PbfReader(payload.data));
@@ -569,7 +576,12 @@ export function buildThreeOsmVectorContextGeometry({
           .toLowerCase();
         const tier = classifyThreeOsmRoadTier(className);
         if (!tier) continue;
-        if (!isThreeOsmVectorRoadClassVisible({ className, lod: semanticLod })) {
+        if (
+          !isThreeOsmVectorRoadClassVisible({
+            className,
+            lod: tileSemanticLod,
+          })
+        ) {
           diagnostics.semanticLodSkippedFeatures += 1;
           continue;
         }
@@ -649,7 +661,12 @@ export function buildThreeOsmVectorContextGeometry({
           geometryType: feature.type,
         });
         if (!kind) continue;
-        if (!isThreeOsmVectorSurfaceKindVisible({ kind, lod: semanticLod })) {
+        if (
+          !isThreeOsmVectorSurfaceKindVisible({
+            kind,
+            lod: tileSemanticLod,
+          })
+        ) {
           diagnostics.semanticLodSkippedFeatures += 1;
           continue;
         }
@@ -762,7 +779,7 @@ export function buildThreeOsmVectorContextGeometry({
           !isThreeOsmVectorLabelClassVisible({
             kind,
             className,
-            sourceZoom,
+            sourceZoom: tileSemanticZoom,
           })
         ) {
           continue;
@@ -812,7 +829,7 @@ export function buildThreeOsmVectorContextGeometry({
       }
     }
 
-    if (!semanticLod.showBuildings) continue;
+    if (!tileSemanticLod.showBuildings) continue;
     const buildingLayer = vectorTile.layers.building;
     if (!buildingLayer) continue;
     for (let index = 0; index < buildingLayer.length; index += 1) {

@@ -1,3 +1,5 @@
+import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";
+
 export type ThreeOsmVectorSemanticLodId =
   | "overview"
   | "regional"
@@ -89,19 +91,13 @@ export function isThreeOsmVectorSurfaceKindVisible({
   return lod.surfaceKinds.includes(kind);
 }
 
-export function resolveThreeOsmVectorTileWindow({
+export function resolveThreeOsmVectorTileSemanticZoom({
   sourceZoom,
-  rasterWindow,
+  contextOnly,
 }: {
   sourceZoom: number;
-  rasterWindow: ThreeOsmTileWindow;
+  contextOnly: boolean;
 }) {
-  return sourceZoom <= 11
-    ? rasterWindow
-    : constrainThreeOsmTileWindow(rasterWindow, 1);
+  const zoom = Math.round(Number(sourceZoom) || 10);
+  return contextOnly ? Math.max(10, Math.min(zoom - 1, 12)) : zoom;
 }
-import type { ThreeOsmVectorSurfaceKind } from "./threeOsmVectorSurfaceModel";
-import {
-  constrainThreeOsmTileWindow,
-  type ThreeOsmTileWindow,
-} from "./threeOsmTileWindow";

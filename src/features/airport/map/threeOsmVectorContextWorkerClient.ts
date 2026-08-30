@@ -61,6 +61,7 @@ export class ThreeOsmVectorContextWorkerClient {
     const tiles = input.tiles.map((payload) => ({
       tile: payload.tile,
       data: payload.data.slice(0),
+      contextOnly: payload.contextOnly,
     }));
     const request: ThreeOsmVectorContextWorkerRequest = {
       type: "build",

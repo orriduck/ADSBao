@@ -44,7 +44,13 @@ const client = new ThreeOsmVectorContextWorkerClient(
 );
 const sourceBuffer = new Uint8Array([1, 2, 3]).buffer;
 const resultPromise = client.build({
-  tiles: [{ tile: { z: 13, x: 2480, y: 3029 }, data: sourceBuffer }],
+  tiles: [
+    {
+      tile: { z: 13, x: 2480, y: 3029 },
+      data: sourceBuffer,
+      contextOnly: true,
+    },
+  ],
   tileCenter: { z: 13, x: 2480.2, y: 3029.7 },
   centerLat: 42.3656,
   sceneZoom: 13,
@@ -54,6 +60,7 @@ const resultPromise = client.build({
 const firstWorker = workers[0];
 assert.equal(firstWorker.posted?.type, "build");
 assert.notEqual(firstWorker.posted?.input.tiles[0].data, sourceBuffer);
+assert.equal(firstWorker.posted?.input.tiles[0].contextOnly, true);
 assert.equal(sourceBuffer.byteLength, 3);
 assert.equal(firstWorker.transfers.length, 1);
 firstWorker.respond({

@@ -3,9 +3,8 @@ import {
   isThreeOsmVectorRoadClassVisible,
   isThreeOsmVectorSurfaceKindVisible,
   resolveThreeOsmVectorSemanticLod,
-  resolveThreeOsmVectorTileWindow,
+  resolveThreeOsmVectorTileSemanticZoom,
 } from "./threeOsmVectorSemanticLod";
-import { createThreeOsmSquareTileWindow } from "./threeOsmTileWindow";
 
 const overview = resolveThreeOsmVectorSemanticLod(10);
 assert.equal(overview.id, "overview");
@@ -76,18 +75,17 @@ assert.equal(
   true,
 );
 
-const rasterWindow = createThreeOsmSquareTileWindow(2);
 assert.equal(
-  resolveThreeOsmVectorTileWindow({ sourceZoom: 10, rasterWindow }),
-  rasterWindow,
+  resolveThreeOsmVectorTileSemanticZoom({ sourceZoom: 12, contextOnly: true }),
+  11,
 );
 assert.equal(
-  resolveThreeOsmVectorTileWindow({ sourceZoom: 11, rasterWindow }),
-  rasterWindow,
+  resolveThreeOsmVectorTileSemanticZoom({ sourceZoom: 14, contextOnly: true }),
+  12,
 );
-assert.deepEqual(
-  resolveThreeOsmVectorTileWindow({ sourceZoom: 12, rasterWindow }),
-  createThreeOsmSquareTileWindow(1),
+assert.equal(
+  resolveThreeOsmVectorTileSemanticZoom({ sourceZoom: 14, contextOnly: false }),
+  14,
 );
 
 console.log("threeOsmVectorSemanticLod.test.ts ok");

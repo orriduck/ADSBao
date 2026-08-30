@@ -86,6 +86,7 @@ import {
 } from "@/features/airport/map/threeOsmProjection";
 import {
   buildThreeOsmTileWindowGrid,
+  constrainThreeOsmTileWindow,
   doesThreeOsmTileWindowCoverViewport,
   retainThreeOsmTileWindowSnapshot,
   resolveThreeOsmViewportTileWindow,
@@ -146,9 +147,6 @@ import {
   buildOpenFreeMapVectorTileUrl,
   openFreeMapVectorSourceClient,
 } from "@/features/airport/map/threeOsmVectorTileSource";
-import {
-  resolveThreeOsmVectorTileWindow,
-} from "@/features/airport/map/threeOsmVectorSemanticLod";
 import {
   resolveThreeOsmSceneSemanticLod,
   resolveThreeOsmSceneVectorLabelBudget,
@@ -1250,13 +1248,23 @@ export default function ThreeOsmMapPoc({
   );
   const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
   const vectorTileCenter = rasterTileCenter;
-  const vectorTileWindow = useMemo(
+  const vectorTileWindow = rasterTileWindow;
+  const vectorDetailTileWindow = useMemo(
     () =>
-      resolveThreeOsmVectorTileWindow({
-        sourceZoom: vectorTileZoom,
-        rasterWindow: rasterTileWindow,
-      }),
-    [rasterTileWindow, vectorTileZoom],
+      vectorTileZoom >= 12
+        ? constrainThreeOsmTileWindow(vectorTileWindow, 1)
+        : vectorTileWindow,
+    [vectorTileWindow, vectorTileZoom],
+  );
+  const vectorDetailTileKeys = useMemo(
+    () =>
+      new Set(
+        buildThreeOsmTileWindowGrid({
+          center: vectorTileCenter,
+          window: vectorDetailTileWindow,
+        }).map((tile) => `${tile.z}/${tile.x}/${tile.y}`),
+      ),
+    [vectorDetailTileWindow, vectorTileCenter],
   );
   const vectorTileWindowKey = `${sourceTileBaseWindowKey}/w${vectorTileWindow.key}`;
   const vectorTiles = useMemo(
@@ -2792,6 +2800,8 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-road-local", "0");
       root?.setAttribute("data-poc-vector-road-service", "0");
       root?.setAttribute("data-poc-vector-tile-window", "0x0");
+      root?.setAttribute("data-poc-vector-detail-tile-window", "0x0");
+      root?.setAttribute("data-poc-vector-context-only-tiles", "0");
       root?.setAttribute("data-poc-vector-semantic-lod", "disabled");
       root?.setAttribute("data-poc-vector-semantic-skipped-features", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
@@ -2954,6 +2964,10 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorTilesFailed = String(failed);
             root.dataset.pocVectorTileZoom = String(vectorTileZoom);
             root.dataset.pocVectorTileWindow = `${vectorTileWindow.columns}x${vectorTileWindow.rows}`;
+            root.dataset.pocVectorDetailTileWindow = `${vectorDetailTileWindow.columns}x${vectorDetailTileWindow.rows}`;
+            root.dataset.pocVectorContextOnlyTiles = String(
+              loaded.filter((payload) => payload.contextOnly).length,
+            );
             root.dataset.pocVectorExcludedAirportCodes = String(
               vectorExcludedAirportCodes.length,
             );
@@ -3077,7 +3091,11 @@ export default function ThreeOsmMapPoc({
     };
     const settleReady = (tile: TileCoordinate, data: ArrayBuffer) => {
       if (disposed) return;
-      loaded.push({ tile, data });
+      loaded.push({
+        tile,
+        data,
+        contextOnly: !vectorDetailTileKeys.has(`${tile.z}/${tile.x}/${tile.y}`),
+      });
       settled += 1;
       root.dataset.pocVectorTilesLoaded = String(loaded.length);
       finish();
@@ -3139,6 +3157,8 @@ export default function ThreeOsmMapPoc({
     vectorLabelFocusX,
     vectorLabelFocusZ,
     vectorTileTemplate,
+    vectorDetailTileKeys,
+    vectorDetailTileWindow,
     vectorTileWindow,
     vectorTileZoom,
     vectorTiles,
