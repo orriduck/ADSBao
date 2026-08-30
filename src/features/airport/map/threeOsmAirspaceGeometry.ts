@@ -1,6 +1,7 @@
 import {
   THREE_OSM_AIRSPACE_TIERS,
   resolveThreeOsmAirspaceAltitudeBand,
+  resolveThreeOsmAirspaceContextLabel,
   resolveThreeOsmAirspaceCueHeightWorld,
   resolveThreeOsmAirspaceLowerAltitudeFt,
   resolveThreeOsmAirspaceSimplificationTolerance,
@@ -17,15 +18,19 @@ import {
 } from "./threeOsmProjection";
 
 export type ThreeOsmPreparedAirspaceFeature = {
+  key: string;
   id: string;
   label: string;
+  contextLabel: string;
   tier: ThreeOsmAirspaceTier;
+  altitudeBand: ThreeOsmAirspaceAltitudeBand;
   positions: number[];
   lowerAltitudeFt: number;
   upperAltitudeFt: number | null;
   lowerY: number;
   cueTopY: number;
   cueHeightWorld: number;
+  distanceFromFocusWorld: number;
   cueAnchor: { x: number; y: number; z: number };
   labelPosition: { x: number; y: number; z: number };
 };
@@ -40,6 +45,7 @@ export type ThreeOsmPreparedAirspaceGeometry = {
   segmentIdsByTier: Record<ThreeOsmAirspaceTier, string[]>;
   featuresByTier: Record<ThreeOsmAirspaceTier, number>;
   featuresByAltitudeBand: Record<ThreeOsmAirspaceAltitudeBand, number>;
+  featureList: ThreeOsmPreparedAirspaceFeature[];
   featuresById: Record<string, ThreeOsmPreparedAirspaceFeature>;
 };
 
@@ -89,6 +95,7 @@ export function buildThreeOsmAirspaceGeometry({
     high: 0,
   } satisfies Record<ThreeOsmAirspaceAltitudeBand, number>;
   const featuresById: Record<string, ThreeOsmPreparedAirspaceFeature> = {};
+  const featureList: ThreeOsmPreparedAirspaceFeature[] = [];
   const simplificationTolerance =
     resolveThreeOsmAirspaceSimplificationTolerance(zoom);
   let featureCount = 0;
@@ -102,8 +109,9 @@ export function buildThreeOsmAirspaceGeometry({
       Math.max(0.01, Math.cos((Number(centerLat) * Math.PI) / 180));
     const centerLon = (tileCenter.x / 2 ** tileCenter.z) * 360 - 180;
 
-    for (const feature of airspaceFeatures) {
+    for (const [featureIndex, feature] of airspaceFeatures.entries()) {
       const featureId = String(feature?.properties?.id || "");
+      const featureKey = featureId || `airspace-${featureIndex}`;
       const tier = resolveThreeOsmAirspaceTier(feature?.properties);
       const lowerAltitudeFt = resolveThreeOsmAirspaceLowerAltitudeFt(
         feature?.properties,
@@ -222,7 +230,6 @@ export function buildThreeOsmAirspaceGeometry({
       featureCount += 1;
       featuresByTier[tier] += 1;
       featuresByAltitudeBand[altitudeBand] += 1;
-      if (!featureId) continue;
       const name = String(feature?.properties?.name || "Airspace").trim();
       const classLabel = String(feature?.properties?.classLabel || "").trim();
       const verticalLimit = String(
@@ -230,16 +237,20 @@ export function buildThreeOsmAirspaceGeometry({
       ).trim();
       const metadata = [classLabel, verticalLimit].filter(Boolean).join(" · ");
       const cueTopY = boundaryYForFeature + cueHeightWorld;
-      featuresById[featureId] = {
+      const preparedFeature: ThreeOsmPreparedAirspaceFeature = {
+        key: featureKey,
         id: featureId,
         label: metadata ? `${name} · ${metadata}` : name,
+        contextLabel: resolveThreeOsmAirspaceContextLabel(feature?.properties),
         tier,
+        altitudeBand,
         positions: featurePositions,
         lowerAltitudeFt,
         upperAltitudeFt,
         lowerY: boundaryYForFeature,
         cueTopY,
         cueHeightWorld,
+        distanceFromFocusWorld: Math.sqrt(cueAnchorDistanceSquared),
         cueAnchor: {
           x: cueAnchorX,
           y: boundaryYForFeature,
@@ -251,6 +262,8 @@ export function buildThreeOsmAirspaceGeometry({
           z: (minZ + maxZ) / 2,
         },
       };
+      featureList.push(preparedFeature);
+      if (featureId) featuresById[featureId] = preparedFeature;
     }
   }
 
@@ -268,6 +281,7 @@ export function buildThreeOsmAirspaceGeometry({
     segmentIdsByTier,
     featuresByTier,
     featuresByAltitudeBand,
+    featureList,
     featuresById,
   };
 }

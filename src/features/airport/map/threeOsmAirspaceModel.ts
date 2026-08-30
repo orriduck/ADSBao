@@ -10,6 +10,8 @@ export type ThreeOsmAirspaceTier = (typeof THREE_OSM_AIRSPACE_TIERS)[number];
 export type ThreeOsmAirspaceAltitudeBand = "surface" | "low" | "high";
 export type ThreeOsmAirspaceWorldPoint = { x: number; z: number };
 
+const THREE_OSM_AIRSPACE_CONTEXT_LABEL_MAX_CHARACTERS = 20;
+
 const SPECIAL_USE_ACCESS_LEVELS = new Set([
   "blocked",
   "restricted",
@@ -100,6 +102,54 @@ export function resolveThreeOsmAirspaceAltitudeBand(
   if (!Number.isFinite(value) || value <= 100) return "surface";
   if (value < 3_000) return "low";
   return "high";
+}
+
+function compactAirspaceAltitudeLabel(value: unknown) {
+  const normalized = String(value || "").trim().toUpperCase();
+  if (!normalized) return "";
+  if (normalized === "SFC") return "SFC";
+  const flightLevel = normalized.match(/^FL\s*(\d+(?:\.\d+)?)/);
+  if (flightLevel) return `FL${flightLevel[1]}`;
+  const numeric = normalized.match(/(-?\d+(?:\.\d+)?)\s*(FT|M)\b/);
+  if (!numeric) return normalized.slice(0, 10);
+  const valueNumber = Number(numeric[1]);
+  const unit = numeric[2];
+  const datum = normalized.includes("AGL") ? " AGL" : "";
+  if (unit === "M") return `${Math.round(valueNumber)}M${datum}`;
+  const compactValue = Math.abs(valueNumber) >= 1_000
+    ? `${(valueNumber / 1_000).toFixed(valueNumber % 1_000 === 0 ? 0 : 1)}K`
+    : String(Math.round(valueNumber));
+  return `${compactValue}${datum}`;
+}
+
+function truncateAirspaceIdentifier(value: string) {
+  const characters = Array.from(value.trim().replace(/\s+/g, " "));
+  if (characters.length <= THREE_OSM_AIRSPACE_CONTEXT_LABEL_MAX_CHARACTERS) {
+    return characters.join("");
+  }
+  return `${characters
+    .slice(0, THREE_OSM_AIRSPACE_CONTEXT_LABEL_MAX_CHARACTERS - 1)
+    .join("")
+    .trimEnd()}…`;
+}
+
+export function resolveThreeOsmAirspaceContextLabel(
+  properties: Record<string, any> = {},
+) {
+  const name = String(properties.name || "Airspace").trim();
+  const classFromName = name.match(/\bCLASS\s+([A-Z0-9]+)/i)?.[1] || "";
+  const rawClassLabel = String(properties.classLabel || "").trim();
+  const classLabel = /unclassified|sua/i.test(rawClassLabel)
+    ? ""
+    : classFromName || rawClassLabel;
+  const baseName = name.replace(/\s+CLASS\s+[A-Z0-9]+\s*$/i, "").trim();
+  const identifier = truncateAirspaceIdentifier(
+    [baseName || name, classLabel].filter(Boolean).join(" "),
+  );
+  const lower = compactAirspaceAltitudeLabel(properties.lowerLimitLabel);
+  const upper = compactAirspaceAltitudeLabel(properties.upperLimitLabel);
+  const vertical = [lower, upper].filter(Boolean).join("–");
+  return vertical ? `${identifier} · ${vertical}` : identifier;
 }
 
 export function resolveThreeOsmAirspaceSimplificationTolerance(zoom: unknown) {

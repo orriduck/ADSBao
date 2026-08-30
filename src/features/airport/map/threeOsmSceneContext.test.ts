@@ -112,19 +112,32 @@ const context = createThreeOsmContextScene({
     },
     { key: "invalid", ident: "", lat: null, lon: null },
   ],
-  airspaceFeatures: [{
-    properties: {
-      id: "bos-class-b",
-      name: "BOSTON CLASS B",
-      classLabel: "B",
-      accessLevel: "controlled",
-      lowerLimit: { value: 2000, unit: 1, referenceDatum: 1 },
-      lowerLimitLabel: "2000 ft MSL",
-      upperLimitLabel: "7000 ft MSL",
-      verticalLimit: "2000 ft MSL - 7000 ft MSL",
+  airspaceFeatures: [
+    {
+      properties: {
+        id: "bos-class-b",
+        name: "BOSTON CLASS B",
+        classLabel: "B",
+        accessLevel: "controlled",
+        lowerLimit: { value: 2000, unit: 1, referenceDatum: 1 },
+        lowerLimitLabel: "2000 ft MSL",
+        upperLimitLabel: "7000 ft MSL",
+        verticalLimit: "2000 ft MSL - 7000 ft MSL",
+      },
+      geometry: { type: "Polygon", coordinates: [ring] },
     },
-    geometry: { type: "Polygon", coordinates: [ring] },
-  }],
+    {
+      properties: {
+        id: "bos-class-e5",
+        name: "BOSTON CLASS E5",
+        classLabel: "E",
+        accessLevel: "controlled",
+        lowerLimitLabel: "700 ft AGL",
+        upperLimitLabel: "FL 60",
+      },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    },
+  ],
   showAirspaces: true,
   navaids: [{ id: "bos-vor", ident: "BOS", lat: 42.35, lon: -70.99 }],
   navaidCounts: [],
@@ -145,12 +158,14 @@ const context = createThreeOsmContextScene({
   theme: "dark",
   contrastMode: "standard",
   selectedAirspaceId: "bos-class-b",
+  airspaceFocusLimit: 1,
+  airspaceLabelLimit: 0,
 });
 assert.deepEqual(context.counts, {
   airports: 1,
   runways: 1,
   runwayEnds: 1,
-  airspaces: 1,
+  airspaces: 2,
   selectedAirspaces: 1,
   navaids: 1,
   reportingPoints: 1,
@@ -180,7 +195,16 @@ assert.ok(
     (label) => label.kind === "runway" && label.text === "04R",
   ),
 );
-assert.ok(context.group.getObjectByName("three-osm-airspace-terminal-controlled"));
+assert.ok(
+  context.group.getObjectByName(
+    "three-osm-airspace-focus-terminal-controlled",
+  ),
+);
+assert.ok(
+  context.group.getObjectByName(
+    "three-osm-airspace-context-transition-controlled",
+  ),
+);
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-boundary"));
 assert.ok(context.group.getObjectByName("three-osm-selected-airspace-curtain"));
 assert.ok(
@@ -209,33 +233,48 @@ assert.ok(airspaceBuildMs >= 0);
 assert.ok(airspacePrepareMs >= 0);
 assert.ok(airspaceSceneMs >= 0);
 assert.deepEqual(airspaceDiagnostics, {
-  features: 1,
-  rawSegments: 2,
-  segments: 2,
-  batches: 1,
+  features: 2,
+  rawSegments: 4,
+  segments: 4,
+  batches: 2,
+  focusFeatures: 1,
+  contextFeatures: 1,
+  focusSegments: 2,
+  contextSegments: 2,
+  focusBatches: 1,
+  contextBatches: 1,
+  contextLabels: 0,
   simplificationTolerance: 0.55,
   featuresByTier: {
     "special-use": 0,
     "terminal-controlled": 1,
-    "transition-controlled": 0,
+    "transition-controlled": 1,
     "upper-controlled": 0,
     advisory: 0,
   },
-  featuresByAltitudeBand: { surface: 0, low: 1, high: 0 },
+  featuresByAltitudeBand: { surface: 0, low: 2, high: 0 },
   selectedVolumes: 1,
   selectedVolumeTriangles: 4,
   selectedVolumePosts: 2,
   selectedCueHeightWorld: 14 + Math.log2(11) * 8,
-  nearbyVerticalCues: 0,
-  nearbyCueSegments: 0,
-  nearbyCueBatches: 0,
+  nearbyVerticalCues: 1,
+  nearbyCueSegments: 3,
+  nearbyCueBatches: 1,
 });
+const focusAirspaceHitObject = context.airspaceHitObjects.find(
+  (object) => object.name === "three-osm-airspace-focus-terminal-controlled",
+);
+const contextAirspaceHitObject = context.airspaceHitObjects.find(
+  (object) => object.name === "three-osm-airspace-context-transition-controlled",
+);
+assert.ok(focusAirspaceHitObject);
+assert.ok(contextAirspaceHitObject);
 assert.deepEqual(
   resolveThreeOsmAirspaceHitIds([
-    { index: 0, object: context.airspaceHitObjects[0] },
-    { index: 2, object: context.airspaceHitObjects[0] },
+    { index: 0, object: contextAirspaceHitObject },
+    { index: 0, object: focusAirspaceHitObject },
   ]),
-  ["bos-class-b"],
+  ["bos-class-e5", "bos-class-b"],
 );
 const camera = new THREE.OrthographicCamera(-400, 400, 300, -300, 0.1, 4_000);
 camera.position.set(0, 900, 0.01);

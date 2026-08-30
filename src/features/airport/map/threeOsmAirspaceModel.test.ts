@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   resolveThreeOsmAirspaceAltitudeBand,
+  resolveThreeOsmAirspaceContextLabel,
   resolveThreeOsmAirspaceCueHeightWorld,
   resolveThreeOsmAirspaceLowerAltitudeFt,
   resolveThreeOsmAirspaceSimplificationTolerance,
@@ -59,6 +60,25 @@ assert.equal(
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(0), "surface");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(2_000), "low");
 assert.equal(resolveThreeOsmAirspaceAltitudeBand(3_000), "high");
+
+assert.equal(
+  resolveThreeOsmAirspaceContextLabel({
+    name: "BOSTON CLASS B",
+    classLabel: "B",
+    lowerLimitLabel: "SFC",
+    upperLimitLabel: "7000 ft MSL",
+  }),
+  "BOSTON B · SFC–7K",
+);
+assert.equal(
+  resolveThreeOsmAirspaceContextLabel({
+    name: "NORWOOD CLASS D",
+    classLabel: "D",
+    lowerLimitLabel: "SFC",
+    upperLimitLabel: "2600 ft MSL",
+  }),
+  "NORWOOD D · SFC–2.6K",
+);
 
 assert.equal(
   resolveThreeOsmAirspaceUpperAltitudeFt({

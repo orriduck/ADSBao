@@ -1571,6 +1571,16 @@ export default function ThreeOsmMapPoc({
           return Boolean(style && isThreeOsmVectorSceneLabel(style));
         }).length,
       );
+      root.dataset.pocAirspaceLabelsVisible = String(
+        placed.filter((label) => styleById.get(label.id)?.kind === "airspace")
+          .length,
+      );
+      root.dataset.pocAirspaceContextLabelsVisible = String(
+        placed.filter((label) => {
+          const style = styleById.get(label.id);
+          return style?.kind === "airspace" && !style.selected;
+        }).length,
+      );
       root.dataset.pocVectorLabelBudget = String(vectorBudget);
       root.dataset.pocLabelFallbacks = String(
         placed.filter((label) => label.placement !== "top-right").length,
@@ -2662,6 +2672,8 @@ export default function ThreeOsmMapPoc({
       locale,
       selectedAirspaceId,
       preparedAirspaceGeometry,
+      airspaceFocusLimit: tileRadius === 1 ? 4 : 6,
+      airspaceLabelLimit: tileRadius === 1 ? 1 : 2,
     });
     const contextBuildMs = performance.now() - contextBuildStartedAt;
     const { group } = contextScene;
@@ -2827,6 +2839,34 @@ export default function ThreeOsmMapPoc({
       String(contextScene.airspaceDiagnostics.batches),
     );
     rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-features",
+      String(contextScene.airspaceDiagnostics.focusFeatures),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-context-features",
+      String(contextScene.airspaceDiagnostics.contextFeatures),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-segments",
+      String(contextScene.airspaceDiagnostics.focusSegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-context-segments",
+      String(contextScene.airspaceDiagnostics.contextSegments),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-focus-batches",
+      String(contextScene.airspaceDiagnostics.focusBatches),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-context-batches",
+      String(contextScene.airspaceDiagnostics.contextBatches),
+    );
+    rootRef.current?.setAttribute(
+      "data-poc-airspace-context-labels",
+      String(contextScene.airspaceDiagnostics.contextLabels),
+    );
+    rootRef.current?.setAttribute(
       "data-poc-airspace-selected-volumes",
       String(contextScene.airspaceDiagnostics.selectedVolumes),
     );
@@ -2949,6 +2989,7 @@ export default function ThreeOsmMapPoc({
     systemColors,
     theme,
     tileCenter,
+    tileRadius,
     tileZoom,
     useNavaidCounts,
     userLocation,

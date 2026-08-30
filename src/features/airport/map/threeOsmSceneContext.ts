@@ -26,6 +26,7 @@ import {
   buildThreeOsmNearbyAirspaceCueGeometry,
   buildThreeOsmSelectedAirspaceVolumeGeometry,
 } from "./threeOsmAirspaceVolume";
+import { resolveThreeOsmAirspaceFocus } from "./threeOsmAirspaceFocus";
 
 export { collectAirspaceLineCoordinates } from "./threeOsmAirspaceGeometry";
 
@@ -259,6 +260,8 @@ export function createThreeOsmContextScene({
   locale = "en",
   selectedAirspaceId = "",
   preparedAirspaceGeometry = null,
+  airspaceFocusLimit = 6,
+  airspaceLabelLimit = 2,
 }: {
   airportCode: string;
   airports: Array<Record<string, any>>;
@@ -291,6 +294,8 @@ export function createThreeOsmContextScene({
   locale?: string;
   selectedAirspaceId?: string;
   preparedAirspaceGeometry?: ThreeOsmPreparedAirspaceGeometry | null;
+  airspaceFocusLimit?: number;
+  airspaceLabelLimit?: number;
 }) {
   const group = new THREE.Group();
   group.name = "three-osm-operational-context";
@@ -483,35 +488,78 @@ export function createThreeOsmContextScene({
     "upper-controlled": [10, 5],
     advisory: [1.5, 5],
   };
-  for (const tier of THREE_OSM_AIRSPACE_TIERS) {
-    const airspaceSegments = preparedAirspaces.segmentsByTier[tier];
-    if (!airspaceSegments.length) continue;
-    const airspaceGeometry = new THREE.BufferGeometry();
-    airspaceGeometry.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(airspaceSegments, 3),
-    );
-    const airspaceLines = new THREE.LineSegments(
-      airspaceGeometry,
-      new THREE.LineDashedMaterial({
-        color: airspaceColors[tier],
-        opacity: tier === "advisory"
-          ? palette.mutedLineOpacity + 0.2
-          : palette.lineOpacity,
-        transparent: true,
-        dashSize: airspaceDash[tier][0],
-        gapSize: airspaceDash[tier][1],
-      }),
-    );
-    airspaceLines.computeLineDistances();
-    airspaceLines.name = `three-osm-airspace-${tier}`;
-    airspaceLines.userData.airspaceSegmentIds =
-      preparedAirspaces.segmentIdsByTier[tier];
-    airspaceLines.renderOrder = 45;
-    group.add(airspaceLines);
-    airspaceHitObjects.push(airspaceLines);
-  }
   const selectedAirspace = preparedAirspaces.featuresById[selectedAirspaceId];
+  const airspaceFocus = resolveThreeOsmAirspaceFocus({
+    prepared: preparedAirspaces,
+    selectedAirspaceId,
+    maxFocusFeatures: airspaceFocusLimit,
+    maxLabels: airspaceLabelLimit,
+  });
+  let focusAirspaceBatches = 0;
+  let contextAirspaceBatches = 0;
+  const addAirspaceLayer = (
+    role: "focus" | "context",
+    positionsByTier: Record<ThreeOsmAirspaceTier, number[]>,
+    segmentIdsByTier: Record<ThreeOsmAirspaceTier, string[]>,
+  ) => {
+    for (const tier of THREE_OSM_AIRSPACE_TIERS) {
+      const airspaceSegments = positionsByTier[tier];
+      if (!airspaceSegments.length) continue;
+      const airspaceGeometry = new THREE.BufferGeometry();
+      airspaceGeometry.setAttribute(
+        "position",
+        new THREE.Float32BufferAttribute(airspaceSegments, 3),
+      );
+      const [baseDashSize, baseGapSize] = airspaceDash[tier];
+      const focusOpacity = tier === "advisory"
+        ? palette.mutedLineOpacity + 0.2
+        : palette.lineOpacity;
+      const contextOpacity = contrastMode === "standard"
+        ? Math.max(0.12, palette.mutedLineOpacity * 0.55)
+        : palette.mutedLineOpacity;
+      const airspaceLines = new THREE.LineSegments(
+        airspaceGeometry,
+        new THREE.LineDashedMaterial({
+          color: airspaceColors[tier],
+          opacity: role === "focus" ? focusOpacity : contextOpacity,
+          transparent: true,
+          dashSize: role === "focus" ? baseDashSize : baseDashSize * 0.65,
+          gapSize: role === "focus" ? baseGapSize : baseGapSize * 1.8,
+        }),
+      );
+      airspaceLines.computeLineDistances();
+      airspaceLines.name = `three-osm-airspace-${role}-${tier}`;
+      airspaceLines.userData.airspaceSegmentIds = segmentIdsByTier[tier];
+      airspaceLines.renderOrder = role === "focus" ? 45 : 44;
+      group.add(airspaceLines);
+      airspaceHitObjects.push(airspaceLines);
+      if (role === "focus") focusAirspaceBatches += 1;
+      else contextAirspaceBatches += 1;
+    }
+  };
+  addAirspaceLayer(
+    "context",
+    airspaceFocus.context.positionsByTier,
+    airspaceFocus.context.segmentIdsByTier,
+  );
+  addAirspaceLayer(
+    "focus",
+    airspaceFocus.focus.positionsByTier,
+    airspaceFocus.focus.segmentIdsByTier,
+  );
+  for (const feature of airspaceFocus.labelFeatures) {
+    labels.push({
+      id: `airspace-context:${feature.key}`,
+      text: feature.contextLabel,
+      kind: "airspace",
+      position: new THREE.Vector3(
+        feature.cueAnchor.x,
+        feature.lowerY + 5.6,
+        feature.cueAnchor.z,
+      ),
+      priority: 735,
+    });
+  }
   const nearbyAirspaceCues = buildThreeOsmNearbyAirspaceCueGeometry({
     prepared: preparedAirspaces,
     selectedAirspaceId,
@@ -784,6 +832,13 @@ export function createThreeOsmContextScene({
       rawSegments: preparedAirspaces.rawSegments,
       segments: preparedAirspaces.segments,
       batches: airspaceHitObjects.length,
+      focusFeatures: airspaceFocus.focus.features,
+      contextFeatures: airspaceFocus.context.features,
+      focusSegments: airspaceFocus.focus.segments,
+      contextSegments: airspaceFocus.context.segments,
+      focusBatches: focusAirspaceBatches,
+      contextBatches: contextAirspaceBatches,
+      contextLabels: airspaceFocus.labelFeatures.length,
       simplificationTolerance: preparedAirspaces.simplificationTolerance,
       featuresByTier: preparedAirspaces.featuresByTier,
       featuresByAltitudeBand: preparedAirspaces.featuresByAltitudeBand,
