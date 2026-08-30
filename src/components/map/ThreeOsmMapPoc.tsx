@@ -56,6 +56,8 @@ import {
 import {
   isThreeOsmLabelProjectionCandidate,
   layoutThreeOsmLabels,
+  type ThreeOsmLabelCandidate,
+  type ThreeOsmPlacedLabel,
 } from "@/features/airport/map/threeOsmLabelLayout";
 import {
   isThreeOsmVectorLabelKind,
@@ -1775,7 +1777,12 @@ export default function ThreeOsmMapPoc({
         ];
       });
       const compact = width <= 700;
-      const maxLabels = compact ? 24 : root.dataset.pocMode === "3d" ? 38 : 54;
+      const labelBudget = compact
+        ? { total: 24, runway: 4, airport: 3, aircraft: 6, vector: 8 }
+        : root.dataset.pocMode === "3d"
+          ? { total: 38, runway: 6, airport: 4, aircraft: 8, vector: 12 }
+          : { total: 54, runway: 8, airport: 6, aircraft: 12, vector: 18 };
+      const maxLabels = labelBudget.total;
       const layoutOptions = {
         viewportWidth: width,
         viewportHeight: height,
@@ -1839,31 +1846,62 @@ export default function ThreeOsmMapPoc({
         debugMode === "vector"
           ? maxLabels
           : vectorCandidates.length
-            ? sceneVectorLabelBudgetRef.current
+            ? Math.min(labelBudget.vector, sceneVectorLabelBudgetRef.current)
             : 0;
       const criticalOperational = operationalCandidates.filter(
-        (candidate) => candidate.priority >= 750,
+        (candidate) => candidate.priority >= 800,
+      );
+      const runwayOperational = operationalCandidates.filter(
+        (candidate) =>
+          candidate.priority < 800 &&
+          styleById.get(candidate.id)?.kind === "runway",
+      );
+      const airportOperational = operationalCandidates.filter(
+        (candidate) =>
+          candidate.priority < 800 &&
+          styleById.get(candidate.id)?.kind === "airport",
+      );
+      const aircraftOperational = operationalCandidates.filter(
+        (candidate) =>
+          candidate.priority < 800 &&
+          styleById.get(candidate.id)?.kind === "aircraft",
       );
       const airspaceOperational = operationalCandidates.filter(
         (candidate) =>
           styleById.get(candidate.id)?.layoutGroup === "airspace-context",
       );
       const standardOperational = operationalCandidates.filter(
-        (candidate) =>
-          candidate.priority < 750 &&
-          styleById.get(candidate.id)?.layoutGroup !== "airspace-context",
+        (candidate) => {
+          const style = styleById.get(candidate.id);
+          return (
+            candidate.priority < 800 &&
+            style?.kind !== "runway" &&
+            style?.kind !== "airport" &&
+            style?.kind !== "aircraft" &&
+            style?.layoutGroup !== "airspace-context"
+          );
+        },
       );
-      const criticalPlaced = layoutThreeOsmLabels(criticalOperational, {
-        ...layoutOptions,
-        maxLabels: Math.max(0, maxLabels - vectorBudget),
-        blocked: structuralBlocked,
-      });
-      const vectorPlaced = layoutThreeOsmLabels(vectorCandidates, {
-        ...layoutOptions,
-        maxLabels: Math.min(vectorBudget, maxLabels - criticalPlaced.length),
-        blocked: [...structuralBlocked, ...criticalPlaced],
-      });
-      const occupied = [...criticalPlaced, ...vectorPlaced];
+      const placed: ThreeOsmPlacedLabel[] = [];
+      const placeGroup = (
+        group: ThreeOsmLabelCandidate[],
+        groupLimit = maxLabels,
+      ) => {
+        const next = layoutThreeOsmLabels(group, {
+          ...layoutOptions,
+          maxLabels: Math.min(
+            groupLimit,
+            Math.max(0, maxLabels - placed.length),
+          ),
+          blocked: [...structuralBlocked, ...placed],
+        });
+        placed.push(...next);
+      };
+      placeGroup(criticalOperational);
+      placeGroup(runwayOperational, labelBudget.runway);
+      placeGroup(airportOperational, labelBudget.airport);
+      placeGroup(aircraftOperational, labelBudget.aircraft);
+      placeGroup(vectorCandidates, vectorBudget);
       const airspaceGroupLimit = airspaceOperational.reduce(
         (limit, candidate) =>
           Math.max(
@@ -1872,21 +1910,8 @@ export default function ThreeOsmMapPoc({
           ),
         0,
       );
-      const airspacePlaced = layoutThreeOsmLabels(airspaceOperational, {
-        ...layoutOptions,
-        maxLabels: Math.min(
-          airspaceGroupLimit,
-          Math.max(0, maxLabels - occupied.length),
-        ),
-        blocked: [...structuralBlocked, ...occupied],
-      });
-      occupied.push(...airspacePlaced);
-      const standardPlaced = layoutThreeOsmLabels(standardOperational, {
-        ...layoutOptions,
-        maxLabels: Math.max(0, maxLabels - occupied.length),
-        blocked: [...structuralBlocked, ...occupied],
-      });
-      const placed = [...occupied, ...standardPlaced];
+      placeGroup(airspaceOperational, airspaceGroupLimit);
+      placeGroup(standardOperational);
 
       for (const label of placed) {
         const style = styleById.get(label.id);
@@ -1979,6 +2004,26 @@ export default function ThreeOsmMapPoc({
         placed.filter((label) => styleById.get(label.id)?.kind === "airport")
           .length,
       );
+      root.dataset.pocRunwayLabelsVisible = String(
+        placed.filter((label) => styleById.get(label.id)?.kind === "runway")
+          .length,
+      );
+      root.dataset.pocAirportLabelCandidates = String(
+        airportOperational.length,
+      );
+      root.dataset.pocRunwayLabelCandidates = String(
+        runwayOperational.length,
+      );
+      root.dataset.pocAircraftLabelCandidatesVisible = String(
+        aircraftOperational.length,
+      );
+      root.dataset.pocLabelBudgets = [
+        `total:${labelBudget.total}`,
+        `runway:${labelBudget.runway}`,
+        `airport:${labelBudget.airport}`,
+        `aircraft:${labelBudget.aircraft}`,
+        `vector:${labelBudget.vector}`,
+      ].join(",");
       root.dataset.pocAirspaceContextLabelsVisible = String(
         placed.filter((label) => {
           const style = styleById.get(label.id);
