@@ -39,11 +39,13 @@ export function useThreeOsmViewportFootprint({
   cameraViewportOffsetRef: MutableRefObject<ThreeOsmCameraViewportOffsets>;
   compact: boolean;
   viewMode: "2d" | "3d";
-  lifecycleKey: unknown;
+  lifecycleKey: string;
 }) {
-  const [footprint, setFootprint] = useState<ThreeOsmViewportFootprint>(() =>
-    initialFootprint(compact),
-  );
+  const measurementKey = `${String(lifecycleKey)}:${viewMode}:${compact ? 1 : 0}`;
+  const [measurement, setMeasurement] = useState<{
+    key: string;
+    footprint: ThreeOsmViewportFootprint;
+  }>(() => ({ key: "", footprint: initialFootprint(compact) }));
 
   useEffect(() => {
     const root = rootRef.current;
@@ -73,8 +75,11 @@ export function useThreeOsmViewportFootprint({
         minZ: ground.minZ + viewportOffset.z,
         maxZ: ground.maxZ + viewportOffset.z,
       };
-      setFootprint((current) =>
-        footprintKey(current) === footprintKey(next) ? current : next,
+      setMeasurement((current) =>
+        current.key === measurementKey &&
+        footprintKey(current.footprint) === footprintKey(next)
+          ? current
+          : { key: measurementKey, footprint: next },
       );
       root.dataset.pocViewportFootprint = `${Math.round(
         next.maxX - next.minX,
@@ -101,12 +106,14 @@ export function useThreeOsmViewportFootprint({
   }, [
     activeCameraRef,
     cameraViewportOffsetRef,
-    compact,
     controlsRef,
-    lifecycleKey,
+    measurementKey,
     rootRef,
     viewMode,
   ]);
 
-  return footprint;
+  return {
+    footprint: measurement.footprint,
+    ready: measurement.key === measurementKey,
+  };
 }

@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import {
   buildThreeOsmTileWindowGrid,
   constrainThreeOsmTileWindow,
+  createThreeOsmSquareTileWindow,
+  doesThreeOsmTileWindowCoverViewport,
+  retainThreeOsmTileWindowSnapshot,
   resolveThreeOsmViewportTileWindow,
 } from "./threeOsmTileWindow";
 
@@ -14,7 +17,11 @@ const portrait = resolveThreeOsmViewportTileWindow({
 });
 assert.ok(portrait.rows > portrait.columns);
 assert.ok(portrait.tileCount <= 49);
-assert.equal(buildThreeOsmTileWindowGrid({ center: portraitCenter, window: portrait }).length, portrait.tileCount);
+assert.equal(
+  buildThreeOsmTileWindowGrid({ center: portraitCenter, window: portrait })
+    .length,
+  portrait.tileCount,
+);
 
 const landscape = resolveThreeOsmViewportTileWindow({
   center: portraitCenter,
@@ -44,5 +51,71 @@ const datelineTiles = buildThreeOsmTileWindowGrid({
 });
 assert.equal(new Set(datelineTiles.map((tile) => tile.x)).size, landscape.columns);
 assert.ok(datelineTiles.some((tile) => tile.x === 0));
+
+const retainedWindow = createThreeOsmSquareTileWindow(2);
+const footprint = { minX: -256, maxX: 256, minZ: -192, maxZ: 192 };
+assert.equal(
+  doesThreeOsmTileWindowCoverViewport({
+    retainedCenter: { x: 10.4, y: 20.6, z: 6 },
+    retainedWindow,
+    candidateCenter: { x: 11.1, y: 20.6, z: 6 },
+    sceneZoom: 6,
+    sourceZoom: 6,
+    footprint,
+  }),
+  true,
+);
+assert.equal(
+  doesThreeOsmTileWindowCoverViewport({
+    retainedCenter: { x: 10.4, y: 20.6, z: 6 },
+    retainedWindow,
+    candidateCenter: { x: 12.1, y: 20.6, z: 6 },
+    sceneZoom: 6,
+    sourceZoom: 6,
+    footprint,
+  }),
+  false,
+);
+assert.equal(
+  doesThreeOsmTileWindowCoverViewport({
+    retainedCenter: { x: 63.8, y: 20.6, z: 6 },
+    retainedWindow: createThreeOsmSquareTileWindow(1),
+    candidateCenter: { x: 0.2, y: 20.6, z: 6 },
+    sceneZoom: 6,
+    sourceZoom: 6,
+    footprint: { minX: -64, maxX: 64, minZ: -64, maxZ: 64 },
+  }),
+  true,
+);
+
+const retainedSnapshot = {
+  center: { x: 10.4, y: 20.6, z: 6 },
+  window: retainedWindow,
+  sceneZoom: 6,
+  sourceZoom: 6,
+};
+const coveredCandidate = {
+  center: { x: 11.1, y: 20.6, z: 6 },
+  window: createThreeOsmSquareTileWindow(1),
+  sceneZoom: 6,
+  sourceZoom: 6,
+};
+const zoomChangedCandidate = { ...coveredCandidate, sourceZoom: 7 };
+assert.equal(
+  retainThreeOsmTileWindowSnapshot({
+    retained: retainedSnapshot,
+    candidate: coveredCandidate,
+    footprint,
+  }),
+  retainedSnapshot,
+);
+assert.equal(
+  retainThreeOsmTileWindowSnapshot({
+    retained: retainedSnapshot,
+    candidate: zoomChangedCandidate,
+    footprint,
+  }),
+  zoomChangedCandidate,
+);
 
 console.log("threeOsmTileWindow.test.ts ok");

@@ -81,8 +81,11 @@ import {
 } from "@/features/airport/map/threeOsmProjection";
 import {
   buildThreeOsmTileWindowGrid,
+  doesThreeOsmTileWindowCoverViewport,
+  retainThreeOsmTileWindowSnapshot,
   resolveThreeOsmViewportTileWindow,
   sortThreeOsmTilesFromCenter,
+  type ThreeOsmTileWindowSnapshot,
 } from "@/features/airport/map/threeOsmTileWindow";
 import {
   buildThreeOsmParentRasterFallbackTiles,
@@ -1085,7 +1088,10 @@ export default function ThreeOsmMapPoc({
       current?.key === airspaceFocusAnchor.key ? current : airspaceFocusAnchor,
     );
   }, [airspaceFocusAnchor]);
-  const viewportFootprint = useThreeOsmViewportFootprint({
+  const {
+    footprint: viewportFootprint,
+    ready: viewportFootprintReady,
+  } = useThreeOsmViewportFootprint({
     rootRef,
     activeCameraRef,
     controlsRef,
@@ -1110,16 +1116,63 @@ export default function ThreeOsmMapPoc({
       }),
     [sourceProjectionCenter, sourceTargetX, sourceTargetZ, tileZoom],
   );
-  const rasterTileWindow = useMemo(
-    () =>
-      resolveThreeOsmViewportTileWindow({
+  // Camera-state retention absorbs pan churn; this snapshot also absorbs
+  // footprint-only changes while the currently loaded tiles still cover view.
+  const rasterTileWindowSnapshotRef = useRef<
+    (ThreeOsmTileWindowSnapshot & {
+      scopeKey: string;
+      focusX: number;
+      focusZ: number;
+    }) | null
+  >(null);
+  const rasterTileWindowSnapshot = useMemo(() => {
+    const candidate = {
+      center: sourceTileCenter,
+      window: resolveThreeOsmViewportTileWindow({
         center: sourceTileCenter,
         sceneZoom: tileZoom,
         sourceZoom: sourceTileZoom,
         footprint: viewportFootprint,
       }),
-    [sourceTileCenter, sourceTileZoom, tileZoom, viewportFootprint],
-  );
+      sceneZoom: tileZoom,
+      sourceZoom: sourceTileZoom,
+      focusX: sourceTargetX,
+      focusZ: sourceTargetZ,
+    } satisfies ThreeOsmTileWindowSnapshot & {
+      focusX: number;
+      focusZ: number;
+    };
+    const currentSnapshot = rasterTileWindowSnapshotRef.current;
+    const retained = !viewportFootprintReady
+      ? currentSnapshot
+      : currentSnapshot?.scopeKey === cameraStateScopeKey
+        ? currentSnapshot
+        : null;
+    const resolved = retainThreeOsmTileWindowSnapshot({
+      retained,
+      candidate,
+      footprint: viewportFootprint,
+    });
+    const snapshot =
+      resolved === retained && retained
+        ? retained
+        : { ...candidate, scopeKey: cameraStateScopeKey };
+    rasterTileWindowSnapshotRef.current = snapshot;
+    return snapshot;
+  }, [
+    cameraStateScopeKey,
+    sourceTileCenter,
+    sourceTileZoom,
+    sourceTargetX,
+    sourceTargetZ,
+    tileZoom,
+    viewportFootprint,
+    viewportFootprintReady,
+  ]);
+  const rasterTileCenter = rasterTileWindowSnapshot.center;
+  const rasterTileWindow = rasterTileWindowSnapshot.window;
+  const vectorLabelFocusX = rasterTileWindowSnapshot.focusX;
+  const vectorLabelFocusZ = rasterTileWindowSnapshot.focusZ;
   const interactionTileWindow = useMemo(
     () =>
       resolveThreeOsmViewportTileWindow({
@@ -1138,9 +1191,10 @@ export default function ThreeOsmMapPoc({
       }),
     [interactionTileWindow, tileCenter],
   );
-  const sourceTileBaseWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
+  const sourceTileBaseWindowKey = resolveThreeOsmTileWindowKey(rasterTileCenter);
   const sourceTileWindowKey = `${sourceTileBaseWindowKey}/w${rasterTileWindow.key}`;
-  const parentRasterFallbackEnabled = viewMode === "3d" && isCompact;
+  const parentRasterFallbackEnabled =
+    viewportFootprintReady && viewMode === "3d" && isCompact;
   const rasterTileWindowKey = `${sourceTileWindowKey}/p${
     parentRasterFallbackEnabled ? 1 : 0
   }`;
@@ -1158,27 +1212,27 @@ export default function ThreeOsmMapPoc({
   const fineRasterTiles = useMemo(
     () =>
       buildThreeOsmTileWindowGrid({
-        center: sourceTileCenter,
+        center: rasterTileCenter,
         window: rasterTileWindow,
       }),
-    [rasterTileWindow, sourceTileCenter],
+    [rasterTileCenter, rasterTileWindow],
   );
   const parentRasterTiles = useMemo(
     () =>
       parentRasterFallbackEnabled
         ? buildThreeOsmParentRasterFallbackTiles({
-            center: sourceTileCenter,
+            center: rasterTileCenter,
             fineWindow: rasterTileWindow,
           })
         : [],
-    [parentRasterFallbackEnabled, rasterTileWindow, sourceTileCenter],
+    [parentRasterFallbackEnabled, rasterTileCenter, rasterTileWindow],
   );
   const rasterTiles = useMemo(
     () => [...parentRasterTiles, ...fineRasterTiles],
     [fineRasterTiles, parentRasterTiles],
   );
   const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
-  const vectorTileCenter = sourceTileCenter;
+  const vectorTileCenter = rasterTileCenter;
   const vectorTileWindow = useMemo(
     () =>
       resolveThreeOsmVectorTileWindow({
@@ -2806,8 +2860,8 @@ export default function ThreeOsmMapPoc({
         sourceZoom: vectorTileZoom,
         locale,
         excludedAirportCodes: vectorExcludedAirportCodes,
-        labelFocusX: sourceTargetX,
-        labelFocusZ: sourceTargetZ,
+        labelFocusX: vectorLabelFocusX,
+        labelFocusZ: vectorLabelFocusZ,
       });
       const submitMs = performance.now() - submitStartedAt;
       root.dataset.pocVectorSubmitMs = submitMs.toFixed(2);
@@ -3036,14 +3090,14 @@ export default function ThreeOsmMapPoc({
     locale,
     sceneCenterLat,
     vectorTileWindowKey,
-    sourceTargetX,
-    sourceTargetZ,
     theme,
     tileCenter,
     tileZoom,
     vectorContextActive,
     vectorContextEnabled,
     vectorExcludedAirportCodes,
+    vectorLabelFocusX,
+    vectorLabelFocusZ,
     vectorTileTemplate,
     vectorTileWindow,
     vectorTileZoom,
@@ -4013,7 +4067,7 @@ export default function ThreeOsmMapPoc({
     const initialScale = readScale();
     if (initialScale == null) return undefined;
 
-    const resolveWindowKey = ({
+    const resolveWindow = ({
       zoom,
       targetX,
       targetZ,
@@ -4040,7 +4094,11 @@ export default function ThreeOsmMapPoc({
         sourceZoom: zoom,
         footprint: viewportFootprintRef.current,
       });
-      return `${resolveThreeOsmTileWindowKey(center)}/w${tileWindow.key}`;
+      return {
+        center,
+        tileWindow,
+        key: `${resolveThreeOsmTileWindowKey(center)}/w${tileWindow.key}`,
+      };
     };
     const commitViewportState = (next: {
       scopeKey: string;
@@ -4052,15 +4110,36 @@ export default function ThreeOsmMapPoc({
       const current = cameraLodStateRef.current;
       const sameContext =
         current.scopeKey === next.scopeKey && current.mode === next.mode;
-      const currentWindowKey = sameContext
-        ? resolveWindowKey(current)
-        : "";
-      const nextWindowKey = resolveWindowKey(next);
-      root.dataset.pocTileWindowKey = nextWindowKey;
+      const currentWindow = sameContext ? resolveWindow(current) : null;
+      const nextWindow = resolveWindow(next);
+      if (
+        currentWindow &&
+        current.zoom === next.zoom &&
+        currentWindow.key !== nextWindow.key &&
+        doesThreeOsmTileWindowCoverViewport({
+          retainedCenter: currentWindow.center,
+          retainedWindow: currentWindow.tileWindow,
+          candidateCenter: nextWindow.center,
+          sceneZoom: tileZoom,
+          sourceZoom: next.zoom,
+          footprint: viewportFootprintRef.current,
+        })
+      ) {
+        // Keep dependent scene state stable until the loaded window is no
+        // longer sufficient, instead of rebuilding at integer tile borders.
+        root.dataset.pocCameraWindowKey = currentWindow.key;
+        root.dataset.pocTileWindowCoverage = "retained";
+        root.dataset.pocTileWindowRetentions = String(
+          Number(root.dataset.pocTileWindowRetentions || 0) + 1,
+        );
+        return;
+      }
+      root.dataset.pocCameraWindowKey = nextWindow.key;
+      root.dataset.pocTileWindowCoverage = "shifted";
       if (
         sameContext &&
         current.zoom === next.zoom &&
-        currentWindowKey === nextWindowKey
+        currentWindow?.key === nextWindow.key
       ) {
         return;
       }
@@ -4072,7 +4151,7 @@ export default function ThreeOsmMapPoc({
       if (
         sameContext &&
         current.zoom === next.zoom &&
-        currentWindowKey !== nextWindowKey
+        currentWindow?.key !== nextWindow.key
       ) {
         root.dataset.pocTileWindowUpdates = String(
           Number(root.dataset.pocTileWindowUpdates || 0) + 1,
@@ -4199,7 +4278,7 @@ export default function ThreeOsmMapPoc({
     enabled: allowsMapInteraction,
     kind: "raster",
     sourceProjectionCenter,
-    sourceTileCenter,
+    sourceTileCenter: rasterTileCenter,
     sourceTileWindowKey,
     sceneZoom: tileZoom,
     tileWindow: rasterTileWindow,
@@ -4220,7 +4299,7 @@ export default function ThreeOsmMapPoc({
     enabled: allowsMapInteraction && vectorContextActive,
     kind: "vector",
     sourceProjectionCenter,
-    sourceTileCenter,
+    sourceTileCenter: rasterTileCenter,
     sourceTileWindowKey: vectorTileWindowKey,
     sceneZoom: tileZoom,
     tileWindow: vectorTileWindow,

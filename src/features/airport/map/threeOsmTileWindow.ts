@@ -22,6 +22,13 @@ export type ThreeOsmTileWindow = {
   key: string;
 };
 
+export type ThreeOsmTileWindowSnapshot = {
+  center: TileCoordinate;
+  window: ThreeOsmTileWindow;
+  sceneZoom: number;
+  sourceZoom: number;
+};
+
 const MIN_AXIS_TILES = 3;
 const MAX_AXIS_TILES = 7;
 const OVERSCAN_TILES = 0.35;
@@ -130,6 +137,75 @@ export function resolveThreeOsmViewportTileWindow({
     top: y.before,
     bottom: y.after,
   });
+}
+
+export function doesThreeOsmTileWindowCoverViewport({
+  retainedCenter,
+  retainedWindow,
+  candidateCenter,
+  sceneZoom,
+  sourceZoom,
+  footprint,
+}: {
+  retainedCenter: TileCoordinate;
+  retainedWindow: ThreeOsmTileWindow;
+  candidateCenter: TileCoordinate;
+  sceneZoom: number;
+  sourceZoom: number;
+  footprint: ThreeOsmViewportFootprint;
+}) {
+  if (retainedCenter.z !== candidateCenter.z) return false;
+  const worldPerTile =
+    THREE_OSM_TILE_SIZE * 2 ** (Number(sceneZoom) - Number(sourceZoom));
+  if (!Number.isFinite(worldPerTile) || worldPerTile <= 0) return false;
+
+  const retainedX = Math.floor(retainedCenter.x);
+  const retainedY = Math.floor(retainedCenter.y);
+  const candidateX =
+    retainedCenter.x +
+    shortestWrappedTileDelta(
+      candidateCenter.x,
+      retainedCenter.x,
+      retainedCenter.z,
+    );
+  const epsilon = 0.001;
+  return (
+    candidateX + footprint.minX / worldPerTile >=
+      retainedX - retainedWindow.left - epsilon &&
+    candidateX + footprint.maxX / worldPerTile <=
+      retainedX + retainedWindow.right + 1 + epsilon &&
+    candidateCenter.y + footprint.minZ / worldPerTile >=
+      retainedY - retainedWindow.top - epsilon &&
+    candidateCenter.y + footprint.maxZ / worldPerTile <=
+      retainedY + retainedWindow.bottom + 1 + epsilon
+  );
+}
+
+export function retainThreeOsmTileWindowSnapshot({
+  retained,
+  candidate,
+  footprint,
+}: {
+  retained: ThreeOsmTileWindowSnapshot | null;
+  candidate: ThreeOsmTileWindowSnapshot;
+  footprint: ThreeOsmViewportFootprint;
+}) {
+  if (
+    retained &&
+    retained.sceneZoom === candidate.sceneZoom &&
+    retained.sourceZoom === candidate.sourceZoom &&
+    doesThreeOsmTileWindowCoverViewport({
+      retainedCenter: retained.center,
+      retainedWindow: retained.window,
+      candidateCenter: candidate.center,
+      sceneZoom: candidate.sceneZoom,
+      sourceZoom: candidate.sourceZoom,
+      footprint,
+    })
+  ) {
+    return retained;
+  }
+  return candidate;
 }
 
 export function constrainThreeOsmTileWindow(
