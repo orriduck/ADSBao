@@ -83,7 +83,7 @@ export type ThreeOsmVectorContextGeometryInput = {
   sceneZoom: number;
   sourceZoom: number;
   locale: string;
-  focusAirportCode?: string;
+  excludedAirportCodes?: string[];
   labelFocusX?: number;
   labelFocusZ?: number;
 };
@@ -450,10 +450,15 @@ export function buildThreeOsmVectorContextGeometry({
   sceneZoom,
   sourceZoom,
   locale,
-  focusAirportCode = "",
+  excludedAirportCodes = [],
   labelFocusX = 0,
   labelFocusZ = 0,
 }: ThreeOsmVectorContextGeometryInput): ThreeOsmVectorContextGeometry {
+  const excludedAirportCodeSet = new Set(
+    excludedAirportCodes
+      .map((code) => String(code || "").trim().toUpperCase())
+      .filter(Boolean),
+  );
   const roadPositions: Record<ThreeOsmRoadTier, number[]> = {
     motorway: [],
     arterial: [],
@@ -769,12 +774,13 @@ export function buildThreeOsmVectorContextGeometry({
         });
         if (!text) continue;
         if (kind === "aerodrome") {
-          const excludedCode = focusAirportCode.trim().toUpperCase();
           const featureCodes = [
             feature.properties.iata,
             feature.properties.icao,
           ].map((value) => String(value || "").trim().toUpperCase());
-          if (excludedCode && featureCodes.includes(excludedCode)) continue;
+          if (featureCodes.some((code) => excludedAirportCodeSet.has(code))) {
+            continue;
+          }
         }
         try {
           const geojson = feature.toGeoJSON(

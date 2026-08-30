@@ -3,8 +3,9 @@ import {
   isThreeOsmVectorRoadClassVisible,
   isThreeOsmVectorSurfaceKindVisible,
   resolveThreeOsmVectorSemanticLod,
-  resolveThreeOsmVectorTileRadius,
+  resolveThreeOsmVectorTileWindow,
 } from "./threeOsmVectorSemanticLod";
+import { createThreeOsmSquareTileWindow } from "./threeOsmTileWindow";
 
 const overview = resolveThreeOsmVectorSemanticLod(10);
 assert.equal(overview.id, "overview");
@@ -75,21 +76,18 @@ assert.equal(
   true,
 );
 
+const rasterWindow = createThreeOsmSquareTileWindow(2);
 assert.equal(
-  resolveThreeOsmVectorTileRadius({ sourceZoom: 10, rasterTileRadius: 2 }),
-  2,
+  resolveThreeOsmVectorTileWindow({ sourceZoom: 10, rasterWindow }),
+  rasterWindow,
 );
 assert.equal(
-  resolveThreeOsmVectorTileRadius({ sourceZoom: 11, rasterTileRadius: 2 }),
-  2,
+  resolveThreeOsmVectorTileWindow({ sourceZoom: 11, rasterWindow }),
+  rasterWindow,
 );
-assert.equal(
-  resolveThreeOsmVectorTileRadius({ sourceZoom: 10, rasterTileRadius: 1 }),
-  1,
-);
-assert.equal(
-  resolveThreeOsmVectorTileRadius({ sourceZoom: 12, rasterTileRadius: 2 }),
-  1,
+assert.deepEqual(
+  resolveThreeOsmVectorTileWindow({ sourceZoom: 12, rasterWindow }),
+  createThreeOsmSquareTileWindow(1),
 );
 
 console.log("threeOsmVectorSemanticLod.test.ts ok");

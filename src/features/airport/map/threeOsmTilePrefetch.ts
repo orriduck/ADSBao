@@ -1,8 +1,11 @@
 import {
-  buildVisibleTileGrid,
   shortestWrappedTileDelta,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import {
+  buildThreeOsmTileWindowGrid,
+  type ThreeOsmTileWindow,
+} from "./threeOsmTileWindow";
 
 function tileKey(tile: TileCoordinate) {
   return `${tile.z}/${tile.x}/${tile.y}`;
@@ -11,11 +14,11 @@ function tileKey(tile: TileCoordinate) {
 export function resolveThreeOsmDirectionalTilePrefetch({
   currentCenter,
   candidateCenter,
-  radius,
+  tileWindow,
 }: {
   currentCenter: TileCoordinate;
   candidateCenter: TileCoordinate;
-  radius: number;
+  tileWindow: ThreeOsmTileWindow;
 }) {
   if (currentCenter.z !== candidateCenter.z) return [];
   const currentX = Math.floor(currentCenter.x);
@@ -31,9 +34,12 @@ export function resolveThreeOsmDirectionalTilePrefetch({
   }
 
   const currentKeys = new Set(
-    buildVisibleTileGrid(currentCenter, radius).map(tileKey),
+    buildThreeOsmTileWindowGrid({ center: currentCenter, window: tileWindow }).map(tileKey),
   );
-  return buildVisibleTileGrid(candidateCenter, radius).filter(
+  return buildThreeOsmTileWindowGrid({
+    center: candidateCenter,
+    window: tileWindow,
+  }).filter(
     (tile) => !currentKeys.has(tileKey(tile)),
   );
 }

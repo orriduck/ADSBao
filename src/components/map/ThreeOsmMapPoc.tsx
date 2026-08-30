@@ -14,6 +14,7 @@ import { useThreeOsmCameraFitState } from "@/components/map/useThreeOsmCameraFit
 import { useThreeOsmInteractionBounds } from "@/components/map/useThreeOsmInteractionBounds";
 import { useThreeOsmAcceptanceRecorder } from "@/components/map/useThreeOsmAcceptanceRecorder";
 import { useThreeOsmTilePrefetch } from "@/components/map/useThreeOsmTilePrefetch";
+import { useThreeOsmViewportFootprint } from "@/components/map/useThreeOsmViewportFootprint";
 import type { WakeLockState } from "@/hooks/useWakeLock";
 import { getAircraftIdentity } from "@/features/airport/context/airportContextUiModel";
 import { airportDisplayCode } from "@/utils/airport";
@@ -72,14 +73,17 @@ import {
 } from "@/features/airport/map/threeOsmTileSource";
 import { createEnvironmentThreeOsmTileSource } from "@/features/airport/map/threeOsmRuntimeTileSource";
 import {
-  buildVisibleTileGrid,
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
   lonLatToTileCoordinate,
-  shortestWrappedTileDelta,
   THREE_OSM_TILE_SIZE,
   type TileCoordinate,
 } from "@/features/airport/map/threeOsmProjection";
+import {
+  buildThreeOsmTileWindowGrid,
+  resolveThreeOsmViewportTileWindow,
+  sortThreeOsmTilesFromCenter,
+} from "@/features/airport/map/threeOsmTileWindow";
 import {
   buildThreeOsmParentRasterFallbackTiles,
   resolveThreeOsmCameraScale,
@@ -134,7 +138,7 @@ import {
   openFreeMapVectorSourceClient,
 } from "@/features/airport/map/threeOsmVectorTileSource";
 import {
-  resolveThreeOsmVectorTileRadius,
+  resolveThreeOsmVectorTileWindow,
 } from "@/features/airport/map/threeOsmVectorSemanticLod";
 import {
   resolveThreeOsmSceneSemanticLod,
@@ -212,7 +216,7 @@ type ThreeOsmPocProps = {
 };
 
 const MAX_TILE_TEXTURES = 72;
-// Two atomic 5x5 windows plus the largest nine-tile diagonal prefetch strip.
+// One 7x7 viewport window plus the largest adjacent seven-tile prefetch strip.
 const MAX_VECTOR_TILE_BUFFERS = 60;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
@@ -369,7 +373,7 @@ function configureThreeOsmControls({
   controls.screenSpacePanning = viewMode === "2d";
   controls.minDistance = 180;
   controls.maxDistance = 1_600;
-  controls.minZoom = 0.5;
+  controls.minZoom = 0.4;
   controls.maxZoom = 4;
   controls.maxPolarAngle = Math.PI / 2.15;
   controls.mouseButtons.LEFT =
@@ -926,8 +930,8 @@ export default function ThreeOsmMapPoc({
   const requestedTileZoom = clampThreeOsmZoom(
     Number.isFinite(debugZoom) ? debugZoom : zoom,
   );
-  const tileRadius = 2;
-  const rasterTileRadius = tileRadius;
+  const cameraFitTileRadius = 2;
+  const defaultFrameTileRadius = 3;
   const routeWorkloadAirportSnapshot = routeWorkloadEnabled
     ? JSON.stringify(
         nearbyAirports.map((item) => ({
@@ -979,7 +983,7 @@ export default function ThreeOsmMapPoc({
     keepRouteInView: routeWorkload.active || keepRouteInView,
     followsCenter: followsCenter && !routeWorkload.active,
     requestedTileZoom,
-    tileRadius,
+    tileRadius: cameraFitTileRadius,
   });
   const routeWorkloadFitMatches =
     routeWorkload.active &&
@@ -1023,7 +1027,7 @@ export default function ThreeOsmMapPoc({
     tileZoom,
     tileCenter.x.toFixed(6),
     tileCenter.y.toFixed(6),
-    tileRadius,
+    defaultFrameTileRadius,
     activeCameraFit?.reason || "explore",
     allowsMapInteraction ? "interactive" : "locked",
     recenterSignal,
@@ -1081,10 +1085,17 @@ export default function ThreeOsmMapPoc({
       current?.key === airspaceFocusAnchor.key ? current : airspaceFocusAnchor,
     );
   }, [airspaceFocusAnchor]);
-  const visibleTiles = useMemo(
-    () => buildVisibleTileGrid(tileCenter, rasterTileRadius),
-    [rasterTileRadius, tileCenter],
-  );
+  const viewportFootprint = useThreeOsmViewportFootprint({
+    rootRef,
+    activeCameraRef,
+    controlsRef,
+    cameraViewportOffsetRef,
+    compact: isCompact,
+    viewMode,
+    lifecycleKey: cameraStateScopeKey,
+  });
+  const viewportFootprintRef = useRef(viewportFootprint);
+  viewportFootprintRef.current = viewportFootprint;
   const sourceProjectionCenter = useMemo(
     () => lonLatToTileCoordinate(sceneCenterLon, sceneCenterLat, sourceTileZoom),
     [sceneCenterLat, sceneCenterLon, sourceTileZoom],
@@ -1099,35 +1110,68 @@ export default function ThreeOsmMapPoc({
       }),
     [sourceProjectionCenter, sourceTargetX, sourceTargetZ, tileZoom],
   );
-  const sourceTileWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
+  const rasterTileWindow = useMemo(
+    () =>
+      resolveThreeOsmViewportTileWindow({
+        center: sourceTileCenter,
+        sceneZoom: tileZoom,
+        sourceZoom: sourceTileZoom,
+        footprint: viewportFootprint,
+      }),
+    [sourceTileCenter, sourceTileZoom, tileZoom, viewportFootprint],
+  );
+  const interactionTileWindow = useMemo(
+    () =>
+      resolveThreeOsmViewportTileWindow({
+        center: tileCenter,
+        sceneZoom: tileZoom,
+        sourceZoom: tileZoom,
+        footprint: viewportFootprint,
+      }),
+    [tileCenter, tileZoom, viewportFootprint],
+  );
+  const visibleTiles = useMemo(
+    () =>
+      buildThreeOsmTileWindowGrid({
+        center: tileCenter,
+        window: interactionTileWindow,
+      }),
+    [interactionTileWindow, tileCenter],
+  );
+  const sourceTileBaseWindowKey = resolveThreeOsmTileWindowKey(sourceTileCenter);
+  const sourceTileWindowKey = `${sourceTileBaseWindowKey}/w${rasterTileWindow.key}`;
   const parentRasterFallbackEnabled = viewMode === "3d" && isCompact;
-  const rasterTileWindowKey = `${sourceTileWindowKey}/r${rasterTileRadius}/p${
+  const rasterTileWindowKey = `${sourceTileWindowKey}/p${
     parentRasterFallbackEnabled ? 1 : 0
   }`;
   const contextViewport = useMemo(
     () =>
       resolveThreeOsmContextViewport({
         sourceCenter: sourceTileCenter,
-        radius: tileRadius,
+        radius: 2,
       }),
-    [sourceTileCenter, tileRadius],
+    [sourceTileCenter],
   );
   useEffect(() => {
     onContextViewportChange?.(contextViewport);
   }, [contextViewport, onContextViewportChange]);
   const fineRasterTiles = useMemo(
-    () => buildVisibleTileGrid(sourceTileCenter, rasterTileRadius),
-    [rasterTileRadius, sourceTileCenter],
+    () =>
+      buildThreeOsmTileWindowGrid({
+        center: sourceTileCenter,
+        window: rasterTileWindow,
+      }),
+    [rasterTileWindow, sourceTileCenter],
   );
   const parentRasterTiles = useMemo(
     () =>
       parentRasterFallbackEnabled
         ? buildThreeOsmParentRasterFallbackTiles({
             center: sourceTileCenter,
-            fineRadius: rasterTileRadius,
+            fineWindow: rasterTileWindow,
           })
         : [],
-    [parentRasterFallbackEnabled, rasterTileRadius, sourceTileCenter],
+    [parentRasterFallbackEnabled, rasterTileWindow, sourceTileCenter],
   );
   const rasterTiles = useMemo(
     () => [...parentRasterTiles, ...fineRasterTiles],
@@ -1135,34 +1179,25 @@ export default function ThreeOsmMapPoc({
   );
   const vectorTileZoom = Math.min(14, Math.max(10, sourceTileZoom));
   const vectorTileCenter = sourceTileCenter;
-  const vectorTileRadius = resolveThreeOsmVectorTileRadius({
-    sourceZoom: vectorTileZoom,
-    rasterTileRadius: tileRadius,
-  });
+  const vectorTileWindow = useMemo(
+    () =>
+      resolveThreeOsmVectorTileWindow({
+        sourceZoom: vectorTileZoom,
+        rasterWindow: rasterTileWindow,
+      }),
+    [rasterTileWindow, vectorTileZoom],
+  );
+  const vectorTileWindowKey = `${sourceTileBaseWindowKey}/w${vectorTileWindow.key}`;
   const vectorTiles = useMemo(
     () =>
-      buildVisibleTileGrid(vectorTileCenter, vectorTileRadius).sort(
-        (left, right) => {
-          const leftDistance =
-            Math.abs(
-              shortestWrappedTileDelta(
-                left.x + 0.5,
-                vectorTileCenter.x,
-                vectorTileCenter.z,
-              ),
-            ) + Math.abs(left.y + 0.5 - vectorTileCenter.y);
-          const rightDistance =
-            Math.abs(
-              shortestWrappedTileDelta(
-                right.x + 0.5,
-                vectorTileCenter.x,
-                vectorTileCenter.z,
-              ),
-            ) + Math.abs(right.y + 0.5 - vectorTileCenter.y);
-          return leftDistance - rightDistance;
-        },
+      sortThreeOsmTilesFromCenter(
+        buildThreeOsmTileWindowGrid({
+          center: vectorTileCenter,
+          window: vectorTileWindow,
+        }),
+        vectorTileCenter,
       ),
-    [vectorTileCenter, vectorTileRadius],
+    [vectorTileCenter, vectorTileWindow],
   );
   const vectorTileKeys = useMemo(
     () =>
@@ -1232,6 +1267,30 @@ export default function ThreeOsmMapPoc({
       });
     },
     [airportCode, nearbyAirports],
+  );
+  const vectorExcludedAirportCodesKey = useMemo(
+    () =>
+      [...new Set(
+        [
+          airportCode,
+          ...visibleAirports.flatMap((item) => [
+            airportDisplayCode(item),
+            item?.icao,
+            item?.iata,
+            item?.ident,
+          ]),
+        ]
+          .map((code) => String(code || "").trim().toUpperCase())
+          .filter(Boolean),
+      )].sort().join("|"),
+    [airportCode, visibleAirports],
+  );
+  const vectorExcludedAirportCodes = useMemo(
+    () =>
+      vectorExcludedAirportCodesKey
+        ? vectorExcludedAirportCodesKey.split("|")
+        : [],
+    [vectorExcludedAirportCodesKey],
   );
   const runwayCollection = useMemo(
     () => (runwayMap ? buildRunwayCenterlineCollection(runwayMap) : null),
@@ -2651,7 +2710,7 @@ export default function ThreeOsmMapPoc({
       root?.setAttribute("data-poc-vector-road-collector", "0");
       root?.setAttribute("data-poc-vector-road-local", "0");
       root?.setAttribute("data-poc-vector-road-service", "0");
-      root?.setAttribute("data-poc-vector-tile-radius", "0");
+      root?.setAttribute("data-poc-vector-tile-window", "0x0");
       root?.setAttribute("data-poc-vector-semantic-lod", "disabled");
       root?.setAttribute("data-poc-vector-semantic-skipped-features", "0");
       root?.setAttribute("data-poc-vector-buildings", "0");
@@ -2746,7 +2805,7 @@ export default function ThreeOsmMapPoc({
         sceneZoom: tileZoom,
         sourceZoom: vectorTileZoom,
         locale,
-        focusAirportCode: airportCode,
+        excludedAirportCodes: vectorExcludedAirportCodes,
         labelFocusX: sourceTargetX,
         labelFocusZ: sourceTargetZ,
       });
@@ -2766,7 +2825,7 @@ export default function ThreeOsmMapPoc({
             debugLayerModeRef.current,
             "vector",
           );
-          context.group.userData.tileWindowKey = sourceTileWindowKey;
+          context.group.userData.tileWindowKey = vectorTileWindowKey;
           builtGroup = context.group;
           const nextState = failed === 0 ? "ready" : "partial";
           const buildMs = (performance.now() - startedAt).toFixed(2);
@@ -2789,7 +2848,7 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorContext = nextState;
             root.dataset.pocVectorWorker = "ready";
             root.dataset.pocVectorSwap = nextState;
-            root.dataset.pocVectorVisibleWindow = sourceTileWindowKey;
+            root.dataset.pocVectorVisibleWindow = vectorTileWindowKey;
             root.dataset.pocVectorRetainedWindow = "none";
             root.dataset.pocVectorSwaps = String(
               Number(root.dataset.pocVectorSwaps || 0) + 1,
@@ -2800,7 +2859,10 @@ export default function ThreeOsmMapPoc({
             root.dataset.pocVectorTilesLoaded = String(loaded.length);
             root.dataset.pocVectorTilesFailed = String(failed);
             root.dataset.pocVectorTileZoom = String(vectorTileZoom);
-            root.dataset.pocVectorTileRadius = String(vectorTileRadius);
+            root.dataset.pocVectorTileWindow = `${vectorTileWindow.columns}x${vectorTileWindow.rows}`;
+            root.dataset.pocVectorExcludedAirportCodes = String(
+              vectorExcludedAirportCodes.length,
+            );
             root.dataset.pocVectorRoads = String(context.roadFeatures);
             root.dataset.pocVectorRoadMotorway = String(
               context.roadFeaturesByTier.motorway,
@@ -2886,7 +2948,7 @@ export default function ThreeOsmMapPoc({
           if (
             debugSwapDelayMs > 0 &&
             retainedWindow !== "none" &&
-            retainedWindow !== sourceTileWindowKey
+            retainedWindow !== vectorTileWindowKey
           ) {
             root.dataset.pocVectorSwap = `holding-${nextState}`;
             root.dataset.pocVectorWorker = "ready-holding";
@@ -2971,10 +3033,9 @@ export default function ThreeOsmMapPoc({
     };
   }, [
     debugSwapDelayMs,
-    airportCode,
     locale,
     sceneCenterLat,
-    sourceTileWindowKey,
+    vectorTileWindowKey,
     sourceTargetX,
     sourceTargetZ,
     theme,
@@ -2982,8 +3043,9 @@ export default function ThreeOsmMapPoc({
     tileZoom,
     vectorContextActive,
     vectorContextEnabled,
+    vectorExcludedAirportCodes,
     vectorTileTemplate,
-    vectorTileRadius,
+    vectorTileWindow,
     vectorTileZoom,
     vectorTiles,
   ]);
@@ -3869,7 +3931,7 @@ export default function ThreeOsmMapPoc({
         root.clientWidth,
         root.clientHeight,
         getFloatingSidebarOcclusionWidth(root),
-        tileRadius,
+        defaultFrameTileRadius,
       );
       cameraViewportOffsetRef.current[viewMode] = {
         x: frame.target.x,
@@ -3925,7 +3987,7 @@ export default function ThreeOsmMapPoc({
     sceneCenterLat,
     viewMode,
     keepRouteInView,
-    tileRadius,
+    tileRadius: defaultFrameTileRadius,
     cameraViewportOffsetRef,
     restoredCameraModeRef,
   });
@@ -3966,14 +4028,19 @@ export default function ThreeOsmMapPoc({
         zoom,
       );
       const viewportOffset = cameraViewportOffsetRef.current[viewMode];
-      return resolveThreeOsmTileWindowKey(
-        resolveThreeOsmSourceViewCenter({
-          projectionCenter,
-          sceneZoom: tileZoom,
-          targetX: targetX - viewportOffset.x,
-          targetZ: targetZ - viewportOffset.z,
-        }),
-      );
+      const center = resolveThreeOsmSourceViewCenter({
+        projectionCenter,
+        sceneZoom: tileZoom,
+        targetX: targetX - viewportOffset.x,
+        targetZ: targetZ - viewportOffset.z,
+      });
+      const tileWindow = resolveThreeOsmViewportTileWindow({
+        center,
+        sceneZoom: tileZoom,
+        sourceZoom: zoom,
+        footprint: viewportFootprintRef.current,
+      });
+      return `${resolveThreeOsmTileWindowKey(center)}/w${tileWindow.key}`;
     };
     const commitViewportState = (next: {
       scopeKey: string;
@@ -4135,7 +4202,7 @@ export default function ThreeOsmMapPoc({
     sourceTileCenter,
     sourceTileWindowKey,
     sceneZoom: tileZoom,
-    tileRadius: rasterTileRadius,
+    tileWindow: rasterTileWindow,
     buildUrl: activeTileSource.buildUrl,
     hasDisplayedContent: () =>
       Boolean(
@@ -4154,9 +4221,9 @@ export default function ThreeOsmMapPoc({
     kind: "vector",
     sourceProjectionCenter,
     sourceTileCenter,
-    sourceTileWindowKey,
+    sourceTileWindowKey: vectorTileWindowKey,
     sceneZoom: tileZoom,
-    tileRadius: vectorTileRadius,
+    tileWindow: vectorTileWindow,
     buildUrl: (tile) =>
       buildOpenFreeMapVectorTileUrl(vectorTileTemplate, tile),
     hasDisplayedContent: () => Boolean(vectorContextGroupRef.current),
@@ -4413,7 +4480,9 @@ export default function ThreeOsmMapPoc({
       data-poc-tile-window-key={sourceTileWindowKey}
       data-poc-context-window-key={contextViewport.signature}
       data-poc-raster-composition={rasterComposition.mode}
-      data-poc-raster-tile-radius={rasterTileRadius}
+      data-poc-raster-tile-window={`${rasterTileWindow.columns}x${rasterTileWindow.rows}`}
+      data-poc-raster-fine-tiles={fineRasterTiles.length}
+      data-poc-vector-tile-window={`${vectorTileWindow.columns}x${vectorTileWindow.rows}`}
       data-poc-raster-wash={rasterComposition.washStrength.toFixed(3)}
       data-poc-raster-context-only-wash={
         rasterContextOnlyComposition.washStrength.toFixed(3)

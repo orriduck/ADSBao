@@ -57,30 +57,6 @@ export function lonLatToTileCoordinate(
   };
 }
 
-export function buildVisibleTileGrid(
-  center: TileCoordinate,
-  radius: unknown,
-) {
-  const safeRadius = Math.min(2, Math.max(1, Math.round(Number(radius) || 1)));
-  const scale = 2 ** center.z;
-  const centerX = Math.floor(center.x);
-  const centerY = Math.floor(center.y);
-  const tiles: TileCoordinate[] = [];
-
-  for (let y = centerY - safeRadius; y <= centerY + safeRadius; y += 1) {
-    if (y < 0 || y >= scale) continue;
-    for (let x = centerX - safeRadius; x <= centerX + safeRadius; x += 1) {
-      tiles.push({
-        x: ((x % scale) + scale) % scale,
-        y,
-        z: center.z,
-      });
-    }
-  }
-
-  return tiles;
-}
-
 export function buildOsmRasterTileUrl(tile: TileCoordinate) {
   return `https://tile.openstreetmap.org/${tile.z}/${tile.x}/${tile.y}.png`;
 }

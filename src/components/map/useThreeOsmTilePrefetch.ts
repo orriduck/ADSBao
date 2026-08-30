@@ -11,6 +11,7 @@ import {
   resolveThreeOsmTileWindowKey,
 } from "@/features/airport/map/threeOsmCameraLod";
 import type { TileCoordinate } from "@/features/airport/map/threeOsmProjection";
+import type { ThreeOsmTileWindow } from "@/features/airport/map/threeOsmTileWindow";
 import { resolveThreeOsmDirectionalTilePrefetch } from "@/features/airport/map/threeOsmTilePrefetch";
 
 type PrefetchKind = "raster" | "vector";
@@ -35,7 +36,7 @@ export function useThreeOsmTilePrefetch<T>({
   sourceTileCenter,
   sourceTileWindowKey,
   sceneZoom,
-  tileRadius,
+  tileWindow,
   buildUrl,
   hasDisplayedContent,
   lifecycleKey,
@@ -49,7 +50,7 @@ export function useThreeOsmTilePrefetch<T>({
   sourceTileCenter: TileCoordinate;
   sourceTileWindowKey: string;
   sceneZoom: number;
-  tileRadius: number;
+  tileWindow: ThreeOsmTileWindow;
   buildUrl: (tile: TileCoordinate) => string | null;
   hasDisplayedContent: () => boolean;
   lifecycleKey: unknown;
@@ -122,7 +123,7 @@ export function useThreeOsmTilePrefetch<T>({
       if (run.loaded > 0) readyWindowRef.current = run.windowKey;
     };
     const startPrefetch = (candidateCenter: TileCoordinate) => {
-      const candidateWindowKey = resolveThreeOsmTileWindowKey(candidateCenter);
+      const candidateWindowKey = `${resolveThreeOsmTileWindowKey(candidateCenter)}/w${tileWindow.key}`;
       if (candidateWindowKey === sourceTileWindowKey) {
         lastCandidateWindowKey = "";
         readyWindowRef.current = "";
@@ -140,7 +141,7 @@ export function useThreeOsmTilePrefetch<T>({
       const tiles = resolveThreeOsmDirectionalTilePrefetch({
         currentCenter: sourceTileCenter,
         candidateCenter,
-        radius: tileRadius,
+        tileWindow,
       });
       if (!tiles.length) {
         root.dataset[dataKey("State")] = "skipped-nonadjacent";
@@ -218,9 +219,12 @@ export function useThreeOsmTilePrefetch<T>({
     return () => {
       controls.removeEventListener("change", handleCameraChange);
       window.cancelAnimationFrame(prefetchFrame);
+      const visibleWindow =
+        kind === "raster"
+          ? root.dataset.pocTileWindowKey
+          : root.dataset.pocVectorVisibleWindow;
       const adopted =
-        activeRun?.windowKey &&
-        root.dataset.pocTileWindowKey === activeRun.windowKey;
+        activeRun?.windowKey && visibleWindow === activeRun.windowKey;
       if (adopted) {
         increment("Adoptions");
         root.dataset[dataKey("State")] = "adopted-loading";
@@ -241,6 +245,6 @@ export function useThreeOsmTilePrefetch<T>({
     sourceProjectionCenter,
     sourceTileCenter,
     sourceTileWindowKey,
-    tileRadius,
+    tileWindow,
   ]);
 }

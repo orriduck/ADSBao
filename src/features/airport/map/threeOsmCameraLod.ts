@@ -3,6 +3,7 @@ import {
   THREE_OSM_TILE_SIZE,
   type TileCoordinate,
 } from "./threeOsmProjection";
+import type { ThreeOsmTileWindow } from "./threeOsmTileWindow";
 
 export const THREE_OSM_LOD_SETTLE_MS = 180;
 export const THREE_OSM_LOD_HYSTERESIS = 0.65;
@@ -98,14 +99,12 @@ export function resolveThreeOsmSourceTileTransform({
 
 export function buildThreeOsmParentRasterFallbackTiles({
   center,
-  fineRadius,
+  fineWindow,
 }: {
   center: TileCoordinate;
-  fineRadius: number;
+  fineWindow: ThreeOsmTileWindow;
 }) {
   if (center.z <= 0) return [];
-  const radius = Math.max(1, Math.round(fineRadius));
-  const fallbackRadius = radius + 1;
   const childScale = 2 ** center.z;
   const parentZoom = center.z - 1;
   const parentScale = 2 ** parentZoom;
@@ -114,19 +113,21 @@ export function buildThreeOsmParentRasterFallbackTiles({
   const uniqueParents = new Map<string, TileCoordinate>();
 
   for (
-    let y = centerY - fallbackRadius;
-    y <= centerY + fallbackRadius;
+    let y = centerY - fineWindow.top - 1;
+    y <= centerY + fineWindow.bottom + 1;
     y += 1
   ) {
     if (y < 0 || y >= childScale) continue;
     for (
-      let x = centerX - fallbackRadius;
-      x <= centerX + fallbackRadius;
+      let x = centerX - fineWindow.left - 1;
+      x <= centerX + fineWindow.right + 1;
       x += 1
     ) {
       if (
-        Math.abs(x - centerX) <= radius &&
-        Math.abs(y - centerY) <= radius
+        x >= centerX - fineWindow.left &&
+        x <= centerX + fineWindow.right &&
+        y >= centerY - fineWindow.top &&
+        y <= centerY + fineWindow.bottom
       ) {
         continue;
       }

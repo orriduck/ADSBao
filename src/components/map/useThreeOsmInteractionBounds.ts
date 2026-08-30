@@ -6,55 +6,11 @@ import {
   resolveThreeOsmMinimumOrthoZoom,
   resolveThreeOsmTileWorldBounds,
   resolveThreeOsmVisibleHorizontalFraction,
-  type ThreeOsmGroundFootprint,
 } from "@/features/airport/map/threeOsmInteractionBounds";
+import { resolveThreeOsmCameraGroundFootprint } from "@/features/airport/map/threeOsmCameraGroundFootprint";
 import type { TileCoordinate } from "@/features/airport/map/threeOsmProjection";
 import type { ThreeOsmCameraViewportOffsets } from "@/features/airport/map/threeOsmCameraFit";
 import { getFloatingSidebarOcclusionWidth } from "./mapViewportOffset";
-
-function resolveGroundFootprint(
-  camera: THREE.Camera,
-  target: THREE.Vector3,
-  visibleLeftNdc: number,
-): ThreeOsmGroundFootprint | null {
-  if (camera instanceof THREE.OrthographicCamera) {
-    const halfWidth = (camera.right - camera.left) / (2 * camera.zoom);
-    const halfHeight = (camera.top - camera.bottom) / (2 * camera.zoom);
-    return {
-      minX: -halfWidth + (visibleLeftNdc + 1) * halfWidth,
-      maxX: halfWidth,
-      minZ: -halfHeight,
-      maxZ: halfHeight,
-    };
-  }
-  if (!(camera instanceof THREE.PerspectiveCamera)) return null;
-  const middleX = (visibleLeftNdc + 1) / 2;
-  const footprintSamples = [
-    [visibleLeftNdc, -1],
-    [middleX, -1],
-    [1, -1],
-    [visibleLeftNdc, 0],
-    [middleX, 0],
-    [1, 0],
-  ] as const;
-  const raycaster = new THREE.Raycaster();
-  const offsets = footprintSamples.flatMap(([x, y]) => {
-    raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
-    const directionY = raycaster.ray.direction.y;
-    if (directionY >= -0.0001) return [];
-    const distance = -raycaster.ray.origin.y / directionY;
-    if (!Number.isFinite(distance) || distance < 0) return [];
-    const point = raycaster.ray.at(distance, new THREE.Vector3());
-    return [{ x: point.x - target.x, z: point.z - target.z }];
-  });
-  if (!offsets.length) return null;
-  return {
-    minX: Math.min(...offsets.map((point) => point.x)),
-    maxX: Math.max(...offsets.map((point) => point.x)),
-    minZ: Math.min(...offsets.map((point) => point.z)),
-    maxZ: Math.max(...offsets.map((point) => point.z)),
-  };
-}
 
 export function useThreeOsmInteractionBounds({
   rootRef,
@@ -127,11 +83,11 @@ export function useThreeOsmInteractionBounds({
     let applying = false;
     const clampCamera = (adjustViewportOffset = false) => {
       if (applying) return;
-      const footprint = resolveGroundFootprint(
+      const footprint = resolveThreeOsmCameraGroundFootprint({
         camera,
-        controls.target,
+        target: controls.target,
         visibleLeftNdc,
-      );
+      });
       if (!footprint) return;
       const next = clampThreeOsmCameraTarget({
         target: controls.target,

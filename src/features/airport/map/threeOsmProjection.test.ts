@@ -2,12 +2,15 @@ import assert from "node:assert/strict";
 import {
   buildOsmRasterTileUrl,
   buildThreeOsmTileGridBounds,
-  buildVisibleTileGrid,
   clampThreeOsmZoom,
   lonLatAltitudeToThreeOsmWorld,
   lonLatToTileCoordinate,
   shortestWrappedTileDelta,
 } from "./threeOsmProjection";
+import {
+  buildThreeOsmTileWindowGrid,
+  createThreeOsmSquareTileWindow,
+} from "./threeOsmTileWindow";
 
 const center = lonLatToTileCoordinate(-71.0064, 42.3629, 10);
 
@@ -15,7 +18,10 @@ assert.equal(clampThreeOsmZoom(99), 16);
 assert.equal(clampThreeOsmZoom(1), 3);
 assert.equal(center.z, 10);
 
-const grid = buildVisibleTileGrid(center, 2);
+const grid = buildThreeOsmTileWindowGrid({
+  center,
+  window: createThreeOsmSquareTileWindow(2),
+});
 assert.equal(grid.length, 25);
 assert.equal(buildOsmRasterTileUrl(grid[0]).startsWith("https://tile.openstreetmap.org/10/"), true);
 

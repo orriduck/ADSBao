@@ -10,6 +10,7 @@ import {
   resolveThreeOsmTileWindowKey,
 } from "./threeOsmCameraLod";
 import { lonLatToTileCoordinate } from "./threeOsmProjection";
+import { createThreeOsmSquareTileWindow } from "./threeOsmTileWindow";
 
 assert.equal(
   resolveThreeOsmCameraScale({ mode: "2d", orthographicZoom: 2 }),
@@ -117,7 +118,7 @@ assert.ok(Math.abs(parentSource12.z) <= parentSource12.worldSize / 2);
 
 const parentFallbackTiles = buildThreeOsmParentRasterFallbackTiles({
   center: sourceCenter13,
-  fineRadius: 2,
+  fineWindow: createThreeOsmSquareTileWindow(2),
 });
 assert.ok(parentFallbackTiles.length > 0);
 assert.ok(parentFallbackTiles.length < 16);

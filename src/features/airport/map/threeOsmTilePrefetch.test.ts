@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import { resolveThreeOsmDirectionalTilePrefetch } from "./threeOsmTilePrefetch";
+import { createThreeOsmSquareTileWindow } from "./threeOsmTileWindow";
 
 const center = { x: 10.4, y: 20.6, z: 6 };
+const radius1 = createThreeOsmSquareTileWindow(1);
+const radius2 = createThreeOsmSquareTileWindow(2);
 
 assert.deepEqual(
   resolveThreeOsmDirectionalTilePrefetch({
     currentCenter: center,
     candidateCenter: { x: 10.9, y: 20.1, z: 6 },
-    radius: 2,
+    tileWindow: radius2,
   }),
   [],
 );
@@ -15,7 +18,7 @@ assert.deepEqual(
 const east = resolveThreeOsmDirectionalTilePrefetch({
   currentCenter: center,
   candidateCenter: { x: 11.1, y: 20.6, z: 6 },
-  radius: 2,
+  tileWindow: radius2,
 });
 assert.equal(east.length, 5);
 assert.deepEqual(new Set(east.map((tile) => tile.x)), new Set([13]));
@@ -23,7 +26,7 @@ assert.deepEqual(new Set(east.map((tile) => tile.x)), new Set([13]));
 const northWest = resolveThreeOsmDirectionalTilePrefetch({
   currentCenter: center,
   candidateCenter: { x: 9.9, y: 19.9, z: 6 },
-  radius: 1,
+  tileWindow: radius1,
 });
 assert.equal(northWest.length, 5);
 assert.equal(
@@ -34,7 +37,7 @@ assert.equal(
 const southEastDesktop = resolveThreeOsmDirectionalTilePrefetch({
   currentCenter: center,
   candidateCenter: { x: 11.1, y: 21.1, z: 6 },
-  radius: 2,
+  tileWindow: radius2,
 });
 assert.equal(southEastDesktop.length, 9);
 assert.equal(
@@ -45,7 +48,7 @@ assert.equal(
 const acrossDateline = resolveThreeOsmDirectionalTilePrefetch({
   currentCenter: { x: 63.8, y: 20.6, z: 6 },
   candidateCenter: { x: 0.1, y: 20.6, z: 6 },
-  radius: 1,
+  tileWindow: radius1,
 });
 assert.equal(acrossDateline.length, 3);
 assert.deepEqual(new Set(acrossDateline.map((tile) => tile.x)), new Set([1]));
@@ -54,7 +57,7 @@ assert.deepEqual(
   resolveThreeOsmDirectionalTilePrefetch({
     currentCenter: center,
     candidateCenter: { x: 13.1, y: 20.6, z: 6 },
-    radius: 2,
+    tileWindow: radius2,
   }),
   [],
 );
@@ -63,7 +66,7 @@ assert.deepEqual(
   resolveThreeOsmDirectionalTilePrefetch({
     currentCenter: center,
     candidateCenter: { x: 20.1, y: 30.1, z: 7 },
-    radius: 2,
+    tileWindow: radius2,
   }),
   [],
 );

@@ -179,12 +179,12 @@ export function resolveThreeOsmDefaultOrthographicZoom({
   tileRadius?: unknown;
 }) {
   const safeAspect = Math.max(0.35, Number(aspect) || 1);
-  const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
+  const radius = Math.min(3, Math.max(1, Math.round(Number(tileRadius) || 1)));
   const safeTileHalfSpan =
     (radius + 0.5) * THREE_OSM_TILE_SIZE * 0.9;
   const viewportHalfSpan =
     THREE_OSM_ORTHOGRAPHIC_HALF_HEIGHT * Math.max(1, safeAspect);
-  return Math.max(0.5, viewportHalfSpan / safeTileHalfSpan);
+  return Math.max(0.4, viewportHalfSpan / safeTileHalfSpan);
 }
 
 export function resolveThreeOsmDefaultCameraFrame({
@@ -262,7 +262,7 @@ export function resolveThreeOsmDefaultPerspectiveFrame({
   tileRadius?: unknown;
 }) {
   const safeAspect = Math.max(0.35, Number(aspect) || 1);
-  const radius = Math.min(2, Math.max(1, Math.round(Number(tileRadius) || 1)));
+  const radius = Math.min(3, Math.max(1, Math.round(Number(tileRadius) || 1)));
   const tileHalfSpan = (radius + 0.5) * THREE_OSM_TILE_SIZE;
   const focalHalfSpan = safeAspect >= 1
     ? Math.min(tileHalfSpan * 0.9, radius * THREE_OSM_TILE_SIZE - 12)

@@ -5,14 +5,18 @@ import {
   resolveThreeOsmTileWorldBounds,
   resolveThreeOsmVisibleHorizontalFraction,
 } from "./threeOsmInteractionBounds";
+import { lonLatToTileCoordinate } from "./threeOsmProjection";
 import {
-  buildVisibleTileGrid,
-  lonLatToTileCoordinate,
-} from "./threeOsmProjection";
+  buildThreeOsmTileWindowGrid,
+  createThreeOsmSquareTileWindow,
+} from "./threeOsmTileWindow";
 
 const center = lonLatToTileCoordinate(-71.0064, 42.3629, 10);
 const bounds = resolveThreeOsmTileWorldBounds({
-  tiles: buildVisibleTileGrid(center, 2),
+  tiles: buildThreeOsmTileWindowGrid({
+    center,
+    window: createThreeOsmSquareTileWindow(2),
+  }),
   center,
 });
 assert.ok(bounds);

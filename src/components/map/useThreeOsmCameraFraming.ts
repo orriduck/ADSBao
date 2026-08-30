@@ -63,7 +63,7 @@ export function useThreeOsmCameraFraming({
       };
       controls.minDistance = 180;
       controls.maxDistance = 1_600;
-      controls.minZoom = 0.5;
+      controls.minZoom = 0.4;
       controls.maxZoom = 4;
       if (camera instanceof THREE.PerspectiveCamera) {
         camera.position.set(frame.position.x, frame.position.y, frame.position.z);
