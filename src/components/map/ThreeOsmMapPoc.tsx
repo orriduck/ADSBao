@@ -57,6 +57,11 @@ import {
   isThreeOsmLabelProjectionCandidate,
   layoutThreeOsmLabels,
 } from "@/features/airport/map/threeOsmLabelLayout";
+import {
+  isThreeOsmVectorLabelKind,
+  resolveThreeOsmLabelPresentation,
+  type ThreeOsmLabelPresentation,
+} from "@/features/airport/map/threeOsmLabelPresentation";
 import { buildNavaidLabels } from "@/features/airport/map/navaidLabelModel";
 import { buildReportingPointLabels } from "@/features/airport/map/reportingPointLabelModel";
 import { resolveThreeOsmKeyboardSelection } from "@/features/airport/map/threeOsmKeyboardSelection";
@@ -223,32 +228,15 @@ const MAX_TILE_TEXTURES = 72;
 const MAX_VECTOR_TILE_BUFFERS = 60;
 const TILE_RETRY_DELAY_MS = 30_000;
 const THREE_OSM_LABEL_FONT_FAMILY = 'Figtree, "Noto Sans SC", sans-serif';
-const THREE_OSM_VECTOR_LABEL_KINDS = new Set<ThreeOsmSceneLabel["kind"]>([
-  "vector-aerodrome",
-  "vector-place",
-  "vector-road",
-  "vector-water",
-]);
 
 function isThreeOsmVectorSceneLabel(label: ThreeOsmSceneLabel) {
-  return THREE_OSM_VECTOR_LABEL_KINDS.has(label.kind);
+  return isThreeOsmVectorLabelKind(label.kind);
 }
 
-function resolveThreeOsmSceneLabelFont(label: ThreeOsmSceneLabel) {
-  if (label.kind === "focal-airport") {
-    return `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
-  }
-  if (
-    label.kind === "airport" ||
-    label.kind === "runway" ||
-    label.kind === "vector-aerodrome"
-  ) {
-    return `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
-  }
-  if (label.kind === "vector-place") {
-    return `600 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
-  }
-  return `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
+function resolveThreeOsmSceneLabelFont(
+  presentation: ThreeOsmLabelPresentation,
+) {
+  return `${presentation.fontWeight} ${presentation.fontSizePx}px ${THREE_OSM_LABEL_FONT_FAMILY}`;
 }
 
 type TrafficRenderItem = {
@@ -1719,6 +1707,7 @@ export default function ThreeOsmMapPoc({
           : []),
       ];
       const styleById = new Map<string, ThreeOsmSceneLabel>();
+      const presentationById = new Map<string, ThreeOsmLabelPresentation>();
       const candidates = labels.flatMap((label) => {
         projected.copy(label.position).project(camera);
         if (!isThreeOsmLabelProjectionCandidate({
@@ -1731,9 +1720,11 @@ export default function ThreeOsmMapPoc({
         }
         const x = ((projected.x + 1) / 2) * width;
         const y = ((1 - projected.y) / 2) * height;
-        const font = resolveThreeOsmSceneLabelFont(label);
+        const presentation = resolveThreeOsmLabelPresentation(label);
+        const font = resolveThreeOsmSceneLabelFont(presentation);
         context.font = font;
         styleById.set(label.id, label);
+        presentationById.set(label.id, presentation);
         return [
           {
             id: label.id,
@@ -1742,13 +1733,8 @@ export default function ThreeOsmMapPoc({
             y,
             width:
               Math.ceil(context.measureText(label.text).width) +
-              (isThreeOsmVectorSceneLabel(label) ? 6 : 12),
-            height:
-              label.kind === "focal-airport"
-                ? 22
-                : isThreeOsmVectorSceneLabel(label)
-                  ? 16
-                  : 18,
+              presentation.horizontalPaddingPx,
+            height: presentation.heightPx,
             priority: label.priority,
             pinToViewport: Boolean(label.viewportPin),
           },
@@ -1870,39 +1856,36 @@ export default function ThreeOsmMapPoc({
 
       for (const label of placed) {
         const style = styleById.get(label.id);
-        if (!style) continue;
-        if (isThreeOsmVectorSceneLabel(style)) {
+        const presentation = presentationById.get(label.id);
+        if (!style || !presentation) continue;
+        context.font = resolveThreeOsmSceneLabelFont(presentation);
+        context.textBaseline = "middle";
+        if (presentation.mode === "halo") {
           context.save();
-          context.font = resolveThreeOsmSceneLabelFont(style);
-          context.textBaseline = "middle";
           context.lineJoin = "round";
           context.miterLimit = 2;
           context.lineWidth = visualPalette.label.borderWidth > 1 ? 4 : 3;
           context.strokeStyle = visualPalette.label.background;
           context.strokeText(
             style.text,
-            label.left + 3,
+            label.left + presentation.horizontalPaddingPx / 2,
             label.top + label.height / 2 + 0.5,
           );
-          context.globalAlpha =
-            style.kind === "vector-water"
-              ? 0.72
-              : style.kind === "vector-road"
-                ? 0.84
-                : 0.94;
+          context.globalAlpha = presentation.opacity;
           context.fillStyle = visualPalette.label.text;
           context.fillText(
             style.text,
-            label.left + 3,
+            label.left + presentation.horizontalPaddingPx / 2,
             label.top + label.height / 2 + 0.5,
           );
           context.restore();
-        } else if (style.kind === "focal-airport") {
+          continue;
+        }
+        if (presentation.tone === "focal") {
           context.fillStyle = visualPalette.label.focalBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
           context.fillStyle = visualPalette.label.focalText;
-          context.font = `700 12px ${THREE_OSM_LABEL_FONT_FAMILY}`;
-        } else if (style.kind === "airport" || style.kind === "runway") {
+        } else if (presentation.tone === "operational") {
           context.fillStyle = visualPalette.label.background;
           context.fillRect(label.left, label.top, label.width, label.height);
           context.strokeStyle = visualPalette.label.border;
@@ -1914,13 +1897,12 @@ export default function ThreeOsmMapPoc({
             label.height - 1,
           );
           context.fillStyle = visualPalette.label.text;
-          context.font = `700 10px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         } else {
-          context.fillStyle = style.selected
+          context.fillStyle = presentation.tone === "selected"
             ? visualPalette.label.selectedBackground
             : visualPalette.label.contextBackground;
           context.fillRect(label.left, label.top, label.width, label.height);
-          context.fillStyle = style.selected
+          context.fillStyle = presentation.tone === "selected"
             ? visualPalette.label.selectedText
             : visualPalette.label.text;
           if (visualPalette.label.borderWidth > 1) {
@@ -1933,16 +1915,12 @@ export default function ThreeOsmMapPoc({
               label.height - 1,
             );
           }
-          context.font = `600 9px ${THREE_OSM_LABEL_FONT_FAMILY}`;
         }
-        if (!isThreeOsmVectorSceneLabel(style)) {
-          context.textBaseline = "middle";
-          context.fillText(
-            label.text,
-            label.left + 6,
-            label.top + label.height / 2 + 0.5,
-          );
-        }
+        context.fillText(
+          label.text,
+          label.left + presentation.horizontalPaddingPx / 2,
+          label.top + label.height / 2 + 0.5,
+        );
       }
       root.dataset.pocLabelsVisible = String(placed.length);
       root.dataset.pocVectorLabelsVisible = String(
@@ -1960,6 +1938,27 @@ export default function ThreeOsmMapPoc({
           const style = styleById.get(label.id);
           return style?.kind === "airspace" && !style.selected;
         }).length,
+      );
+      const visibleAircraftLabels = placed.filter(
+        (label) => styleById.get(label.id)?.kind === "aircraft",
+      );
+      root.dataset.pocAircraftLabelsVisible = String(
+        visibleAircraftLabels.length,
+      );
+      root.dataset.pocAircraftLabelSignsVisible = String(
+        visibleAircraftLabels.filter(
+          (label) => presentationById.get(label.id)?.mode === "sign",
+        ).length,
+      );
+      root.dataset.pocOpaqueLabelAreaPx = String(
+        Math.round(
+          placed.reduce((area, label) => {
+            const presentation = presentationById.get(label.id);
+            return presentation?.mode === "sign"
+              ? area + label.width * label.height
+              : area;
+          }, 0),
+        ),
       );
       root.dataset.pocVectorLabelBudget = String(vectorBudget);
       root.dataset.pocLabelFallbacks = String(
