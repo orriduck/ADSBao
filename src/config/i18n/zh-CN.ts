@@ -253,6 +253,18 @@ const zhCN = {
     },
   },
   sidebar: {
+    timeComparison: {
+      title: "时间对照",
+      airport: "机场当地",
+      browser: "你的浏览器",
+      same: "两地时间相同",
+      ahead: "机场比你快 {duration}",
+      behind: "机场比你慢 {duration}",
+      hours: "{count} 小时",
+      minutes: "{count} 分钟",
+      loading: "正在加载机场时区…",
+      unavailable: "暂无机场时区信息",
+    },
     weather: "天气",
     flights: "航班",
     airports: "机场",

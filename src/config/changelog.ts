@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.18.1",
+    version: "v3.18.2",
     kind: "feat",
     title: {
       en: "Neutral instrument surfaces",
       zh: "中性材质仪表界面",
     },
     summary: {
-      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify discovery, tracking, weather and map controls in both themes. Small warm-gold cues replace colored identity plaques and decorative boundaries. Softer sidebar edges, quieter preview actions, consistent time readouts, lifted toolbars and brief view transitions refine everyday interaction.",
-      zh: "机场目录、追踪、天气与地图控件采用中性圆角表面、浅层阴影和舒展数字排版，保留亮暗两套模式；以少量暖金提示替代彩色身份牌与隔离区装饰，并柔化侧栏边缘、收起预览卡片多余分隔线，补上视图切换与选中状态的短过渡，统一时间读数字号并增强浮动工具栏的阴影。",
+      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify discovery, tracking, weather and map controls in both themes. Small warm-gold cues replace colored identity plaques and decorative boundaries. Softer sidebar edges, quieter preview actions, consistent time readouts, lifted toolbars and brief view transitions refine everyday interaction. Local time opens an airport/browser clock comparison with dates and the current time difference.",
+      zh: "机场目录、追踪、天气与地图控件采用中性圆角表面、浅层阴影和舒展数字排版，保留亮暗两套模式；以少量暖金提示替代彩色身份牌与隔离区装饰，并柔化侧栏边缘、收起预览卡片多余分隔线，补上视图切换与选中状态的短过渡，统一时间读数字号并增强浮动工具栏的阴影。点击当地时间可对照机场与浏览器的时间、日期和当前时差。",
     },
     highlights: [],
   },

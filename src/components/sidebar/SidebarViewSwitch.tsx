@@ -178,7 +178,8 @@ export default function SidebarViewSwitch({
       value={airportLocalTime.value}
       unit={airportLocalTime.zone || undefined}
       className="wayfinding-metric--clock"
-      readOnly
+      active={activeView === "localTime"}
+      onClick={() => onViewChange?.("localTime")}
     />
   );
 
