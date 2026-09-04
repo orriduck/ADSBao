@@ -12,6 +12,7 @@
     --soft-rim: rgb(255 255 255 / 0.86);
     --soft-edge: color-mix(in oklab, var(--atc-text) 8%, transparent);
     --soft-lift: 0 8px 24px rgb(0 0 0 / 0.045), 0 2px 5px rgb(0 0 0 / 0.025);
+    --soft-toolbar-lift: 0 8px 24px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.09);
     --soft-inset: inset 0 1px 0 var(--soft-rim), inset 0 -1px 0 var(--soft-edge);
     --soft-sheen: linear-gradient(145deg, rgb(255 255 255 / 0.08), transparent 58%);
 }
@@ -25,6 +26,7 @@
     --soft-rim: rgb(255 255 255 / 0.16);
     --soft-edge: rgb(255 255 255 / 0.06);
     --soft-lift: 0 10px 28px rgb(0 0 0 / 0.2), 0 2px 5px rgb(0 0 0 / 0.12);
+    --soft-toolbar-lift: 0 8px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.32);
     --soft-sheen: linear-gradient(145deg, rgb(255 255 255 / 0.055), transparent 58%);
 }
 
@@ -34,7 +36,18 @@
 .airport-map-kit .sidebar-shell {
     background: var(--sidebar);
     border-right: 0;
-    box-shadow: inset -1px 0 0 var(--soft-edge);
+    box-shadow: none;
+}
+
+/* The backdrop grades gently toward the map instead of framing the column.
+   Keep this inside the existing allocation, without a shadow over geography. */
+:root .airport-map-kit .airport-desktop-sidebar,
+:root .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
+    border-right: 0;
+    box-shadow: none;
+}
+:root .airport-map-kit .airport-desktop-sidebar .sidebar-shell {
+    background: linear-gradient(100deg, var(--sidebar), var(--app-frost-tint));
 }
 
 .dither-page-body,
@@ -183,10 +196,10 @@
 .airport-map-kit .wayfinding-metric[data-active="true"],
 .airport-map-kit button.wayfinding-metric:hover {
     background: color-mix(in oklab, var(--atc-text) 5%, transparent);
-    box-shadow: var(--soft-inset);
+    box-shadow: none;
 }
 
-.airport-map-kit .wayfinding-metric[data-active="true"]::after {
+.airport-map-kit button.wayfinding-metric::after {
     content: "";
     position: absolute;
     bottom: 7px;
@@ -195,6 +208,33 @@
     width: 18px;
     border-radius: 2px;
     background: var(--soft-accent);
+    opacity: 0;
+    transform: scaleX(0.35);
+    transform-origin: left;
+}
+.airport-map-kit .wayfinding-metric[data-active="true"]::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+/* Only the keyed view enters. Incoming readings and virtual rows stay still. */
+@media (prefers-reduced-motion: no-preference) {
+    .airport-map-kit button.wayfinding-metric {
+        transition: background-color 180ms ease-out;
+    }
+    .airport-map-kit button.wayfinding-metric::after {
+        transition: opacity 160ms ease-out, transform 220ms ease-out;
+    }
+    .airport-map-kit .wayfinding-metric__rail {
+        transition: background-color 180ms ease-out, color 180ms ease-out, box-shadow 180ms ease-out;
+    }
+    .airport-map-kit .airport-sidebar-content {
+        animation: soft-view-enter 220ms ease-out backwards;
+    }
+    @keyframes soft-view-enter {
+        from { opacity: 0.55; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 }
 
 .airport-map-kit .wayfinding-secondary-view-grid .wayfinding-metric {
@@ -326,7 +366,7 @@
 /* Floating controls catch the same soft rim as the reference player bar. */
 [data-ui="toolbar"] {
     border: 1px solid var(--soft-rim);
-    box-shadow: var(--soft-inset), var(--soft-lift);
+    box-shadow: var(--soft-inset), var(--soft-toolbar-lift);
 }
 .aircraft-preview-card,
 .map-settings-sheet,
@@ -342,7 +382,14 @@
     .search-screen .airport-discovery-group-title { font-size: 13px; }
 }
 
-.airport-map-kit .wayfinding-metric--clock .wayfinding-metric__value-group > span:first-child { font-size: 26px; }
+/* Time shares the primary baseline. Its longer zone stays below the value
+   instead of shrinking the clock or pushing a neighboring reading aside. */
+.airport-map-kit .wayfinding-metric--clock .wayfinding-metric__value-group > span:last-child:not(:first-child) {
+    position: absolute;
+    bottom: 4px;
+    left: 10px;
+    margin: 0;
+}
 .airport-map-kit .weather-wayfinding-grid .wayfinding-metric__value-group > span:first-child { font-size: 25px; }
 .airport-map-kit .wayfinding-search > span:first-child { background: transparent; }
 .airport-map-kit .wayfinding-search > span:last-child { padding-left: 5px; }
@@ -499,12 +546,13 @@
 
 /* Provider links are quiet utility content. Their original colors do not
    create another theme, and their marks retain contrast in either mode. */
-.provider-link-row { grid-template-columns: minmax(0, 1fr); }
+.provider-link-row { grid-template-columns: minmax(0, 1fr); background: transparent; }
 .provider-link-row__rail { display: none; }
 .provider-link-row__content {
     min-height: 42px;
     padding: 8px 14px;
-    border-top: 1px solid var(--soft-edge);
+    border-top: 0;
+    background: transparent;
     gap: 8px;
 }
 .provider-link-row a { border-radius: 6px; }
@@ -540,8 +588,9 @@
     background: var(--soft-identity-surface);
     background-image: var(--soft-identity-material);
     color: var(--atc-text);
-    border-color: var(--soft-edge);
-    box-shadow: var(--soft-inset);
+    border: 0;
+    border-radius: 14px;
+    box-shadow: none;
 }
 .aircraft-preview-card__track-btn::before,
 .mobile-preview-track-button::before {
@@ -554,10 +603,36 @@
     margin-right: 8px;
     flex-shrink: 0;
 }
-.aircraft-preview-card__track-btn:hover,
-.mobile-preview-track-button:hover { box-shadow: inset 0 0 0 1px var(--soft-accent), var(--soft-inset); }
+:root[data-theme] .aircraft-preview-card__track-btn:hover,
+.mobile-preview-track-button:hover {
+    background-color: var(--soft-icon-surface);
+    box-shadow: var(--soft-icon-shadow);
+}
 .aircraft-preview-card__track-btn:focus-visible,
 .mobile-preview-track-button:focus-visible { outline: 2px solid var(--soft-accent); outline-offset: -3px; }
+
+/* Spacing separates preview readings; the action sits inside the card curve. */
+.aircraft-preview-card__divider { background: none; }
+.mobile-preview-meta-line { border-top: 0; }
+.mobile-preview-actions,
+.aircraft-preview-metadata-card--airport > .aircraft-preview-card__actions {
+    padding: 8px 10px 10px;
+    border: 0;
+    background: transparent;
+    gap: 6px;
+}
+.aircraft-preview-metadata-card--airport > .aircraft-preview-card__actions .aircraft-preview-card__track-btn {
+    border-radius: 14px;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .mobile-preview-track-button {
+        transition: background-color 150ms ease-out, box-shadow 150ms ease-out, transform 150ms ease-out;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aircraft-preview-card__track-btn,
+    .mobile-preview-track-button { transition: none; }
+}
 
 /* The focal airport stays recognizable without a large colored map label. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge) .airport-overlay-label__code.atc-code-pill {
