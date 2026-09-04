@@ -217,6 +217,11 @@
     transform: scaleX(1);
 }
 
+.airport-map-kit button.wayfinding-metric:focus-visible {
+    outline: 2px solid var(--soft-accent);
+    outline-offset: -3px;
+}
+
 /* Only the keyed view enters. Incoming readings and virtual rows stay still. */
 @media (prefers-reduced-motion: no-preference) {
     .airport-map-kit button.wayfinding-metric {
@@ -387,7 +392,7 @@
 .airport-map-kit .wayfinding-metric--clock .wayfinding-metric__value-group > span:last-child:not(:first-child) {
     position: absolute;
     bottom: 4px;
-    left: 10px;
+    right: 10px;
     margin: 0;
 }
 .airport-map-kit .weather-wayfinding-grid .wayfinding-metric__value-group > span:first-child { font-size: 25px; }
@@ -713,3 +718,23 @@
 .mechanism-wayfinding__copy small { font-size: 11px; line-height: 1.4; }
 .mechanism-wayfinding__detail > p,
 .mechanism-wayfinding__notes li { font-size: 12px; line-height: 1.5; }
+
+
+/* Two clocks share one quiet surface; their dates make midnight explicit. */
+.airport-time-panel {
+    margin: 0 12px 14px;
+    padding: 20px;
+    border-radius: var(--soft-radius);
+    background: var(--airport-wayfinding-content);
+    box-shadow: var(--soft-inset), var(--soft-lift);
+}
+.airport-time-panel__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.airport-time-panel__heading h2 { margin: 0; font-size: 12px; font-weight: 500; }
+.airport-time-panel__heading svg { width: 16px; height: 16px; color: var(--atc-dim); }
+.airport-time-panel__difference { margin: 12px 0 24px; font-size: 20px; font-weight: 400; line-height: 1.35; letter-spacing: -0.025em; }
+.airport-time-panel__clocks { display: grid; gap: 24px; margin: 0; }
+.airport-time-panel__clock dt { font-size: 11px; color: var(--atc-dim); }
+.airport-time-panel__clock dd { margin: 6px 0 0; }
+.airport-time-panel__value { font-size: 38px; font-weight: 300; line-height: 1.1; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; }
+.airport-time-panel__date { margin-top: 7px; font-size: 11px; color: var(--atc-dim); }
+.airport-time-panel__zone { margin-top: 4px; font-size: 10px; color: var(--atc-dim); overflow-wrap: anywhere; }

@@ -10,6 +10,7 @@ import {
   SidebarLoadingHeader,
 } from "./SidebarLoadingSkeleton";
 import WeatherBriefingStack from "./WeatherBriefingStack";
+import AirportTimePanel from "./AirportTimePanel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
 import { useStablePlaceWeatherCoords } from "@/hooks/useStablePlaceWeatherCoords";
@@ -140,7 +141,12 @@ export default function AirportSidebar({
     </>
   );
   const activeViewContent =
-    activeView === "weather" || activeView === "flightRules" ? (
+    activeView === "localTime" ? (
+      <AirportTimePanel
+        airportTimeZone={localWeather?.timezone || ""}
+        loading={localWeatherLoading}
+      />
+    ) : activeView === "weather" || activeView === "flightRules" ? (
       <WeatherBriefingStack
         metar={metar}
         metarRaw={metarRaw}

@@ -258,6 +258,18 @@ const en = {
     },
   },
   sidebar: {
+    timeComparison: {
+      title: "Time difference",
+      airport: "At the airport",
+      browser: "In your browser",
+      same: "Same local time",
+      ahead: "Airport is {duration} ahead",
+      behind: "Airport is {duration} behind",
+      hours: "{count}h",
+      minutes: "{count}m",
+      loading: "Loading airport time zone…",
+      unavailable: "Airport time zone unavailable",
+    },
     weather: "Weather",
     flights: "Flights",
     airports: "Airports",

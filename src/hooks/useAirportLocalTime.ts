@@ -51,13 +51,12 @@ export function formatAirportLocalTime(
   }
 }
 
-export function useAirportLocalTime(timeZone: unknown): AirportLocalTime {
-  const normalizedTimeZone = String(timeZone || "").trim();
+function useMinuteClock(clockKey: string) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     setNow(new Date());
-    if (!normalizedTimeZone) return undefined;
+    if (!clockKey) return undefined;
 
     let intervalId: number | undefined;
     const delayToNextMinute = MINUTE_MS - (Date.now() % MINUTE_MS) + 20;
@@ -70,10 +69,65 @@ export function useAirportLocalTime(timeZone: unknown): AirportLocalTime {
       window.clearTimeout(timeoutId);
       if (intervalId !== undefined) window.clearInterval(intervalId);
     };
-  }, [normalizedTimeZone]);
+  }, [clockKey]);
 
+  return now;
+}
+
+export function useAirportLocalTime(timeZone: unknown): AirportLocalTime {
+  const normalizedTimeZone = String(timeZone || "").trim();
+  const now = useMinuteClock(normalizedTimeZone);
   return useMemo(
     () => formatAirportLocalTime(normalizedTimeZone, now),
     [normalizedTimeZone, now],
+  );
+}
+
+function offsetMinutes(zone: string): number | null {
+  if (zone === "UTC") return 0;
+  const match = /^UTC([+−])(\d{1,2})(?::(\d{2}))?$/.exec(zone);
+  if (!match) return null;
+  return (Number(match[2]) * 60 + Number(match[3] || 0)) *
+    (match[1] === "−" ? -1 : 1);
+}
+
+// Compare offsets at the same instant, rather than subtracting clock faces.
+// This preserves the sign across midnight, DST and fractional-hour zones.
+export function formatAirportTimeComparison(
+  airportTimeZone: string,
+  browserTimeZone: string,
+  instant = new Date(),
+  locale = "en",
+) {
+  const clock = (rawTimeZone: string) => {
+    const timeZone = rawTimeZone.trim();
+    const time = formatAirportLocalTime(timeZone, instant);
+    return {
+      ...time,
+      timeZone: time.zone ? timeZone : "",
+      date: time.zone
+        ? new Intl.DateTimeFormat(locale, { timeZone, dateStyle: "medium" }).format(instant)
+        : "",
+    };
+  };
+  const airport = clock(airportTimeZone);
+  const browser = clock(browserTimeZone);
+  const airportOffset = offsetMinutes(airport.zone);
+  const browserOffset = offsetMinutes(browser.zone);
+  return {
+    airport,
+    browser,
+    differenceMinutes: airportOffset == null || browserOffset == null
+      ? null
+      : airportOffset - browserOffset,
+  };
+}
+
+export function useAirportTimeComparison(airportTimeZone: string, locale: string) {
+  const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const now = useMinuteClock(`${airportTimeZone}|${browserTimeZone}`);
+  return useMemo(
+    () => formatAirportTimeComparison(airportTimeZone, browserTimeZone, now, locale),
+    [airportTimeZone, browserTimeZone, now, locale],
   );
 }
