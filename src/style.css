@@ -460,7 +460,7 @@
 }
 
 .preview-async-status-dot {
-    --preview-async-status-loading: oklch(0.72 0.15 70);
+    --preview-async-status-loading: var(--atc-dim);
     background: color-mix(in oklab, var(--atc-mint) 88%, var(--atc-text) 12%);
     border-radius: 999px;
     box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
@@ -497,9 +497,8 @@
 }
 
 .preview-async-status-dot--error {
-    background: var(--atc-red);
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--atc-bg) 72%, transparent),
-        0 0 8px color-mix(in oklab, var(--atc-red) 24%, transparent);
+    background: transparent;
+    box-shadow: inset 0 0 0 2px var(--soft-accent);
 }
 
 .preview-async-status-dot--fading {
@@ -1066,8 +1065,7 @@
     --airport-surface-apron-fill: oklch(50% 0.015 250 / 0.34);
     --airport-surface-apron-stroke: oklch(64% 0.02 250 / 0.55);
 
-    /* Single map-ink tone for every aircraft regardless of departure/arrival —
-       the airport is the only thing painted yellow on the map. */
+    /* Single map-ink tone for every aircraft regardless of departure/arrival. */
     --aircraft-departure: oklch(0.2 0.006 100);
     --aircraft-arrival: oklch(0.2 0.006 100);
     --aircraft-unknown: oklch(0.2 0.006 100);
@@ -1731,6 +1729,10 @@ canvas.aircraft-canvas-layer {
 }
 
 .provider-logo-monochrome {
+    filter: brightness(0);
+}
+
+:root[data-theme="dark"] .provider-logo-monochrome {
     filter: brightness(0) invert(1);
 }
 
@@ -5499,8 +5501,8 @@ body {
 }
 
 /* Airport labels share their DOM between the focal tracking target and
-   contextual map references. The focal target below is deliberately a compact
-   wayfinding sign: a white left rail identifies the yellow airport field. */
+   contextual map references. The focal target receives a small accent edge
+   in soft-surfaces.css. */
 .airport-overlay-label {
     align-items: center;
     --map-badge-offset-x: 0px;
@@ -5575,7 +5577,7 @@ body {
    candidate spot) read as the same milky frosted pill as the Toolbar —
    full capsule, near-opaque luminous surface, backdrop blur, bright inner
    hairline + soft drop. They are reference markers, so they stay NEUTRAL;
-   the yellow primary / gray secondary signals are reserved for targets. */
+   active targets use small structural cues. */
 .airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill,
 .airport-overlay-label--map-badge .airport-overlay-label__detail {
     background: #fff;
@@ -5620,10 +5622,7 @@ body {
     color: var(--atc-dim);
 }
 
-/* Focal airport = the page's PRIMARY target. The compact map sign repeats the
-   sidebar identity construction at map scale: a thick white rail on the left,
-   followed by a yellow field with black icon and type. Nearby and contextual
-   airport badges remain neutral. */
+/* The focal airport retains its compact label and legible identifier. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge) {
     align-items: flex-start;
     filter: drop-shadow(
@@ -5634,12 +5633,12 @@ body {
 
 .airport-overlay-label:not(.airport-overlay-label--map-badge)
     .airport-overlay-label__code.atc-code-pill {
-    background: var(--atc-theme-yellow);
+    background: var(--soft-identity-surface);
     border: 0;
     border-left: 4px solid #fff;
     border-radius: 0;
     box-shadow: none;
-    color: var(--atc-theme-yellow-ink);
+    color: var(--soft-identity-ink);
     font-size: 8px;
     gap: 3px;
     letter-spacing: 0.02em;
@@ -5859,7 +5858,7 @@ body {
     .sidebar-loading-skeleton__bar {
     background: color-mix(
         in oklab,
-        var(--atc-theme-yellow-ink) 24%,
+        var(--soft-identity-ink) 24%,
         transparent
     );
 }
@@ -7989,118 +7988,10 @@ body {
     line-height: 1;
 }
 
-/* Every first-screen route ends at the same in-flow security-glass boundary.
-   The uninterrupted material replaces the old unexplained mobile clearance
-   and makes the dock feel suspended over one continuous restricted zone. */
-.public-concourse-boundary {
-    border-top: 1px solid var(--home-wayfinding-divider);
-    display: grid;
-    flex: 1 0 auto;
-    grid-template-columns: 36px minmax(0, 1fr);
-    min-height: 96px;
-}
-
-.public-concourse-boundary__rail {
-    background-color: color-mix(
-        in oklab,
-        var(--atc-text) 26%,
-        var(--app-frost-tint)
-    );
-    background-image: var(--wayfinding-rail-material);
-    position: relative;
-}
-
-.public-concourse-boundary__body {
-    -webkit-backdrop-filter: blur(18px) saturate(0.72);
-    backdrop-filter: blur(18px) saturate(0.72);
-    background-color: color-mix(
-        in oklab,
-        var(--atc-text) 12%,
-        transparent
-    );
-    background-image:
-        linear-gradient(
-            112deg,
-            rgb(255 255 255 / 0.18),
-            transparent 42%,
-            rgb(0 0 0 / 0.05)
-        ),
-        var(--wayfinding-security-glass-grain);
-    box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.22);
-    padding: 14px 12px 20px;
-    position: relative;
-}
-
-.public-concourse-boundary__label {
-    color: var(--atc-faint);
-    display: block;
-    font-family: var(--font-code);
-    font-size: calc(8px * var(--sb-body-scale));
-    font-weight: var(--weight-medium);
-    letter-spacing: 0.08em;
-    line-height: 1.2;
-    text-transform: uppercase;
-}
-
-.public-concourse-boundary__notice {
-    color: color-mix(in oklab, var(--atc-text) 62%, transparent);
-    font-size: calc(11px * var(--sb-body-scale));
-    line-height: 1.4;
-    margin-top: 6px;
-    max-width: 28ch;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-    .public-concourse-boundary__body {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        background-color: color-mix(
-            in oklab,
-            var(--atc-text) 13%,
-            var(--home-wayfinding-content)
-        );
-    }
-}
-
-@media (max-width: 720px) {
-    .dither-page-panel:has(.public-concourse-boundary) {
-        padding-bottom: 0;
-    }
-
-    .public-concourse-boundary {
-        min-height: 136px;
-    }
-
-    .public-concourse-boundary__body {
-        padding-bottom: 64px;
-    }
-
-    .airport-sidebar-panel--mobile
-        .airport-sidebar-content
-        > .aircraft-table-shell:has(.public-concourse-boundary--nearby) {
-        padding-bottom: 0;
-    }
-}
-
-.airport-map-kit .public-concourse-boundary--nearby {
-    border-top: 0;
-    flex: 0 0 auto;
-}
-
-.airport-map-kit .public-concourse-boundary--nearby
-    .public-concourse-boundary__rail {
-    background-color: var(--airport-wayfinding-neutral-rail);
-}
-
-/* An empty traffic result occupies the remaining sidebar workspace before the
-   in-flow security boundary. The flex chain is tied to the shell's available
-   height, so identity/metric/filter changes do not require another viewport-
-   height calculation or breakpoint override. */
+/* Empty traffic fills the available workspace without a decorative footer. */
 .airport-map-kit .aircraft-table-shell[data-empty-results="true"] {
-    --nearby-boundary-min-height: 96px;
     flex: 1 0 auto;
-    min-height: calc(100% + var(--nearby-boundary-min-height));
+    min-height: 0;
 }
 
 .airport-map-kit
@@ -8130,11 +8021,6 @@ body {
     justify-content: center;
 }
 
-@media (max-width: 720px) {
-    .airport-map-kit .aircraft-table-shell[data-empty-results="true"] {
-        --nearby-boundary-min-height: 136px;
-    }
-}
 
 .sidebar-shell,
 .airport-sidebar-panel,
@@ -8969,7 +8855,7 @@ body {
 .about-screen .dither-page-copy .atc-page-title::after,
 .mechanism-screen .dither-page-copy .atc-page-title::after,
 .changelog-screen .dither-page-copy .atc-page-title::after {
-    background: var(--atc-theme-yellow-ink);
+    background: var(--soft-identity-ink);
     border-radius: 1px;
     content: "";
     display: block;
@@ -9369,7 +9255,7 @@ body {
 }
 
 /* Route is a secondary toggle. A neutral-gray wash marks its active state
-   without competing with the yellow tracked target. */
+   without competing with the tracked target. */
 .airport-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"],
 .flight-sidebar-panel [data-ui="filter-card"][data-tone="accent"][data-active="true"] {
     background: color-mix(in oklab, var(--atc-text) 10%, var(--atc-control-surface));
@@ -10192,10 +10078,8 @@ body {
     }
 }
 
-/* Home directory experiment — airport wayfinding rhythm. The page stays
-   neutral and quiet: numbers provide navigation hierarchy, photography reads
-   as a concrete-and-shadow backdrop, and yellow remains an operational signal
-   rather than becoming general decoration. */
+/* Home directory: identifiers provide hierarchy over a neutral photographic
+   backdrop. The surface treatment lives in soft-surfaces.css. */
 .search-screen {
     --home-list-code-column: 44px;
     --home-list-column-gap: 0;
@@ -10244,7 +10128,7 @@ body {
 }
 
 .dither-wayfinding-identity {
-    background: var(--atc-theme-yellow);
+    background: var(--soft-identity-surface);
     border-bottom: 0;
 }
 
@@ -10254,7 +10138,7 @@ body {
 }
 
 .dither-wayfinding-identity__icon {
-    color: var(--atc-theme-yellow-ink);
+    color: var(--soft-identity-ink);
 }
 
 /* Shared rail-stage motion. First-screen and live tracking surfaces keep the
@@ -10493,7 +10377,7 @@ body {
 .dither-page-panel:not(.plane-hunter-panel)
     .dither-wayfinding-identity
     .atc-page-title {
-    color: var(--atc-theme-yellow-ink) !important;
+    color: var(--soft-identity-ink) !important;
     font-size: calc(30px * var(--sb-title-scale));
     font-weight: var(--weight-medium);
 }
@@ -10503,7 +10387,7 @@ body {
     .dither-page-description {
     color: color-mix(
         in oklab,
-        var(--atc-theme-yellow-ink) 76%,
+        var(--soft-identity-ink) 76%,
         transparent
     ) !important;
     font-size: 12px;
@@ -10621,7 +10505,7 @@ body {
 }
 
 .search-screen .dither-page-copy {
-    background: var(--atc-theme-yellow);
+    background: var(--soft-identity-surface);
     margin-top: 0;
 }
 
@@ -10718,26 +10602,6 @@ body {
     height: 16px;
     stroke-width: 1.8;
     width: 16px;
-}
-
-.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby,
-.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby:hover {
-    padding-bottom: 0;
-    padding-top: 0;
-}
-
-.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby > span:first-child,
-.search-screen .airport-discovery-topic .dither-list .airport-list-row--nearby:hover > span:first-child {
-    align-items: flex-start;
-    align-self: stretch;
-    background: var(--home-wayfinding-secondary);
-    border-radius: 0;
-    box-shadow: none;
-    color: var(--home-wayfinding-secondary-fg) !important;
-    display: flex;
-    justify-content: center;
-    margin: 0;
-    padding: 11px 0 0;
 }
 
 .search-screen .airport-discovery-topic .dither-list .group[data-has-pill="false"]
@@ -10853,11 +10717,6 @@ body {
 .about-screen .dither-list .group {
     padding-left: 0;
     padding-right: 0;
-}
-
-.search-screen .dither-content-stack {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
 }
 
 .search-screen .airport-discovery-topic {
@@ -11250,42 +11109,16 @@ body {
     }
 }
 
-/* These semantic hooks are declared by their feature sections later in this
-   file, so the grayscale UI calibration closes the cascade here. Yellow is a
-   separately scoped theme token and must not leak into aircraft state. */
+/* Neutral state and provider surfaces. The restrained UI accent lives in
+   soft-surfaces.css and does not recolor aircraft or trace geometry. */
 :root {
     --atc-signal-accent: oklch(0.62 0 0);
     --atc-signal-accent-fg: oklch(0.99 0 0);
     --atc-signal-secondary-action: oklch(0.48 0 0);
     --atc-signal-secondary-action-fg: oklch(0.97 0 0);
-    --atc-provider-sign: oklch(0.34 0.1 258);
-    --atc-provider-sign-rail: color-mix(
-        in oklab,
-        var(--atc-provider-sign) 78%,
-        #000
-    );
-    --atc-provider-sign-fg: #fff;
-    --atc-theme-yellow: oklch(0.82 0.16 92);
-    --atc-theme-yellow-ink: oklch(0.18 0.015 92);
-    --atc-theme-yellow-material:
-        radial-gradient(
-            140% 105% at 12% -8%,
-            rgb(255 255 255 / 0.2) 0%,
-            rgb(255 255 255 / 0.07) 32%,
-            transparent 58%
-        ),
-        linear-gradient(
-            112deg,
-            rgb(255 255 255 / 0.08) 0%,
-            transparent 44%,
-            rgb(77 55 0 / 0.07) 100%
-        ),
-        linear-gradient(
-            180deg,
-            transparent 0%,
-            rgb(77 55 0 / 0.035) 100%
-        );
-    --wayfinding-security-glass-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112' viewBox='0 0 112 112'%3E%3Cfilter id='grain' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.74' numOctaves='4' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 .2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='112' height='112' filter='url(%23grain)' opacity='.48'/%3E%3C/svg%3E");
+    --atc-provider-sign: color-mix(in oklab, var(--atc-text) 3%, var(--app-frost-tint));
+    --atc-provider-sign-rail: var(--atc-provider-sign);
+    --atc-provider-sign-fg: var(--atc-dim);
 }
 
 :root[data-theme="dark"] {
@@ -11293,7 +11126,6 @@ body {
     --atc-signal-accent-fg: oklch(0.18 0 0);
     --atc-signal-secondary-action: oklch(0.52 0 0);
     --atc-signal-secondary-action-fg: oklch(0.97 0 0);
-    --atc-theme-yellow: oklch(0.84 0.17 92);
 }
 
 .airport-map-kit .sidebar-shell {
@@ -11458,144 +11290,4 @@ body {
 .map-settings-rail-extension::before,
 .map-settings-unit-row::before {
     background-image: var(--wayfinding-rail-material) !important;
-}
-
-/* The tracked airport and aircraft identities are the palette's full signs.
-   Match the first-screen identity construction by laying yellow beneath the entire
-   joined module: the translucent white rail then picks up the same warm cast
-   as the home header, while the reading surface keeps black type. */
-.airport-wayfinding-identity,
-.flight-wayfinding-identity {
-    background: var(--atc-theme-yellow);
-}
-
-.airport-wayfinding-identity > .wayfinding-rail,
-.flight-wayfinding-identity > .wayfinding-rail {
-    background-color: rgb(255 255 255 / 0.78) !important;
-    color: var(--atc-theme-yellow-ink) !important;
-}
-
-.airport-wayfinding-identity__content,
-.flight-wayfinding-identity__content {
-    background-color: color-mix(
-        in oklab,
-        var(--atc-theme-yellow) 84%,
-        transparent
-    ) !important;
-    background-blend-mode: soft-light, normal, normal, normal !important;
-    color: var(--atc-theme-yellow-ink);
-}
-
-.airport-wayfinding-identity__content h1,
-.airport-wayfinding-identity__name,
-.flight-wayfinding-identity__content .text-atc-text {
-    color: var(--atc-theme-yellow-ink) !important;
-}
-
-.airport-wayfinding-identity__place,
-.airport-wayfinding-identity__coordinates,
-.airport-wayfinding-identity__content > .text-atc-dim,
-.flight-wayfinding-identity__content .text-atc-dim {
-    color: color-mix(
-        in oklab,
-        var(--atc-theme-yellow-ink) 76%,
-        transparent
-    ) !important;
-}
-
-.airport-wayfinding-identity__content .near-me-refresh__link:hover {
-    border-bottom-color: var(--atc-theme-yellow-ink);
-    color: var(--atc-theme-yellow-ink);
-}
-
-/* The sole yellow aircraft action. Selection rails and trace geometry keep
-   using the grayscale signal token; only the explicit Track CTA receives the
-   yellow field and black ink requested for the preview-card footer. */
-.aircraft-preview-card__track-btn,
-.mobile-preview-track-button {
-    background-color: var(--atc-theme-yellow) !important;
-    border-color: color-mix(
-        in oklab,
-        var(--atc-theme-yellow-ink) 18%,
-        var(--atc-theme-yellow)
-    ) !important;
-    color: var(--atc-theme-yellow-ink) !important;
-}
-
-/* Yellow behaves like satin wayfinding laminate: one broad highlight plus a
-   warm, shallow falloff. Keep this finish on the approved sign surfaces only;
-   neutral rails, selection state, and flight geometry stay grayscale. */
-.airport-overlay-label:not(.airport-overlay-label--map-badge)
-    .airport-overlay-label__code.atc-code-pill,
-.aircraft-preview-card__track-btn,
-.mobile-preview-track-button {
-    background-image: var(--atc-theme-yellow-material) !important;
-    background-repeat: no-repeat !important;
-}
-
-/* Airport identity signs approximate the fine-grained laminated glass used
-   around security checkpoints. The grain is a tiny static tile, not a live
-   filter, so scrolling the dense sidebar does not trigger continuous noise
-   repaints. Straight joined edges remain intact; refraction stays inside the
-   existing sign instead of turning it into a floating rounded card. */
-.dither-page-shell .dither-wayfinding-identity__content,
-.airport-wayfinding-identity__content,
-.flight-wayfinding-identity__content {
-    -webkit-backdrop-filter: blur(20px) saturate(1.08);
-    backdrop-filter: blur(20px) saturate(1.08);
-    background-color: color-mix(
-        in oklab,
-        var(--atc-theme-yellow) 84%,
-        transparent
-    ) !important;
-    background-blend-mode: soft-light, normal, normal, normal !important;
-    background-image:
-        var(--wayfinding-security-glass-grain),
-        var(--atc-theme-yellow-material) !important;
-    background-repeat: repeat, no-repeat, no-repeat, no-repeat !important;
-    background-size: 112px 112px, auto, auto, auto !important;
-    box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.3),
-        inset 0 -1px 0 rgb(77 55 0 / 0.09),
-        inset 1px 0 0 rgb(255 255 255 / 0.1);
-}
-
-.dither-page-shell .dither-wayfinding-identity__rail,
-.airport-wayfinding-identity > .wayfinding-rail,
-.flight-wayfinding-identity > .wayfinding-rail {
-    -webkit-backdrop-filter: blur(20px) saturate(1.04);
-    backdrop-filter: blur(20px) saturate(1.04);
-    background-color: rgb(255 255 255 / 0.9) !important;
-    background-blend-mode: soft-light, normal, normal !important;
-    background-image:
-        var(--wayfinding-security-glass-grain),
-        var(--wayfinding-rail-material) !important;
-    background-repeat: repeat, no-repeat, no-repeat !important;
-    background-size: 112px 112px, auto, auto !important;
-    box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.42),
-        inset -1px 0 0 rgb(0 0 0 / 0.12),
-        inset 1px 0 0 rgb(255 255 255 / 0.18);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-    .dither-page-shell .dither-wayfinding-identity__content,
-    .airport-wayfinding-identity__content,
-    .flight-wayfinding-identity__content {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        background-color: var(--atc-theme-yellow) !important;
-    }
-
-    .dither-page-shell .dither-wayfinding-identity__rail,
-    .airport-wayfinding-identity > .wayfinding-rail,
-    .flight-wayfinding-identity > .wayfinding-rail {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        background-color: #fff !important;
-    }
-}
-
-.aircraft-preview-card__track-btn:visited {
-    color: var(--atc-theme-yellow-ink) !important;
 }

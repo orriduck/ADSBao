@@ -14,20 +14,20 @@ ADSBao provides a map-first airport monitoring HUD: search for an airport, inspe
 
 ## Brand Personality
 
-Industrial, precise, cinematic. The interface should feel like a serious field-operations console: technical, controlled, and calm under load, with enough atmosphere to make the airport map feel like a live instrument rather than a generic dashboard.
+Precise, tactile and calm. The interface should feel like a carefully made instrument: neutral materials, shallow relief, legible readings and a single sparingly used accent. Airport terminal signage is not a visual reference.
 
 ## Anti-references
 
-Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes, soft pastel consumer UI, busy gacha menu clutter, decorative glassmorphism, and purely military simulation aesthetics. Industrial science-fiction can inform tone, but should not become a direct visual source.
+Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes, soft pastel consumer UI, busy gacha menu clutter, decorative glassmorphism, airport terminal sign replicas, and purely military simulation aesthetics. Industrial science-fiction can inform tone, but should not become a direct visual source.
 
 ## Design Principles
 
 1. Map first: the map remains the visual anchor, and panels should feel attached to the operating surface rather than competing with it.
 2. Dense, not cluttered: compress controls and telemetry with strong hierarchy, fixed dimensions, and progressive disclosure.
-3. State colors carry meaning: reserve accent color for selection, active controls, and operational state; use warnings and errors sparingly.
-4. Industrial restraint: use sharp panels, thin rules, gridded surfaces, and tinted neutrals instead of rounded marketing cards.
+3. Color restraint: use neutrals for the interface and one warm-gold accent for small action or state cues. Make state readable through labels, shape and relief as well as color.
+4. Instrument restraint: use softly rounded groups, thin rims, quiet labels and large readouts. Material stays neutral and shallow; avoid large colored identity panels and provider strips.
 5. Preserve flow: visual changes must not change route structure, click paths, data flow, or existing map-layer semantics.
-6. Split workspace on large screens: desktop and landscape layouts should reserve a real left column for airport context and controls, not float the sidebar over the map. Keep the column quiet and operational: compact joined groups, small section labels, restrained spacing, 36px rails, and flat fixed surfaces. Reserve glass for floating map interaction layers.
+6. Split workspace on large screens: desktop and landscape layouts reserve a real left column for airport context and controls. Preserve that width and the map area. Use inset rounded groups and compact icon tiles inside the column, following DESIGN.md; floating map controls share their soft edge treatment.
 
 ## Accessibility & Inclusion
 

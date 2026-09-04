@@ -53,7 +53,6 @@ import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import AircraftList from "./AircraftList";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
-import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 import { SidebarLoadingRows } from "./SidebarLoadingSkeleton";
 import { shouldShowAircraftListLoading } from "@/features/aircraft/positions/aircraftLoadingOverlayModel";
 
@@ -403,7 +402,6 @@ function AircraftTable({
             </>
           )}
         </div>
-        <PublicConcourseBoundary className="public-concourse-boundary--nearby" />
       </div>
     </div>
   );

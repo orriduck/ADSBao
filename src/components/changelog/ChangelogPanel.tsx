@@ -7,7 +7,6 @@ import {
 } from "react";
 import { CircleDot } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import PublicConcourseBoundary from "@/components/app-shell/PublicConcourseBoundary";
 import {
   CHANGELOG_PAGE_SIZE,
   CHANGELOG_RECENT,
@@ -120,7 +119,6 @@ export default function ChangelogPanel() {
           <li ref={sentinelRef} aria-hidden="true" className="h-px" />
         ) : null}
       </ol>
-      {hasMoreReleases ? null : <PublicConcourseBoundary />}
     </div>
   );
 }

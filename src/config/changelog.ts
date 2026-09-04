@@ -46,9 +46,22 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 77;
+export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.18.0",
+    kind: "feat",
+    title: {
+      en: "Neutral instrument surfaces",
+      zh: "中性材质仪表界面",
+    },
+    summary: {
+      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify discovery, tracking, weather and map controls in both themes. Small warm-gold cues replace colored identity plaques, provider strips and decorative security boundaries.",
+      zh: "机场目录、追踪、天气与地图控件采用中性圆角表面、浅层阴影和舒展数字排版，保留亮暗两套模式；以少量暖金提示替代彩色身份牌、站外链接色带与隔离区装饰。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.16.15",
     kind: "feat",
@@ -59,19 +72,6 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     summary: {
       en: "Airport pages now reveal progressively, preserve stable known coordinates without duplicate nearby subscriptions or a zero-coordinate detour, avoid parallel HTTP traffic requests while a healthy SSE startup is pending, and surface separately delivered nearby-airport context in flight tracking.",
       zh: "机场页现在会渐进呈现，稳定保留已知坐标并避免重复附近订阅或绕经零坐标；健康 SSE 启动等待期间也不再并行请求 HTTP 航空流量，航班追踪则能正确显示独立送达的附近机场信息。",
-    },
-    highlights: [],
-  },
-  {
-    version: "v3.15.2",
-    kind: "feat",
-    title: {
-      en: "Wayfinding clarity",
-      zh: "导视清晰度",
-    },
-    summary: {
-      en: "A grayscale-and-yellow wayfinding refresh sharpens aircraft, stabilizes nearby lists, and gives Plane Studio a calmer camera and capture-review interface.",
-      zh: "灰黄导视更新提升飞机清晰度、稳定附近列表，并让 Plane Studio 的拍摄与成片审核界面更清晰克制。",
     },
     highlights: [],
   },

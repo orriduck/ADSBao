@@ -20,10 +20,9 @@ type WayfindingMetricProps = {
   className?: string;
 };
 
-// A compact wayfinding readout: the icon owns the full-height neutral rail,
-// while the title and value stay on one consistent content material. The
-// component deliberately knows nothing about airports or aircraft; callers
-// decide what a metric means and whether it is interactive.
+// Shared instrument readout. The visual system places a quiet icon beside
+// the label and gives the value its own baseline. Callers own the meaning,
+// units and interaction; styling never changes the underlying data.
 export default function WayfindingMetric({
   icon,
   title,

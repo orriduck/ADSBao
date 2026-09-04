@@ -21,14 +21,9 @@ import {
 import { defaultGroundSpeedUnit, type GroundSpeedUnit } from "@/utils/units";
 import { useAirportLocalTime } from "@/hooks/useAirportLocalTime";
 
-// Frosted "hero stats block": one joined rounded glass container with a big
-// flight count over a fixed two-by-two control matrix (weather / flight rule /
-// ATC / spotting). This is the single quiet segment that switches every
-// left-column view, so only one summary surface shows at a time.
-// Each segment doubles as the view-switch control — the active segment shows
-// the reserved orange accent rail + faint wash (DESIGN.md: row-selection,
-// trace, track button, and the active hero/telemetry segment). Hierarchy comes
-// from size and luminance, not weight — numerals stay regular.
+// One rounded summary groups the airport's readings and view controls.
+// A neutral inset and short underline identify the selected view; large,
+// light numerals provide hierarchy without changing the theme palette.
 export default function SidebarViewSwitch({
   activeView = "traffic",
   onViewChange,
@@ -182,6 +177,7 @@ export default function SidebarViewSwitch({
       title={t("sidebar.localTime")}
       value={airportLocalTime.value}
       unit={airportLocalTime.zone || undefined}
+      className="wayfinding-metric--clock"
       readOnly
     />
   );
