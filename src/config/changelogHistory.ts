@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.15.2",
+    kind: "feat",
+    title: {
+      en: "Wayfinding clarity",
+      zh: "导视清晰度",
+    },
+    summary: {
+      en: "A grayscale-and-yellow wayfinding refresh sharpens aircraft, stabilizes nearby lists, and gives Plane Studio a calmer camera and capture-review interface.",
+      zh: "灰黄导视更新提升飞机清晰度、稳定附近列表，并让 Plane Studio 的拍摄与成片审核界面更清晰克制。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.14.3",
     kind: "feat",
     title: {

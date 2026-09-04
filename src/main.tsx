@@ -21,6 +21,7 @@ import App from "./App";
 import "leaflet/dist/leaflet.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./style.css";
+import "./soft-surfaces.css";
 
 function resolveInitialTheme() {
   const raw = document.cookie

@@ -29,10 +29,6 @@ const en = {
     mechanism: "Backroom",
     changelog: "Changelog",
   },
-  publicBoundary: {
-    label: "End of public concourse",
-    notice: "Departures security zone. No public access beyond this point.",
-  },
   about: {
     meta: {
       version: "Version",

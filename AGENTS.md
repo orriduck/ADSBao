@@ -8,10 +8,11 @@ only adds repository-level guardrails.
 
 - Before changing code or docs, read `CLAUDE.md` and choose the applicable
   validation path from its `Local development` and `Validation` sections.
-- Before any UI/styling work, read `DESIGN.md`. Fixed and in-flow panels use
-  the Operational Wayfinding system (flat white/black surfaces, 36px rails,
-  joined dividers); frosted tokens are reserved for floating interaction
-  layers. Do not invent another surface treatment.
+- Before any UI/styling work, read `DESIGN.md`. The current Soft Instrument
+  Surfaces direction uses rounded groups, compact icon tiles and fine rims;
+  retain light/dark modes and the map footprint; use neutral materials with
+  one restrained warm-gold accent, following DESIGN.md.
+  Reuse `src/soft-surfaces.css` rather than inventing another treatment.
 - For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
   Vite runs on port 3000 and proxies same-origin API and SSE requests to the
   private Go service on port 8082. `pnpm debug:local:service` adopts or starts

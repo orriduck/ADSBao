@@ -27,10 +27,6 @@ const zhCN = {
     mechanism: "Backroom",
     changelog: "更新日志",
   },
-  publicBoundary: {
-    label: "公共区域到此结束",
-    notice: "出境隔离区，未经许可禁止进入。",
-  },
   about: {
     meta: {
       version: "版本",

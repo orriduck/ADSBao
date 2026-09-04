@@ -72,7 +72,7 @@ export default function WeatherBriefingStack({
   const { preferences: units } = useUnitPreferences();
 
   return (
-    <div className="pb-7">
+    <div className="weather-briefing-stack pb-7">
       <div key={view} className="app-panel-transition flex flex-col">
         {view === "metar" ? (
           <MetarView
@@ -95,8 +95,8 @@ export default function WeatherBriefingStack({
   );
 }
 
-// Shared hero card: a left rail + soft tinted background, both keyed to one
-// data-driven colour. Children own the value / caption / interpretation.
+// Shared weather hero. The visual system gives the icon an inset medallion;
+// children own the real reading, caption and interpretation.
 function HeroCard({ icon, children }) {
   return (
     <div className="weather-wayfinding-hero flex min-h-[132px] overflow-hidden border-b border-[var(--airport-wayfinding-divider)]">
@@ -250,7 +250,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
         <MetricCell icon={<Droplets />} label={t("weather.humidity")} value={humidityValue} />
       </MetricGrid>
 
-      <div className="border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
+      <div className="weather-wayfinding-detail border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
         <div className="flex items-baseline justify-between">
           <span className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.rawReport"))}
@@ -266,7 +266,7 @@ function MetarView({ metar, metarRaw, metarLoading, t, units }) {
         </code>
       </div>
 
-      <div className="bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
+      <div className="weather-wayfinding-detail bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
         <div className="flex gap-7">
           <IconStat
             icon={<Cloud size={14} strokeWidth={1.8} />}
@@ -398,7 +398,7 @@ function LocalView({ local, loading, t, units }) {
       </MetricGrid>
 
       {hours.length > 0 ? (
-        <div className="border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
+        <div className="weather-wayfinding-detail border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4">
           <div className="text-[calc(9.5px*var(--sb-body-scale))] text-atc-faint [letter-spacing:0.08em]">
             {up(t("weather.nextHours"))}
           </div>
@@ -429,7 +429,7 @@ function LocalView({ local, loading, t, units }) {
       ) : null}
 
       {summary ? (
-        <p className="bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
+        <p className="weather-wayfinding-detail bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-4 text-[calc(12.5px*var(--sb-body-scale))] leading-snug text-atc-dim">
           {summary}
         </p>
       ) : null}

@@ -75,7 +75,7 @@ function AirportDiscoveryTopicSection({ topic, motionBase, onOpen, onPrefetch })
       className={`airport-discovery-topic airport-discovery-topic--${topic.id} dither-section-flow min-w-0`}
       aria-labelledby={`airport-discovery-${topic.id}`}
     >
-      <h2 id={`airport-discovery-${topic.id}`} className="sr-only">
+      <h2 id={`airport-discovery-${topic.id}`} className="airport-discovery-group-title">
         {t(topic.titleKey)}
       </h2>
 
