@@ -89,9 +89,15 @@
 }
 
 .dither-page-shell .dither-wayfinding-identity__icon {
-    width: 54px;
-    padding-top: 5px;
-    padding-left: 10px;
+    grid-area: auto;
+    position: absolute;
+    top: 24px;
+    left: 18px;
+    display: grid;
+    place-items: center; place-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
 }
 
 .dither-page-shell .dither-wayfinding-identity .atc-page-title {
@@ -416,31 +422,25 @@
     background-image: none !important;
 }
 
-/* Match loading geometry to the loaded surface without animating the panel. */
-.airport-map-kit .sidebar-loading-skeleton__metrics {
-    margin: 0 12px;
-    padding: 4px;
-    border-radius: 24px 24px 0 0;
-    background: var(--airport-wayfinding-content);
-}
-.airport-map-kit .sidebar-loading-skeleton__metric {
-    position: relative;
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 100px;
-    border: 0;
-}
-.airport-map-kit .sidebar-loading-skeleton__metric--compact { min-height: 82px; }
-.airport-map-kit .sidebar-loading-skeleton__metric > .sidebar-loading-skeleton__rail {
-    position: absolute;
-    top: 12px;
-    right: 10px;
-    width: 24px;
-    height: 24px;
-    padding-top: 4px;
-    border-radius: 50%;
-}
-.airport-map-kit .sidebar-loading-skeleton__secondary-row { margin: 0 12px 14px; border-radius: 0 0 24px 24px; overflow: hidden; }
-.airport-map-kit .sidebar-loading-skeleton__filters { margin: 0 12px 12px; border-radius: 20px; overflow: hidden; }
+/* Skeletons reuse the live identity and metric components and row order. */
+.airport-map-kit .sidebar-loading-skeleton__bar { border-radius: 5px; }
+.airport-map-kit .sidebar-loading-skeleton__icon { width: 14px; height: 14px; border-radius: 4px; }
+.airport-map-kit .sidebar-loading-skeleton__identity { min-height: 160px; }
+.airport-map-kit .sidebar-loading-skeleton__identity-copy { border: 0; }
+.airport-map-kit .sidebar-loading-skeleton__identity-code { height: 38px; }
+.airport-map-kit .sidebar-loading-skeleton__identity > .sidebar-loading-skeleton__rail { display: grid; place-items: center; place-content: center; padding: 0; background: var(--soft-icon-surface); background-image: none !important; box-shadow: var(--soft-icon-shadow); }
+.airport-map-kit .sidebar-loading-skeleton__metric-label { height: 1lh; }
+.airport-map-kit .sidebar-loading-skeleton__value { height: 30px; }
+.airport-map-kit .wayfinding-metric--compact .sidebar-loading-skeleton__value { height: 24px; }
+.airport-map-kit .sidebar-loading-skeleton__search { min-height: 48px; margin: 4px 12px 14px; border: 0; border-radius: 16px; background: var(--airport-wayfinding-content); box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.035); }
+.airport-map-kit .sidebar-loading-skeleton__search > .sidebar-loading-skeleton__rail { background: transparent; background-image: none !important; place-items: center; place-content: center; align-items: center; padding: 0; }
+.airport-map-kit .sidebar-loading-skeleton__filters { margin: 0 12px 12px; border-radius: 20px; padding: 4px; background: var(--airport-wayfinding-content); box-shadow: var(--soft-inset), var(--soft-lift); }
+.airport-map-kit .sidebar-loading-skeleton__filter { min-height: 52px; margin: 2px; border: 0; }
+.airport-map-kit :is(.sidebar-loading-skeleton__filter, .sidebar-loading-skeleton__row) > .sidebar-loading-skeleton__rail { align-self: center; align-items: center; width: 30px; height: 30px; margin-left: 5px; padding: 0; border-radius: 10px; background: var(--soft-icon-surface); background-image: none !important; box-shadow: var(--soft-icon-shadow); }
+.airport-map-kit .sidebar-loading-skeleton__rows { margin: 0 12px; border-radius: 20px; overflow: hidden; background: var(--airport-wayfinding-content); }
+.airport-map-kit .sidebar-loading-skeleton__row { height: var(--wayfinding-traffic-row-height); border-bottom-color: var(--soft-edge); }
+.airport-map-kit .sidebar-loading-skeleton__section-head { margin-bottom: 0; }
+:root .app-route-loading-workspace__sidebar { border: 0; background: var(--sidebar); }
 
 @media (prefers-reduced-transparency: reduce) {
     [data-ui="toolbar"] { background: var(--atc-bg); backdrop-filter: none; }
@@ -497,7 +497,7 @@
     overflow: visible;
 }
 .map-settings-sheet .map-settings-header { padding: 8px; border: 0; }
-.map-settings-sheet .map-settings-header__rail { align-self: center; height: 36px; border-radius: 50%; padding-top: 10px; background-image: none !important; }
+.map-settings-sheet .map-settings-header__rail { align-self: center; display: grid; place-items: center; place-content: center; width: 36px; height: 36px; border-radius: 50%; padding: 0; background-image: none !important; box-shadow: var(--soft-icon-shadow); }
 .map-settings-sheet .map-settings-section { border-top: 0; }
 .map-settings-sheet .map-settings-section-title { padding-left: 24px; }
 .map-settings-sheet :is(.map-settings-section-title, .map-settings-unit-row, .map-settings-rail-extension)::before,
@@ -738,3 +738,66 @@
 .airport-time-panel__value { font-size: 38px; font-weight: 300; line-height: 1.1; letter-spacing: -0.045em; font-variant-numeric: tabular-nums; }
 .airport-time-panel__date { margin-top: 7px; font-size: 11px; color: var(--atc-dim); }
 .airport-time-panel__zone { margin-top: 4px; font-size: 10px; color: var(--atc-dim); overflow-wrap: anywhere; }
+
+
+/* Secondary surfaces use the same material and icon wells as live readouts. */
+.sidebar-secondary-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 16px; }
+.sidebar-secondary-heading h2 { font-size: 12px; font-weight: 500; text-transform: none; }
+.soft-empty-state { display: flex; align-items: center; gap: 12px; min-height: 90px; padding: 12px 16px 20px; }
+.soft-empty-state > span { align-self: center; display: grid; place-items: center; place-content: center; flex-shrink: 0; width: 32px; height: 32px; padding: 0; border-radius: 10px; background: var(--soft-icon-surface); box-shadow: var(--soft-icon-shadow); }
+.soft-empty-state > p { margin: 0; padding: 0; background: transparent; line-height: 1.5; }
+.airport-map-kit :is(.atc-freq-table > div, .spotting-wayfinding-panel .app-list-motion > button) { margin: 0 8px; border: 0; border-radius: 16px; }
+.airport-map-kit :is(.atc-freq-table > div, .spotting-wayfinding-panel .app-list-motion > button) > div { background: transparent; }
+.airport-map-kit .spotting-wayfinding-panel button:is(:hover, [data-active="true"]) { background: var(--soft-icon-surface); }
+.airport-map-kit .spotting-wayfinding-panel button:focus-visible { outline: 2px solid var(--soft-accent); outline-offset: -2px; }
+.airport-map-kit .atc-wayfinding-panel > a { margin: 0 12px 8px; border-radius: 14px; background: var(--soft-icon-surface); color: var(--atc-text); }
+
+:root .map-settings-sheet { background: var(--soft-identity-surface); backdrop-filter: none; -webkit-backdrop-filter: none; border-color: var(--soft-rim); box-shadow: var(--soft-inset), var(--soft-toolbar-lift); }
+.map-settings-sheet .map-settings-row-rail { display: grid; place-items: center; place-content: center; padding: 0; }
+.map-settings-sheet .map-settings-list-group { padding: 4px; background: var(--soft-identity-surface); box-shadow: var(--soft-inset); }
+.map-settings-sheet .map-settings-list-group > * + * { border-top: 0; }
+.map-settings-sheet :is(.map-settings-toggle-row, .map-settings-unit-row, .map-settings-label-level-row) { border-radius: 16px; }
+.map-settings-sheet .map-settings-section-title { letter-spacing: 0; text-transform: none; font-size: 11px; font-weight: 500; }
+.map-settings-sheet .map-settings-footer { border: 0; padding: 12px; background: var(--soft-identity-surface); }
+.map-settings-sheet :is(.map-settings-footer__cancel, .map-settings-footer__save) { min-height: 44px; border-radius: 14px; padding: 0 18px; }
+.map-settings-sheet .map-settings-footer__save { background: var(--atc-text); color: var(--soft-identity-surface); box-shadow: var(--soft-lift); }
+.map-settings-sheet :is(button, input):focus-visible { outline: 2px solid var(--soft-accent); outline-offset: -2px; }
+
+.soft-modal-overlay { background: rgb(0 0 0 / 0.24); backdrop-filter: none; -webkit-backdrop-filter: none; }
+:root[data-theme="dark"] .soft-modal-overlay { background: rgb(0 0 0 / 0.48); }
+.soft-modal, .app-status-card { background: var(--soft-identity-surface); color: var(--atc-text); border: 1px solid var(--soft-rim); border-radius: 24px; box-shadow: var(--soft-inset), var(--soft-toolbar-lift); }
+.soft-modal { outline: none; }
+.soft-icon-well { display: grid; place-items: center; place-content: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 13px; background: var(--soft-icon-surface); box-shadow: var(--soft-icon-shadow); color: var(--atc-dim); }
+.soft-modal-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; place-content: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--atc-dim); box-shadow: none; }
+.soft-modal-close:hover { background: var(--soft-icon-surface); color: var(--atc-text); }
+.soft-modal-close:focus-visible, .soft-button:focus-visible, .spot-navigation-link:focus-visible { outline: 2px solid var(--soft-accent); outline-offset: -2px; }
+.soft-button { min-height: 44px; border: 0; border-radius: 14px; padding: 0 18px; color: var(--atc-text); background: var(--soft-icon-surface); font-size: 12px; font-weight: 500; }
+.soft-button:hover { box-shadow: var(--soft-icon-shadow); }
+.spot-navigation-modal { width: min(380px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 24px; }
+.spot-navigation-modal[data-mobile="true"] { width: auto; border-radius: 24px 24px 0 0; max-height: calc(100dvh - 12px); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+.spot-navigation-modal__heading { display: flex; align-items: center; gap: 14px; padding-right: 26px; }
+.spot-navigation-modal__place { margin: 20px 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.spot-navigation-link { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 112px; padding: 16px 10px; border-radius: 18px; background: var(--soft-icon-surface); color: var(--atc-text); font-size: 12px; font-weight: 500; text-align: center; text-decoration: none; }
+.spot-navigation-link[data-primary="true"] { box-shadow: var(--soft-inset); }
+.spot-navigation-link:hover { box-shadow: var(--soft-icon-shadow); }
+.app-status-card { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(300px, calc(100% - 32px)); padding: 24px; text-align: center; }
+.app-status-card .aviation-loading-glyph { margin: 0; }
+.app-status-card .adsb-loading-overlay__label { padding: 0; }
+.app-status-card--error { align-items: flex-start; text-align: left; }
+:root .adsb-loading-overlay { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklab, var(--sidebar) 36%, transparent); }
+:root .adsb-loading-overlay--notice { background: transparent; }
+.map-context-notice { padding: 24px; border-radius: 24px; background: var(--soft-identity-surface); box-shadow: var(--soft-inset), var(--soft-toolbar-lift); text-shadow: none; }
+.atc-toast[data-sonner-toast] { padding: 14px 16px; border-radius: 18px; background: var(--soft-identity-surface); border-color: var(--soft-rim); box-shadow: var(--soft-inset), var(--soft-toolbar-lift); }
+.atc-toast[data-sonner-toast] [data-icon] > * { color: var(--atc-dim); }
+.atc-toast[data-sonner-toast][data-type="error"] [data-icon] > * { color: var(--soft-accent); }
+@media (prefers-reduced-motion: no-preference) {
+    .soft-modal[data-state="open"] { animation: soft-modal-enter 180ms ease-out; }
+    .soft-modal[data-state="closed"] { animation: soft-modal-exit 120ms ease-in; }
+    .soft-modal-overlay[data-state="open"] { animation: soft-modal-enter 180ms ease-out; }
+    .soft-modal-overlay[data-state="closed"] { animation: soft-modal-exit 120ms ease-in; }
+    .spot-navigation-link, .soft-modal-close, .soft-button { transition: background-color 150ms ease-out, box-shadow 150ms ease-out; }
+    @keyframes soft-modal-enter { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes soft-modal-exit { to { opacity: 0; } }
+}
+
+.map-settings-sheet .map-settings-segmented-control button { min-height: 32px; border-radius: 10px; }

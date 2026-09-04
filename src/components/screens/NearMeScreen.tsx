@@ -325,7 +325,7 @@ function NearMePermissionPrompt({
             type="button"
             onClick={onRequest}
             disabled={busy}
-            className="rounded-[var(--atc-radius-pill)] bg-[var(--atc-click-bg)] px-3 py-2 text-[12px] font-semibold text-[var(--atc-click-fg)] shadow-[var(--atc-action-primary-shadow)] transition-transform duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+            className="soft-button disabled:cursor-not-allowed disabled:opacity-45"
           >
             {busy
               ? t("nearMe.requestingCta")
@@ -336,7 +336,7 @@ function NearMePermissionPrompt({
           <button
             type="button"
             onClick={onBack}
-            className="rounded-[var(--atc-radius-pill)] border border-[var(--app-frost-border)] bg-[var(--atc-control-surface-hover)] px-3 py-2 text-[12px] font-semibold text-atc-text transition-transform duration-150 active:scale-[0.98]"
+            className="soft-button"
           >
             {t("nearMe.back")}
           </button>

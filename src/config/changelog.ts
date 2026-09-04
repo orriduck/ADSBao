@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 78;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.18.2",
+    version: "v3.18.3",
     kind: "feat",
     title: {
       en: "Neutral instrument surfaces",
       zh: "中性材质仪表界面",
     },
     summary: {
-      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify discovery, tracking, weather and map controls in both themes. Small warm-gold cues replace colored identity plaques and decorative boundaries. Softer sidebar edges, quieter preview actions, consistent time readouts, lifted toolbars and brief view transitions refine everyday interaction. Local time opens an airport/browser clock comparison with dates and the current time difference.",
-      zh: "机场目录、追踪、天气与地图控件采用中性圆角表面、浅层阴影和舒展数字排版，保留亮暗两套模式；以少量暖金提示替代彩色身份牌与隔离区装饰，并柔化侧栏边缘、收起预览卡片多余分隔线，补上视图切换与选中状态的短过渡，统一时间读数字号并增强浮动工具栏的阴影。点击当地时间可对照机场与浏览器的时间、日期和当前时差。",
+      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify the app in both themes. Local time compares airport and browser clocks, dates and the current time difference. Loading placeholders match the live layout; settings, photo-location dialogs and loading/error notices share consistent surfaces, centered icons and clearer interaction feedback.",
+      zh: "全应用采用中性圆角表面、浅层阴影和舒展读数，保留明暗两套模式。当地时间可对照机场与浏览器的时间、日期和当前时差。加载骨架与实际布局对齐，设置、拍机点弹窗及加载和失败提示统一材质、图标居中与交互反馈。",
     },
     highlights: [],
   },

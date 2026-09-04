@@ -94,7 +94,6 @@ export default function MapLoadingOverlay({
   const shownAtRef = useRef(active ? Date.now() : 0);
   const hiddenSinceRef = useRef(0);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const { t } = useI18n();
   const exitDurationMs =
     variant === "airport" && mode !== "terminal" && !prefersReducedMotion
       ? AIRPORT_EXPLORER_UI_CONFIG.airportMapRevealMs
@@ -209,7 +208,7 @@ export default function MapLoadingOverlay({
       style={{ display: visible ? undefined : "none" }}
     >
       {mode === "terminal" ? (
-        <div className="relative z-[1] flex max-w-[260px] flex-col items-center gap-2 px-6 text-center">
+        <div className="app-status-card app-status-card--terminal">
           <TerminalIcon reason={terminalReason} />
           <div className="text-[15px] leading-snug text-atc-text">{title}</div>
           {subtext ? (

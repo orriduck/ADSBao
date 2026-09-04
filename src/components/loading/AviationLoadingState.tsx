@@ -45,14 +45,14 @@ export function AviationLoadingIndicator({
   playbackKey,
 }: AviationLoadingIndicatorProps) {
   return (
-    <>
+    <div className="app-status-card app-status-card--loading">
       <AviationLoadingGlyph key={playbackKey} />
       {label ? (
         <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">
           <span>{label}</span>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
 

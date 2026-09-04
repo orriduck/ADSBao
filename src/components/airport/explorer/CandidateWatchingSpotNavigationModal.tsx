@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { MapPinned, Navigation, X } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -19,6 +19,7 @@ export default function CandidateWatchingSpotNavigationModal({
   mobile = false,
 }: CandidateWatchingSpotNavigationModalProps) {
   const { t } = useI18n();
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const links = useMemo(
     () =>
       buildSpotNavigationLinks(spot, {
@@ -34,83 +35,41 @@ export default function CandidateWatchingSpotNavigationModal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay
-          className={cn(
-            "fixed inset-0 z-[var(--z-index-modal)]",
-            "[background:color-mix(in_oklab,var(--atc-bg)_74%,transparent)]",
-            "[backdrop-filter:blur(12px)] [-webkit-backdrop-filter:blur(12px)]",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            "data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0",
-          )}
-        />
+        <Dialog.Overlay className="soft-modal-overlay fixed inset-0 z-[var(--z-index-modal)] motion-reduce:animate-none" />
         <Dialog.Content
           className={cn(
-            "fixed z-[var(--z-index-modal-content)] flex flex-col gap-4",
+            "soft-modal spot-navigation-modal fixed z-[var(--z-index-modal-content)]",
             mobile
-              ? "inset-x-[env(safe-area-inset-left)] bottom-0 max-h-[min(100dvh,520px)] w-auto rounded-t-[var(--atc-radius-panel)] border-x border-t border-[var(--app-frost-border)] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4"
-              : "left-1/2 top-1/2 w-[min(92vw,360px)] -translate-x-1/2 -translate-y-1/2 rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)] p-5",
-            "[background:var(--atc-surface-preview-card)] text-atc-text",
-            "shadow-[var(--preview-card-shadow)] outline-none",
-            "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out",
-            mobile
-              ? "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom"
-              : "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95",
-            "motion-reduce:animate-none motion-reduce:transition-none",
+              ? "inset-x-[env(safe-area-inset-left)] bottom-0"
+              : "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
           )}
+          data-mobile={mobile ? "true" : undefined}
+          onOpenAutoFocus={() => {
+            returnFocusRef.current = document.activeElement instanceof HTMLElement
+              ? document.activeElement
+              : null;
+          }}
+          onCloseAutoFocus={(event) => {
+            if (returnFocusRef.current?.isConnected) {
+              event.preventDefault();
+              returnFocusRef.current.focus();
+            }
+          }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[var(--atc-control-surface)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]">
-                <MapPinned className="size-5" aria-hidden="true" strokeWidth={1.9} />
-              </span>
-              <div className="min-w-0">
-                <Dialog.Title className="text-[16px] font-bold leading-tight text-atc-text">
-                  {t("watcherMode.navigationTitle")}
-                </Dialog.Title>
-                <Dialog.Description className="mt-1 text-[12px] leading-relaxed text-atc-dim">
-                  {t("watcherMode.navigationDescription")}
-                </Dialog.Description>
-                <div
-                  className="notranslate mt-2 truncate text-[13px] font-bold leading-tight text-atc-text"
-                  translate="no"
-                >
-                  {links.label}
-                </div>
-              </div>
+          <div className="spot-navigation-modal__heading">
+            <span className="soft-icon-well"><MapPinned size={20} aria-hidden="true" /></span>
+            <div className="min-w-0">
+              <Dialog.Title className="text-[16px] font-medium leading-tight">{t("watcherMode.navigationTitle")}</Dialog.Title>
+              <Dialog.Description className="mt-2 text-[12px] leading-relaxed text-atc-dim">{t("watcherMode.navigationDescription")}</Dialog.Description>
             </div>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-full",
-                  "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] text-atc-dim",
-                  "shadow-[var(--atc-control-inset-shadow-subtle)]",
-                  "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
-                  "transition-[background,color,box-shadow] duration-150 hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text",
-                  "focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)]",
-                )}
-                aria-label={t("watcherMode.navigationClose")}
-              >
-                <X className="size-4" aria-hidden="true" />
-              </button>
-            </Dialog.Close>
           </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <NavigationLink
-              href={links.nativeMapUrl}
-              icon={Navigation}
-              title={t("watcherMode.navigationNative")}
-              primary
-              onOpenChange={onOpenChange}
-            />
-            <NavigationLink
-              href={links.googleMapsUrl}
-              icon={MapPinned}
-              title={t("watcherMode.navigationGoogle")}
-              onOpenChange={onOpenChange}
-            />
+          <p className="notranslate spot-navigation-modal__place" translate="no">{links.label}</p>
+          <Dialog.Close asChild>
+            <button type="button" className="soft-modal-close" aria-label={t("watcherMode.navigationClose")}><X size={16} aria-hidden="true" /></button>
+          </Dialog.Close>
+          <div className="grid grid-cols-2 gap-3">
+            <NavigationLink href={links.nativeMapUrl} icon={Navigation} title={t("watcherMode.navigationNative")} primary onOpenChange={onOpenChange} />
+            <NavigationLink href={links.googleMapsUrl} icon={MapPinned} title={t("watcherMode.navigationGoogle")} onOpenChange={onOpenChange} />
           </div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -140,41 +99,11 @@ function NavigationLink({
       href={href}
       {...externalProps}
       onClick={() => onOpenChange(false)}
-      className={cn(
-        "group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-[var(--atc-radius-card)] px-3 py-3",
-        "text-center no-underline transition-[background,box-shadow,transform,filter] duration-150",
-        "focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)]",
-        primary
-          ? cn(
-              "border border-transparent [background:var(--atc-glass-active-bg)]",
-              "text-[var(--atc-click-fg)] shadow-[var(--atc-glass-rim-shadow)]",
-              "[backdrop-filter:var(--atc-glass-active-frost)] [-webkit-backdrop-filter:var(--atc-glass-active-frost)]",
-              "hover:[background:var(--atc-glass-active-bg)] hover:brightness-105 active:scale-[0.99]",
-            )
-          : cn(
-              "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] text-atc-text",
-              "shadow-[var(--atc-control-inset-shadow-subtle)] hover:bg-[var(--atc-control-surface-hover)] active:scale-[0.99]",
-            ),
-      )}
+      className="spot-navigation-link"
+      data-primary={primary ? "true" : undefined}
     >
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full",
-          primary
-            ? "bg-[color-mix(in_oklab,var(--atc-click-fg)_14%,transparent)] text-[var(--atc-click-fg)]"
-            : "bg-[var(--atc-toolbar-surface)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]",
-        )}
-      >
-        <Icon className="size-5" aria-hidden="true" />
-      </span>
-      <span
-        className={cn(
-          "block max-w-full truncate text-[13px] font-bold leading-tight",
-          primary ? "text-[var(--atc-click-fg)]" : "text-atc-text",
-        )}
-      >
-        {title}
-      </span>
+      <span className="soft-icon-well"><Icon size={20} aria-hidden="true" /></span>
+      <span>{title}</span>
     </a>
   );
 }

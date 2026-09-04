@@ -23,7 +23,7 @@ const SheetPortal = SheetPrimitive.Portal
 const SheetOverlay = forwardRef(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none motion-reduce:transition-none",
+      "soft-modal-overlay fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none motion-reduce:transition-none",
       className
     )}
     {...props}
@@ -58,15 +58,7 @@ const SheetContent = forwardRef(({ side = "right", className, overlayClassName, 
       <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
         <SheetPrimitive.Close
-          className={cn(
-            "absolute right-3 top-3 flex size-10 items-center justify-center rounded-full",
-            "border border-[var(--app-frost-border)] bg-[var(--atc-control-surface)] text-atc-text",
-            "shadow-[var(--atc-control-inset-shadow-subtle)] opacity-85",
-            "[backdrop-filter:var(--app-frost)] [-webkit-backdrop-filter:var(--app-frost)]",
-            "transition-[background,opacity,box-shadow] duration-150 hover:bg-[var(--atc-control-surface-hover)] hover:opacity-100",
-            "focus:outline-none focus:ring-2 focus:ring-[var(--atc-accent)] disabled:pointer-events-none",
-            "[&>svg]:size-4",
-          )}>
+          className="soft-modal-close disabled:pointer-events-none [&>svg]:size-4">
           <X className="h-4 w-4" />
           <span className="sr-only">{t("ui.close")}</span>
         </SheetPrimitive.Close>
