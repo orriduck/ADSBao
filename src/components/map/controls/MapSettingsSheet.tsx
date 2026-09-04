@@ -491,11 +491,6 @@ export default function MapSettingsSheet({
             ? "rounded-t-[var(--atc-radius-panel)] border-x border-t border-[var(--app-frost-border)]"
             : "rounded-[var(--atc-radius-panel)] border border-[var(--app-frost-border)]",
           "overflow-hidden p-0 text-atc-text",
-          "[background:linear-gradient(180deg,color-mix(in_oklab,var(--app-frost-tint)_86%,transparent),color-mix(in_oklab,var(--app-frost-tint)_90%,transparent))]",
-          // Frosted material — strong backdrop blur diffuses the map
-          // behind the slide-in settings panel into soft gray.
-          "[backdrop-filter:var(--app-frost-strong)] [-webkit-backdrop-filter:var(--app-frost-strong)]",
-          "shadow-[var(--app-panel-shadow)]",
           mobileSheet
             ? "data-[state=open]:translate-y-0 data-[state=open]:opacity-100 data-[state=closed]:translate-y-full data-[state=closed]:opacity-0"
             : "data-[state=open]:translate-x-0 data-[state=open]:opacity-100 data-[state=closed]:translate-x-[calc(100%+16px)] data-[state=closed]:opacity-0",

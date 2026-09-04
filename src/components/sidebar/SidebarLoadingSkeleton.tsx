@@ -1,3 +1,5 @@
+import WayfindingMetric from "@/components/ui/WayfindingMetric";
+
 type SidebarLoadingSkeletonProps = {
   variant?: "airport" | "flight";
   section?: "header" | "content";
@@ -28,15 +30,13 @@ function MetricPlaceholder({
   compact?: boolean;
 }) {
   return (
-    <div
-      className={`sidebar-loading-skeleton__metric ${compact ? "sidebar-loading-skeleton__metric--compact" : ""}`.trim()}
-    >
-      <Rail />
-      <span className="sidebar-loading-skeleton__metric-copy">
-        <Placeholder className={wide ? "w-16" : "w-11"} />
-        <Placeholder className={wide ? "h-5 w-20" : "h-5 w-12"} />
-      </span>
-    </div>
+    <WayfindingMetric
+      title={<Placeholder className="sidebar-loading-skeleton__metric-label w-11" />}
+      value={<Placeholder className={wide ? "sidebar-loading-skeleton__value w-20" : "sidebar-loading-skeleton__value w-12"} />}
+      icon={<Placeholder className="sidebar-loading-skeleton__icon" />}
+      className={compact ? "wayfinding-metric--compact" : ""}
+      readOnly
+    />
   );
 }
 
@@ -71,25 +71,27 @@ export function SidebarLoadingHeader({
         </span>
       </div>
 
-      <div className="sidebar-loading-skeleton__metrics">
-        <MetricPlaceholder />
-        <MetricPlaceholder wide />
-        <MetricPlaceholder wide />
-        <MetricPlaceholder />
-        {isAirport ? (
-          <>
+      <div className={isAirport ? "airport-wayfinding-summary" : "flight-wayfinding-summary"}>
+        <div className={`${isAirport ? "wayfinding-metrics-grid" : "flight-wayfinding-metrics"} grid grid-cols-2`}>
+          <MetricPlaceholder />
+          <MetricPlaceholder wide />
+          <MetricPlaceholder wide />
+          <MetricPlaceholder />
+        </div>
+        {isAirport && (
+          <div className="wayfinding-secondary-view-grid grid grid-cols-2">
             <MetricPlaceholder compact wide />
             <MetricPlaceholder compact />
-          </>
-        ) : null}
-      </div>
-
-      <div className="sidebar-loading-skeleton__secondary-row provider-link-row">
-        <span aria-hidden="true" className="provider-link-row__rail" />
-        <span className="sidebar-loading-skeleton__secondary-copy provider-link-row__content">
-          <Placeholder className="w-24" />
-          <Placeholder className="ml-auto w-16" />
-        </span>
+          </div>
+        )}
+        <div className="sidebar-wayfinding-provider">
+          <div className="provider-link-row">
+            <span className="provider-link-row__content">
+              <Placeholder className="w-24" />
+              <Placeholder className="ml-auto w-16" />
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -113,14 +115,6 @@ export function SidebarLoadingContent() {
       aria-hidden="true"
       className="sidebar-loading-skeleton sidebar-loading-skeleton--content"
     >
-      <div className="sidebar-loading-skeleton__section-head aircraft-table-controls-header">
-        <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
-        <span className="sidebar-loading-skeleton__section-head-copy aircraft-table-controls-header__content">
-          <Placeholder className="w-12" />
-          <Placeholder className="ml-auto w-14" />
-        </span>
-      </div>
-
       <div className="sidebar-loading-skeleton__search">
         <Rail />
         <span className="sidebar-loading-skeleton__search-copy">
@@ -133,6 +127,14 @@ export function SidebarLoadingContent() {
         <FilterPlaceholder valueWidth="w-10" />
         <FilterPlaceholder valueWidth="w-12" />
         <FilterPlaceholder valueWidth="w-16" />
+      </div>
+
+      <div className="sidebar-loading-skeleton__section-head aircraft-table-controls-header">
+        <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
+        <span className="sidebar-loading-skeleton__section-head-copy aircraft-table-controls-header__content">
+          <Placeholder className="w-12" />
+          <Placeholder className="ml-auto w-14" />
+        </span>
       </div>
 
       <LoadingRows />

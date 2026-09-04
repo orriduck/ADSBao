@@ -265,7 +265,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
 
   return (
     <div className="atc-wayfinding-panel flex flex-col pb-5">
-      <div className="flex items-baseline justify-between border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-3">
+      <div className="sidebar-secondary-heading">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           ATC Frequencies
         </h2>
@@ -285,7 +285,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
         </a>
       ) : null}
       {rows.length === 0 ? (
-        <div className="flex min-h-20 border-b border-[var(--airport-wayfinding-divider)]">
+        <div className="soft-empty-state">
           <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><RadioTower className="size-4" /></span>
           <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">No published frequencies for this airport.</p>
         </div>
@@ -321,7 +321,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
   );
 }
 
-function SpottingPanel({
+export function SpottingPanel({
   spots = [],
   selectedSpotId = "",
   onSelectSpot,
@@ -331,7 +331,7 @@ function SpottingPanel({
     spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
     <div className="spotting-wayfinding-panel flex flex-col pb-5">
-      <div className="flex items-baseline justify-between border-b border-[var(--airport-wayfinding-divider)] bg-[var(--airport-wayfinding-content)] px-[var(--airport-sidebar-inset)] py-3">
+      <div className="sidebar-secondary-heading">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
         </h2>
@@ -340,7 +340,7 @@ function SpottingPanel({
         </span>
       </div>
       {spots.length === 0 ? (
-        <div className="flex min-h-20 border-b border-[var(--airport-wayfinding-divider)]">
+        <div className="soft-empty-state">
           <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><Camera className="size-4" /></span>
           <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">{t("watcherMode.empty")}</p>
         </div>
@@ -360,21 +360,21 @@ function SpottingPanel({
               <div className="flex min-w-0 flex-1 flex-col justify-center bg-[var(--airport-wayfinding-content)] px-3 py-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="truncate text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-text group-data-[active=true]:text-[var(--atc-click-fg)]">
+                  <div className="truncate text-[calc(10px*var(--sb-body-scale))] uppercase tracking-normal text-atc-text group-data-[active=true]:text-atc-text">
                     {spot.name || spot.title || spot.category || "Spotter location"}
                   </div>
-                  <div className="mt-1 text-[calc(10px*var(--sb-body-scale))] text-atc-dim group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <div className="mt-1 text-[calc(10px*var(--sb-body-scale))] text-atc-dim group-data-[active=true]:text-atc-dim">
                     {spot.what || spot.category || spot.sourceLabel || "Photo guide"}
                   </div>
                 </div>
                 {spot.spotNumber ? (
-                  <span className="shrink-0 font-mono text-[calc(9px*var(--sb-body-scale))] text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                  <span className="shrink-0 font-mono text-[calc(9px*var(--sb-body-scale))] text-atc-faint group-data-[active=true]:text-atc-dim">
                     #{spot.spotNumber}
                   </span>
                 ) : null}
               </div>
               {spot.focalLength || spot.when ? (
-                <div className="mt-1.5 font-mono text-[calc(8px*var(--sb-body-scale))] uppercase text-atc-faint group-data-[active=true]:text-[var(--atc-click-muted)]">
+                <div className="mt-1.5 font-mono text-[calc(8px*var(--sb-body-scale))] uppercase text-atc-faint group-data-[active=true]:text-atc-dim">
                   {[spot.focalLength, spot.when].filter(Boolean).join(" · ")}
                 </div>
               ) : null}
