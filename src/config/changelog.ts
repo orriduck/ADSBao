@@ -46,19 +46,19 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 78;
+export const CHANGELOG_TOTAL_COUNT = 79;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.18.5",
+    version: "v3.19.0",
     kind: "feat",
     title: {
-      en: "Neutral instrument surfaces",
-      zh: "中性材质仪表界面",
+      en: "Map context refinement",
+      zh: "地图上下文精修",
     },
     summary: {
-      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify the app in both themes. Local time compares airport and browser clocks, dates and the current time difference. Loading placeholders match the live layout; settings, photo-location dialogs and loading/error notices share consistent surfaces, centered icons and clearer interaction feedback. Photo controls and camera headers now follow the same rounded treatment. ATC and photo-location lists now keep their full content height and scroll through the sidebar on desktop and mobile.",
-      zh: "全应用采用中性圆角表面、浅层阴影和舒展读数，保留明暗两套模式。当地时间可对照机场与浏览器的时间、日期和当前时差。加载骨架与实际布局对齐，设置、拍机点弹窗及加载和失败提示统一材质、图标居中与交互反馈，并统一照片入口和拍摄界面顶栏的圆角样式。ATC 和拍机点列表现在会保留完整内容高度，并可在桌面和手机侧栏中正常滚动。",
+      en: "Navaid markers now load from live map context, and nearby airport and navaid labels share the focused airport's compact instrument materials. ATC and spotting tiles keep a clearer gap between their readouts and the gold status line.",
+      zh: "导航台标记现在会从实时地图上下文加载；附近机场和导航台标签采用与焦点机场一致的紧凑仪表材质。ATC 和拍机点卡片的读数与金色状态线之间也保留了更清晰的间距。",
     },
     highlights: [],
   },

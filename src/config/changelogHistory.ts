@@ -150,6 +150,19 @@ export const CHANGELOG_HISTORY_ZH_COPY: Record<string, ChangelogLocalizedRelease
 
 export const CHANGELOG_HISTORY: ChangelogEntry[] = [
   {
+    version: "v3.18.5",
+    kind: "feat",
+    title: {
+      en: "Neutral instrument surfaces",
+      zh: "中性材质仪表界面",
+    },
+    summary: {
+      en: "Rounded neutral surfaces, shallow shadows and larger readouts unify the app in both themes. Local time compares airport and browser clocks, dates and the current time difference. Loading placeholders match the live layout; settings, photo-location dialogs and loading/error notices share consistent surfaces, centered icons and clearer interaction feedback. Photo controls and camera headers now follow the same rounded treatment. ATC and photo-location lists now keep their full content height and scroll through the sidebar on desktop and mobile.",
+      zh: "全应用采用中性圆角表面、浅层阴影和舒展读数，保留明暗两套模式。当地时间可对照机场与浏览器的时间、日期和当前时差。加载骨架与实际布局对齐，设置、拍机点弹窗及加载和失败提示统一材质、图标居中与交互反馈，并统一照片入口和拍摄界面顶栏的圆角样式。ATC 和拍机点列表现在会保留完整内容高度，并可在桌面和手机侧栏中正常滚动。",
+    },
+    highlights: [],
+  },
+  {
     version: "v3.15.2",
     kind: "feat",
     title: {
