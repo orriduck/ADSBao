@@ -264,7 +264,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
     });
 
   return (
-    <div className="atc-wayfinding-panel flex flex-col pb-5">
+    <div className="atc-wayfinding-panel flex shrink-0 flex-col pb-5">
       <div className="sidebar-secondary-heading">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           ATC Frequencies
@@ -330,7 +330,7 @@ export function SpottingPanel({
   const countKey =
     spots.length === 1 ? "watcherMode.countOne" : "watcherMode.countMany";
   return (
-    <div className="spotting-wayfinding-panel flex flex-col pb-5">
+    <div className="spotting-wayfinding-panel flex shrink-0 flex-col pb-5">
       <div className="sidebar-secondary-heading">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
           {t("watcherMode.cardsTitle")}
