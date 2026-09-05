@@ -50,12 +50,12 @@ export const CHANGELOG_TOTAL_COUNT = 80;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.20.4",
+    version: "v3.20.5",
     kind: "feat",
     title: { en: "More deliberate interactions", zh: "更清晰顺手的交互" },
     summary: {
-      en: "Search gains keyboard navigation, clear and retry actions, and better city matching. Map, unit and alert preferences are grouped and saved together, with more room in phone landscape. Traffic filters offer direct choices, clear-all and accessible menus. Here stays centered on each GPS update, with matching per-digit transitions across all Here numeric tiles. Loading indicators lose their card backdrop. Numeric detail tiles share per-digit transitions while preserving their formatting. Flight readings retain independent unit choices; weather pressure and ATC frequencies include their units. Fixes stale cached app icons and shows a dash for unavailable weather temperatures.",
-      zh: "搜索支持键盘选择、清除与重试，城市名称匹配更准确。地图、单位和提醒设置分组呈现并统一保存或取消，手机横屏也有更多操作空间；流量筛选支持直接选择、一键清除和键盘菜单。Here 始终跟随最新 GPS 坐标居中，所有数字 tile 统一采用清晰的逐位过渡，加载动画去掉卡片底板。详情数字 tile 统一逐位跳动并保留原有格式；航班各项读数独立切换并保留单位选择，天气气压和 ATC 频率补齐单位，并修复旧缓存仍显示旧图标的问题；天气缺失时显示占位符，避免误报 0°C。",
+      en: "Search gains keyboard navigation, clear and retry actions, and better city matching. Map, unit and alert preferences are grouped and saved together, with more room in phone landscape. Traffic filters offer direct choices, clear-all and accessible menus. Here stays centered on each GPS update, with matching per-digit transitions across all Here numeric tiles. Loading indicators lose their card backdrop. Numeric detail tiles share per-digit transitions while preserving their formatting. Flight readings retain independent unit choices; weather pressure and ATC frequencies include their units. Fixes stale cached app icons and shows a dash for unavailable weather temperatures. Tile hover, focus and selected icons share clear, theme-aware surfaces with weather details.",
+      zh: "搜索支持键盘选择、清除与重试，城市名称匹配更准确。地图、单位和提醒设置分组呈现并统一保存或取消，手机横屏也有更多操作空间；流量筛选支持直接选择、一键清除和键盘菜单。Here 始终跟随最新 GPS 坐标居中，所有数字 tile 统一采用清晰的逐位过渡，加载动画去掉卡片底板。详情数字 tile 统一逐位跳动并保留原有格式；航班各项读数独立切换并保留单位选择，天气气压和 ATC 频率补齐单位，并修复旧缓存仍显示旧图标的问题；天气缺失时显示占位符，避免误报 0°C。Tile 悬停、聚焦和选中图标与天气详情统一明暗样式，修复图标融入深色底板的问题。",
     },
     highlights: [{ en: "A new aircraft, flight-path and position-dot icon unifies the PWA, Apple Touch and browser identity, with fresh asset URLs to replace previously cached icons.", zh: "全新飞机、航迹与定位点标识，统一 PWA、Apple Touch 和浏览器图标，并通过独立资源地址更新旧缓存中的图标。" }],
   },

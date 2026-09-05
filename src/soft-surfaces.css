@@ -524,6 +524,9 @@
     align-items: center;
     padding: 0;
     border-radius: 50%;
+    background: var(--soft-icon-surface);
+    color: var(--atc-text);
+    box-shadow: var(--soft-icon-shadow);
 }
 .airport-map-kit .weather-wayfinding-hero > div { padding: 24px 20px; }
 .airport-map-kit .weather-wayfinding-detail {
@@ -585,7 +588,6 @@
     border-radius: 10px;
 }
 .mobile-preview-identity-content { padding-top: 14px; padding-bottom: 14px; }
-.airport-map-kit div.wayfinding-metric:hover .wayfinding-metric__rail { background-color: transparent; }
 
 /* Explicit outlines survive the material's box-shadow, including selected
    metrics whose inset would otherwise replace Tailwind's focus ring. */
@@ -641,7 +643,8 @@
 .airport-map-kit .aircraft-table-search-bar .search-input {
     box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.035), inset 0 -1px 0 var(--soft-rim);
 }
-.airport-map-kit .wayfinding-metric[data-active="true"] .wayfinding-metric__rail {
+.airport-map-kit .wayfinding-metric[data-active="true"] .wayfinding-metric__rail,
+.airport-map-kit button.wayfinding-metric:is(:hover, :focus-visible) .wayfinding-metric__rail {
     background: var(--soft-icon-surface);
     color: var(--atc-text);
     box-shadow: var(--soft-icon-shadow);
