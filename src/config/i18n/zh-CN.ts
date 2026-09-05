@@ -403,6 +403,7 @@ const zhCN = {
     planeHunter: "开始拍机",
     creditPrefix: "图源@",
     photoCreditPrefix: "照片 @ ",
+    backgroundPhotoCredit: "照片：{credit} · 灰度背景 · 查看来源",
   },
   planeHunter: {
     title: "拍机工作室",

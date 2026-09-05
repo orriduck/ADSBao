@@ -10,6 +10,8 @@ import { useReverseGeocode } from "@/hooks/useReverseGeocode";
 import DecodeText from "@/components/ui/DecodeText";
 import WayfindingRail from "@/components/ui/WayfindingRail";
 import { MapPin, TowerControl } from "lucide-react";
+import { useAirportPhoto } from "@/features/airport/useAirportPhoto";
+import IdentityBackdrop from "./IdentityBackdrop";
 
 export default function AirportIdentity({
   icao = "",
@@ -30,6 +32,7 @@ export default function AirportIdentity({
   nearMeRefresh,
 }) {
   const { locale, t } = useI18n();
+  const { data: photo } = useAirportPhoto(nearMe ? "" : icao, lat, lon);
   // Reverse-geocode the user's lat/lon when in near-me mode so the
   // identity hero reads as the actual place (Boston / Massachusetts /
   // 🇺🇸 United States) rather than the static "HERE / Your location"
@@ -84,6 +87,7 @@ export default function AirportIdentity({
 
   return (
     <div className="airport-wayfinding-identity flex min-h-[var(--wayfinding-airport-identity-height)] overflow-hidden">
+      {!nearMe && <IdentityBackdrop photo={photo} country={country} />}
       <WayfindingRail
         icon={nearMe ? <MapPin /> : <TowerControl />}
         inset="hero"

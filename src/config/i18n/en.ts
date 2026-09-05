@@ -408,6 +408,7 @@ const en = {
     planeHunter: "Plane Hunter",
     creditPrefix: "credit@",
     photoCreditPrefix: "photo @ ",
+    backgroundPhotoCredit: "Photo: {credit} · Grayscale background · View source",
   },
   planeHunter: {
     title: "Plane Hunter",
