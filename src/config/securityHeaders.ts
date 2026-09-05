@@ -54,7 +54,7 @@ export function buildCloudflareHeadersFile() {
     "/sw.js",
     "  Cache-Control: no-cache, no-store, must-revalidate",
     "",
-    "/manifest.webmanifest",
+    "/manifest.70b17d8272.webmanifest",
     "  Cache-Control: public, max-age=0, must-revalidate",
   ];
 
