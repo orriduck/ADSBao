@@ -122,6 +122,7 @@
 }
 
 .airport-map-kit :is(.airport-wayfinding-identity__content, .flight-wayfinding-identity__content) {
+    position: relative;
     padding: 26px 20px 24px;
     border: 0;
     min-height: 160px;
@@ -134,6 +135,66 @@
     font-size: 38px;
     font-weight: 500;
     letter-spacing: -0.045em;
+}
+
+.identity-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+    mask-image: linear-gradient(100deg, transparent, rgb(0 0 0 / 0.25) 28%, #000 80%);
+}
+
+.identity-backdrop__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: grayscale(1);
+    opacity: 0;
+    mix-blend-mode: multiply;
+    transition: opacity 240ms ease;
+}
+
+.identity-backdrop__photo[data-loaded="true"] { opacity: 0.12; }
+:root[data-theme="dark"] .identity-backdrop__photo { mix-blend-mode: screen; }
+:root[data-theme="dark"] .identity-backdrop__photo[data-loaded="true"] { opacity: 0.14; }
+
+.identity-backdrop__flag {
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-8deg);
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    font-size: 150px;
+    line-height: 1;
+    filter: grayscale(1);
+    opacity: 0.09;
+}
+
+.identity-backdrop__credit {
+    position: absolute;
+    z-index: 2;
+    right: 8px;
+    bottom: 6px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: var(--atc-dim);
+}
+
+.identity-backdrop__credit:hover { background: var(--soft-icon-surface); }
+.identity-backdrop__credit:focus-visible { outline: 2px solid var(--soft-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+    .identity-backdrop__photo { transition: none; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .identity-backdrop, .identity-backdrop__credit { display: none; }
 }
 
 /* Telemetry uses labels above airy values, like the reference's readouts.

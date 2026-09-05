@@ -24,6 +24,8 @@ import {
 } from "@/features/aircraft/tracking/flightTelemetryDisplayModel";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
+import { useAircraftPhoto } from "@/features/aircraft/preview/useAircraftPhoto";
+import IdentityBackdrop from "./IdentityBackdrop";
 
 // Sidebar for /aircraft/[callsign]. It shares the airport page's wayfinding
 // grammar while keeping aircraft-specific identity and telemetry content.
@@ -52,6 +54,7 @@ export default function FlightSidebar({
   loading = false,
 }) {
   const { t } = useI18n();
+  const { photo } = useAircraftPhoto(aircraft);
   const displayCallsign =
     (aircraft?.callsign || callsign || "").trim() || "—";
   const flightRadarCallsign = String(aircraft?.callsign || callsign || "")
@@ -77,6 +80,7 @@ export default function FlightSidebar({
   ) : (
     <>
       <FlightIdentity
+        photo={photo}
         callsign={displayCallsign}
         typeDisplay={typeDisplay}
         registration={aircraft?.registration}
@@ -153,6 +157,7 @@ export default function FlightSidebar({
 }
 
 function FlightIdentity({
+  photo,
   callsign,
   typeDisplay,
   registration,
@@ -182,6 +187,7 @@ function FlightIdentity({
 
   return (
     <div className="flight-wayfinding-identity flex min-h-[var(--wayfinding-flight-identity-height)] overflow-hidden">
+      <IdentityBackdrop photo={photo} />
       <WayfindingRail
         icon={<Plane />}
         inset="hero"

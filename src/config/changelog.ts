@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 79;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.19.0",
+    version: "v3.19.1",
     kind: "feat",
     title: {
       en: "Map context refinement",
       zh: "地图上下文精修",
     },
     summary: {
-      en: "Navaid markers now load from live map context, and nearby airport and navaid labels share the focused airport's compact instrument materials. ATC and spotting tiles keep a clearer gap between their readouts and the gold status line.",
-      zh: "导航台标记现在会从实时地图上下文加载；附近机场和导航台标签采用与焦点机场一致的紧凑仪表材质。ATC 和拍机点卡片的读数与金色状态线之间也保留了更清晰的间距。",
+      en: "Airport and flight identity cards now carry subtle grayscale photo backgrounds; airports fall back to their country flag, and flights share the preview photo. Nearby airport and navaid labels retain the focused airport's compact instrument materials, with clearer ATC and spotting readouts.",
+      zh: "机场和航班信息卡新增若隐若现的灰度照片背景：机场无图时显示国旗，航班复用预览照片。附近机场和导航台标签延续焦点机场的紧凑仪表材质，ATC 和拍机点读数也更加清晰。",
     },
     highlights: [],
   },
