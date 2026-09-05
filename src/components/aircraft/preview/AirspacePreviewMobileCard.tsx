@@ -1,4 +1,5 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { resolveAirspacePreviewDisplay } from "@/features/airport/openaip/airspacePreviewDisplayModel";
 import AirspacePreviewSelector from "./AirspacePreviewSelector";
 import {
@@ -29,7 +30,7 @@ export default function AirspacePreviewMobileCard({
     .join(" / ");
   const items = [
     display.access ? <span key="access">{display.access}</span> : null,
-    display.vertical ? <span key="vertical">{display.vertical}</span> : null,
+    display.vertical ? <AnimatedNumber key="vertical" value={display.vertical} /> : null,
   ].filter(Boolean);
 
   return (

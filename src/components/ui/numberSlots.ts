@@ -13,3 +13,21 @@ export function numberSlots(parts: Intl.NumberFormatPart[]) {
     return [{ key: part.type === "group" ? `group:${integerPlace}` : `${part.type}:${index}`, text: part.value }];
   });
 }
+
+// Keep already-formatted readings exact (09:05, 30.00, 18° / 12°, 10+ SM).
+// Each numeric field has its own right-anchored slots so a carry in one field
+// does not shift the identities of the other fields or their punctuation.
+export function formattedNumberSlots(value: string) {
+  let field = 0;
+  return value.split(/(\p{Decimal_Number}+)/u).flatMap((text, index) => {
+    if (!/^\p{Decimal_Number}+$/u.test(text)) {
+      return [{ key: `literal:${index}`, text }];
+    }
+    const digits = Array.from(text);
+    const currentField = field++;
+    return digits.map((digit, place) => ({
+      key: `field:${currentField}:${digits.length - place - 1}`,
+      text: digit,
+    }));
+  });
+}

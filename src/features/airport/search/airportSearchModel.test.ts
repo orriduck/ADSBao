@@ -140,3 +140,18 @@ assert.deepEqual(
   resolveHomeSearchDestination({ query: "lax", rows: [], staticAirports }),
   { type: "airport", airport: staticAirports[1] },
 );
+
+// City names must not unexpectedly open a flight tracking page on Enter.
+assert.deepEqual(
+  resolveHomeSearchDestination({ query: "Boston", rows: [staticAirports[0]], staticAirports }),
+  { type: "airport", airport: staticAirports[0] },
+);
+assert.equal(resolveTrackableCallsign({ query: "Boston", rows: [staticAirports[0]] }), "");
+assert.deepEqual(
+  resolveHomeSearchDestination({ query: "DAL58", rows: [staticAirports[0]], staticAirports }),
+  { type: "aircraft", callsign: "DAL58" },
+);
+assert.deepEqual(
+  resolveHomeSearchDestination({ query: "GABCD", rows: [], staticAirports }),
+  { type: "aircraft", callsign: "GABCD" },
+);

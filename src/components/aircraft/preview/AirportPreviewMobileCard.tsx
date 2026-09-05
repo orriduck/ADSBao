@@ -2,10 +2,10 @@ import {
   airportCityName,
   airportDisplayCodeLine,
   airportDisplayName,
-  cleanAirportCode,
 } from "@/utils/airport";
 import { countryName, flagEmoji } from "@/utils/flag";
 import { toFiniteNumber } from "@/utils/math";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import {
@@ -25,9 +25,8 @@ type AirportPreviewMobileCardProps = {
 export default function AirportPreviewMobileCard({
   airport,
 }: AirportPreviewMobileCardProps) {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const { preferences: units } = useUnitPreferences();
-  const icao = cleanAirportCode(airport?.icao || airport?.code);
   const primaryCode = airportDisplayCodeLine(airport);
   const name = airportDisplayName(airport, locale);
   const flag = flagEmoji(airport?.country);
@@ -102,7 +101,7 @@ function Separator() {
 function Metric({ value, unit }: { value: string; unit?: string }) {
   return (
     <span className="inline-flex items-baseline gap-[2px] tabular-nums">
-      {value}
+      <AnimatedNumber value={value} />
       {unit ? (
         <span translate="no" className="notranslate text-[9px] text-atc-faint">
           {unit}

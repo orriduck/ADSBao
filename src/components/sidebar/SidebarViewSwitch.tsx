@@ -91,7 +91,7 @@ export default function SidebarViewSwitch({
   );
 
   const renderStat = (stat: SidebarStat, icon, className = "") => {
-    const { id, labelKey, value, display, unit, prefix, interaction } = stat;
+    const { id, labelKey, value, unit, prefix, interaction } = stat;
     let active: boolean | undefined;
     let onClick: (() => void) | undefined;
     let readOnly = false;
@@ -119,7 +119,6 @@ export default function SidebarViewSwitch({
         icon={icon}
         title={t(labelKey)}
         value={value ?? "—"}
-        animateValue={display === "number"}
         unit={unit || undefined}
         prefix={prefix}
         active={active}

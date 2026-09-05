@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Check } from "lucide-react";
+import SegmentedControl from "@/components/ui/SegmentedControl";
+import { formatDistance } from "@/utils/units";
 import {
   DEFAULT_MAP_BASE_LAYER,
   MAP_LAYER_KEYS,
@@ -8,6 +11,7 @@ import {
   getMapBaseLayerOptions,
   mapSettingsToExplorerLayers,
   normalizeMapSettings,
+  serializeMapSettingsPersistenceSignature,
 } from "@/features/airport/map-settings/mapSettingsModel";
 import {
   Sheet,
@@ -139,16 +143,6 @@ const layerToggleRowClassName = cn(
   "disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent",
 );
 
-const unitSegmentButtonClassName = cn(
-  "min-h-7 rounded-[6px] px-2.5 text-[10.5px] font-semibold leading-none text-atc-muted",
-  "transition-[background,color,box-shadow] duration-150",
-  "hover:bg-[var(--atc-control-surface-hover)]",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--atc-accent)]",
-  "data-[active=true]:bg-[color-mix(in_oklab,var(--atc-text)_12%,transparent)] data-[active=true]:text-atc-text",
-  "data-[active=true]:shadow-none",
-  "data-[active=true]:hover:bg-[color-mix(in_oklab,var(--atc-text)_14%,transparent)]",
-);
-
 function SettingsOptionRow({
   active,
   description,
@@ -157,12 +151,11 @@ function SettingsOptionRow({
   title,
 }) {
   return (
-    <button
-      type="button"
-      className={settingsOptionRowClassName}
+    <label
+      className={cn(settingsOptionRowClassName, "soft-radio-row")}
       data-active={active ? "true" : "false"}
-      onClick={onClick}
     >
+      <input type="radio" name="map-base-layer" checked={active} onChange={onClick} aria-label={title} />
       <span className="map-settings-row-rail flex items-start justify-start pl-[10px] pt-[11px] text-atc-faint transition-colors group-data-[active=true]:text-atc-text group-hover:text-atc-text [&>svg]:size-3.5">
         <MapControlIcon iconKey={iconKey} />
       </span>
@@ -174,8 +167,8 @@ function SettingsOptionRow({
           {description}
         </span>
       </span>
-      <span aria-hidden="true" className={cn("my-auto h-5 w-[2px] transition-[background,opacity]", active ? "bg-[var(--atc-signal-secondary-action)] opacity-100" : "bg-transparent opacity-0")} />
-    </button>
+      <span aria-hidden="true" className="soft-radio-row__check">{active ? <Check size={16} /> : null}</span>
+    </label>
   );
 }
 
@@ -284,28 +277,18 @@ function MapLabelLevelRow({ level, onChange, t }) {
 // Distance-radius picker for a notification toggle — same segmented-button
 // visual language as the unit preferences below, just scoped to one row
 // instead of the whole units section.
-function RadiusPresetRow({ ariaLabel, options, unitLabel, value, onSelect }) {
+function RadiusPresetRow({ ariaLabel, options, distanceUnit, value, onSelect }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label={ariaLabel}
-      className="map-settings-segmented-control mt-1 grid auto-cols-fr grid-flow-col gap-0.5 rounded-none border-0 bg-transparent p-0 shadow-none"
-    >
-      {options.map((option) => (
-        <button
-          key={option}
-          type="button"
-          role="radio"
-          aria-checked={value === option}
-          data-active={value === option ? "true" : "false"}
-          className={unitSegmentButtonClassName}
-          onClick={() => onSelect(option)}
-        >
-          {option}
-          {unitLabel}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      label={ariaLabel}
+      value={value}
+      options={options.map((option) => {
+        const distance = formatDistance(option, distanceUnit, { precision: 1 });
+        return { value: option, label: `${distance.value} ${distance.unit}` };
+      })}
+      onChange={onSelect}
+      className="map-settings-radius-control"
+    />
   );
 }
 
@@ -313,14 +296,9 @@ export default function MapSettingsSheet({
   id,
   open,
   onOpenChange,
+  onCloseAutoFocus = undefined,
   onSaveMapSettings = null,
   mapSettings,
-  showBeams,
-  showNavaidMarkers,
-  showReportingPoints = false,
-  showAirspaces = true,
-  showCandidateWatchingSpots = false,
-  showCallsigns = true,
   mapSettingsDevice = "desktop",
   userLocationActive = false,
   userLocationPending = false,
@@ -332,8 +310,6 @@ export default function MapSettingsSheet({
   wakeLockActive = false,
   wakeLockSupported = false,
   onToggleWakeLock = null,
-  mapSettingsSaveStatus = "idle",
-  mapSettingsSaveCycle = 0,
 }) {
   const { t } = useI18n();
   const { preferences: unitPreferences, setPreferences: setUnitPreferences } =
@@ -346,34 +322,27 @@ export default function MapSettingsSheet({
     useNotificationPermission();
   const notificationsUnsupported = notificationPermission === "unsupported";
   const notificationsDenied = notificationPermission === "denied";
-  const distanceUnitLabel = t(
-    `mapSettings.units.distance.options.${unitPreferences.distance}`,
-  );
-  // Flipping a toggle on always flips the stored preference — permission is a
-  // separate concern surfaced via the note below — but the FIRST time a user
-  // opts in with no permission decision yet, ask right away instead of making
-  // them dig for it.
-  const toggleAirportAlert = () => {
-    const next = !notificationPreferences.nearbyAirportEnabled;
-    setNotificationPreferences({ nearbyAirportEnabled: next });
-    if (next && notificationPermission === "default") {
-      requestNotificationPermission();
-    }
-  };
-  const toggleAircraftAlert = () => {
-    const next = !notificationPreferences.nearbyAircraftEnabled;
-    setNotificationPreferences({ nearbyAircraftEnabled: next });
-    if (next && notificationPermission === "default") {
-      requestNotificationPermission();
-    }
-  };
-  const [draftSettings, setDraftSettings] = useState(() =>
-    normalizeMapSettings(mapSettings),
-  );
+  const [draftSettings, setDraftSettings] = useState(() => normalizeMapSettings(mapSettings));
+  const [draftUnits, setDraftUnits] = useState(unitPreferences);
+  const [draftNotifications, setDraftNotifications] = useState(notificationPreferences);
+  const [category, setCategory] = useState("map");
   const [saving, setSaving] = useState(false);
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (open) setDraftSettings(normalizeMapSettings(mapSettings));
-  }, [mapSettings, open]);
+    if (open && !wasOpen.current) {
+      setDraftSettings(normalizeMapSettings(mapSettings));
+      setDraftUnits(unitPreferences);
+      setDraftNotifications(notificationPreferences);
+      setCategory("map");
+    }
+    wasOpen.current = open;
+  }, [mapSettings, unitPreferences, notificationPreferences, open]);
+  const dirty = serializeMapSettingsPersistenceSignature(draftSettings) !== serializeMapSettingsPersistenceSignature(mapSettings)
+    || JSON.stringify(draftUnits) !== JSON.stringify(unitPreferences)
+    || JSON.stringify(draftNotifications) !== JSON.stringify(notificationPreferences);
+  const updateNotificationDraft = (patch) => setDraftNotifications((current) => ({ ...current, ...patch }));
+  const toggleAirportAlert = () => updateNotificationDraft({ nearbyAirportEnabled: !draftNotifications.nearbyAirportEnabled });
+  const toggleAircraftAlert = () => updateNotificationDraft({ nearbyAircraftEnabled: !draftNotifications.nearbyAircraftEnabled });
 
   const settings = normalizeMapSettings(draftSettings);
   const draftLayers = mapSettingsToExplorerLayers(settings);
@@ -416,49 +385,30 @@ export default function MapSettingsSheet({
     );
   };
   const handleOpenChange = (nextOpen) => {
-    if (!nextOpen) setDraftSettings(normalizeMapSettings(mapSettings));
-    onOpenChange?.(nextOpen);
+    if (!saving) onOpenChange?.(nextOpen);
   };
   const saveDraft = async () => {
-    if (!onSaveMapSettings || saving) return;
+    if (!onSaveMapSettings || saving || !dirty) return;
     setSaving(true);
-    const saved = await onSaveMapSettings(settings);
-    setSaving(false);
-    if (saved) onOpenChange?.(false);
+    try {
+      const saved = await onSaveMapSettings(settings);
+      if (!saved) throw new Error("Settings were not saved");
+      setUnitPreferences(draftUnits);
+      setNotificationPreferences(draftNotifications);
+      toast.success(t("mapSettings.savedSettings"), {
+        id: "map-settings-save", description: t("mapSettings.savedSettingsAvailable"),
+      });
+      onOpenChange?.(false);
+    } catch {
+      toast.error(t("mapSettings.saveError"), { id: "map-settings-save" });
+    } finally {
+      setSaving(false);
+    }
   };
   const userLocationTitle = userLocationPending
     ? t("mapLayers.locatingUser")
-    : userLocationActive
-      ? t("mapLayers.showUserLocation")
-      : t("mapLayers.hideUserLocation");
-  const lastSaveToastKeyRef = useRef("");
-  useEffect(() => {
-    if (
-      mapSettingsSaveCycle <= 0 ||
-      (mapSettingsSaveStatus !== "saved" && mapSettingsSaveStatus !== "error")
-    ) {
-      return;
-    }
-
-    const toastKey = `${mapSettingsSaveCycle}:${mapSettingsSaveStatus}`;
-    if (lastSaveToastKeyRef.current === toastKey) return;
-    lastSaveToastKeyRef.current = toastKey;
-
-    if (mapSettingsSaveStatus === "saved") {
-      toast.success(t("mapSettings.savedSettings"), {
-        id: "map-settings-save",
-        description: t("mapSettings.savedSettingsAvailable"),
-        duration: 5000,
-      });
-      return;
-    }
-
-    toast.error(t("mapSettings.saveError"), {
-      id: "map-settings-save",
-      duration: 5000,
-    });
-  }, [mapSettingsSaveCycle, mapSettingsSaveStatus, t]);
-
+    : settings.layerOverrides?.[MAP_LAYER_KEYS.USER_LOCATION] === true
+      ? t("mapLayers.showUserLocation") : t("mapLayers.hideUserLocation");
   const mobileSheet = mapSettingsDevice === "mobile";
   const sheetPositionStyle = mobileSheet
     ? {
@@ -480,6 +430,8 @@ export default function MapSettingsSheet({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent
         id={id}
+        closeDisabled={saving}
+        onCloseAutoFocus={onCloseAutoFocus}
         side={mobileSheet ? "bottom" : "right"}
         overlayClassName="map-settings-sheet-overlay z-[var(--z-index-modal)]"
         style={sheetPositionStyle}
@@ -498,11 +450,11 @@ export default function MapSettingsSheet({
         )}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="map-settings-header text-left">
+          <SheetHeader className="map-settings-header flex-none text-left">
             <span className="map-settings-header__rail" aria-hidden="true">
               <MapControlIcon iconKey="slidersHorizontal" />
             </span>
-            <div className="min-w-0 py-3.5 pl-3 pr-12">
+            <div className="map-settings-header__copy min-w-0 py-3.5 pl-3 pr-12">
               <SheetTitle className="text-[17px] font-semibold leading-tight text-atc-text">
                 {t("mapSettings.title")}
               </SheetTitle>
@@ -512,7 +464,21 @@ export default function MapSettingsSheet({
             </div>
           </SheetHeader>
 
-          <div className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <SegmentedControl
+            label={t("mapSettings.categoryLabel")}
+            value={category}
+            onChange={(value) => setCategory(String(value))}
+            disabled={saving}
+            options={[
+              { value: "map", label: t("mapSettings.mapCategory") },
+              { value: "units", label: t("mapSettings.unitsSection") },
+              { value: "alerts", label: t("mapSettings.notificationsSection") },
+            ]}
+            className="map-settings-categories"
+          />
+          <p className="map-settings-draft-note" role="status">{t(dirty ? "mapSettings.unsavedChanges" : "mapSettings.draftHint")}</p>
+          <div key={category} className="map-settings-body min-h-0 flex-1 overflow-y-auto overscroll-contain" inert={saving || undefined}>
+            {category === "map" ? <>
             <section
               className="map-settings-section"
               aria-labelledby={`${id}-base-map`}
@@ -523,7 +489,7 @@ export default function MapSettingsSheet({
               >
                 {t("mapSettings.baseMapSection")}
               </h3>
-              <div className={settingsListGroupClassName}>
+              <div role="radiogroup" aria-label={t("mapSettings.baseMapSection")} className={settingsListGroupClassName}>
                 {baseLayerOptions.map((option) => {
                   const active = activeBaseLayerId === option.id;
                   return (
@@ -597,7 +563,7 @@ export default function MapSettingsSheet({
                   disabled={!wakeLockSupported || !onToggleWakeLock}
                   iconKey="monitorCheck"
                   label={t("map.wakeLock")}
-                  subtitle={t("map.wakeLockTitle")}
+                  subtitle={t("mapSettings.sessionActionHint")}
                   onClick={onToggleWakeLock}
                 />
               </div>
@@ -672,7 +638,8 @@ export default function MapSettingsSheet({
               </div>
             </section>
 
-            <section
+            </> : null}
+            {category === "units" ? <section
               className="map-settings-section"
               aria-labelledby={`${id}-units`}
             >
@@ -684,7 +651,7 @@ export default function MapSettingsSheet({
               </h3>
               <div className={settingsListGroupClassName}>
                 {UNIT_GROUPS.map((group) => {
-                  const activeUnit = unitPreferences[group.key];
+                  const activeUnit = draftUnits[group.key];
                   return (
                     <div
                       key={group.key}
@@ -693,36 +660,19 @@ export default function MapSettingsSheet({
                       <span className="min-w-0 text-[12px] font-semibold leading-tight text-atc-text">
                         {t(group.titleKey)}
                       </span>
-                      <div
-                        role="radiogroup"
-                        aria-label={t(group.titleKey)}
-                        className="map-settings-segmented-control grid auto-cols-fr grid-flow-col gap-0.5 rounded-none border-0 bg-transparent p-0 shadow-none"
-                      >
-                        {group.options.map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            role="radio"
-                            aria-checked={activeUnit === option}
-                            data-active={
-                              activeUnit === option ? "true" : "false"
-                            }
-                            className={unitSegmentButtonClassName}
-                            onClick={() =>
-                              setUnitPreferences({ [group.key]: option } as any)
-                            }
-                          >
-                            {t(group.labelKey(option))}
-                          </button>
-                        ))}
-                      </div>
+                      <SegmentedControl
+                        label={t(group.titleKey)}
+                        value={activeUnit}
+                        options={group.options.map((option) => ({ value: option, label: t(group.labelKey(option)) }))}
+                        onChange={(option) => setDraftUnits((current) => ({ ...current, [group.key]: option }))}
+                      />
                     </div>
                   );
                 })}
               </div>
-            </section>
+            </section> : null}
 
-            <section
+            {category === "alerts" ? <section
               className="map-settings-section"
               aria-labelledby={`${id}-notifications`}
             >
@@ -734,26 +684,26 @@ export default function MapSettingsSheet({
               </h3>
               <div className={settingsListGroupClassName}>
                 <LayerToggleRow
-                  active={notificationPreferences.nearbyAirportEnabled}
+                  active={draftNotifications.nearbyAirportEnabled}
                   ariaLabel={t("notifications.airport.label")}
                   disabled={notificationsUnsupported}
                   iconKey="towerControl"
                   label={t("notifications.airport.label")}
                   subtitle={
-                    notificationPreferences.nearbyAirportEnabled
+                    draftNotifications.nearbyAirportEnabled
                       ? t("notifications.airport.subtitleOn")
                       : t("notifications.airport.subtitleOff")
                   }
                   onClick={toggleAirportAlert}
                 />
-                {notificationPreferences.nearbyAirportEnabled ? (
+                {draftNotifications.nearbyAirportEnabled ? (
                   <RadiusPresetRow
-                    ariaLabel={t("notifications.radiusLabel")}
+                    ariaLabel={t("notifications.airport.label") + ": " + t("notifications.radiusLabel")}
                     options={NEARBY_AIRPORT_RADIUS_PRESETS_NM}
-                    unitLabel={distanceUnitLabel}
-                    value={notificationPreferences.nearbyAirportRadiusNm}
+                    distanceUnit={draftUnits.distance}
+                    value={draftNotifications.nearbyAirportRadiusNm}
                     onSelect={(radius) =>
-                      setNotificationPreferences({
+                      updateNotificationDraft({
                         nearbyAirportRadiusNm: radius,
                       })
                     }
@@ -761,26 +711,26 @@ export default function MapSettingsSheet({
                 ) : null}
 
                 <LayerToggleRow
-                  active={notificationPreferences.nearbyAircraftEnabled}
+                  active={draftNotifications.nearbyAircraftEnabled}
                   ariaLabel={t("notifications.aircraft.label")}
                   disabled={notificationsUnsupported}
                   iconKey="radar"
                   label={t("notifications.aircraft.label")}
                   subtitle={
-                    notificationPreferences.nearbyAircraftEnabled
+                    draftNotifications.nearbyAircraftEnabled
                       ? t("notifications.aircraft.subtitleOn")
                       : t("notifications.aircraft.subtitleOff")
                   }
                   onClick={toggleAircraftAlert}
                 />
-                {notificationPreferences.nearbyAircraftEnabled ? (
+                {draftNotifications.nearbyAircraftEnabled ? (
                   <RadiusPresetRow
-                    ariaLabel={t("notifications.radiusLabel")}
+                    ariaLabel={t("notifications.aircraft.label") + ": " + t("notifications.radiusLabel")}
                     options={NEARBY_AIRCRAFT_RADIUS_PRESETS_NM}
-                    unitLabel={distanceUnitLabel}
-                    value={notificationPreferences.nearbyAircraftRadiusNm}
+                    distanceUnit={draftUnits.distance}
+                    value={draftNotifications.nearbyAircraftRadiusNm}
                     onSelect={(radius) =>
-                      setNotificationPreferences({
+                      updateNotificationDraft({
                         nearbyAircraftRadiusNm: radius,
                       })
                     }
@@ -791,6 +741,11 @@ export default function MapSettingsSheet({
                 <div className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-atc-muted shadow-none">
                   {t("notifications.airport.hint")}
                 </div>
+                {notificationPermission === "default" ? (
+                  <button type="button" className="soft-button" onClick={requestNotificationPermission}>
+                    {t("mapSettings.allowNotifications")}
+                  </button>
+                ) : null}
                 {notificationsUnsupported ? (
                   <div
                     className="map-settings-note rounded-[calc(var(--atc-radius-card)-2px)] bg-transparent px-1 py-1 text-[10px] leading-snug text-[var(--atc-interaction-danger)] shadow-none"
@@ -809,7 +764,7 @@ export default function MapSettingsSheet({
                   </div>
                 ) : null}
               </div>
-            </section>
+            </section> : null}
           </div>
 
           <div className="map-settings-footer flex items-center justify-end gap-2">
@@ -824,7 +779,7 @@ export default function MapSettingsSheet({
             <button
               type="button"
               className="map-settings-footer__save bg-[var(--atc-signal-secondary-action)] px-3.5 py-2 text-[12px] font-semibold text-[var(--atc-signal-secondary-action-fg)] transition-opacity active:scale-[0.98] disabled:cursor-wait disabled:opacity-60"
-              disabled={saving || !onSaveMapSettings}
+              disabled={saving || !onSaveMapSettings || !dirty}
               onClick={saveDraft}
             >
               {saving ? t("mapSettings.savingSettings") : t("mapSettings.save")}

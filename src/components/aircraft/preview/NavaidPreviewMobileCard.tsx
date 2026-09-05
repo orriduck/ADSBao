@@ -1,9 +1,9 @@
 import { toFiniteNumber } from "@/utils/math";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import {
   formatNavaidFrequency,
   formatNavaidType,
 } from "./navaidPreviewFormat";
-import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import {
   MobilePreviewHeader,
   MobilePreviewIdentityBand,
@@ -18,7 +18,6 @@ type NavaidPreviewMobileCardProps = {
 export default function NavaidPreviewMobileCard({
   navaid,
 }: NavaidPreviewMobileCardProps) {
-  const { t } = useI18n();
   const ident = String(navaid?.ident || "").trim().toUpperCase() || "—";
   const type = formatNavaidType(navaid?.type);
   const name = String(navaid?.name || "").trim();
@@ -27,16 +26,16 @@ export default function NavaidPreviewMobileCard({
   const dmeChannel = String(navaid?.dme?.channel || "").trim();
 
   const items = [
-    frequency ? <span key="freq">{frequency}</span> : null,
+    frequency ? <AnimatedNumber key="freq" value={frequency} /> : null,
     distance != null ? (
       <span key="dist" className="inline-flex items-baseline gap-[2px]">
-        {distance.toFixed(1)}
+        <AnimatedNumber value={distance.toFixed(1)} />
         <span translate="no" className="notranslate text-[9px] text-atc-faint">
           NM
         </span>
       </span>
     ) : null,
-    dmeChannel ? <span key="dme">{dmeChannel}</span> : null,
+    dmeChannel ? <AnimatedNumber key="dme" value={dmeChannel} /> : null,
   ].filter(Boolean);
 
   return (

@@ -16,6 +16,7 @@ export default function AirportRow({
   onPrefetch,
   featured = false,
   motionOrder = 0,
+  searchResult = false,
 }) {
   const { locale } = useI18n();
   const motionStyle = {
@@ -53,6 +54,7 @@ export default function AirportRow({
     >
       <AirportListRow
         as="button"
+        data-search-result={searchResult ? "true" : undefined}
         active={featured}
         className="airport-list-row--directory"
         onClick={() => onOpen(airport)}

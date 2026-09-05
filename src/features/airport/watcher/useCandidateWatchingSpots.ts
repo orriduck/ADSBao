@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { resolveSpotCoordinates } from "./spotNavigationLinks";
 
 const normalizeAirportIcao = (value: unknown) =>
   String(value || "")
@@ -22,7 +23,7 @@ export function useCandidateWatchingSpots({
   const spots = useMemo(() => {
     if (!enabled || !normalizedIcao || !Array.isArray(sourceSpots)) return [];
     return sourceSpots
-      .filter((spot) => spot && Number.isFinite(Number(spot.lat)) && Number.isFinite(Number(spot.lon)))
+      .filter((spot) => resolveSpotCoordinates(spot) !== null)
       .slice()
       .sort((left, right) => {
         const leftNumber = Number(left.spotNumber);

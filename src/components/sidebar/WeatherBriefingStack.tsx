@@ -16,6 +16,7 @@ import {
   Wind,
 } from "lucide-react";
 import WayfindingMetric from "@/components/ui/WayfindingMetric";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useUnitPreferences } from "@/features/app-shell/unitPreferences/UnitPreferencesProvider";
 import {
@@ -113,8 +114,8 @@ function HeroCard({ icon, children }) {
   );
 }
 
-function MetricCell({ icon, label, value }) {
-  return <WayfindingMetric icon={icon} title={label} value={value} readOnly />;
+function MetricCell({ icon, label, value, unit = undefined }) {
+  return <WayfindingMetric icon={icon} title={label} value={value} unit={unit} readOnly />;
 }
 
 function MetricGrid({ children }) {
@@ -301,7 +302,7 @@ function IconStat({ icon, label, value }) {
         <span className="text-[calc(9px*var(--sb-body-scale))] [letter-spacing:0.08em]">{up(label)}</span>
       </div>
       <div className="notranslate mt-1 font-mono text-[calc(14px*var(--sb-body-scale))] tabular-nums text-atc-text">
-        {value}
+        <AnimatedNumber value={value} />
       </div>
     </div>
   );
@@ -367,7 +368,7 @@ function LocalView({ local, loading, t, units }) {
             <span
               className="notranslate text-[calc(44px*var(--sb-body-scale))] leading-none tracking-[-0.025em] text-atc-text"
             >
-              {tempValue}
+              <AnimatedNumber value={tempValue} />
             </span>
             <span className="text-[calc(14px*var(--sb-body-scale))] text-atc-dim">
               {unitLabel}
@@ -393,7 +394,7 @@ function LocalView({ local, loading, t, units }) {
         <MetricCell icon={<Droplets />} label={t("weather.humidity")} value={humidity} />
         <MetricCell icon={<Sun />} label={t("weather.uvIndex")} value={uvValue} />
         <MetricCell icon={<CloudRain />} label={t("weather.precip")} value={precipValue} />
-        <MetricCell icon={<Gauge />} label={t("weather.pressure")} value={pressure} />
+        <MetricCell icon={<Gauge />} label={t("weather.pressure")} value={pressure} unit={local?.pressureMslHpa == null ? undefined : "hPa"} />
         <MetricCell icon={<Eye />} label={t("weather.visibility")} value={visKm} />
       </MetricGrid>
 
@@ -409,7 +410,7 @@ function LocalView({ local, loading, t, units }) {
                 className="flex flex-col items-center gap-1.5"
               >
                 <span className="text-[calc(10px*var(--sb-body-scale))] text-atc-faint">
-                  {index === 0 ? t("weather.now") : String(hour.time).split(":")[0]}
+                  <AnimatedNumber value={index === 0 ? t("weather.now") : String(hour.time).split(":")[0]} />
                 </span>
                 <WeatherGlyph
                   glyph={weatherGlyphKey(hour.weatherCode, true)}
@@ -418,9 +419,9 @@ function LocalView({ local, loading, t, units }) {
                   className="text-atc-dim"
                 />
                 <span className="notranslate font-mono text-[calc(12px*var(--sb-body-scale))] tabular-nums text-atc-text">
-                  {hour.temperatureC == null
+                  <AnimatedNumber value={hour.temperatureC == null
                     ? "—"
-                    : `${Math.round(convertTemperatureFromC(hour.temperatureC, units.temperature))}°`}
+                    : `${Math.round(convertTemperatureFromC(hour.temperatureC, units.temperature))}°`} />
                 </span>
               </div>
             ))}

@@ -1,4 +1,5 @@
 import { Clock3 } from "lucide-react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { useAirportTimeComparison } from "@/hooks/useAirportLocalTime";
 
@@ -30,7 +31,7 @@ export default function AirportTimePanel({
         <h2>{t("sidebar.timeComparison.title")}</h2>
         <Clock3 aria-hidden="true" />
       </div>
-      <p className="airport-time-panel__difference">{difference}</p>
+      <p className="airport-time-panel__difference"><AnimatedNumber value={difference} /></p>
       <dl className="airport-time-panel__clocks">
         {([
           ["airport", airport],
@@ -39,8 +40,8 @@ export default function AirportTimePanel({
           <div key={kind} className="airport-time-panel__clock">
             <dt>{t(`sidebar.timeComparison.${kind}`)}</dt>
             <dd>
-              <div className="airport-time-panel__value">{clock.value}</div>
-              {clock.date && <div className="airport-time-panel__date">{clock.date}</div>}
+              <div className="airport-time-panel__value"><AnimatedNumber value={clock.value} /></div>
+              {clock.date && <div className="airport-time-panel__date"><AnimatedNumber value={clock.date} /></div>}
               {clock.zone && (
                 <div className="airport-time-panel__zone">
                   {clock.timeZone.replaceAll("_", " ")} · {clock.zone}

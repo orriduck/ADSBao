@@ -26,3 +26,14 @@ test("flight tracking locks the map view", () => {
     },
   );
 });
+
+test("Here locks the viewport to the GPS position without a draggable boundary", () => {
+  assert.deepEqual(
+    resolveAirportMapInteraction(AirportMapInteractionMode.UserLocationTracking),
+    {
+      allowsDragging: false,
+      constrainsViewportToNearbyTraffic: false,
+      showsNearbyTrafficBoundary: false,
+    },
+  );
+});

@@ -220,6 +220,12 @@ export function resolveHomeSearchDestination({
   if (exactAirport) return { type: "airport", airport: exactAirport };
 
   const callsign = normalizeCallsign(query);
+  // A city such as Boston or Paris is also syntactically a callsign. Prefer
+  // its visible airport match for alphabetic input; numbered callsigns keep
+  // the direct tracking path. An unmatched alphabetic registration can still track.
+  if (/^[A-Z]+$/.test(callsign) && rows.length) {
+    return { type: "airport", airport: rows[0] };
+  }
   if (isLookupCallsign(callsign)) return { type: "aircraft", callsign };
 
   const airport = resolveSubmittedAirport({ query, rows, staticAirports });

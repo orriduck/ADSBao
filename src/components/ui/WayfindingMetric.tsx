@@ -27,7 +27,7 @@ export default function WayfindingMetric({
   icon,
   title,
   value,
-  animateValue = false,
+  animateValue = true,
   unit,
   prefix,
   active = false,
@@ -41,7 +41,7 @@ export default function WayfindingMetric({
 }: WayfindingMetricProps) {
   const hasTitle = title !== null && title !== undefined && title !== "";
   const renderedValue =
-    animateValue && typeof value === "number" ? (
+    animateValue && (typeof value === "number" || typeof value === "string") ? (
       <AnimatedNumber value={value} />
     ) : (
       value
