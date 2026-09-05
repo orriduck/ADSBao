@@ -8,7 +8,7 @@ export default function BrandLogo({
 }) {
   return (
     <img
-      src="/brand/adsbao-logo.78f3075809.png"
+      src="/brand/adsbao-logo.208ed0cdef.png"
       alt={ariaLabel}
       width={size}
       height={size}

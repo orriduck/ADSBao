@@ -11,7 +11,7 @@ only adds repository-level guardrails.
 - Before any UI/styling work, read `DESIGN.md`. The current Soft Instrument
   Surfaces direction uses rounded groups, compact icon tiles and fine rims;
   retain light/dark modes and the map footprint; use neutral materials with
-  one restrained warm-gold accent, following DESIGN.md.
+  one restrained jade-green accent, following DESIGN.md.
   Reuse `src/soft-surfaces.css` rather than inventing another treatment.
 - For ADSBao local development, follow `CLAUDE.md`'s dev-server lifecycle:
   Vite runs on port 3000 and proxies same-origin API and SSE requests to the

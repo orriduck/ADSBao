@@ -498,7 +498,7 @@
 
 .preview-async-status-dot--error {
     background: transparent;
-    box-shadow: inset 0 0 0 2px var(--soft-accent);
+    box-shadow: inset 0 0 0 2px var(--atc-text);
 }
 
 .preview-async-status-dot--fading {

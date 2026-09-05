@@ -1,6 +1,6 @@
 # ADSBao PWA icon — 2026-09-05
 
-The user requested a newly generated logo and replacement of the current PWA icon, then explicitly selected the first generation's dimensional lighting and soft glow. The selected mark pairs a detailed ivory civilian aircraft with a softly lit flight-path arc and one warm-gold position dot on charcoal. It represents live flight tracking and geographic context. The selected logo treatment is specific to the app identity; interface surfaces retain `DESIGN.md`.
+The user requested a newly generated logo and replacement of the current PWA icon, then explicitly selected the first generation's dimensional lighting and soft glow. The selected mark pairs a detailed ivory civilian aircraft with a softly lit flight-path arc and one jade-green position dot on charcoal. It represents live flight tracking and geographic context. The selected logo treatment is specific to the app identity; interface surfaces retain `DESIGN.md`.
 
 ## Assets
 
@@ -8,11 +8,11 @@ Generated with the built-in imagegen tool, then exported to the required PNG siz
 
 | File | Size | Use |
 | --- | --- | --- |
-| `public/brand/adsbao-logo.78f3075809.png` | 1024×1024 | Shared brand source |
-| `public/icon.dc66b6460f.png` | 512×512 | PWA any/maskable and browser notification icon |
-| `public/icon-192.3cad36b29d.png` | 192×192 | PWA and large favicon |
-| `public/apple-icon.adb324f783.png` | 180×180 | Apple Touch icon |
-| `public/favicon-32.aff2b8f11b.png` | 32×32 | Browser favicon |
+| `public/brand/adsbao-logo.208ed0cdef.png` | 1024×1024 | Shared brand source |
+| `public/icon.77be1d6192.png` | 512×512 | PWA any/maskable and browser notification icon |
+| `public/icon-192.6c267132a0.png` | 192×192 | PWA and large favicon |
+| `public/apple-icon.a228283872.png` | 180×180 | Apple Touch icon |
+| `public/favicon-32.3a0ae552d1.png` | 32×32 | Browser favicon |
 
 All exports are opaque and retain the full square background; the platform applies its own outer mask. The three unused, superseded SVG marks were removed after confirming no repository references. All icon URLs and the manifest URL include a content hash, and `BrandLogo`, notification defaults and document links use those URLs. The service worker reloads its precache from the network during installation and reads only its current cache. Registration bypasses the HTTP cache for worker updates and also runs when the page has already loaded. Manifest identity, start URL, app theme and browser-local preferences remain unchanged.
 
@@ -36,3 +36,13 @@ Exact final image-edit prompt, applied to the inspected first generation:
 ## Cache migration correction (3.20.1)
 
 After 3.20.0 deployed successfully, production asset bytes matched the new logo while an existing browser session still displayed the old tower at the stable icon URL. The exact cache layer could not be inspected through the browser tooling. Content-addressed icon and manifest URLs prevent that old URL entry from serving the current app identity assets. Regression checks execute the generated worker, verify current-cache lookup and network-reloaded installation, and check asset content hashes and manifest dimensions. Installed operating-system launchers may update separately; browser validation does not establish a physical-device launcher refresh.
+
+## Jade accent refresh (3.20.6)
+
+The user asked to replace warm gold with the cool green in the previously supplied health-instrument screenshots. Light UI uses `#267967`; dark UI uses `#66b59e`. The icon keeps its fixed opaque charcoal background and uses the brighter jade dot so it remains visible on either launcher background. Existing aircraft and path artwork are retained.
+
+Built-in imagegen edited the inspected production source, then `sips` exported 1024, 512, 192, 180 and 32 pixel PNGs. Each icon and the updated manifest receive fresh SHA-256 content hashes, propagated through the brand component, notification defaults, document links, security headers, precache and this review page.
+
+Edit prompt: Preserve the exact aircraft silhouette, cockpit, wings, engines, ivory material, pose, scale, gray path arc, charcoal square and dimensional lighting. Change only the gold lower-left position dot and its immediate faint halo to restrained cool jade green around #66B59E. No redesign, crop, text, new objects, rounded outer corners or transparency.
+
+Local validation: Here in both themes, KBOS aircraft preview and Track marker in both themes, Home search focus, and AFR332 at 390×844 with unit changes and keyboard focus. The phone document stays 390px wide. The PWA review page loads all actual image sizes and shows green markers on both light and dark backgrounds and circular/rounded/80% masks. Generated and built icon/manifest bytes match; PNGs are opaque. PWA asset hashes/dimensions, cache policy, generated service worker, security headers, changelog invariants, typecheck and production build pass. The existing build chunk-size advisory remains. No installed physical-device launcher or production deployment is claimed for this local revision.

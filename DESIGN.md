@@ -3,7 +3,7 @@
 The September 2026 reference direction pairs rounded, softly lit panels with
 quiet labels and large, light numerals. The supplied music-library and health
 instrument references guide rounded form, shallow relief and quiet typography. The interface now
-uses neutral materials and a single restrained warm-gold accent. Airport
+uses neutral materials and a single restrained jade-green accent. Airport
 terminal signs and security-zone decoration are retired.
 
 ## Invariants
@@ -28,7 +28,7 @@ another card treatment.
   10–13px radii. Tiny status icons may sit in circular wells.
 - Use a fine upper rim and a broad, low-opacity shadow to suggest shallow
   elevation. Dark surfaces use a restrained neutral sheen. Never add colored
-  glows, reference-green backgrounds, or full-screen blur.
+  glows, large accent-colored backgrounds, or full-screen blur.
 - Group related readings within one surface. Do not put every label in a card.
 - Replace continuous vertical rails with small icon or identifier tiles. The
   36px rail primitive remains available for dense secondary content, but the
@@ -39,9 +39,9 @@ another card treatment.
 
 ## Identity and color
 
-Use one chromatic UI token: `--soft-accent`, a subdued warm gold with separate
-light/dark luminance. Keep it to small active-view underlines, the Track action
-marker and focus, a fine focal-airport edge, and a small unavailable-status cue.
+Use one chromatic UI token: `--soft-accent`, a cool jade green with separate
+light/dark luminance (`#267967` on light surfaces, `#66b59e` on dark surfaces). Keep it to small active-view underlines, the Track action
+marker and focus, and a fine focal-airport edge.
 Never use it as a panel fill, title plaque, provider strip or colored glow.
 
 - Identities use neutral plates, subtle directional light and raised icon wells.
@@ -49,7 +49,8 @@ Never use it as a panel fill, title plaque, provider strip or colored glow.
 - Selected aircraft, live trace and ordinary controls retain neutral map ink.
 - Active controls also change relief or outline so color is not the only cue.
 - Loading and successful asynchronous states use neutral dots; unavailable
-  states use an outlined accent marker with the existing status label.
+  states use a high-contrast neutral outline with the existing status label, so
+  brand green never reads as a successful result for unavailable data.
 - Photographs retain their real content. Do not recolor the map or photography
   to manufacture an accent theme.
 
