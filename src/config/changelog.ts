@@ -50,15 +50,15 @@ export const CHANGELOG_TOTAL_COUNT = 79;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.19.1",
+    version: "v3.19.2",
     kind: "feat",
     title: {
       en: "Map context refinement",
       zh: "地图上下文精修",
     },
     summary: {
-      en: "Airport and flight identity cards now carry subtle grayscale photo backgrounds; airports fall back to their country flag, and flights share the preview photo. Nearby airport and navaid labels retain the focused airport's compact instrument materials, with clearer ATC and spotting readouts.",
-      zh: "机场和航班信息卡新增若隐若现的灰度照片背景：机场无图时显示国旗，航班复用预览照片。附近机场和导航台标签延续焦点机场的紧凑仪表材质，ATC 和拍机点读数也更加清晰。",
+      en: "Live digits now transition individually, loading uses a quiet dot matrix, and panels open more smoothly. Airport and flight identity cards carry subtle grayscale photo backgrounds; airports fall back to their country flag, and flights share the preview photo. Nearby airport and navaid labels retain the focused airport's compact instrument materials, with clearer ATC and spotting readouts.",
+      zh: "实时数字现在按变化位数轻巧过渡，加载改用安静的点阵，面板展开也更顺滑。机场和航班信息卡提供若隐若现的灰度照片背景：机场无图时显示国旗，航班复用预览照片。附近机场和导航台标签延续焦点机场的紧凑仪表材质，ATC 和拍机点读数也更加清晰。",
     },
     highlights: [],
   },

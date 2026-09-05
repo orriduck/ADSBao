@@ -76,7 +76,7 @@ interface FormattedValue {
   unit: string;
   text: string | null;
   // Optional prefix string rendered before the animated number (e.g. "FL "
-  // for flight levels). Callers can keep the number on NumberFlow and the
+  // for flight levels). Callers can keep the number on AnimatedNumber and the
   // prefix static so unit-switch transitions tween cleanly.
   prefix?: string;
 }

@@ -219,7 +219,6 @@ export default function MapLoadingOverlay({
         <>
           <AviationLoadingIndicator
             label={loadingLabel}
-            playbackKey={playbackCycle}
           />
         </>
       )}

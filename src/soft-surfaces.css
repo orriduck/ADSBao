@@ -862,7 +862,6 @@
 .spot-navigation-link[data-primary="true"] { box-shadow: var(--soft-inset); }
 .spot-navigation-link:hover { box-shadow: var(--soft-icon-shadow); }
 .app-status-card { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; width: min(300px, calc(100% - 32px)); padding: 24px; text-align: center; }
-.app-status-card .aviation-loading-glyph { margin: 0; }
 .app-status-card .adsb-loading-overlay__label { padding: 0; }
 .app-status-card--error { align-items: flex-start; text-align: left; }
 :root .adsb-loading-overlay { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in oklab, var(--sidebar) 36%, transparent); }
@@ -928,4 +927,106 @@
 .plane-hunter-review-dock__share { border-left-width: 0; }
 @media (prefers-reduced-motion: reduce) {
     .mobile-preview-icon-button { transition: none; transform: none; }
+}
+
+/* Motion recipes: https://transitions.dev — number pop-in and matrix loader.
+   Source: Jakub Antalik, https://transitions.dev/terms.html.
+   Keep the recipes local; instrument-specific tuning follows below. */
+:root {
+    --digit-dur: 220ms;
+    --digit-distance: 4px;
+    --digit-stagger: 0ms;
+    --digit-blur: 0px;
+    --digit-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --digit-dir-x: 0;
+    --digit-dir-y: 1;
+    --matrix-cycle: 1200ms;
+    --matrix-base: var(--atc-dim);
+    --matrix-active: var(--atc-dim);
+    --matrix-ease: ease-in-out;
+    --soft-motion-enter: 250ms;
+    --soft-motion-exit: 150ms;
+    --soft-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes t-digit-pop-in {
+  0%   {
+    transform: translate(
+      calc(var(--digit-distance) * var(--digit-dir-x)),
+      calc(var(--digit-distance) * var(--digit-dir-y))
+    );
+    opacity: 0;
+    filter: blur(var(--digit-blur));
+  }
+  100% { transform: translate(0, 0); opacity: 1; filter: blur(0); }
+}
+
+.t-digit-group {
+  display: inline-flex;
+  align-items: baseline;
+}
+.t-digit {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+.t-digit-group.is-animating .t-digit {
+  animation: t-digit-pop-in var(--digit-dur) var(--digit-ease) both;
+}
+.t-digit-group.is-animating .t-digit[data-stagger="1"] {
+  animation-delay: var(--digit-stagger);
+}
+.t-digit-group.is-animating .t-digit[data-stagger="2"] {
+  animation-delay: calc(var(--digit-stagger) * 2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-digit-group .t-digit { animation: none !important; }
+}
+
+.t-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, 2px);
+  grid-auto-rows: 2px;
+  gap: 2px;
+}
+.t-matrix i {
+  display: block;
+  background: var(--matrix-base);
+  animation: t-matrix-pulse var(--matrix-cycle) var(--matrix-ease) infinite;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+/* Hole positions (rounded variants) render nothing. */
+.t-matrix i.is-gap { visibility: hidden; animation: none; }
+@keyframes t-matrix-pulse {
+  0%, 45%, 100% { background-color: var(--matrix-base); }
+  15%           { background-color: var(--matrix-active); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-matrix i { animation: none !important; }
+}
+
+.animated-number, .animated-number__digits { display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
+.animated-number .t-digit { will-change: auto; }
+.animated-number .is-animating .t-digit { will-change: transform, opacity; }
+.matrix-loader { flex: none; align-self: center; }
+.matrix-loader i {
+    border-radius: 50%;
+    animation-name: soft-matrix-pulse;
+    animation-delay: calc(var(--column, 0) * var(--matrix-cycle) / 10 - var(--matrix-cycle));
+}
+.matrix-loader--large { grid-template-columns: repeat(4, 4px); grid-auto-rows: 4px; gap: 4px; }
+.matrix-loader--micro { grid-template-columns: repeat(4, 1.5px); grid-auto-rows: 1.5px; gap: 1.5px; }
+@keyframes soft-matrix-pulse {
+    0%, 45%, 100% { opacity: 0.24; }
+    15% { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .soft-status-reveal { animation: soft-status-enter 180ms var(--soft-motion-ease); }
+    [data-ui="menu-surface"] { transform-origin: top center; animation: soft-menu-enter var(--soft-motion-enter) var(--soft-motion-ease); }
+    [data-ui="menu-surface"][data-side="top"] { transform-origin: bottom center; }
+    .soft-sheet-motion[data-state="open"] { animation-duration: var(--soft-motion-enter); animation-timing-function: var(--soft-motion-ease); }
+    .soft-sheet-motion[data-state="closed"] { animation-duration: var(--soft-motion-exit); animation-timing-function: var(--soft-motion-ease); }
+    @keyframes soft-status-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes soft-menu-enter { from { opacity: 0; scale: 0.97; } to { opacity: 1; scale: 1; } }
 }

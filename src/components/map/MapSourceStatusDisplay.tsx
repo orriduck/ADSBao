@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import MatrixLoader from "@/components/loading/MatrixLoader";
 import gsap from "gsap";
 import { MOTION, EASE } from "@/animations/gsap";
 import { usePrefersReducedMotion } from "@/components/effects/usePrefersReducedMotion";
@@ -430,12 +430,9 @@ export default function MapSourceStatusDisplay({
           {realtimeStatusLabel ? (
             <>
               <StatusSpan className="inline-flex flex-none items-center text-atc-dim">
-                <Loader2
-                  role="img"
-                  aria-label={realtimeStatusLabel}
-                  className="size-2.5 opacity-80 motion-safe:animate-spin [.airport-map-kit_&]:size-2"
-                  strokeWidth={2.5}
-                />
+                <span role="img" aria-label={realtimeStatusLabel}>
+                  <MatrixLoader className="matrix-loader--micro" />
+                </span>
               </StatusSpan>
               {(wakeLockActive || feedSource || updatedLabel) ? (
                 <span

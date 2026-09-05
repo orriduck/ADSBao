@@ -1,4 +1,5 @@
-import { ChevronRight, Loader2, Radar, SearchX } from "lucide-react";
+import MatrixLoader from "@/components/loading/MatrixLoader";
+import { ChevronRight, Radar, SearchX } from "lucide-react";
 import AirportRow from "./AirportRow";
 import { AirportListRow } from "./AirportListRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
@@ -8,14 +9,12 @@ import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 // a faint supporting line, framed by whitespace rather than left bare. Shared
 // by the loading / error / no-result branches so each reads as a deliberate
 // state, not an afterthought.
-function SearchState({ icon, title, detail = null, spin = false }) {
+function SearchState({ icon, title, detail = null }) {
   return (
     <div className="flex flex-col items-center gap-2.5 px-4 py-10 text-center">
       <span
         aria-hidden="true"
-        className={`flex size-9 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)] text-atc-faint ${
-          spin ? "[&>svg]:animate-spin" : ""
-        }`}
+        className="flex size-9 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)] text-atc-faint"
       >
         {icon}
       </span>
@@ -83,8 +82,7 @@ export function AirportSearchResults({
 
         {loading && !hasResults ? (
           <SearchState
-            spin
-            icon={<Loader2 size={17} strokeWidth={2} />}
+            icon={<MatrixLoader />}
             title={t("search.searchingAirports")}
           />
         ) : error ? (
