@@ -208,7 +208,7 @@
 .airport-map-kit button.wayfinding-metric::after {
     content: "";
     position: absolute;
-    bottom: 7px;
+    bottom: 3px;
     left: 12px;
     height: 2px;
     width: 18px;
@@ -251,6 +251,9 @@
 .airport-map-kit .wayfinding-secondary-view-grid .wayfinding-metric {
     min-height: 76px;
     grid-template-rows: auto 26px;
+}
+.airport-map-kit .wayfinding-secondary-view-grid .wayfinding-metric__value {
+    padding-bottom: 6px;
 }
 .airport-map-kit .wayfinding-metric--compact .wayfinding-metric__value-group > span:first-child { font-size: 24px; }
 .airport-map-kit .sidebar-wayfinding-provider { border-radius: 0 0 24px 24px; overflow: hidden; }
@@ -645,6 +648,23 @@
     border-radius: 5px;
     padding: 5px 7px;
     box-shadow: var(--soft-inset), var(--soft-lift);
+}
+
+/* Nearby airports and navigation aids use the same compact instrument plate
+   as the focal airport. The focal marker alone keeps its gold edge, while
+   contextual markers stay neutral and therefore recede without looking like
+   a separate map-label system. */
+.airport-overlay-label--map-badge :is(.airport-overlay-label__code.atc-code-pill, .airport-overlay-label__detail) {
+    background: var(--soft-identity-surface);
+    border: 0;
+    border-left: 2px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
+    border-radius: 5px;
+    box-shadow: var(--soft-inset), var(--soft-lift);
+    color: var(--soft-identity-ink);
+}
+.airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill {
+    font-size: 8px;
+    padding: 5px 7px;
 }
 
 /* A real clearance for the floating dock replaces the retired security-zone
