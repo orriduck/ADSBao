@@ -50,7 +50,7 @@ const sheetVariants = cva(
   }
 )
 
-const SheetContent = forwardRef(({ side = "right", className, overlayClassName, children, ...props }, ref) => {
+const SheetContent = forwardRef(({ side = "right", className, overlayClassName, children, closeDisabled = false, ...props }, ref) => {
   const { t } = useI18n()
 
   return (
@@ -58,6 +58,7 @@ const SheetContent = forwardRef(({ side = "right", className, overlayClassName, 
       <SheetOverlay className={overlayClassName} />
       <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
         <SheetPrimitive.Close
+          disabled={closeDisabled}
           className="soft-modal-close disabled:pointer-events-none [&>svg]:size-4">
           <X className="h-4 w-4" />
           <span className="sr-only">{t("ui.close")}</span>

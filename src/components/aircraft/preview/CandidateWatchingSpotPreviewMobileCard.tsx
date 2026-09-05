@@ -1,4 +1,5 @@
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import {
   formatCandidateWatchingSpotCategory,
   formatCandidateWatchingSpotDistance,
@@ -30,7 +31,7 @@ export default function CandidateWatchingSpotPreviewMobileCard({
   const attribution = String(sourceAttribution || "").trim();
 
   const items = [
-    distance ? <span key="distance">{distance}</span> : null,
+    distance ? <AnimatedNumber key="distance" value={distance} /> : null,
     attribution ? (
       <span key="attribution" className="text-atc-faint">
         {attribution}

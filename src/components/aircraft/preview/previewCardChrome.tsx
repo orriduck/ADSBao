@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { cn } from "@/lib/utils";
 
 type MetaRow = { label: ReactNode; value: ReactNode };
@@ -107,7 +108,9 @@ export function PreviewMetaRows({ rows }: { rows: MetaRow[] }) {
             className="aircraft-preview-meta-row__value notranslate min-w-0 truncate"
             translate="no"
           >
-            {row.value}
+            {typeof row.value === "string" || typeof row.value === "number"
+              ? <AnimatedNumber value={row.value} />
+              : row.value}
           </dd>
         </div>
       ))}

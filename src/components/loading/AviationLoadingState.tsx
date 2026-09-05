@@ -13,7 +13,7 @@ export function AviationLoadingIndicator({
   label,
 }: AviationLoadingIndicatorProps) {
   return (
-    <div className="app-status-card app-status-card--loading">
+    <div className="app-loading-indicator">
       <MatrixLoader className="matrix-loader--large" />
       {label ? (
         <div className="adsb-loading-overlay__label relative z-[1] flex items-center gap-2 px-6 text-center text-[12px] text-atc-dim">

@@ -22,33 +22,17 @@ export default function ExplorerMapMenu({
   onToggleWakeLock = null,
   onMap = null,
   onRecenter = null,
-  onToggleUserLocation = null,
   zoomDisabled = false,
 }: Record<string, any> = {}) {
   const {
     isMobile,
     mapZoom,
     mapFollowsAircraft,
-    showRunwayBeams,
-    showNavaidMarkers,
-    showReportingPoints,
-    showAirspaces,
-    showCandidateWatchingSpots,
-    showCallsigns,
     mapSettings,
     mapSettingsDevice,
-    mapSettingsSaveStatus,
-    mapSettingsSaveCycle,
     saveMapSettings,
     setMapZoom,
-    setMapBaseLayer,
     toggleSidebar,
-    toggleRunwayBeams,
-    toggleNavaidMarkers,
-    toggleReportingPoints,
-    toggleAirspaces,
-    toggleCandidateWatchingSpots,
-    toggleShowCallsigns,
   } = useExplorerUi();
 
   const toolbar = (
@@ -59,16 +43,8 @@ export default function ExplorerMapMenu({
       zoomActive={mapFollowsAircraft}
       zoomDisabled={zoomDisabled}
       traceViewItems={traceViewItems}
-      showRunwayBeams={showRunwayBeams}
-      showNavaidMarkers={showNavaidMarkers}
-      showReportingPoints={showReportingPoints}
-      showAirspaces={showAirspaces}
-      showCandidateWatchingSpots={showCandidateWatchingSpots}
-      showCallsigns={showCallsigns}
       mapSettings={mapSettings}
       mapSettingsDevice={mapSettingsDevice}
-      mapSettingsSaveStatus={mapSettingsSaveStatus}
-      mapSettingsSaveCycle={mapSettingsSaveCycle}
       onSaveMapSettings={saveMapSettings}
       userLocationActive={userLocationActive}
       userLocationPending={userLocationPending}
@@ -82,14 +58,6 @@ export default function ExplorerMapMenu({
       wakeLockActive={wakeLockState.active}
       wakeLockSupported={wakeLockState.supported}
       onZoom={setMapZoom}
-      onToggleRunwayBeams={toggleRunwayBeams}
-      onToggleNavaidMarkers={toggleNavaidMarkers}
-      onToggleReportingPoints={toggleReportingPoints}
-      onToggleAirspaces={toggleAirspaces}
-      onToggleCandidateWatchingSpots={toggleCandidateWatchingSpots}
-      onToggleShowCallsigns={toggleShowCallsigns}
-      onSelectBaseLayer={setMapBaseLayer}
-      onToggleUserLocation={onToggleUserLocation}
       onToggleSidebar={toggleSidebar}
       onMap={onMap}
       onRecenter={onRecenter}

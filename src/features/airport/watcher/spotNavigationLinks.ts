@@ -15,6 +15,19 @@ export type SpotNavigationLinks = {
   platform: SpotNavigationPlatform;
 };
 
+export function resolveSpotCoordinates(spot: SpotNavigationTarget | null | undefined) {
+  const coordinate = (value: unknown) => {
+    if (typeof value !== "number" && typeof value !== "string") return null;
+    if (typeof value === "string" && !value.trim()) return null;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  };
+  const lat = coordinate(spot?.lat);
+  const lon = coordinate(spot?.lon);
+  if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}
+
 export function resolveSpotNavigationPlatform(userAgent = ""): SpotNavigationPlatform {
   const normalized = String(userAgent || "");
   if (/Android/i.test(normalized)) return "android";
@@ -29,9 +42,9 @@ export function buildSpotNavigationLinks(
     fallbackLabel = "Photo spot",
   }: { userAgent?: string; fallbackLabel?: string } = {},
 ): SpotNavigationLinks | null {
-  const latitude = Number(spot?.lat);
-  const longitude = Number(spot?.lon);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  const coordinates = resolveSpotCoordinates(spot);
+  if (!coordinates) return null;
+  const { lat: latitude, lon: longitude } = coordinates;
 
   const latitudeLabel = formatNavigationCoordinate(latitude);
   const longitudeLabel = formatNavigationCoordinate(longitude);

@@ -19,16 +19,8 @@ export default function MapControlBar({
   zoomActive = true,
   zoomDisabled = false,
   traceViewItems = [],
-  showRunwayBeams = true,
-  showNavaidMarkers = false,
-  showReportingPoints = false,
-  showAirspaces = true,
-  showCandidateWatchingSpots = false,
-  showCallsigns = true,
   mapSettings,
   mapSettingsDevice = "desktop",
-  mapSettingsSaveStatus = "idle",
-  mapSettingsSaveCycle = 0,
   onSaveMapSettings = null,
   userLocationActive = false,
   userLocationPending = false,
@@ -42,20 +34,13 @@ export default function MapControlBar({
   wakeLockActive = false,
   wakeLockSupported = false,
   onZoom,
-  onToggleRunwayBeams,
-  onToggleNavaidMarkers,
-  onToggleReportingPoints,
-  onToggleAirspaces,
-  onToggleCandidateWatchingSpots,
-  onToggleShowCallsigns,
-  onSelectBaseLayer,
   onMap = null,
   onRecenter = null,
-  onToggleUserLocation = null,
   onToggleSidebar,
   onToggleWakeLock = null,
 }) {
   const controlZone = useRef(null);
+  const settingsTrigger = useRef<HTMLButtonElement>(null);
   const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const {
@@ -74,7 +59,8 @@ export default function MapControlBar({
     [t, traceViewItems],
   );
 
-  const toggleSettings = () => {
+  const toggleSettings = (event) => {
+    settingsTrigger.current = event.currentTarget;
     setSettingsOpen((value) => !value);
   };
 
@@ -96,17 +82,13 @@ export default function MapControlBar({
           id={MAP_SETTINGS_SHEET_ID}
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            settingsTrigger.current?.focus();
+          }}
           onSaveMapSettings={onSaveMapSettings}
           mapSettings={mapSettings}
-          showBeams={showRunwayBeams}
-          showNavaidMarkers={showNavaidMarkers}
-          showReportingPoints={showReportingPoints}
-          showAirspaces={showAirspaces}
-          showCandidateWatchingSpots={showCandidateWatchingSpots}
-          showCallsigns={showCallsigns}
           mapSettingsDevice={mapSettingsDevice}
-          mapSettingsSaveStatus={mapSettingsSaveStatus}
-          mapSettingsSaveCycle={mapSettingsSaveCycle}
           userLocationActive={userLocationActive}
           userLocationPending={userLocationPending}
           userLocationNotice={userLocationNotice}

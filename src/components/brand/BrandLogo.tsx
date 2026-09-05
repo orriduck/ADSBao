@@ -1,6 +1,5 @@
-// The selected ADSBao mascot mark: a friendly airport control tower against a
-// pale-blue sky. Keep the full square composition so the toolbar, PWA icon,
-// and notification icon all share one recognizable mark.
+// Aircraft, flight path and position dot on the app's neutral instrument
+// surface. Keep the shared composition across PWA, brand and notification icons.
 export default function BrandLogo({
   size = 30,
   className = "",

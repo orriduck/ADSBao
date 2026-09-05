@@ -635,8 +635,8 @@
     .candidate-watching-spot-preview-motion,
     .candidate-watching-spot-dot,
     .preview-async-status-dot,
-    .map-settings-sheet,
-    .map-settings-sheet-overlay,
+    .map-settings-sheet[data-state],
+    .map-settings-sheet-overlay[data-state],
     .adsb-loading-overlay.is-exiting {
         animation: none;
         transition: none;

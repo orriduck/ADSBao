@@ -1,6 +1,7 @@
 export enum AirportMapInteractionMode {
   AirportExploration = "airport-exploration",
   FlightTracking = "flight-tracking",
+  UserLocationTracking = "user-location-tracking",
 }
 
 export function resolveAirportMapInteraction(mode: AirportMapInteractionMode) {

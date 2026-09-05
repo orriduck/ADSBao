@@ -3,7 +3,6 @@ import { ChevronRight, Radar, SearchX } from "lucide-react";
 import AirportRow from "./AirportRow";
 import { AirportListRow } from "./AirportListRow";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
-import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 
 // Designed state for the search column — a quiet glyph over a primary line and
 // a faint supporting line, framed by whitespace rather than left bare. Shared
@@ -11,7 +10,7 @@ import AsyncStatusLine from "@/components/ui/AsyncStatusLine";
 // state, not an afterthought.
 function SearchState({ icon, title, detail = null }) {
   return (
-    <div className="flex flex-col items-center gap-2.5 px-4 py-10 text-center">
+    <div role="status" className="flex flex-col items-center gap-2.5 px-4 py-10 text-center">
       <span
         aria-hidden="true"
         className="flex size-9 items-center justify-center rounded-full bg-[color-mix(in_oklab,var(--atc-text)_6%,transparent)] text-atc-faint"
@@ -31,9 +30,9 @@ export function AirportSearchResults({
   rows,
   loading,
   error,
-  statusCode = null,
-  searchCycle = 0,
   countLabel,
+  onRetry,
+  onClear,
   onOpen,
   onPrefetch,
   trackingCallsign = "",
@@ -61,21 +60,10 @@ export function AirportSearchResults({
             <span id="airport-search-results-heading" className="atc-kicker">
               {t("search.searchResults")}
             </span>
-            <span className="flex items-center gap-2">
-              {loading || error ? (
-                <AsyncStatusLine
-                  loading={Boolean(loading)}
-                  error={error || null}
-                  statusCode={statusCode}
-                  cycleKey={`search:${searchCycle}`}
-                  pendingLabel={t("search.searchingAirports")}
-                  successLabel={t("search.searchedAirports")}
-                  errorLabel={t("search.searchAirportsError")}
-                  className="text-[calc(9px*var(--sb-body-scale))]"
-                />
-              ) : (
-                <span className="atc-section-head__count">{countLabel}</span>
-              )}
+            <span id="home-search-status" role="status" aria-live="polite" className="flex items-center gap-2">
+              <span className="atc-section-head__count">
+                {error ? t("search.searchAirportsError") : countLabel}
+              </span>
             </span>
           </div>
         </div>
@@ -85,17 +73,17 @@ export function AirportSearchResults({
             icon={<MatrixLoader />}
             title={t("search.searchingAirports")}
           />
-        ) : error ? (
+        ) : error && !hasResults ? (
           <SearchState
             icon={<SearchX size={17} strokeWidth={2} />}
             title={t("search.searchAirportsError")}
-            detail={error}
+            detail={t("search.errorHint")}
           />
         ) : !hasResults ? (
           <SearchState
             icon={<Radar size={17} strokeWidth={2} />}
             title={t("search.noAirportMatched", { query: query.trim() })}
-            detail={t("search.discovery.pageDescription")}
+            detail={t("search.emptyHint")}
           />
         ) : (
           <ul className="app-list-motion dither-list flex flex-col gap-0">
@@ -103,7 +91,7 @@ export function AirportSearchResults({
               <li>
                 <AirportListRow
                   as="button"
-                  active
+                  data-search-result="true"
                   pill={t("search.trackFlightPill")}
                   railMotionKind="code"
                   title={t("search.trackFlight", { callsign: trackingCallsign })}
@@ -118,12 +106,20 @@ export function AirportSearchResults({
                 key={airport.icao || airport.code || airport.name}
                 airport={airport}
                 motionOrder={Math.min(index, 5)}
+                searchResult
                 onOpen={onOpen}
                 onPrefetch={onPrefetch}
               />
             ))}
           </ul>
         )}
+        {!loading && (error || !hasResults) ? (
+          <div className="soft-search-recovery">
+            {error ? <button type="button" className="soft-button" onClick={onRetry}>{t("search.retry")}</button> : null}
+            <button type="button" className="soft-button" onClick={onClear}>{t("search.browse")}</button>
+          </div>
+        ) : null}
+        {hasResults ? <p className="soft-search-keyboard-hint">{t("search.keyboardHint")}</p> : null}
       </section>
     </div>
   );

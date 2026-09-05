@@ -101,6 +101,10 @@ function FlightExplorerContent({ callsign }) {
   const location = useLocation();
   const { t } = useI18n();
   const [mapMainContentLoading, setMapMainContentLoading] = useState(true);
+  const [telemetryAlternates, setTelemetryAlternates] = useState<Record<string, boolean>>({});
+  const toggleTelemetryMetric = useCallback((metric: string) => {
+    setTelemetryAlternates((current) => ({ ...current, [metric]: !current[metric] }));
+  }, []);
   const {
     desktopSidebarWidth,
     clientDeviceProfile,
@@ -110,7 +114,6 @@ function FlightExplorerContent({ callsign }) {
     mapZoom,
     mapLabelLevel,
     showNavaidMarkers,
-    showAirspaces,
     mapSettings,
     mapSettingsReadyForUserLocation,
     userLocationEnabled,
@@ -924,6 +927,8 @@ function FlightExplorerContent({ callsign }) {
 
   const sidebarProps = {
     callsign,
+    telemetryAlternates,
+    onToggleTelemetryMetric: toggleTelemetryMetric,
     aircraft: enrichedTrackedAircraft,
     nearbyAircraft: aircraft,
     nearbyAirports: sidebarNearbyAirports,

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toFiniteNumber } from "@/utils/math";
@@ -95,7 +96,7 @@ export default function AircraftPreviewMobileCard({
               ) : null}
             </div>
             <div className="mt-[5px] flex min-w-0 items-center gap-1.5 font-mono text-[11.5px] tracking-[0.04em] text-atc-dim">
-              <span className="min-w-0 truncate">
+              <span className={cn("min-w-0", origin && destination ? "truncate" : "whitespace-normal leading-snug")}>
                 {origin && destination ? (
                   <span
                     className={`notranslate inline-flex min-w-0 items-center gap-1.5 ${fadeClass}`}
@@ -143,7 +144,7 @@ export default function AircraftPreviewMobileCard({
             <Separator />
             <span className="inline-flex items-baseline gap-[3px] tabular-nums text-atc-text">
               {vsArrow ? <span aria-hidden="true">{vsArrow}</span> : null}
-              {Math.abs(Math.round(vs)).toLocaleString()}
+              <Metric value={Math.abs(Math.round(vs)).toLocaleString()} unit="fpm" />
             </span>
           </>
         ) : null}
@@ -176,7 +177,7 @@ function Metric({
           {prefix}
         </span>
       ) : null}
-      {value}
+      <AnimatedNumber value={value} />
       {unit ? (
         <span translate="no" className="notranslate text-[9px] text-atc-faint">
           {unit}

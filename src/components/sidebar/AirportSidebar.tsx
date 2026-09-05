@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Camera, ExternalLink, RadioTower } from "lucide-react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import AircraftTable from "./AircraftTable";
 import AirportIdentity from "./AirportIdentity";
 import FlightRadar24Link from "./FlightRadar24Link";
@@ -239,6 +240,7 @@ const atcRoleOf = (frequency) =>
   "";
 
 function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
+  const { t } = useI18n();
   const normalizedIcao = String(icao || "").trim().toUpperCase();
   const liveAtcHref = `https://www.liveatc.net/search/?icao=${encodeURIComponent(
     normalizedIcao,
@@ -249,11 +251,13 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
       const inferredRole = atcRoleOf(frequency);
       const role =
         inferredRole || formatFrequencyType(frequency.type, frequency.description);
+      const callsign = cleanFrequencyDetail(frequency.callsign);
+      const description = cleanFrequencyDetail(frequency.description);
       const detail =
-        frequency.callsign && frequency.callsign !== role
-          ? frequency.callsign
-          : frequency.description && frequency.description !== role
-            ? frequency.description
+        callsign && callsign !== role
+          ? callsign
+          : description && description !== role
+            ? description
             : "";
       return { id: frequency.id, role, inferredRole, detail, frequencyMhz };
     })
@@ -267,10 +271,10 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
     <div className="atc-wayfinding-panel flex shrink-0 flex-col pb-5">
       <div className="sidebar-secondary-heading">
         <h2 className="text-[calc(11px*var(--sb-title-scale))] uppercase tracking-normal text-atc-text">
-          ATC Frequencies
+          {t("sidebar.atcPanel.title")}
         </h2>
         <span className="font-mono text-[calc(9px*var(--sb-body-scale))] uppercase text-atc-faint">
-          {frequencies.length} channels
+          {t("sidebar.atcPanel.channels", { count: frequencies.length })}
         </span>
       </div>
       {normalizedIcao ? (
@@ -280,14 +284,14 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
           rel="noopener noreferrer nofollow"
           className="inline-flex min-h-11 items-center justify-between gap-2 bg-[var(--airport-wayfinding-secondary)] px-[var(--airport-sidebar-inset)] text-[calc(10px*var(--sb-body-scale))] text-[var(--airport-wayfinding-secondary-fg)] transition-opacity hover:opacity-90"
         >
-          <span>Search {normalizedIcao} on LiveATC</span>
+          <span>{t("sidebar.atcPanel.liveAtc", { icao: normalizedIcao })}</span>
           <ExternalLink aria-hidden="true" className="size-3.5" strokeWidth={2} />
         </a>
       ) : null}
       {rows.length === 0 ? (
         <div className="soft-empty-state">
           <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><RadioTower className="size-4" /></span>
-          <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">No published frequencies for this airport.</p>
+          <p className="flex flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3 text-[calc(11px*var(--sb-body-scale))] leading-snug text-atc-dim">{t("sidebar.atcPanel.empty")}</p>
         </div>
       ) : (
         <div className="app-list-motion atc-freq-table flex flex-col">
@@ -298,10 +302,10 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
             >
               <span className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-start justify-center bg-[var(--airport-wayfinding-neutral-rail)] pt-3 text-[var(--airport-wayfinding-neutral-rail-fg)]"><RadioTower className="size-4" strokeWidth={1.8} /></span>
               <div className="flex min-w-0 flex-1 items-center justify-between gap-3 bg-[var(--airport-wayfinding-content)] px-3">
-                <div className="min-w-0">
-                <div className="truncate text-[calc(11.5px*var(--sb-body-scale))] text-atc-text">{row.role}</div>
+                <div className="min-w-0 py-3">
+                <div className="text-[calc(11.5px*var(--sb-body-scale))] text-atc-text">{ATC_ROLE_LABEL_KEYS[row.role] ? t(ATC_ROLE_LABEL_KEYS[row.role]) : row.role}</div>
                 {row.detail ? (
-                  <div className="truncate text-[calc(9px*var(--sb-body-scale))] uppercase tracking-[0.06em] text-atc-faint">
+                  <div className="break-words text-[calc(10px*var(--sb-body-scale))] leading-snug text-atc-dim">
                     {row.detail}
                   </div>
                 ) : null}
@@ -310,7 +314,7 @@ function AtcFrequencyPanel({ icao = "", frequencies = [] }) {
                 className="notranslate shrink-0 font-mono text-[calc(12.5px*var(--sb-body-scale))] tabular-nums text-atc-text"
                 translate="no"
               >
-                {formatFrequencyBadge(row.frequencyMhz)}
+                <AnimatedNumber value={formatFrequencyBadge(row.frequencyMhz)} />
               </span>
               </div>
             </div>
@@ -392,6 +396,22 @@ function formatFrequencyBadge(value) {
   if (!Number.isFinite(frequency)) return "—";
   return frequency.toFixed(3);
 }
+
+function cleanFrequencyDetail(value: unknown) {
+  const text = String(value ?? "").trim();
+  return text === "<nil>" ? "" : text;
+}
+
+const ATC_ROLE_LABEL_KEYS: Record<string, string> = {
+  Clearance: "sidebar.atcPanel.clearance",
+  Ground: "sidebar.atcPanel.ground",
+  Tower: "sidebar.atcPanel.tower",
+  Approach: "sidebar.atcPanel.approach",
+  Departure: "sidebar.atcPanel.departure",
+  Gate: "sidebar.atcPanel.gate",
+  "Airport frequency": "sidebar.atcPanel.other",
+  Other: "sidebar.atcPanel.other",
+};
 
 function formatFrequencyType(value, description = "") {
   const inferred = inferFrequencyType(description);

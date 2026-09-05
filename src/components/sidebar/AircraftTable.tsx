@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ArrowUpDown,
@@ -10,6 +10,7 @@ import {
   Minus,
   Plane,
   Search,
+  X,
 } from "lucide-react";
 import {
   FilterCard,
@@ -37,9 +38,7 @@ import {
   ALTITUDE_LEVEL_VALUES,
   ENTITY_FILTER_OPTIONS,
   aircraftMatchesFilters,
-  getNextAirborneFilter,
   getAircraftTypeGroups,
-  getNextEntityFilter,
   isAltitudeSelectionAll,
   normalizeAltitudeLevelSelection,
 } from "@/features/aircraft/filters/aircraftFilters";
@@ -51,6 +50,7 @@ import {
 import { formatFlightRouteMunicipalityLabel } from "../../utils/flightRouteDisplay";
 import { getDistanceNm } from "../../utils/aircraftTrafficIntent";
 import AircraftList from "./AircraftList";
+import { useFilterPopover } from "./useFilterPopover";
 import AirportSlot from "./AirportSlot";
 import VirtualNearbyList from "./VirtualNearbyList";
 import { SidebarLoadingRows } from "./SidebarLoadingSkeleton";
@@ -86,6 +86,7 @@ function AircraftTable({
     setEntityFilter,
   } = useExplorerFilters();
   const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
   const selectedTypes = useMemo(
     () => (Array.isArray(typeFilter) ? typeFilter : []),
     [typeFilter],
@@ -94,6 +95,16 @@ function AircraftTable({
     () => normalizeAltitudeLevelSelection(altitudeLevel),
     [altitudeLevel],
   );
+  const filterCount = Number(entityFilter !== "all") + Number(airborneFilter !== "all")
+    + Number(selectedTypes.length > 0) + Number(!isAltitudeSelectionAll(selectedAltitudeLevels));
+  const clearFilters = () => {
+    setEntityFilter("all");
+    setAirborneFilter("all");
+    setTypeFilter("all");
+    setAltitudeLevel([...ALTITUDE_LEVEL_VALUES]);
+    setQuery("");
+    searchRef.current?.focus();
+  };
   const typeGroups = useMemo(
     () => getAircraftTypeGroups(aircraft, selectedTypes),
     [aircraft, selectedTypes],
@@ -243,7 +254,7 @@ function AircraftTable({
     >
       <div className="aircraft-table-controls flex-none">
         <div className="aircraft-table-search-bar">
-          <label className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
+          <div className="search-input wayfinding-search flex min-h-11 items-stretch p-0">
             <span
               className="flex w-[var(--airport-wayfinding-rail-width)] shrink-0 items-center justify-center overflow-hidden bg-[var(--airport-wayfinding-neutral-rail)] text-[var(--airport-wayfinding-neutral-rail-fg)]"
               data-motion-kind="search"
@@ -255,37 +266,44 @@ function AircraftTable({
             </span>
             <span className="flex min-w-0 flex-1 items-center bg-[var(--airport-wayfinding-content)] px-3">
               <input
+                ref={searchRef}
                 type="search"
+                autoComplete="off"
+                spellCheck={false}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape" && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    setQuery("");
+                  }
+                }}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 className="h-7 min-w-0 flex-1 p-0 text-[calc(12px*var(--sb-body-scale))] tracking-normal text-atc-text"
                 placeholder={t("sidebar.searchPlaceholder")}
                 aria-label={t("sidebar.searchAria")}
               />
+              {query ? <button type="button" className="soft-search-clear" aria-label={t("search.clear")}
+                onClick={() => { setQuery(""); searchRef.current?.focus(); }}><X size={16} aria-hidden="true" /></button> : null}
             </span>
-          </label>
+          </div>
         </div>
 
         <div className="aircraft-table-filter-shell">
           <FilterCardGrid columns={2} aria-label={t("sidebar.filtersAria")}>
-            <EntityFilterCycleCard
+            <EntityFilterSelectCard
               icon={<ListFilter />}
               label={t("sidebar.targets")}
               value={entityFilter}
-              onValueChange={() =>
-                setEntityFilter(getNextEntityFilter(entityFilter))
-              }
+              onValueChange={setEntityFilter}
               options={ENTITY_FILTER_OPTIONS}
               ariaLabel={t("filters.showAria")}
             />
 
-            <EntityFilterCycleCard
+            <EntityFilterSelectCard
               icon={<CircleDot />}
               label={t("sidebar.status")}
               value={airborneFilter}
-              onValueChange={() =>
-                setAirborneFilter(getNextAirborneFilter(airborneFilter))
-              }
+              onValueChange={setAirborneFilter}
               options={AIRBORNE_FILTER_OPTIONS}
               ariaLabel={t("filters.airborneFilterAria")}
             />
@@ -304,6 +322,12 @@ function AircraftTable({
           </FilterCardGrid>
         </div>
 
+        {filterCount > 0 || query.trim() ? (
+          <div className="soft-filter-summary">
+            <span>{t("filters.activeCount", { count: filterCount })}</span>
+            <button type="button" onClick={clearFilters}>{t("filters.clearAll")}</button>
+          </div>
+        ) : null}
         <div className="aircraft-table-controls-header">
           <span aria-hidden="true" className="aircraft-table-controls-header__rail" />
           <div className="aircraft-table-controls-header__content">
@@ -351,6 +375,9 @@ function AircraftTable({
               {aircraft.length + airports.length
                 ? t("sidebar.noMatches")
                 : t("sidebar.nothingInRange")}
+              {filterCount > 0 || query.trim() ? (
+                <p className="soft-empty-hint">{t("filters.emptyHint")}</p>
+              ) : null}
             </div>
           ) : fill ? (
             <VirtualNearbyList
@@ -434,57 +461,8 @@ function FilterPillValue({
 
 function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [panelStyle, setPanelStyle] = useState(null);
-  const wrapperRef = useRef(null);
-  const panelRef = useRef(null);
+  const { open, setOpen, panelStyle, wrapperRef, panelRef, menuId, onPanelKeyDown } = useFilterPopover();
   const isMultiSelect = selectedTypes.length > 0;
-
-  // Portal the panel to body so the sidebar's overflow-hidden doesn't clip it.
-  // Position it relative to the trigger using fixed coordinates; re-anchor on
-  // scroll and resize so the panel tracks the trigger.
-  useLayoutEffect(() => {
-    if (!open || !wrapperRef.current) return undefined;
-    const update = () => {
-      if (!wrapperRef.current) return;
-      const rect = wrapperRef.current.getBoundingClientRect();
-      setPanelStyle({
-        position: "fixed",
-        top: rect.bottom,
-        left: rect.left,
-        minWidth: Math.max(rect.width, 220),
-      });
-    };
-    update();
-    window.addEventListener("resize", update, { passive: true });
-    window.addEventListener("scroll", update, { capture: true, passive: true });
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const handlePointerDown = (event) => {
-      if (
-        wrapperRef.current?.contains(event.target) ||
-        panelRef.current?.contains(event.target)
-      ) {
-        return;
-      }
-      setOpen(false);
-    };
-    const handleKeydown = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeydown);
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeydown);
-    };
-  }, [open]);
 
   const selectedSet = useMemo(() => new Set(selectedTypes), [selectedTypes]);
   const displayValue = useMemo(() => {
@@ -529,7 +507,8 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         contentLayout="split"
         data-state={open ? "open" : "closed"}
         active={isMultiSelect}
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
+        aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         aria-label={t("filters.aircraftFilterAria")}
         onClick={() => setOpen((value) => !value)}
@@ -541,11 +520,15 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
         <MenuSurface
           ref={panelRef}
           style={panelStyle}
-          role="listbox"
-          aria-multiselectable="true"
-          className="absolute z-popover max-h-[320px] overflow-y-auto"
+          id={menuId}
+          aria-label={t("filters.aircraftFilterAria")}
+          role="menu"
+          onKeyDown={onPanelKeyDown}
+          className="aircraft-filter-menu absolute z-popover max-h-[320px] overflow-y-auto"
         >
           <MenuItem
+            role="menuitemcheckbox"
+            aria-checked={!isMultiSelect}
             selected={!isMultiSelect}
             onClick={clearAll}
           >
@@ -568,6 +551,8 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
               <div key={group.category} className="[&:not(:first-of-type)]:mt-1">
                 <MenuItem
                   variant="header"
+                  role="menuitemcheckbox"
+                  aria-checked={partialSelected ? "mixed" : allSelected}
                   selected={allSelected}
                   partial={partialSelected}
                   onClick={() => toggleGroup(group)}
@@ -587,6 +572,8 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
                 {group.types.map((type) => (
                   <MenuItem
                     key={type.value}
+                    role="menuitemcheckbox"
+                    aria-checked={selectedSet.has(type.value)}
                     selected={selectedSet.has(type.value)}
                     onClick={() => toggleType(type.value)}
                     // Indent type rows under their group header.
@@ -623,7 +610,7 @@ function AircraftTypeFilterCard({ groups, selectedTypes, onChange }) {
   );
 }
 
-function EntityFilterCycleCard({
+function EntityFilterSelectCard({
   icon,
   label,
   value,
@@ -635,15 +622,17 @@ function EntityFilterCycleCard({
   const option = options.find((item) => item.value === value) || options[0];
   const displayValue = option?.labelKey ? t(option.labelKey) : option?.label;
   return (
-    <FilterCard
-      icon={icon}
-      active={value !== "all"}
-      contentLayout="split"
-      aria-label={ariaLabel}
-      onClick={onValueChange}
-    >
-      <FilterCardLabel>{label}</FilterCardLabel>
-      <FilterPillValue>{displayValue}</FilterPillValue>
+    <FilterCard asChild data-wayfinding="true" active={value !== "all"} contentLayout="split">
+      <div className="soft-filter-select">
+        <span className="filter-card__rail" aria-hidden="true">{icon}</span>
+        <span className="filter-card__content grid min-w-0 flex-1 content-center justify-items-start gap-1 px-3 py-2 text-left">
+          <FilterCardLabel>{label}</FilterCardLabel>
+          <FilterPillValue>{displayValue}</FilterPillValue>
+        </span>
+        <select aria-label={ariaLabel} value={value} onChange={(event) => onValueChange(event.target.value)}>
+          {options.map((item) => <option key={item.value} value={item.value}>{t(item.labelKey)}</option>)}
+        </select>
+      </div>
     </FilterCard>
   );
 }
@@ -655,10 +644,7 @@ function AircraftAltitudeFilterCard({
   ariaLabel,
 }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [panelStyle, setPanelStyle] = useState(null);
-  const wrapperRef = useRef(null);
-  const panelRef = useRef(null);
+  const { open, setOpen, panelStyle, wrapperRef, panelRef, menuId, onPanelKeyDown } = useFilterPopover();
   const selectedSet = useMemo(() => new Set(selectedLevels), [selectedLevels]);
   const allSelected = isAltitudeSelectionAll(selectedLevels);
   const resolveLabel = (option) =>
@@ -672,49 +658,6 @@ function AircraftAltitudeFilterCard({
     : selectedOption
       ? resolveLabel(selectedOption)
       : t("sidebar.altitudeLayersMultiple");
-
-  useLayoutEffect(() => {
-    if (!open || !wrapperRef.current) return undefined;
-    const update = () => {
-      if (!wrapperRef.current) return;
-      const rect = wrapperRef.current.getBoundingClientRect();
-      setPanelStyle({
-        position: "fixed",
-        top: rect.bottom,
-        left: rect.left,
-        minWidth: Math.max(rect.width, 220),
-      });
-    };
-    update();
-    window.addEventListener("resize", update, { passive: true });
-    window.addEventListener("scroll", update, { capture: true, passive: true });
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    const handlePointerDown = (event) => {
-      if (
-        wrapperRef.current?.contains(event.target) ||
-        panelRef.current?.contains(event.target)
-      ) {
-        return;
-      }
-      setOpen(false);
-    };
-    const handleKeydown = (event) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleKeydown);
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleKeydown);
-    };
-  }, [open]);
 
   const commit = (next) => {
     onChange(next.length > 0 ? next : [...ALTITUDE_LEVEL_VALUES]);
@@ -737,7 +680,8 @@ function AircraftAltitudeFilterCard({
         contentLayout="split"
         data-state={open ? "open" : "closed"}
         active={!allSelected}
-        aria-haspopup="listbox"
+        aria-haspopup="menu"
+        aria-controls={open ? menuId : undefined}
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => setOpen((value) => !value)}
@@ -749,11 +693,13 @@ function AircraftAltitudeFilterCard({
         <MenuSurface
           ref={panelRef}
           style={panelStyle}
-          role="listbox"
-          aria-multiselectable="true"
-          className="absolute z-popover max-h-[320px] gap-1 overflow-y-auto"
+          id={menuId}
+          aria-label={ariaLabel}
+          role="menu"
+          onKeyDown={onPanelKeyDown}
+          className="aircraft-filter-menu absolute z-popover max-h-[320px] gap-1 overflow-y-auto"
         >
-          <MenuItem selected={allSelected} onClick={selectAll}>
+          <MenuItem role="menuitemcheckbox" aria-checked={allSelected} selected={allSelected} onClick={selectAll}>
             <MenuItemCheck>
               {allSelected ? <Check size={11} aria-hidden="true" /> : null}
             </MenuItemCheck>
@@ -764,6 +710,8 @@ function AircraftAltitudeFilterCard({
             return (
               <MenuItem
                 key={option.value}
+                role="menuitemcheckbox"
+                aria-checked={selected}
                 selected={selected}
                 onClick={() => toggleLevel(option.value)}
               >

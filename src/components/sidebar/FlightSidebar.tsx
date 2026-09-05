@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUp, Compass, Gauge, Minus, Plane, Ruler } from "lucide-react";
 import AircraftTable from "./AircraftTable";
 import FlightRadar24Link from "./FlightRadar24Link";
@@ -52,6 +51,8 @@ export default function FlightSidebar({
   fillAircraftList = true,
   trackingRunStatus = "",
   loading = false,
+  telemetryAlternates = {},
+  onToggleTelemetryMetric,
 }) {
   const { t } = useI18n();
   const { photo } = useAircraftPhoto(aircraft);
@@ -98,6 +99,8 @@ export default function FlightSidebar({
         }
       />
       <FlightTelemetryGrid
+        alternateMetrics={telemetryAlternates}
+        toggleMetric={onToggleTelemetryMetric}
         speed={speed}
         altitude={altitude}
         vs={vs}
@@ -245,6 +248,8 @@ function FlightIdentity({
 }
 
 function FlightTelemetryGrid({
+  alternateMetrics,
+  toggleMetric,
   speed,
   altitude,
   vs,
@@ -253,23 +258,20 @@ function FlightTelemetryGrid({
   footer = null,
 }) {
   const { t } = useI18n();
-  const [activeMetric, setActiveMetric] = useState<string | null>(null);
-  const toggleMetric = (metric: string) =>
-    setActiveMetric((current) => (current === metric ? null : metric));
   const speedDisplay = formatFlightTelemetryMetric({
     metric: "speed",
     value: speed,
-    alternate: activeMetric === "speed",
+    alternate: alternateMetrics.speed === true,
   });
   const altitudeDisplay = formatFlightTelemetryMetric({
     metric: "altitude",
     value: altitude,
-    alternate: activeMetric === "altitude",
+    alternate: alternateMetrics.altitude === true,
   });
   const verticalSpeedDisplay = formatFlightTelemetryMetric({
     metric: "verticalSpeed",
     value: vs,
-    alternate: activeMetric === "verticalSpeed",
+    alternate: alternateMetrics.verticalSpeed === true,
   });
   const trackDirectionKey = resolveTrackDirectionTranslationKey(track);
   const verticalState = resolveVerticalState(verticalSpeedDisplay?.value);
@@ -283,11 +285,10 @@ function FlightTelemetryGrid({
     ) : (
       <Minus />
     );
-  // The rail stays neutral for every live flight state; the icon carries the
-  // direction. A blue rail only marks the alternate-unit state when selected,
-  // so orange stays reserved for the tracked target / primary action.
+  // Each reading keeps its own alternate display. Switching one unit must
+  // not reset another reading; direction remains encoded by its icon.
   const verticalTone =
-    activeMetric === "verticalSpeed" ? "secondary" : "neutral";
+    alternateMetrics.verticalSpeed === true ? "secondary" : "neutral";
   const verticalStateLabel = t(resolveVerticalStateTranslationKey(verticalState));
 
   return (
@@ -299,8 +300,8 @@ function FlightTelemetryGrid({
           value={speedDisplay?.value ?? "—"}
           unit={speedDisplay?.suffix}
           animateValue={Boolean(speedDisplay)}
-          active={activeMetric === "speed"}
-          tone={activeMetric === "speed" ? "secondary" : "neutral"}
+          active={alternateMetrics.speed === true}
+          tone={alternateMetrics.speed === true ? "secondary" : "neutral"}
           onClick={() => toggleMetric("speed")}
         />
         <WayfindingMetric
@@ -309,8 +310,8 @@ function FlightTelemetryGrid({
           value={onGround ? t("aircraft.gnd") : altitudeDisplay?.value ?? "—"}
           unit={onGround ? undefined : altitudeDisplay?.suffix}
           animateValue={Boolean(!onGround && altitudeDisplay)}
-          active={activeMetric === "altitude"}
-          tone={activeMetric === "altitude" ? "secondary" : "neutral"}
+          active={alternateMetrics.altitude === true}
+          tone={alternateMetrics.altitude === true ? "secondary" : "neutral"}
           onClick={() => toggleMetric("altitude")}
         />
         <WayfindingMetric
@@ -321,7 +322,7 @@ function FlightTelemetryGrid({
           }
           unit={verticalSpeedDisplay?.suffix}
           animateValue={Boolean(verticalSpeedDisplay)}
-          active={activeMetric === "verticalSpeed"}
+          active={alternateMetrics.verticalSpeed === true}
           tone={verticalTone}
           railMotionKind="status"
           strokeReplayKey={verticalState}
@@ -336,16 +337,16 @@ function FlightTelemetryGrid({
           icon={<Compass />}
           title={t("metrics.track")}
           value={
-            activeMetric === "track" && trackDirectionKey
+            alternateMetrics.track === true && trackDirectionKey
               ? t(trackDirectionKey)
               : track == null
                 ? "—"
                 : Math.round(track)
           }
-          unit={activeMetric === "track" || track == null ? undefined : "°"}
-          animateValue={track != null && activeMetric !== "track"}
-          active={activeMetric === "track"}
-          tone={activeMetric === "track" ? "secondary" : "neutral"}
+          unit={alternateMetrics.track === true || track == null ? undefined : "°"}
+          animateValue={track != null && alternateMetrics.track !== true}
+          active={alternateMetrics.track === true}
+          tone={alternateMetrics.track === true ? "secondary" : "neutral"}
           onClick={() => toggleMetric("track")}
         />
       </div>

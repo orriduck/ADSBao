@@ -13,6 +13,8 @@ export const ADSBAO_OFFLINE_NAVIGATION_PATHS = [
 export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
   "/manifest.webmanifest",
   "/icon.png",
+  "/icon-192.png",
+  "/favicon-32.png",
   "/apple-icon.png",
   "/brand/adsbao-logo.png",
 ] as const;
