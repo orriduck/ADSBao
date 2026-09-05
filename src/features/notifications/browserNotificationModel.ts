@@ -42,7 +42,7 @@ export function showBrowserNotification({
   title,
   body,
   tag,
-  icon = "/icon.png",
+  icon = "/icon.dc66b6460f.png",
 }: ShowNotificationOptions) {
   if (getNotificationPermission() !== "granted") return null;
   try {

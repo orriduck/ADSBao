@@ -11,12 +11,12 @@ export const ADSBAO_OFFLINE_NAVIGATION_PATHS = [
 ] as const;
 
 export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
-  "/manifest.webmanifest",
-  "/icon.png",
-  "/icon-192.png",
-  "/favicon-32.png",
-  "/apple-icon.png",
-  "/brand/adsbao-logo.png",
+  "/manifest.70b17d8272.webmanifest",
+  "/icon.dc66b6460f.png",
+  "/icon-192.3cad36b29d.png",
+  "/favicon-32.aff2b8f11b.png",
+  "/apple-icon.adb324f783.png",
+  "/brand/adsbao-logo.78f3075809.png",
 ] as const;
 
 export const ADSBAO_NETWORK_ONLY_PATHS = [

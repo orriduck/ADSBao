@@ -1,7 +1,7 @@
 type ServiceWorkerContainerLike = {
   register: (
     url: string,
-    options?: { scope?: string },
+    options?: { scope?: string; updateViaCache?: "none" },
   ) => Promise<unknown>;
 };
 
@@ -18,20 +18,20 @@ export function registerAdsbaoServiceWorker({
   windowRef = typeof window === "undefined" ? null : window,
   serviceWorker =
     typeof navigator === "undefined" ? null : navigator.serviceWorker,
+  documentRef = typeof document === "undefined" ? null : document,
 }: {
   prod?: boolean;
   windowRef?: WindowLike | null;
   serviceWorker?: ServiceWorkerContainerLike | null;
+  documentRef?: { readyState: string } | null;
 } = {}) {
   if (!prod || !windowRef || !serviceWorker) return;
 
-  windowRef.addEventListener(
-    "load",
-    () => {
-      void serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
-        // Best-effort static shell cache; live data paths must keep working.
-      });
-    },
-    { once: true },
-  );
+  const register = () => {
+    void serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => {
+      // Best-effort static shell cache; live data paths must keep working.
+    });
+  };
+  if (documentRef?.readyState === "complete") register();
+  else windowRef.addEventListener("load", register, { once: true });
 }
