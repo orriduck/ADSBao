@@ -1918,35 +1918,6 @@ canvas.aircraft-canvas-layer {
     margin: 0;
 }
 
-.airport-map-kit .wayfinding-metric[data-active="true"]
-    .wayfinding-metric__rail {
-    background: color-mix(
-        in oklab,
-        var(--atc-text) 27%,
-        var(--app-frost-tint)
-    );
-}
-
-.airport-map-kit .wayfinding-metric[data-tone="secondary"]
-    .wayfinding-metric__rail {
-    background: var(--airport-wayfinding-secondary);
-}
-
-.airport-map-kit .wayfinding-metric[data-tone="secondary"]
-    .wayfinding-metric__icon {
-    color: var(--airport-wayfinding-secondary-fg);
-}
-
-.airport-map-kit
-    .wayfinding-metric:not([data-active="true"]):not([data-tone="secondary"]):hover
-    .wayfinding-metric__rail {
-    background: color-mix(
-        in oklab,
-        var(--atc-text) 21%,
-        var(--app-frost-tint)
-    );
-}
-
 .airport-map-kit .aircraft-table-filter-shell [data-ui="filter-grid"] {
     gap: 1px;
     background: var(--airport-wayfinding-divider);
