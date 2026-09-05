@@ -330,13 +330,13 @@ export default function AircraftPreviewCard({
           dismissLabel={t("ui.close")}
           actions={
             // One always-visible action row. For an aircraft the Track button
-            // carries the scoped yellow action color beside a neutral camera
+            // carries the small gold marker beside a neutral camera
             // (Plane Hunter) action.
             (showMobileTrackButton ||
               showMobileSpotNavigationTrigger ||
               showMobilePlaneHunterTrigger) ? (
               <MobilePreviewActions>
-                <div className="flex items-stretch gap-0">
+                <div className="mobile-preview-action-row flex items-stretch">
                   {showMobileTrackButton && (
                     <MobilePreviewTrackButton
                       className="flex-1"

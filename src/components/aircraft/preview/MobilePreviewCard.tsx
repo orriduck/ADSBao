@@ -195,9 +195,7 @@ export const MobilePreviewIconButton = React.forwardRef(
         ref={ref}
         type="button"
         className={cn(
-          "grid min-h-9 w-9 flex-none cursor-pointer place-items-center",
-          "rounded-none border-0 border-l border-t border-[var(--atc-control-border)]",
-          "bg-[var(--atc-control-surface-muted)] text-atc-dim shadow-[var(--atc-control-inset-shadow-subtle)]",
+          "mobile-preview-icon-button grid flex-none cursor-pointer place-items-center text-atc-dim",
           "[-webkit-tap-highlight-color:transparent]",
           "transition-[background-color,color,transform] duration-[var(--motion-ui-fast)] ease-[var(--motion-ease-out)]",
           "hover:bg-[var(--atc-control-surface-hover)] hover:text-atc-text active:scale-[0.96]",

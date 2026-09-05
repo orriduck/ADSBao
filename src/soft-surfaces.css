@@ -801,3 +801,50 @@
 }
 
 .map-settings-sheet .map-settings-segmented-control button { min-height: 32px; border-radius: 10px; }
+
+/* Photo utilities sit alongside Track with the same inset and touch target. */
+.mobile-preview-action-row { gap: 8px; }
+.mobile-preview-track-button { min-height: 44px; }
+.mobile-preview-icon-button {
+    width: 44px;
+    min-height: 44px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--soft-icon-surface);
+    box-shadow: var(--soft-inset);
+}
+.mobile-preview-icon-button:hover { background: var(--soft-icon-surface); box-shadow: var(--soft-icon-shadow); }
+.mobile-preview-icon-button:focus-visible { outline: 2px solid var(--soft-accent); outline-offset: -3px; }
+.mobile-preview-photo { border-radius: 8px; }
+.aircraft-preview-media-card { border: 0; border-radius: 16px; box-shadow: var(--soft-inset), var(--soft-lift); }
+
+/* Keep the camera stage dark; soften its chrome using the existing studio material. */
+.plane-hunter-stage-header {
+    inset-inline: 8px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--plane-hunter-sheet-surface);
+    box-shadow: var(--plane-hunter-control-shadow);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+.plane-hunter-stage-header__rail {
+    align-self: center;
+    display: grid;
+    place-items: center;
+    place-content: center;
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+    margin-left: 7px;
+    padding: 0;
+    border-radius: 10px;
+    background: var(--plane-hunter-control-surface);
+    box-shadow: var(--plane-hunter-control-shadow);
+}
+.plane-hunter-stage-header__close { border: 0; border-radius: 14px; background: transparent; }
+.plane-hunter-review-dock__tool + .plane-hunter-review-dock__tool,
+.plane-hunter-review-dock__share { border-left-width: 0; }
+@media (prefers-reduced-motion: reduce) {
+    .mobile-preview-icon-button { transition: none; transform: none; }
+}
