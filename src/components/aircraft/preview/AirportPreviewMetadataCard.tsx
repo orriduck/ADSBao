@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import NumberFlow from "@number-flow/react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { TowerControl } from "lucide-react";
 import { countryName, flagEmoji } from "@/utils/flag";
 import {
@@ -83,7 +83,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
                 "—"
               ) : (
                 <>
-                  <NumberFlow
+                  <AnimatedNumber
                     value={distanceConverted}
                     format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
                   />
@@ -102,7 +102,7 @@ export default function AirportPreviewMetadataCard({ airport }) {
                 "—"
               ) : (
                 <>
-                  <NumberFlow value={elevationDisplay.value ?? 0} />
+                  <AnimatedNumber value={elevationDisplay.value ?? 0} />
                   <span className="notranslate" translate="no">
                     {" "}
                     {elevationDisplay.unit.toUpperCase()}

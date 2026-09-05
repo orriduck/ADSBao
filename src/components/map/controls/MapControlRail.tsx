@@ -180,6 +180,7 @@ function ZoomSliderButton({
     <div ref={containerRef} className="relative isolate z-dropdown inline-flex">
       {open ? (
         <MenuSurface
+          data-side={menuPlacement}
           role="group"
           aria-label={t("map.viewMenu")}
           className={`absolute left-1/2 z-dropdown min-w-[176px] -translate-x-1/2 px-3 py-2.5 ${placementClass}`}

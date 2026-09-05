@@ -637,7 +637,6 @@
     .preview-async-status-dot,
     .map-settings-sheet,
     .map-settings-sheet-overlay,
-    .aviation-loading-glyph__frame,
     .adsb-loading-overlay.is-exiting {
         animation: none;
         transition: none;
@@ -2808,71 +2807,6 @@ body:has(.dither-page-shell) {
     flex-direction: column;
     max-width: min(22rem, 100%);
     text-align: center;
-}
-
-.aviation-loading-glyph {
-    display: block;
-    flex: none;
-    height: 34px;
-    margin-bottom: 12px;
-    position: relative;
-    width: 34px;
-    z-index: 1;
-}
-
-.aviation-loading-glyph--compact {
-    height: 16px;
-    margin-bottom: 0;
-    width: 16px;
-}
-
-.aviation-loading-glyph__frame {
-    align-items: center;
-    color: var(--atc-text);
-    display: flex;
-    inset: 0;
-    justify-content: center;
-    opacity: 0;
-    position: absolute;
-    transform: scale(0.82);
-    will-change: opacity, transform;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .aviation-loading-glyph__frame--plane {
-        animation: aviation-loading-glyph-plane 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-    }
-
-    .aviation-loading-glyph__frame--tower {
-        animation: aviation-loading-glyph-tower 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-    }
-
-    .aviation-loading-glyph__frame--runway {
-        animation: aviation-loading-glyph-runway 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-    }
-}
-
-.aviation-loading-glyph--static .aviation-loading-glyph__frame--plane {
-    opacity: 1;
-    transform: scale(1);
-}
-
-@keyframes aviation-loading-glyph-plane {
-    0%, 4%, 100% { opacity: 0; transform: scale(0.82); }
-    11%, 27% { opacity: 1; transform: scale(1); }
-    34% { opacity: 0; transform: scale(0.9); }
-}
-
-@keyframes aviation-loading-glyph-tower {
-    0%, 29% { opacity: 0; transform: scale(0.82); }
-    38%, 60% { opacity: 1; transform: scale(1); }
-    67%, 100% { opacity: 0; transform: scale(0.9); }
-}
-
-@keyframes aviation-loading-glyph-runway {
-    0%, 62% { opacity: 0; transform: scale(0.82); }
-    71%, 93% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(0.9); }
 }
 
 @keyframes adsb-loading-fade-out {
@@ -5773,7 +5707,6 @@ body {
     }
 
     .adsb-loading-overlay.is-exiting,
-    .aviation-loading-glyph__frame,
     .orb-container canvas {
         animation: none;
     }
@@ -6200,34 +6133,6 @@ body {
     .flight-sidebar-panel .airport-sidebar-identity__rule {
         display: none;
     }
-}
-
-/* Two-column metric grid shared between the airport sidebar (interactive
-   WEATHER/FLIGHTS tabs) and the flight sidebar (focal aircraft telemetry
-   cards). Auto-divides between columns and across rows so any number of
-   cards reads as a coherent panel. */
-/* NumberFlow inside the metric cards — style its suffix part so the
-   unit hangs off the value baseline like a superscript. */
-.sidebar-metric-number-flow::part(suffix) {
-    color: var(--atc-faint);
-    display: inline-block;
-    font-size: 0.32em;
-    font-weight: var(--weight-regular);
-    letter-spacing: normal;
-    margin-left: 0.18em;
-    text-transform: uppercase;
-    transform: translateY(0.52em);
-    transform-origin: left bottom;
-}
-
-.sidebar-metric-number-flow[data-suffix-position="sup"]::part(suffix) {
-    transform: translateY(-0.7em);
-}
-
-/* When a sidebar metric tile is in its active state, dim the NumberFlow
-   suffix the same way label / unit dim. */
-.group[data-active="true"] .sidebar-metric-number-flow::part(suffix) {
-    color: var(--atc-click-muted);
 }
 
 .airport-briefing-stack {

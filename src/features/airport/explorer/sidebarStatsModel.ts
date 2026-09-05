@@ -27,9 +27,9 @@ export type SidebarStat = {
   id: string;
   labelKey: string;
   // Already-resolved display value. `null` renders as an em dash (no GPS fix);
-  // a number renders through NumberFlow when `display` is "numberFlow".
+  // a number renders through AnimatedNumber when `display` is "number".
   value: number | string | null;
-  display: "numberFlow" | "text";
+  display: "number" | "text";
   unit?: string;
   prefix?: string;
   interaction: SidebarStatInteraction;
@@ -92,7 +92,7 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
       id: "selfSpeed",
       labelKey: "sidebar.speed",
       value: speed ? speed.value : null,
-      display: "numberFlow",
+      display: "number",
       unit: speed?.unit,
       interaction: { kind: "groundSpeedToggle" },
     });
@@ -100,7 +100,7 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
       id: "selfAltitude",
       labelKey: "sidebar.altitude",
       value: altitude ? altitude.value : null,
-      display: "numberFlow",
+      display: "number",
       unit: altitude?.unit,
       prefix: altitude?.prefix,
       interaction: { kind: "readonly" },
@@ -143,14 +143,14 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
           id: "atc",
           labelKey: "sidebar.atc",
           value: atcCount,
-          display: "numberFlow",
+          display: "number",
           interaction: { kind: "view", view: "atc" },
         },
         {
           id: "spotting",
           labelKey: "sidebar.spotting",
           value: spottingCount,
-          display: "numberFlow",
+          display: "number",
           interaction: { kind: "spotting" },
         },
       ];
@@ -160,7 +160,7 @@ export function buildSidebarStats(input: BuildSidebarStatsInput): SidebarStats {
       id: "atc",
       labelKey: "sidebar.atc",
       value: atcCount,
-      display: "numberFlow",
+      display: "number",
       interaction: { kind: "view", view: "atc" },
     });
   }

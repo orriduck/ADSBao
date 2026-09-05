@@ -1,4 +1,4 @@
-import NumberFlow from "@number-flow/react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import WayfindingRail from "./WayfindingRail";
@@ -42,7 +42,7 @@ export default function WayfindingMetric({
   const hasTitle = title !== null && title !== undefined && title !== "";
   const renderedValue =
     animateValue && typeof value === "number" ? (
-      <NumberFlow value={value} />
+      <AnimatedNumber value={value} />
     ) : (
       value
     );

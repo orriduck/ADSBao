@@ -1,4 +1,4 @@
-import NumberFlow from "@number-flow/react";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { RadioTower } from "lucide-react";
 import { useI18n } from "@/features/app-shell/i18n/useI18n";
 import { toFiniteNumber } from "@/utils/math";
@@ -46,7 +46,7 @@ export default function NavaidPreviewMetadataCard({
           "—"
         ) : (
           <>
-            <NumberFlow
+            <AnimatedNumber
               value={distance}
               format={{ maximumFractionDigits: 1, minimumFractionDigits: 1 }}
             />
@@ -64,7 +64,7 @@ export default function NavaidPreviewMetadataCard({
           "—"
         ) : (
           <>
-            <NumberFlow value={Math.round(elevation)} />
+            <AnimatedNumber value={Math.round(elevation)} />
             <span className="notranslate" translate="no">
               {" "}
               FT

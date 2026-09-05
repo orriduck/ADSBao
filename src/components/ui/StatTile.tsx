@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 // auxiliary metrics). Values stay regular weight at every size —
 // hierarchy comes from size + luminance, never weight (DESIGN.md). It is
 // intentionally dumb: callers pass an
-// already-formatted value (NumberFlow, an em dash, plain text) plus the
+// already-formatted value (AnimatedNumber, an em dash, plain text) plus the
 // label/unit/prefix; the per-context "what is this number" logic lives in the
 // screen models/hooks, not here.
 //

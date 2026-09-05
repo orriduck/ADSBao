@@ -14,9 +14,6 @@ importers:
       '@newrelic/browser-agent':
         specifier: ^1.320.0
         version: 1.320.0
-      '@number-flow/react':
-        specifier: ^0.5.0
-        version: 0.5.14(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -904,12 +901,6 @@ packages:
 
   '@newrelic/rrweb@1.1.2':
     resolution: {integrity: sha512-OU66VA1PjC9UsFo7NzHgyp2OZIt4QHidbl45tAAUf+JQESwiLF6WvzJvajju7374D7TgZzV+L9cq3f+sIxKFXQ==}
-
-  '@number-flow/react@0.5.14':
-    resolution: {integrity: sha512-FGUqjh/P5/ukr0U0ySwb987M0SbRkrnZq70f0wQFncDbXa3SIib4L+FTr5ngvWwGAW8S6b391eTXcfhErZsw4w==}
-    peerDependencies:
-      react: ^18 || ^19
-      react-dom: ^18 || ^19
 
   '@oxc-parser/binding-android-arm-eabi@0.133.0':
     resolution: {integrity: sha512-l/44caGse+VpnY9gx0yvvc5QnnG3yG1FO3KZgYvNL1GZrfK86zIwAOgGEVlxDyRymzrU/KHiblPFpevKOmJmUA==}
@@ -2030,9 +2021,6 @@ packages:
       jiti:
         optional: true
 
-  esm-env@1.2.2:
-    resolution: {integrity: sha512-Epxrv+Nr/CaL4ZcFGPJIYLWFom+YeV1DqMLHJoEd9SYRxNbaFruBwfEX/kkHUJf55j2+TUbmDcmuilbP1TmXHA==}
-
   espree@10.4.0:
     resolution: {integrity: sha512-j6PAQ2uUr79PZhBjP5C5fhl8e39FmRnOjsD5lGnWrFU8i2G776tBK7+nP8KuQUTTyAZUwfQqXAgrVH5MbH9CYQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -2365,9 +2353,6 @@ packages:
   node-releases@2.0.47:
     resolution: {integrity: sha512-Uzmd6LXpouKo8EUK68IjH4+E01w/hXyV3R3g/geCJo+rXLNfh1xucB+LOzYEOQPSiUK3h/xZf0cQGcSsmyL2Og==}
     engines: {node: '>=18'}
-
-  number-flow@0.5.12:
-    resolution: {integrity: sha512-CIs21h2JkfYG4rfgERaUNAk0Cz+Ef14fNJfSCbGGhgRgconQc9b7rcCQfi9SZ36kNjVXmsl2BrzDbjGtEgumAA==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -3426,13 +3411,6 @@ snapshots:
       base64-arraybuffer: 1.0.2
       mitt: 3.0.1
 
-  '@number-flow/react@0.5.14(react-dom@19.2.5(react@19.2.5))(react@19.2.5)':
-    dependencies:
-      esm-env: 1.2.2
-      number-flow: 0.5.12
-      react: 19.2.5
-      react-dom: 19.2.5(react@19.2.5)
-
   '@oxc-parser/binding-android-arm-eabi@0.133.0':
     optional: true
 
@@ -4392,8 +4370,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  esm-env@1.2.2: {}
-
   espree@10.4.0:
     dependencies:
       acorn: 8.16.0
@@ -4678,10 +4654,6 @@ snapshots:
   natural-compare@1.4.0: {}
 
   node-releases@2.0.47: {}
-
-  number-flow@0.5.12:
-    dependencies:
-      esm-env: 1.2.2
 
   optionator@0.9.4:
     dependencies:

@@ -1,3 +1,4 @@
+import MatrixLoader from "@/components/loading/MatrixLoader";
 import { cn } from "@/lib/utils";
 import {
   useAsyncStatus,
@@ -63,7 +64,8 @@ export function AsyncStatusLineDisplay({
       aria-hidden={!isVisible}
       data-phase={phase}
     >
-      <span className="truncate">{label}</span>
+      {phase === "pending" ? <MatrixLoader className="matrix-loader--micro" /> : null}
+      <span key={label} className="soft-status-reveal truncate">{label}</span>
       {showBadgeForPhase && statusCode != null ? (
         <span
           className={cn(

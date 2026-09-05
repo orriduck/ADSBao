@@ -119,7 +119,7 @@ export default function SidebarViewSwitch({
         icon={icon}
         title={t(labelKey)}
         value={value ?? "—"}
-        animateValue={display === "numberFlow"}
+        animateValue={display === "number"}
         unit={unit || undefined}
         prefix={prefix}
         active={active}
