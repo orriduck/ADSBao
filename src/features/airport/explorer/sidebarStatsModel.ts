@@ -61,8 +61,10 @@ function localTemperature(
   unit: UnitPreferences["temperature"],
 ): { value: number | string; unit: string } {
   const label = temperatureUnitLabel(unit);
-  const temp = Number(temperatureC);
-  if (!Number.isFinite(temp)) return { value: "—", unit: label };
+  if (temperatureC == null || !Number.isFinite(temperatureC)) {
+    return { value: "—", unit: label };
+  }
+  const temp = temperatureC;
   return { value: Math.round(convertTemperatureFromC(temp, unit)), unit: label };
 }
 
