@@ -1009,6 +1009,11 @@
 
 .animated-number, .animated-number__digits { display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
 .animated-number--formatted, .animated-number--formatted > .animated-number__digits { display: inline; }
+/* Short compass changes need a readable pop at the fixed three-digit size. */
+.wayfinding-metric--heading {
+    --digit-distance: 10px;
+    --digit-dur: 280ms;
+}
 .animated-number .t-digit { will-change: auto; }
 .animated-number .is-animating .t-digit { will-change: transform, opacity; }
 .matrix-loader { flex: none; align-self: center; }
