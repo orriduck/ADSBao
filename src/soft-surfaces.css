@@ -1009,8 +1009,8 @@
 
 .animated-number, .animated-number__digits { display: inline-flex; align-items: baseline; font-variant-numeric: tabular-nums; }
 .animated-number--formatted, .animated-number--formatted > .animated-number__digits { display: inline; }
-/* Short compass changes need a readable pop at the fixed three-digit size. */
-.wayfinding-metric--heading {
+/* Every Here numeric tile shares the same readable per-digit transition. */
+.here-explorer {
     --digit-distance: 10px;
     --digit-dur: 280ms;
 }

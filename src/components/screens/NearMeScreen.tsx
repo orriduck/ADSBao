@@ -249,7 +249,7 @@ export default function NearMeScreen() {
 
   return (
     <div
-      className="relative min-h-dvh"
+      className="here-explorer relative min-h-dvh"
       onPointerDown={handleNearMeInteraction}
     >
       <>
