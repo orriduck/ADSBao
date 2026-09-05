@@ -193,7 +193,9 @@ export default function SidebarViewSwitch({
             {altitudeStat
               ? renderStat(altitudeStat, <ArrowUpFromLine />)
               : null}
-            {headingStat ? renderStat(headingStat, <Compass />) : null}
+            {headingStat
+              ? renderStat(headingStat, <Compass />, "wayfinding-metric--heading")
+              : null}
             {nearbyMetric}
           </>
         ) : (
