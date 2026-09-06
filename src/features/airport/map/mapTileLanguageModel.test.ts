@@ -444,8 +444,8 @@ assert.equal(
     darkStandard.layers.map((layer) => [layer.id, layer]),
   );
 
-  assert.equal(layerById.background.paint["background-color"], "#111413");
-  assert.equal(layerById.landuse_park.paint["fill-color"], "#141817");
+  assert.equal(layerById.background.paint["background-color"], "#191d17");
+  assert.equal(layerById.landuse_park.paint["fill-color"], "#293125");
   assert.equal(layerById.landuse_park.paint["fill-opacity"], 0.1);
   assert.equal(layerById.road_motorway.paint["line-opacity"], 0.36);
   assert.equal(layerById.road_residential.paint["line-opacity"], 0.14);
@@ -470,9 +470,37 @@ assert.equal(
     darkTerrain.layers.map((layer) => [layer.id, layer]),
   );
 
-  assert.equal(layerById.background.paint["background-color"], "#101312");
-  assert.equal(layerById.landcover_forest.paint["fill-color"], "#151918");
+  assert.equal(layerById.background.paint["background-color"], "#191d17");
+  assert.equal(layerById.landcover_forest.paint["fill-color"], "#293125");
   assert.equal(layerById.landcover_forest.paint["fill-opacity"], 0.12);
   assert.equal(layerById.highway_primary.paint["line-opacity"], 0.32);
   assert.equal(layerById.road_service.paint["line-opacity"], 0.13);
+}
+
+// Standard and Terrain must agree on geography without changing source data
+// or turning Standard into the elevation-backed mode.
+for (const theme of ["light", "dark"]) {
+  const style = {
+    version: 8,
+    sources: { openmaptiles: { type: "vector", url: "/tiles.json" } },
+    layers: [
+      { id: "water", type: "fill", paint: { "fill-color": "blue" } },
+      { id: "waterway", type: "line", paint: { "line-color": "blue", "line-width": 2 } },
+      { id: "ferry", type: "line", paint: { "line-color": "blue", "line-dasharray": [2, 2] } },
+      { id: "place_city", type: "symbol", layout: { "text-field": ["get", "name"] }, paint: { "text-color": "black" } },
+    ],
+  };
+  const original = JSON.stringify(style);
+  const standard = buildStandardDetailMapLibreStyle(style, { theme });
+  const terrain = buildReadableTerrainMapLibreStyle(style, { theme });
+  for (const layer of style.layers) {
+    assert.deepEqual(
+      standard.layers.find((candidate) => candidate.id === layer.id)?.paint,
+      terrain.layers.find((candidate) => candidate.id === layer.id)?.paint,
+      `${theme} ${layer.id}: shared geographic colors and retained geometry`,
+    );
+  }
+  assert.equal(JSON.stringify(style), original, "never mutate the upstream style");
+  assert.deepEqual(standard.sources, style.sources);
+  assert.ok(!standard.layers.some((layer) => layer.type === "hillshade"));
 }

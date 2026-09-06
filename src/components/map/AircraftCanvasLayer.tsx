@@ -373,11 +373,10 @@ function resolveAircraftCanvasPalette(
     arrival: read("--aircraft-arrival", dark ? "#2a2a26" : "#dcd9d0"),
     unknown: read("--aircraft-unknown", dark ? "#2a2a26" : "#dcd9d0"),
     ground: read("--aircraft-ground", dark ? "#46463f" : "#b7b4ab"),
-    // PRIMARY (focal/tracked) and SECONDARY (clicked) targets are both neutral
-    // signals in this palette, distinguished by luminance rather than another
-    // hue. Fallbacks mirror the tokens if the CSS var cannot be read.
-    focal: read("--atc-signal-accent", dark ? "#e8893f" : "#cf6a1e"),
-    selected: read("--atc-signal-secondary", dark ? "#e4e2db" : "#4a4945"),
+    // Focal and selected targets share the sage signal; existing rings and
+    // labels distinguish selection. Fallbacks mirror the authored palette.
+    focal: read("--atc-signal-accent", dark ? "#b5c6a4" : "#4e654d"),
+    selected: read("--atc-signal-secondary", dark ? "#b5c6a4" : "#4e654d"),
     // Contrast halo replaces the dropped plate disc — light-on-dark / dark-on-light.
     // A soft aura that separates each glyph from a busy map; bumped alongside the
     // higher-contrast fills so aircraft carry a clear figure-ground edge.

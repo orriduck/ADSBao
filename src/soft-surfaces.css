@@ -1,5 +1,5 @@
 /* Soft instruments with sage inlays. Color belongs to identity and selected
-   readings; ordinary controls and the map keep their neutral materials. */
+   readings; ordinary controls keep their quiet materials, with a coordinated map palette. */
 :root {
     --soft-accent: #4e654d;
     --soft-accent-inlay: #a0ab98;
@@ -7,7 +7,7 @@
     --soft-accent-wash: color-mix(in oklab, var(--soft-accent) 11%, var(--soft-identity-surface));
     --soft-accent-rim: color-mix(in oklab, var(--soft-accent) 22%, transparent);
     --soft-identity-surface: #ede8de;
-    --soft-map-identity-surface: #f5f5f5;
+    --soft-map-identity-surface: #f3f0e6;
     --soft-paper: #faf7f0;
     --soft-column: #e8e7df;
     --soft-label: #6b6458;
@@ -31,7 +31,7 @@
     --soft-accent-inlay: #a0b18e;
     --soft-accent-on-inlay: #263322;
     --soft-identity-surface: #24271f;
-    --soft-map-identity-surface: #171717;
+    --soft-map-identity-surface: #252b23;
     --soft-paper: #161914;
     --soft-column: #20221c;
     --soft-label: #b5b09f;
@@ -51,8 +51,37 @@
     --atc-action-focus-ring: var(--soft-accent);
 }
 
-/* Sampled sage, olive and ivory live inside the interface column. These
-   local tokens leave the map, its labels and aviation semantics untouched. */
+/* The document, browser chrome and panel edge share one opaque color. */
+:root,
+:root[data-theme="dark"] {
+    --app-page-chrome-bg: var(--soft-column);
+    --font-place: "Lora", "Noto Serif SC", "Songti SC", Georgia, serif;
+    --atc-signal-accent: var(--soft-accent);
+    --atc-signal-secondary: var(--soft-accent);
+    --atc-signal-accent-fg: var(--soft-paper);
+    --aircraft-departure: var(--soft-reading-ink);
+    --aircraft-arrival: var(--soft-reading-ink);
+    --aircraft-unknown: var(--soft-reading-ink);
+    --aircraft-ground: var(--soft-label);
+    --aviation-map-label-shadow: var(--soft-paper);
+    --aviation-map-range-text: var(--soft-reading-ink);
+    --aviation-map-range-label: var(--soft-label);
+}
+
+/* A short edge fade meets the opaque PWA chrome without tinting the whole
+   map or intercepting map gestures. Detail panels already use this solid. */
+@media (max-width: 767px), (pointer: coarse) {
+    .airport-map-kit .airport-map-stage::after {
+        inset: 0 0 auto;
+        height: calc(56px + env(safe-area-inset-top));
+        background: linear-gradient(to bottom, var(--app-page-chrome-bg),
+            color-mix(in srgb, var(--app-page-chrome-bg) 86%, transparent) 16%,
+            color-mix(in srgb, var(--app-page-chrome-bg) 35%, transparent) 58%,
+            transparent);
+    }
+}
+
+/* Warm materials for reading surfaces; map geometry and semantics stay intact. */
 :root[data-theme] :is(.dither-page-panel:not(.plane-hunter-panel),
     .airport-map-kit .sidebar-shell, .map-settings-sheet,
     [data-ui="mobile-preview-card"]) {
@@ -171,6 +200,24 @@
     font-size: 38px;
     font-weight: 500;
     letter-spacing: -0.045em;
+}
+
+/* Place names have a bookish voice; identifiers and instrument readings
+   retain Figtree. Names wrap naturally instead of borrowing code spacing. */
+.airport-map-kit .airport-wayfinding-identity[data-identity-kind="place"] h1 {
+    font-family: var(--font-place);
+    font-size: 34px;
+    font-weight: 500;
+    line-height: 1.13;
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+}
+.airport-map-kit .airport-wayfinding-identity__name {
+    font-weight: 600;
+}
+.airport-map-kit .airport-wayfinding-identity[data-identity-kind="place"] .airport-wayfinding-identity__name {
+    font-weight: 500;
 }
 
 .identity-backdrop {
@@ -773,6 +820,8 @@
 
 /* The focal airport stays recognizable without a large colored map label. */
 .airport-overlay-label:not(.airport-overlay-label--map-badge) .airport-overlay-label__code.atc-code-pill {
+    background: var(--soft-map-identity-surface);
+    color: var(--soft-accent);
     border-left: 2px solid var(--soft-accent);
     border-radius: 5px;
     padding: 5px 7px;
@@ -789,7 +838,7 @@
     border-left: 2px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
     border-radius: 5px;
     box-shadow: var(--soft-inset), var(--soft-lift);
-    color: var(--soft-identity-ink);
+    color: var(--soft-reading-ink);
 }
 .airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill {
     font-size: 8px;

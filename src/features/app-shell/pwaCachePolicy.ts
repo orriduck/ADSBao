@@ -11,7 +11,7 @@ export const ADSBAO_OFFLINE_NAVIGATION_PATHS = [
 ] as const;
 
 export const ADSBAO_PWA_PUBLIC_ASSET_PATHS = [
-  "/manifest.380ac4df1b.webmanifest",
+  "/manifest.02b6c0afda.webmanifest",
   "/icon.77be1d6192.png",
   "/icon-192.6c267132a0.png",
   "/favicon-32.3a0ae552d1.png",

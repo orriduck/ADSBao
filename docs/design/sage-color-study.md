@@ -79,3 +79,38 @@ review CSS specificity and unused rules before closing the work.
   kept the palette in the existing stylesheet. No new dependencies or animation.
 - Production build passed; Vite retains its existing large-chunk warning.
   Version and rolling changelog are aligned at 3.21.1. No deployment was performed.
+
+
+## Follow-up: typography, geography and the PWA edge
+
+The user's follow-up explicitly expands the first release's map/font boundary.
+Here place names now use Lora 500, with Noto Serif SC / Songti SC for Chinese;
+identifiers and numeric instruments keep Figtree. Airport full names use weight
+600 to anchor the identity. Long-name layout samples at 300px and 390px wrap
+without truncation; these are synthetic typography fixtures, not geolocation
+claims.
+
+Standard and Terrain share warm paper land, gray-sage water, olive ground and
+clear label ink. Existing source data, layer geometry, zoom levels and aircraft
+hit targets remain unchanged. Standard retains its own detail opacity and does
+not acquire hillshade/elevation sources. Canvas grayscale and duplicate tile
+filters were removed; selected aircraft and traces use the sage signal with
+existing selection outlines.
+
+The native-edge mismatch came from `--app-page-chrome-bg` still resolving to
+the older monochrome sidebar color. It now resolves to `--soft-column`, matching
+HTML, body, the mobile detail panel and runtime theme-color in both themes.
+The content-addressed manifest launch colors are revised together. Mobile maps
+use a short non-interactive fade from the same opaque edge into geography.
+This also covers browsers that derive their tint from page background rather
+than relying solely on theme-color. See [WebKit's safe-area guidance](https://webkit.org/blog/7929/designing-websites-for-iphone-x/)
+and [WebKit's explanation of background-derived top-bar tint](https://bugs.webkit.org/show_bug.cgi?id=301756).
+
+Local validation: both themes, mobile Here/map/details, Standard/Terrain
+switching and live traffic; matching root/body/panel/meta colors (`#e8e7df`
+and `#20221c`), a 56px map fade at zero safe-area inset, no canvas filter, and
+no horizontal overflow at 390px. Map style, PWA asset hashing/cache and security
+header tests pass; changed TypeScript files pass ESLint. Synthetic Chinese and
+long Latin titles wrap within 300px/390px columns. Native iOS 27.0 beta 6 Chrome
+status-bar behavior requires user-device confirmation; desktop emulation does
+not verify browser chrome. The local machine has no available iOS simulator.

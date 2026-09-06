@@ -2045,18 +2045,10 @@ body:has(.dither-page-shell) {
     touch-action: none;
 }
 
-:root[data-theme="dark"] .atc-tile-base {
-    filter: saturate(0.28) brightness(0.82) contrast(1.06);
-    mix-blend-mode: normal;
-}
-
-/* Standard base map runs hot out of the box — pull the
-   saturation well down so greens/blues read as a muted manual-paper
-   wash that the frosted glass sits over, not a candy basemap. */
-:root[data-theme="light"] .atc-tile-base {
-    filter: saturate(0.62) brightness(1.0) contrast(0.98);
-    mix-blend-mode: normal;
-}
+/* Basemap colors are authored in mapTileLanguageModel, without a second
+   canvas filter that would erase the sage/ivory palette. */
+.atc-tile-base { filter: none; mix-blend-mode: normal; }
+canvas.maplibregl-canvas { filter: none; }
 
 .runway-end-label {
     align-items: center;
@@ -5494,15 +5486,6 @@ body {
     box-shadow: 0 2px 5px color-mix(in oklab, var(--atc-text) 18%, transparent);
     color: var(--atc-text);
     text-shadow: none;
-}
-
-:root[data-theme="dark"]
-    .airport-overlay-label--map-badge
-    .airport-overlay-label__code.atc-code-pill,
-:root[data-theme="dark"]
-    .airport-overlay-label--map-badge
-    .airport-overlay-label__detail {
-    background: #000;
 }
 
 .airport-overlay-label--map-badge .airport-overlay-label__code.atc-code-pill {
@@ -10932,14 +10915,6 @@ body {
 
 :root[data-theme="dark"] .airport-map-kit .sidebar-shell {
     --airport-wayfinding-secondary: oklch(0.52 0 0);
-}
-
-:root[data-theme="dark"] .atc-tile-base {
-    filter: grayscale(1) brightness(0.82) contrast(1.06);
-}
-
-:root[data-theme="light"] .atc-tile-base {
-    filter: grayscale(1) brightness(1) contrast(0.98);
 }
 
 /* Final typography resolution. The airport dashboard is the densest screen,

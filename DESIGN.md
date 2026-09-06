@@ -9,10 +9,12 @@ terminal signs and security-zone decoration are retired.
 
 ## Invariants
 
-- Preserve light/dark theme selection and map styling. Use warm ivory, gray olive and
+- Preserve light/dark theme selection and map geometry. Use warm ivory, gray olive and
   olive-charcoal UI surfaces; softly lit identity plates sit above the neutral sidebar
   backdrop. Layer separation comes from luminance, fine rims and shallow shadows.
-- Keep the established Figtree family. Numeric readings use tabular figures.
+- Keep Figtree for controls, airport codes and numeric readings. Here place
+  names use Lora 500 with Noto Serif SC / Songti SC for Chinese. Numeric
+  readings use tabular figures.
 - Keep the map first: desktop sidebars retain their allocated width; rounded
   groups sit within that column and do not cover additional geography.
 - Preserve routes, data contracts, real-time updates and click paths.
@@ -52,15 +54,18 @@ ordinary action buttons retain neutral materials.
 - Identities use neutral plates, subtle directional light, green identifiers
   and small sage icon inlays. Directory code wells use a lighter tint.
 - Provider links use quiet monochrome marks with contrast in both themes.
-- Selected aircraft, live trace and ordinary controls retain neutral map ink.
+- Map land uses warm paper, water uses gray sage and dark geography uses
+  olive charcoal. Aircraft retain strong contrasting ink; selected aircraft
+  and traces use sage alongside their existing rings and labels.
 - Active readings use a sage wash, rim, icon inlay and underline, with their
   existing pressed state. Hover must preserve selection. Active filter icon
   wells repeat the tint; ordinary controls remain neutral.
 - Loading and successful asynchronous states use neutral dots; unavailable
   states use a high-contrast neutral outline with the existing status label, so
   brand green never reads as a successful result for unavailable data.
-- Photographs retain their real content. Do not recolor the map or photography
-  to manufacture an accent theme.
+- Identity photographs retain their real content and grayscale treatment. Map colors
+  are authored in `mapTileLanguageModel.ts`, shared by Standard and Terrain;
+  do not flatten geographic layers with a canvas grayscale filter.
 
 Airport codes and callsigns lead; location and full names follow. Do not
 truncate away the main identifier just to fit an icon. Page endings use ordinary
@@ -79,7 +84,7 @@ spacing with clearance for the mobile dock, without decorative boundary text.
 - Nearby traffic remains dense and virtualized. Keep its exact row height
   unless the virtualizer measurement contract is updated with it.
 - Preview cards and floating toolbars share the soft rim and curvature. The
-  live map, aircraft and trace styling remain untouched.
+  map labels use corresponding ivory/olive plates and readable ink.
 
 ## Motion and accessibility
 
@@ -102,3 +107,12 @@ Review Home, an airport, a tracked flight, weather, filters and a map preview:
    hierarchy of one accent; flight-rule severity and missing data stay neutral.
 6. Run a current production build and inspect the changed CSS for duplicated
    rules, unsupported selectors and unnecessary visual machinery.
+
+## Page and PWA edge
+
+`--app-page-chrome-bg` resolves to `--soft-column` in both themes. HTML, body,
+mobile detail panels and the runtime theme-color meta share that opaque color.
+The manifest launch background uses the light value. A 56px mobile map edge
+fade begins at the same color and recedes into geography; it never intercepts
+pointer input. Keep this alignment on theme changes and SPA navigation.
+Verify native iOS chrome separately from desktop responsive emulation.
