@@ -3,13 +3,14 @@
 The September 2026 reference direction pairs rounded, softly lit panels with
 quiet labels and large, light numerals. The supplied music-library and health
 instrument references guide rounded form, shallow relief and quiet typography. The interface now
-uses neutral materials and a single restrained jade-green accent. Airport
+uses warm neutral materials and a single sage-green accent with deliberate inlays,
+following the user-supplied sage/olive/ivory photograph. Airport
 terminal signs and security-zone decoration are retired.
 
 ## Invariants
 
-- Preserve light/dark theme selection and map styling. Use white, gray and
-  charcoal surfaces; softly lit identity plates sit above the neutral sidebar
+- Preserve light/dark theme selection and map styling. Use warm ivory, gray olive and
+  olive-charcoal UI surfaces; softly lit identity plates sit above the neutral sidebar
   backdrop. Layer separation comes from luminance, fine rims and shallow shadows.
 - Keep the established Figtree family. Numeric readings use tabular figures.
 - Keep the map first: desktop sidebars retain their allocated width; rounded
@@ -27,7 +28,7 @@ another card treatment.
   insets and 12–18px gaps. Inner controls use 14–18px radii; icon tiles use
   10–13px radii. Tiny status icons may sit in circular wells.
 - Use a fine upper rim and a broad, low-opacity shadow to suggest shallow
-  elevation. Dark surfaces use a restrained neutral sheen. Never add colored
+  elevation. Dark surfaces use a restrained olive-charcoal sheen. Never add colored
   glows, large accent-colored backgrounds, or full-screen blur.
 - Group related readings within one surface. Do not put every label in a card.
 - Replace continuous vertical rails with small icon or identifier tiles. The
@@ -39,15 +40,22 @@ another card treatment.
 
 ## Identity and color
 
-Use one chromatic UI token: `--soft-accent`, a cool jade green with separate
-light/dark luminance (`#267967` on light surfaces, `#66b59e` on dark surfaces). Keep it to small active-view underlines, the Track action
-marker and focus, and a fine focal-airport edge.
-Never use it as a panel fill, title plaque, provider strip or colored glow.
+Use one sage hue with three material roles: readable ink (`--soft-accent`,
+`#4e654d` light / `#b5c6a4` dark), a solid small inlay with contrasting glyph
+(`--soft-accent-inlay` / `--soft-accent-on-inlay`), and a mixed wash
+(`--soft-accent-wash`). See [the reference study](docs/design/sage-color-study.md).
+Identity codes, medallions, directory code tiles and selected readings establish
+a recurring color hierarchy. Existing temperature scales may carry the same ink. Keep Track's marker, focus and the focal-airport
+edge. Never use sage as a full panel fill, provider strip or colored glow;
+ordinary action buttons retain neutral materials.
 
-- Identities use neutral plates, subtle directional light and raised icon wells.
+- Identities use neutral plates, subtle directional light, green identifiers
+  and small sage icon inlays. Directory code wells use a lighter tint.
 - Provider links use quiet monochrome marks with contrast in both themes.
 - Selected aircraft, live trace and ordinary controls retain neutral map ink.
-- Active controls also change relief or outline so color is not the only cue.
+- Active readings use a sage wash, rim, icon inlay and underline, with their
+  existing pressed state. Hover must preserve selection. Active filter icon
+  wells repeat the tint; ordinary controls remain neutral.
 - Loading and successful asynchronous states use neutral dots; unavailable
   states use a high-contrast neutral outline with the existing status label, so
   brand green never reads as a successful result for unavailable data.
@@ -90,6 +98,7 @@ Review Home, an airport, a tracked flight, weather, filters and a map preview:
 2. Verify column/map bounds, no horizontal overflow and readable long values.
 3. Exercise search, view switching, unit toggles, selection and settings.
 4. Check focus visibility and reduced-motion behavior.
-5. Confirm neutral identity/provider surfaces and restrained use of one accent.
+5. Confirm neutral identity/provider surfaces and the identity/selection/data
+   hierarchy of one accent; flight-rule severity and missing data stay neutral.
 6. Run a current production build and inspect the changed CSS for duplicated
    rules, unsupported selectors and unnecessary visual machinery.

@@ -58,9 +58,9 @@ const GLYPHS = {
 const up = (value) => String(value ?? "").toUpperCase();
 
 // Two audiences, two densities, one card grammar. Each view leads with a
-// single colour-encoded hero card (flight-rules category for METAR, the
-// temperature scale for Local) over a quiet decoded metric area. The colour
-// is data-driven and never the product's orange signal accent.
+// single hero card (flight-rules category for METAR, the temperature scale
+// for Local) over a quiet decoded metric area. Flight-rule severity stays
+// neutral so the sage temperature scale never implies safe flying weather.
 export default function WeatherBriefingStack({
   metar = null,
   metarRaw = "",
@@ -378,8 +378,8 @@ function LocalView({ local, loading, t, units }) {
         <div className="mt-3.5 h-1 overflow-hidden rounded-full bg-[var(--atc-line)]">
           {rangePct != null ? (
             <div
-              className="h-full rounded-full"
-              style={{ width: `${rangePct * 100}%`, background: "var(--atc-text)" }}
+              className="weather-temperature-scale__fill h-full rounded-full"
+              style={{ width: `${rangePct * 100}%` }}
             />
           ) : null}
         </div>

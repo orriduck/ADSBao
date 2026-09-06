@@ -1,8 +1,17 @@
-/* Neutral instrument surfaces. Form is expressed through material and light;
-   jade green appears only in small action and active-state details. */
+/* Soft instruments with sage inlays. Color belongs to identity and selected
+   readings; ordinary controls and the map keep their neutral materials. */
 :root {
-    --soft-accent: #267967;
-    --soft-identity-surface: #f5f5f5;
+    --soft-accent: #4e654d;
+    --soft-accent-inlay: #a0ab98;
+    --soft-accent-on-inlay: #263e2e;
+    --soft-accent-wash: color-mix(in oklab, var(--soft-accent) 11%, var(--soft-identity-surface));
+    --soft-accent-rim: color-mix(in oklab, var(--soft-accent) 22%, transparent);
+    --soft-identity-surface: #ede8de;
+    --soft-map-identity-surface: #f5f5f5;
+    --soft-paper: #faf7f0;
+    --soft-column: #e8e7df;
+    --soft-label: #6b6458;
+    --soft-reading-ink: #30372e;
     --soft-identity-ink: var(--atc-text);
     --soft-identity-material: linear-gradient(135deg, rgb(255 255 255 / 0.9), transparent 62%);
     --soft-icon-surface: color-mix(in oklab, var(--atc-text) 5%, var(--app-frost-tint));
@@ -18,8 +27,15 @@
 }
 
 :root[data-theme="dark"] {
-    --soft-accent: #66b59e;
-    --soft-identity-surface: #171717;
+    --soft-accent: #b5c6a4;
+    --soft-accent-inlay: #a0b18e;
+    --soft-accent-on-inlay: #263322;
+    --soft-identity-surface: #24271f;
+    --soft-map-identity-surface: #171717;
+    --soft-paper: #161914;
+    --soft-column: #20221c;
+    --soft-label: #b5b09f;
+    --soft-reading-ink: #eeeee3;
     --soft-identity-material: linear-gradient(135deg, rgb(255 255 255 / 0.055), transparent 62%);
     --soft-icon-surface: color-mix(in oklab, var(--atc-text) 8%, #151515);
     --soft-icon-shadow: inset 0 1px 0 rgb(255 255 255 / 0.13), 0 3px 7px rgb(0 0 0 / 0.32);
@@ -35,11 +51,25 @@
     --atc-action-focus-ring: var(--soft-accent);
 }
 
+/* Sampled sage, olive and ivory live inside the interface column. These
+   local tokens leave the map, its labels and aviation semantics untouched. */
+:root[data-theme] :is(.dither-page-panel:not(.plane-hunter-panel),
+    .airport-map-kit .sidebar-shell, .map-settings-sheet,
+    [data-ui="mobile-preview-card"]) {
+    --atc-text: var(--soft-reading-ink);
+    --atc-dim: var(--soft-label);
+    --atc-faint: var(--soft-label);
+    --airport-wayfinding-content: var(--soft-paper);
+    --home-wayfinding-content: var(--soft-paper);
+    --app-frost-tint: var(--soft-paper);
+    --sidebar: var(--soft-column);
+}
+
 /* Keep the allocated column width and the map's existing viewport. */
 .dither-page-panel:not(.plane-hunter-panel),
 :root[data-theme="dark"] .dither-page-panel:not(.plane-hunter-panel),
 .airport-map-kit .sidebar-shell {
-    background: var(--sidebar);
+    background: var(--soft-column);
     border-right: 0;
     box-shadow: none;
 }
@@ -136,6 +166,7 @@
 
 .airport-map-kit .airport-wayfinding-identity h1,
 .airport-map-kit .flight-wayfinding-identity__content > .notranslate:first-child {
+    color: var(--soft-accent);
     padding-right: 32px;
     font-size: 38px;
     font-weight: 500;
@@ -265,10 +296,16 @@
 
 .airport-map-kit .wayfinding-metric__rail svg { width: 14px; height: 14px; }
 
-.airport-map-kit .wayfinding-metric[data-active="true"],
-.airport-map-kit button.wayfinding-metric:hover {
+.airport-map-kit button.wayfinding-metric:not([data-active="true"]):hover {
     background: color-mix(in oklab, var(--atc-text) 5%, transparent);
     box-shadow: none;
+}
+.airport-map-kit .wayfinding-metric[data-active="true"] {
+    background: var(--soft-accent-wash);
+    box-shadow: inset 0 0 0 1px var(--soft-accent-rim), inset 0 1px 0 var(--soft-rim);
+}
+.airport-map-kit .wayfinding-metric[data-active="true"] :is(.wayfinding-metric__title, .wayfinding-metric__value-group > span) {
+    color: var(--soft-accent);
 }
 
 .airport-map-kit button.wayfinding-metric::after {
@@ -529,8 +566,8 @@
     align-items: center;
     padding: 0;
     border-radius: 50%;
-    background: var(--soft-icon-surface);
-    color: var(--atc-text);
+    background: var(--soft-accent-wash);
+    color: var(--soft-accent);
     box-shadow: var(--soft-icon-shadow);
 }
 .airport-map-kit .weather-wayfinding-hero > div { padding: 24px 20px; }
@@ -593,6 +630,12 @@
     border-radius: 10px;
 }
 .mobile-preview-identity-content { padding-top: 14px; padding-bottom: 14px; }
+:root[data-theme] .mobile-preview-sign { background: var(--soft-paper); }
+.mobile-preview-sign .mobile-preview-identity-rail {
+    background: var(--soft-accent-inlay);
+    color: var(--soft-accent-on-inlay);
+    box-shadow: var(--soft-icon-shadow);
+}
 
 /* Explicit outlines survive the material's box-shadow, including selected
    metrics whose inset would otherwise replace Tailwind's focus ring. */
@@ -611,14 +654,14 @@
 }
 .dither-page-shell .dither-wayfinding-identity__rail,
 .airport-map-kit :is(.airport-wayfinding-identity, .flight-wayfinding-identity) > .wayfinding-rail {
-    background-color: var(--soft-icon-surface);
+    background-color: var(--soft-accent-inlay);
     background-image: none !important;
-    color: var(--atc-dim);
+    color: var(--soft-accent-on-inlay);
     box-shadow: var(--soft-icon-shadow);
 }
-.dither-page-shell .dither-wayfinding-identity__icon { color: var(--atc-dim); }
+.dither-page-shell .dither-wayfinding-identity__icon { color: var(--soft-accent-on-inlay); }
 .dither-page-shell .dither-wayfinding-identity .atc-page-title::after { display: none; }
-.airport-map-kit :is(.airport-wayfinding-identity__name, .flight-wayfinding-identity__content .text-atc-text) { color: var(--atc-text); }
+.airport-map-kit .airport-wayfinding-identity__name { color: var(--atc-text); }
 
 /* Provider links are quiet utility content. Their original colors do not
    create another theme, and their marks retain contrast in either mode. */
@@ -635,7 +678,6 @@
 .provider-link-row a:hover { box-shadow: 0 0 0 4px var(--soft-icon-surface); }
 
 /* Surface relief distinguishes controls from readouts. */
-.search-screen :is(.airport-discovery-topic, .airport-search-results) .dither-list .group > span:first-child,
 .airport-map-kit .aircraft-table-filter-shell [data-ui="filter-card"][data-wayfinding="true"] .filter-card__rail,
 .map-settings-sheet .map-settings-row-rail {
     background-color: var(--soft-icon-surface);
@@ -643,20 +685,38 @@
     box-shadow: var(--soft-icon-shadow);
     background-image: none !important;
 }
-.search-screen .airport-list-row__meta { filter: grayscale(1); }
+.search-screen :is(.airport-discovery-topic, .airport-search-results) .dither-list .group > span:first-child {
+    background-color: var(--soft-accent-wash);
+    color: var(--soft-accent);
+    box-shadow: var(--soft-icon-shadow);
+    background-image: none !important;
+}
+.airport-map-kit .aircraft-table-filter-shell [data-ui="filter-card"][data-wayfinding="true"][data-active="true"] .filter-card__rail {
+    background-color: var(--soft-accent-wash);
+    color: var(--soft-accent);
+    box-shadow: inset 0 0 0 1px var(--soft-accent-rim), var(--soft-icon-shadow);
+}
+.search-screen .airport-list-row__meta { color: var(--soft-label); filter: grayscale(1); }
 .search-screen .home-wayfinding-search,
 .airport-map-kit .aircraft-table-search-bar .search-input {
     box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.035), inset 0 -1px 0 var(--soft-rim);
 }
-.airport-map-kit .wayfinding-metric[data-active="true"] .wayfinding-metric__rail,
-.airport-map-kit button.wayfinding-metric:is(:hover, :focus-visible) .wayfinding-metric__rail {
+.airport-map-kit button.wayfinding-metric:not([data-active="true"]):is(:hover, :focus-visible) .wayfinding-metric__rail {
     background: var(--soft-icon-surface);
     color: var(--atc-text);
     box-shadow: var(--soft-icon-shadow);
 }
+.airport-map-kit .wayfinding-metric[data-active="true"] .wayfinding-metric__rail {
+    background: var(--soft-accent-inlay);
+    color: var(--soft-accent-on-inlay);
+    box-shadow: var(--soft-icon-shadow);
+}
 
-/* The primary action uses a small jade marker, with neutral text and material.
-   The accent is never a panel fill, a provider color or a decorative heading. */
+/* Existing data graphics carry color only when the reading is available.
+   Flight-rule severity stays neutral: sage must not imply safe weather. */
+.weather-temperature-scale__fill { background: var(--soft-accent); }
+/* The primary action uses a small sage marker, with neutral text and material.
+   Solid inlays belong to identities, not generic action buttons. */
 .aircraft-preview-card__track-btn,
 .aircraft-preview-card__track-btn:visited,
 :root[data-theme="dark"] .aircraft-preview-card__track-btn,
@@ -720,11 +780,11 @@
 }
 
 /* Nearby airports and navigation aids use the same compact instrument plate
-   as the focal airport. The focal marker alone keeps its jade edge, while
+   as the focal airport. The focal marker alone keeps its sage edge, while
    contextual markers stay neutral and therefore recede without looking like
    a separate map-label system. */
 .airport-overlay-label--map-badge :is(.airport-overlay-label__code.atc-code-pill, .airport-overlay-label__detail) {
-    background: var(--soft-identity-surface);
+    background: var(--soft-map-identity-surface);
     border: 0;
     border-left: 2px solid color-mix(in oklab, var(--atc-text) 14%, transparent);
     border-radius: 5px;

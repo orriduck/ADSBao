@@ -14,7 +14,7 @@ ADSBao provides a map-first airport monitoring HUD: search for an airport, inspe
 
 ## Brand Personality
 
-Precise, tactile and calm. The interface should feel like a carefully made instrument: neutral materials, shallow relief, legible readings and a single sparingly used accent. Airport terminal signage is not a visual reference.
+Precise, tactile and calm. The interface should feel like a carefully made instrument: warm neutral materials, shallow relief, legible readings and deliberate sage inlays. Airport terminal signage is not a visual reference.
 
 ## Anti-references
 
@@ -24,7 +24,7 @@ Avoid generic SaaS dashboards, marketing hero pages, neon cyberpunk radar tropes
 
 1. Map first: the map remains the visual anchor, and panels should feel attached to the operating surface rather than competing with it.
 2. Dense, not cluttered: compress controls and telemetry with strong hierarchy, fixed dimensions, and progressive disclosure.
-3. Color restraint: use neutrals for the interface and one jade-green accent for small action or state cues. Make state readable through labels, shape and relief as well as color.
+3. Color hierarchy: use neutrals for the interface and one sage-green accent for identity, selected readings and real data graphics. Small solid inlays and lighter tinted wells give the color presence without turning ordinary buttons into brand-colored controls. Make state readable through labels, shape and relief as well as color.
 4. Instrument restraint: use softly rounded groups, thin rims, quiet labels and large readouts. Material stays neutral and shallow; avoid large colored identity panels and provider strips.
 5. Preserve flow: visual changes must not change route structure, click paths, data flow, or existing map-layer semantics.
 6. Split workspace on large screens: desktop and landscape layouts reserve a real left column for airport context and controls. Preserve that width and the map area. Use inset rounded groups and compact icon tiles inside the column, following DESIGN.md; floating map controls share their soft edge treatment.

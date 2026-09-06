@@ -50,12 +50,12 @@ export const CHANGELOG_TOTAL_COUNT = 81;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.21.0",
+    version: "v3.21.1",
     kind: "feat",
     title: { en: "A view of Here", zh: "看见此刻所在" },
     summary: {
-      en: "Here location cards find a photograph by place and region name, with geographic matching to avoid namesakes. Images share the airport and flight cards' quiet grayscale treatment and source link, adapt to both themes, and update as the resolved place changes. Missing imagery keeps the existing neutral card.",
-      zh: "Here 位置卡片按地点与地区名称查找照片，并结合地理位置排除同名异地结果。图片沿用机场和航班卡片的低对比灰度背景与来源入口，适配亮暗主题，并随解析出的地点变化更新；无图时保留原有中性卡片。",
+      en: "Here location cards find a photograph by place and region name, with geographic matching to avoid namesakes. Images share the airport and flight cards' quiet grayscale treatment and source link, adapt to both themes, and update as the resolved place changes. Missing imagery keeps the existing neutral card. A sage, gray-olive and warm-ivory palette adds identity inlays, clearer selected readings and a colored temperature scale, with matching dark materials and neutral action buttons.",
+      zh: "Here 位置卡片按地点与地区名称查找照片，并结合地理位置排除同名异地结果。图片沿用机场和航班卡片的低对比灰度背景与来源入口，适配亮暗主题，并随解析出的地点变化更新；无图时保留原有中性卡片。鼠尾草绿、灰橄榄与暖米白组成新的界面材质，强化身份嵌件、选中读数与温度刻度，暗色主题同步适配，普通按钮保留中性样式。",
     },
     highlights: [],
   },

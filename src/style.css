@@ -10658,16 +10658,6 @@ body {
 }
 
 .airport-map-kit .aircraft-table-filter-shell
-    [data-ui="filter-card"][data-wayfinding="true"][data-active="true"]
-    .filter-card__rail,
-.airport-map-kit .aircraft-table-filter-shell
-    [data-ui="filter-card"][data-wayfinding="true"][data-state="open"]
-    .filter-card__rail {
-    background: var(--airport-wayfinding-neutral-rail-active) !important;
-    color: var(--airport-wayfinding-neutral-rail-fg) !important;
-}
-
-.airport-map-kit .aircraft-table-filter-shell
     [data-ui="filter-card"][data-wayfinding="true"]
     [data-ui="filter-label"],
 .airport-map-kit .aircraft-table-filter-shell
