@@ -14,12 +14,15 @@ export function useReverseGeocode(
   lon: number | null | undefined,
   language = "en",
 ) {
-  const [data, setData] = useState<ReverseGeocodeResult | null>(null);
+  const [result, setResult] = useState<{
+    data: ReverseGeocodeResult | null;
+    coordinates: { lat: number; lon: number };
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-      setData(null);
+      setResult(null);
       setLoading(false);
       return undefined;
     }
@@ -27,11 +30,12 @@ export function useReverseGeocode(
     let cancelled = false;
     setLoading(true);
     fetchReverseGeocode(lat as number, lon as number, language)
-      .then((result) => {
-        if (!cancelled) setData(result);
+      .then((data) => {
+        // Keep the resolved name and its lookup position together while moving.
+        if (!cancelled) setResult({ data, coordinates: { lat: lat as number, lon: lon as number } });
       })
       .catch(() => {
-        if (!cancelled) setData(null);
+        if (!cancelled) setResult(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -42,5 +46,5 @@ export function useReverseGeocode(
     };
   }, [lat, lon, language]);
 
-  return { data, loading };
+  return { data: result?.data ?? null, coordinates: result?.coordinates ?? null, loading };
 }

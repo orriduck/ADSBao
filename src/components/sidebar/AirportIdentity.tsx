@@ -12,6 +12,7 @@ import WayfindingRail from "@/components/ui/WayfindingRail";
 import { MapPin, TowerControl } from "lucide-react";
 import { useAirportPhoto } from "@/features/airport/useAirportPhoto";
 import IdentityBackdrop from "./IdentityBackdrop";
+import { usePlacePhoto } from "@/features/location/usePlacePhoto";
 
 export default function AirportIdentity({
   icao = "",
@@ -38,11 +39,12 @@ export default function AirportIdentity({
   // 🇺🇸 United States) rather than the static "HERE / Your location"
   // labels. While the geocode is in-flight the UI falls back to the
   // static copy so the hero never appears empty.
-  const { data: place } = useReverseGeocode(
+  const { data: place, coordinates: placeCoordinates } = useReverseGeocode(
     nearMe ? (placeLat ?? lat) : null,
     nearMe ? (placeLon ?? lon) : null,
     locale,
   );
+  const { data: placePhoto } = usePlacePhoto(nearMe ? place : null, placeCoordinates, locale);
   const nearMeBadge =
     nearMe && (place?.city || place?.county)
       ? place.city || place.county
@@ -87,7 +89,7 @@ export default function AirportIdentity({
 
   return (
     <div className="airport-wayfinding-identity flex min-h-[var(--wayfinding-airport-identity-height)] overflow-hidden">
-      {!nearMe && <IdentityBackdrop photo={photo} country={country} />}
+      <IdentityBackdrop photo={nearMe ? placePhoto : photo} country={nearMe ? nearMeCountryCode : country} />
       <WayfindingRail
         icon={nearMe ? <MapPin /> : <TowerControl />}
         inset="hero"
