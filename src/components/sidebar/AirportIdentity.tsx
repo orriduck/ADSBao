@@ -88,7 +88,7 @@ export default function AirportIdentity({
       : "";
 
   return (
-    <div className="airport-wayfinding-identity flex min-h-[var(--wayfinding-airport-identity-height)] overflow-hidden">
+    <div data-identity-kind={nearMe ? "place" : "airport"} className="airport-wayfinding-identity flex min-h-[var(--wayfinding-airport-identity-height)] overflow-hidden">
       <IdentityBackdrop photo={nearMe ? placePhoto : photo} country={nearMe ? nearMeCountryCode : country} />
       <WayfindingRail
         icon={nearMe ? <MapPin /> : <TowerControl />}
