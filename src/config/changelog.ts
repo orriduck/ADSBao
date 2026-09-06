@@ -46,9 +46,19 @@ export function resolveChangelogText(
 
 export const CHANGELOG_INITIAL_LIMIT = 2;
 export const CHANGELOG_PAGE_SIZE = 20;
-export const CHANGELOG_TOTAL_COUNT = 80;
+export const CHANGELOG_TOTAL_COUNT = 81;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
+  {
+    version: "v3.21.0",
+    kind: "feat",
+    title: { en: "A view of Here", zh: "看见此刻所在" },
+    summary: {
+      en: "Here location cards find a photograph by place and region name, with geographic matching to avoid namesakes. Images share the airport and flight cards' quiet grayscale treatment and source link, adapt to both themes, and update as the resolved place changes. Missing imagery keeps the existing neutral card.",
+      zh: "Here 位置卡片按地点与地区名称查找照片，并结合地理位置排除同名异地结果。图片沿用机场和航班卡片的低对比灰度背景与来源入口，适配亮暗主题，并随解析出的地点变化更新；无图时保留原有中性卡片。",
+    },
+    highlights: [],
+  },
   {
     version: "v3.20.6",
     kind: "feat",
@@ -59,19 +69,7 @@ export const CHANGELOG_RECENT: ChangelogEntry[] = [
     },
     highlights: [{ en: "A new aircraft, flight-path and position-dot icon unifies the PWA, Apple Touch and browser identity, with fresh asset URLs to replace previously cached icons.", zh: "全新飞机、航迹与定位点标识，统一 PWA、Apple Touch 和浏览器图标，并通过独立资源地址更新旧缓存中的图标。" }],
   },
-  {
-    version: "v3.19.2",
-    kind: "feat",
-    title: {
-      en: "Map context refinement",
-      zh: "地图上下文精修",
-    },
-    summary: {
-      en: "Live digits now transition individually, loading uses a quiet dot matrix, and panels open more smoothly. Airport and flight identity cards carry subtle grayscale photo backgrounds; airports fall back to their country flag, and flights share the preview photo. Nearby airport and navaid labels retain the focused airport's compact instrument materials, with clearer ATC and spotting readouts.",
-      zh: "实时数字现在按变化位数轻巧过渡，加载改用安静的点阵，面板展开也更顺滑。机场和航班信息卡提供若隐若现的灰度照片背景：机场无图时显示国旗，航班复用预览照片。附近机场和导航台标签延续焦点机场的紧凑仪表材质，ATC 和拍机点读数也更加清晰。",
-    },
-    highlights: [],
-  },
+
 ];
 
 export const ADSBAO_LATEST_CHANGELOG_VERSION =

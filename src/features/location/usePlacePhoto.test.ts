@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { placePhotoQuery } from './usePlacePhoto';
+const place = {city:'Quincy',county:'Norfolk County',state:'Massachusetts',countryName:'United States',countryCode:'US'};
+const query = placePhotoQuery(place, {lat:42.252,lon:-71.003}, 'en');
+assert.equal(query,placePhotoQuery(place,{lat:42.253,lon:-71.002},'en'),'GPS jitter reuses the same photo query');
+assert.equal(new URLSearchParams(query).get('name'),'Quincy');
+assert.notEqual(query,placePhotoQuery(place,{lat:39.9,lon:-91.4},'en'),'same-name places use distinct location queries');
+assert.equal(new URLSearchParams(placePhotoQuery({...place,city:''},{lat:42.25,lon:-71},'zh-CN')).get('name'),'Norfolk County');
+assert.equal(new URLSearchParams(placePhotoQuery(place,{lat:42.25,lon:-71},'zh-CN')).get('language'),'zh');
+assert.equal(placePhotoQuery(null,{lat:42,lon:-71},'en'),'');
+assert.equal(placePhotoQuery(place,null,'en'),'');
+assert.equal(placePhotoQuery({...place,city:'',county:''},{lat:42,lon:-71},'en'),'');
+assert.equal(placePhotoQuery(place,{lat:NaN,lon:-71},'en'),'');
+assert.equal(placePhotoQuery(place,{lat:91,lon:-71},'en'),'');
+console.log('usePlacePhoto.test.ts ok');
