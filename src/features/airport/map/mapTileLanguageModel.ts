@@ -113,6 +113,13 @@ type TerrainPalette = {
   roadCasing: string;
   roadOpacity: number;
   roadCasingOpacity: number;
+  // Optional expressway tier (Google-style pale-yellow motorways). When
+  // absent, motorway linework falls back to the arterial road values, so
+  // the dark palettes need no changes.
+  motorway?: string;
+  motorwayCasing?: string;
+  motorwayOpacity?: number;
+  motorwayCasingOpacity?: number;
   minorRoad: string;
   minorRoadCasing: string;
   minorRoadOpacity: number;
@@ -162,6 +169,11 @@ type StandardDetailPalette = {
   roadCasing: string;
   roadOpacity: number;
   roadCasingOpacity: number;
+  // Optional expressway tier; absent means motorways reuse arterial values.
+  motorway?: string;
+  motorwayCasing?: string;
+  motorwayOpacity?: number;
+  motorwayCasingOpacity?: number;
   minorRoad: string;
   minorRoadCasing: string;
   minorRoadOpacity: number;
@@ -181,33 +193,41 @@ const STANDARD_DETAIL_PALETTES: Record<"dark" | "light", StandardDetailPalette> 
       landuseOpacity: 0.1,
       landcover: "#293125",
       landcoverOpacity: 0.08,
-      road: "#717765",
-      roadCasing: "#20261d",
-      roadOpacity: 0.36,
-      roadCasingOpacity: 0.16,
-      minorRoad: "#4c5343",
-      minorRoadCasing: "#191d17",
-      minorRoadOpacity: 0.14,
-      minorRoadCasingOpacity: 0.08,
+      motorway: "#7a5f1e",
+      motorwayCasing: "#4a3a10",
+      motorwayOpacity: 1,
+      motorwayCasingOpacity: 0.9,
+      road: "#414545",
+      roadCasing: "#1d2020",
+      roadOpacity: 1,
+      roadCasingOpacity: 0.8,
+      minorRoad: "#343838",
+      minorRoadCasing: "#161818",
+      minorRoadOpacity: 0.9,
+      minorRoadCasingOpacity: 0.6,
     }),
     light: Object.freeze({
-      background: "#f3f0e6",
-      building: "#d5cdbb",
-      buildingOutline: "#b4ac97",
+      background: "#f2f2f2",
+      building: "#d4d5d2",
+      buildingOutline: "#b9bab6",
       buildingOpacity: 0.92,
-      water: "#b9c3b0",
-      landuse: "#ccd3bd",
-      landuseOpacity: 0.65,
-      landcover: "#c7ceb8",
-      landcoverOpacity: 0.58,
-      road: "#a6a594",
-      roadCasing: "#e3decf",
-      roadOpacity: 0.55,
-      roadCasingOpacity: 0.35,
-      minorRoad: "#bfbead",
-      minorRoadCasing: "#e9e5d9",
-      minorRoadOpacity: 0.42,
-      minorRoadCasingOpacity: 0.22,
+      water: "#a7bfc9",
+      landuse: "#ccd8c2",
+      landuseOpacity: 0.85,
+      landcover: "#ccd8c2",
+      landcoverOpacity: 0.8,
+      motorway: "#ffcf4d",
+      motorwayCasing: "#ffffff",
+      motorwayOpacity: 1,
+      motorwayCasingOpacity: 0.9,
+      road: "#fdf2c4",
+      roadCasing: "#ffffff",
+      roadOpacity: 1,
+      roadCasingOpacity: 0.85,
+      minorRoad: "#ffffff",
+      minorRoadCasing: "#d9d9d9",
+      minorRoadOpacity: 0.9,
+      minorRoadCasingOpacity: 0.6,
     }),
   });
 
@@ -225,14 +245,18 @@ const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
       residential: "#1e231b",
       building: "#41473b",
       buildingOutline: "#59604f",
-      road: "#717765",
-      roadCasing: "#293125",
-      roadOpacity: 0.32,
-      roadCasingOpacity: 0.14,
-      minorRoad: "#4c5343",
-      minorRoadCasing: "#191d17",
-      minorRoadOpacity: 0.13,
-      minorRoadCasingOpacity: 0.07,
+      motorway: "#7a5f1e",
+      motorwayCasing: "#4a3a10",
+      motorwayOpacity: 1,
+      motorwayCasingOpacity: 0.9,
+      road: "#414545",
+      roadCasing: "#1d2020",
+      roadOpacity: 1,
+      roadCasingOpacity: 0.8,
+      minorRoad: "#343838",
+      minorRoadCasing: "#161818",
+      minorRoadOpacity: 0.9,
+      minorRoadCasingOpacity: 0.6,
       roadLabel: "#a6ad99",
       roadLabelHalo: "#191d17",
       roadLabelOpacity: 0.54,
@@ -251,41 +275,45 @@ const READABLE_TERRAIN_PALETTES: Record<"dark" | "light", TerrainPalette> =
       hillshadeDetailAccent: "rgba(92, 103, 101, 0.06)",
     }),
     light: Object.freeze({
-      background: "#f3f0e6",
-      water: "#b9c3b0",
-      waterLabel: "#65745c",
-      waterLabelHalo: "#f3f0e6",
-      terrain: "#d2d8c4",
-      terrainOpacity: 0.42,
-      terrainSecondary: "#e4e6d7",
-      terrainSecondaryOpacity: 0.34,
-      residential: "#eeeade",
-      building: "#d5cdbb",
-      buildingOutline: "#b4ac97",
-      road: "#969d88",
-      roadCasing: "#e5e3d5",
-      roadOpacity: 0.42,
-      roadCasingOpacity: 0.22,
-      minorRoad: "#b5b9a6",
-      minorRoadCasing: "#ece9dd",
-      minorRoadOpacity: 0.28,
-      minorRoadCasingOpacity: 0.14,
-      roadLabel: "#656c59",
-      roadLabelHalo: "#f3f0e6",
-      roadLabelOpacity: 0.58,
-      aeroway: "#dcd6c5",
-      aerowayOpacity: 0.6,
-      boundary: "#a2a78f",
-      boundaryOpacity: 0.24,
-      label: "#4d5743",
-      labelHalo: "#f3f0e6",
+      background: "#f2f2f2",
+      water: "#a7bfc9",
+      waterLabel: "#5d7480",
+      waterLabelHalo: "#f2f2f2",
+      terrain: "#ccd8c2",
+      terrainOpacity: 0.85,
+      terrainSecondary: "#e3e4df",
+      terrainSecondaryOpacity: 0.5,
+      residential: "#e8e9e5",
+      building: "#d4d5d2",
+      buildingOutline: "#b9bab6",
+      motorway: "#ffcf4d",
+      motorwayCasing: "#ffffff",
+      motorwayOpacity: 1,
+      motorwayCasingOpacity: 0.9,
+      road: "#fdf2c4",
+      roadCasing: "#ffffff",
+      roadOpacity: 1,
+      roadCasingOpacity: 0.85,
+      minorRoad: "#ffffff",
+      minorRoadCasing: "#d9d9d9",
+      minorRoadOpacity: 0.9,
+      minorRoadCasingOpacity: 0.6,
+      roadLabel: "#5a605f",
+      roadLabelHalo: "#f2f2f2",
+      roadLabelOpacity: 0.75,
+      aeroway: "#dcdcd8",
+      aerowayOpacity: 0.9,
+      boundary: "#b0b3ac",
+      boundaryOpacity: 0.35,
+      label: "#3f4443",
+      labelHalo: "#f2f2f2",
       hillshadeExaggeration: 1,
-      hillshadeShadow: "rgba(70, 70, 66, 0.46)",
-      hillshadeHighlight: "rgba(255, 255, 250, 0.44)",
-      hillshadeAccent: "rgba(102, 128, 108, 0.22)",
-      hillshadeDetailShadow: "rgba(72, 72, 68, 0.22)",
-      hillshadeDetailHighlight: "rgba(255, 255, 250, 0.18)",
-      hillshadeDetailAccent: "rgba(108, 134, 114, 0.1)",
+      hillshadeShadow: "rgba(70, 70, 66, 0.18)",
+      hillshadeHighlight: "rgba(255, 255, 250, 0.2)",
+      hillshadeAccent: "rgba(102, 128, 108, 0.08)",
+      hillshadeDetailShadow: "rgba(72, 72, 68, 0.1)",
+      hillshadeDetailHighlight: "rgba(255, 255, 250, 0.1)",
+      hillshadeDetailAccent: "rgba(108, 134, 114, 0.05)",
     }),
   });
 
@@ -947,7 +975,12 @@ function resolveStandardDetailLayerPaint(
   }
 
   // Roads — keep arterials legible while pushing residential/service streets back.
-  if (isLayerId(id, "road") || isLayerId(id, "highway") || isLayerId(id, "street")) {
+  if (
+    isLayerId(id, "road") ||
+    isLayerId(id, "highway") ||
+    isLayerId(id, "street") ||
+    isTunnelOrBridgeRoadLayer(layer)
+  ) {
     const roadPaint = resolveRoadPaint(layer, palette);
     if (layer.type === "line") {
       setPaint(
@@ -1217,7 +1250,11 @@ function resolveTerrainLayerPaint(
     setPaint("fill-outline-color", palette.buildingOutline);
   }
 
-  if (isLayerId(id, "road") || isLayerId(id, "highway")) {
+  if (
+    isLayerId(id, "road") ||
+    isLayerId(id, "highway") ||
+    isTunnelOrBridgeRoadLayer(layer)
+  ) {
     const roadPaint = resolveRoadPaint(layer, palette);
     setPaintForType(layer, setPaint, {
       fill: ["fill-color", roadPaint.casing],
@@ -1287,6 +1324,10 @@ function resolveRoadPaint(
     | "roadCasing"
     | "roadOpacity"
     | "roadCasingOpacity"
+    | "motorway"
+    | "motorwayCasing"
+    | "motorwayOpacity"
+    | "motorwayCasingOpacity"
     | "minorRoad"
     | "minorRoadCasing"
     | "minorRoadOpacity"
@@ -1296,11 +1337,26 @@ function resolveRoadPaint(
   const id = String(layer?.id || "").toLowerCase();
   const sourceLayer = String(layer?.["source-layer"] || "").toLowerCase();
   const haystack = `${id} ${sourceLayer}`;
+  // The upstream "secondary-tertiary" layers bundle both classes in one id,
+  // so a plain /tertiary/ match would mute secondary arterials as well.
+  // Anything secondary stays arterial; only pure-tertiary linework is minor.
+  const isSecondary = haystack.includes("secondary");
   const isMinor =
-    /minor|service|track|path|pedestrian|residential|tertiary|living|lane/.test(
-      haystack,
-    ) ||
+    (!isSecondary &&
+      /minor|service|track|path|pedestrian|residential|tertiary|living|lane/.test(
+        haystack,
+      )) ||
     (isLayerId(id, "street") && !/primary|secondary|trunk|motorway/.test(haystack));
+
+  // Expressways and ramps sit above arterials (Google-style pale yellow).
+  if (/motorway|link/.test(haystack)) {
+    return {
+      line: palette.motorway ?? palette.road,
+      casing: palette.motorwayCasing ?? palette.roadCasing,
+      opacity: palette.motorwayOpacity ?? palette.roadOpacity,
+      casingOpacity: palette.motorwayCasingOpacity ?? palette.roadCasingOpacity,
+    };
+  }
 
   if (!isMinor) {
     return {
@@ -1321,6 +1377,17 @@ function resolveRoadPaint(
 
 function isRoadCasingLayer(id: string) {
   return isLayerId(id, "casing");
+}
+
+// Upstream names tunnel/bridge road decks `tunnel-*` / `bridge-*` without a
+// "road"/"highway" token, so match them via the transportation source layer.
+// Railway decks keep their own treatment and are excluded here.
+function isTunnelOrBridgeRoadLayer(layer: MapLibreLayer) {
+  const id = String(layer?.id || "").toLowerCase();
+  const sourceLayer = String(layer?.["source-layer"] || "").toLowerCase();
+  if (sourceLayer !== "transportation") return false;
+  if (isLayerId(id, "railway")) return false;
+  return isLayerId(id, "tunnel") || isLayerId(id, "bridge");
 }
 
 function isLayerId(id: string, needle: string) {

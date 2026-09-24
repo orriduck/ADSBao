@@ -431,11 +431,54 @@ assert.equal(
     sources: { openmaptiles: { type: "vector" } },
     layers: [
       { id: "background", type: "background" },
+      { id: "water", type: "fill", paint: { "fill-color": "blue" } },
       { id: "landuse_park", type: "fill", paint: { "fill-color": "#00ff00" } },
       { id: "road_motorway", type: "line", "source-layer": "transportation" },
+      { id: "highway-secondary-tertiary", type: "line", "source-layer": "transportation" },
       { id: "road_residential", type: "line", "source-layer": "transportation" },
+      { id: "tunnel-motorway", type: "line", "source-layer": "transportation" },
+      { id: "bridge-motorway-casing", type: "line", "source-layer": "transportation" },
+      { id: "bridge-railway", type: "line", "source-layer": "transportation" },
     ],
   };
+
+  const lightStandard = buildStandardDetailMapLibreStyle(style, {
+    theme: "light",
+  });
+  const lightById = Object.fromEntries(
+    lightStandard.layers.map((layer) => [layer.id, layer]),
+  );
+
+  // Google-style light treatment: pale-yellow motorways, cream
+  // arterials, white minor streets, blue-gray water shared with terrain.
+  assert.equal(lightById.background.paint["background-color"], "#f2f2f2");
+  assert.equal(lightById.water.paint["fill-color"], "#a7bfc9");
+  assert.equal(lightById.road_motorway.paint["line-color"], "#ffcf4d");
+  assert.equal(lightById.road_motorway.paint["line-opacity"], 1);
+  assert.equal(
+    lightById["highway-secondary-tertiary"].paint["line-color"],
+    "#fdf2c4",
+  );
+  assert.equal(lightById.road_residential.paint["line-color"], "#ffffff");
+  // Tunnel/bridge decks share the tier treatment; railway decks are untouched.
+  assert.equal(lightById["tunnel-motorway"].paint["line-color"], "#ffcf4d");
+  assert.equal(
+    lightById["bridge-motorway-casing"].paint["line-color"],
+    "#ffffff",
+  );
+  assert.equal(lightById["bridge-railway"].paint, undefined);
+
+  const lightTerrain = buildReadableTerrainMapLibreStyle(style, {
+    theme: "light",
+  });
+  const lightTerrainById = Object.fromEntries(
+    lightTerrain.layers.map((layer) => [layer.id, layer]),
+  );
+  assert.equal(lightTerrainById.water.paint["fill-color"], "#a7bfc9");
+  assert.equal(
+    lightTerrainById.road_motorway.paint["line-color"],
+    "#ffcf4d",
+  );
 
   const darkStandard = buildStandardDetailMapLibreStyle(style, {
     theme: "dark",
@@ -447,8 +490,21 @@ assert.equal(
   assert.equal(layerById.background.paint["background-color"], "#191d17");
   assert.equal(layerById.landuse_park.paint["fill-color"], "#293125");
   assert.equal(layerById.landuse_park.paint["fill-opacity"], 0.1);
-  assert.equal(layerById.road_motorway.paint["line-opacity"], 0.36);
-  assert.equal(layerById.road_residential.paint["line-opacity"], 0.14);
+  // Dark Google-style tiers: amber motorways, mid-gray arterials,
+  // deep-gray minors.
+  assert.equal(layerById.road_motorway.paint["line-color"], "#7a5f1e");
+  assert.equal(layerById.road_motorway.paint["line-opacity"], 1);
+  assert.equal(
+    layerById["highway-secondary-tertiary"].paint["line-color"],
+    "#414545",
+  );
+  assert.equal(layerById.road_residential.paint["line-color"], "#343838");
+  assert.equal(layerById.road_residential.paint["line-opacity"], 0.9);
+  assert.equal(layerById["tunnel-motorway"].paint["line-color"], "#7a5f1e");
+  assert.equal(
+    layerById["bridge-motorway-casing"].paint["line-color"],
+    "#4a3a10",
+  );
 }
 
 {
@@ -473,8 +529,10 @@ assert.equal(
   assert.equal(layerById.background.paint["background-color"], "#191d17");
   assert.equal(layerById.landcover_forest.paint["fill-color"], "#293125");
   assert.equal(layerById.landcover_forest.paint["fill-opacity"], 0.12);
-  assert.equal(layerById.highway_primary.paint["line-opacity"], 0.32);
-  assert.equal(layerById.road_service.paint["line-opacity"], 0.13);
+  assert.equal(layerById.highway_primary.paint["line-color"], "#414545");
+  assert.equal(layerById.highway_primary.paint["line-opacity"], 1);
+  assert.equal(layerById.road_service.paint["line-color"], "#343838");
+  assert.equal(layerById.road_service.paint["line-opacity"], 0.9);
 }
 
 // Standard and Terrain must agree on geography without changing source data

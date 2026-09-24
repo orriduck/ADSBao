@@ -18,7 +18,7 @@ import {
 } from "@/features/airport/map/mapTileLanguageModel";
 import { MAP_TILE_READY_CUTOFF_MS } from "@/features/airport/map/mapVisualReadinessModel";
 
-const MAP_STYLE_THEME_REVISION = "sage-materials-v11";
+const MAP_STYLE_THEME_REVISION = "sage-materials-v19";
 const MAP_TILE_REBUILD_AFTER_HIDDEN_MS = 15_000;
 
 export default function MapTileLayers({
