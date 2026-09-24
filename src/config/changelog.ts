@@ -50,12 +50,12 @@ export const CHANGELOG_TOTAL_COUNT = 81;
 
 export const CHANGELOG_RECENT: ChangelogEntry[] = [
   {
-    version: "v3.21.2",
+    version: "v3.21.9",
     kind: "feat",
     title: { en: "A view of Here", zh: "看见此刻所在" },
     summary: {
-      en: "Here location cards find a photograph by place and region name, with geographic matching to avoid namesakes. Images share the airport and flight cards' quiet grayscale treatment and source link, adapt to both themes, and update as the resolved place changes. Missing imagery keeps the existing neutral card. A sage, gray-olive and warm-ivory palette adds identity inlays, clearer selected readings and a colored temperature scale, with matching dark materials and neutral action buttons. Here place names now use a stronger serif heading; the map shares the sage geography, and page chrome meets panels and the mobile map through a continuous top edge.",
-      zh: "Here 位置卡片按地点与地区名称查找照片，并结合地理位置排除同名异地结果。图片沿用机场和航班卡片的低对比灰度背景与来源入口，适配亮暗主题，并随解析出的地点变化更新；无图时保留原有中性卡片。鼠尾草绿、灰橄榄与暖米白组成新的界面材质，强化身份嵌件、选中读数与温度刻度，暗色主题同步适配，普通按钮保留中性样式。Here 地名采用更有分量的衬线标题，地图同步灰绿地理配色，页面顶部与面板及移动地图柔和衔接。",
+      en: "Here location cards find a photograph by place and region name, with geographic matching to avoid namesakes. Images share the airport and flight cards' quiet grayscale treatment and source link, adapt to both themes, and update as the resolved place changes. Missing imagery keeps the existing neutral card. A sage, gray-olive and warm-ivory palette adds identity inlays, clearer selected readings and a colored temperature scale, with matching dark materials and neutral action buttons. Here place names now use a stronger serif heading; the map shares the sage geography, and page chrome meets panels and the mobile map through a continuous top edge. The light map now draws arterial roads as dark lines over quiet blocks, with blue-gray water and pale-green parks; the arterial lines are now softer with a lighter casing. The light map now uses Google-style pale roads: yellow-tinted expressways, cream arterials and white side streets. Expressways now use a deeper yellow that stands apart from the arterials. The dark map mirrors the same Google-style tiers: amber expressways, mid-gray arterials and deep-gray side streets. The dark map is now dimmed into a night mood with muted amber, gray and near-background streets. Dark arterials are dimmed further so only the expressways stand out.",
+      zh: "Here 位置卡片按地点与地区名称查找照片，并结合地理位置排除同名异地结果。图片沿用机场和航班卡片的低对比灰度背景与来源入口，适配亮暗主题，并随解析出的地点变化更新；无图时保留原有中性卡片。鼠尾草绿、灰橄榄与暖米白组成新的界面材质，强化身份嵌件、选中读数与温度刻度，暗色主题同步适配，普通按钮保留中性样式。Here 地名采用更有分量的衬线标题，地图同步灰绿地理配色，页面顶部与面板及移动地图柔和衔接。亮色地图改为深色干道线条配浅色街区，水面呈蓝灰色，公园为淡绿色；干道线条现已调淡，描边同步减弱。亮色地图改用谷歌式浅色道路：高速淡黄、干道米白、次路纯白。高速现改用更深的黄色，与干道区分更明显。暗色地图对应谷歌式层级：高速琥珀、干道中灰、次路深灰。暗色整体压暗为夜间氛围，道路只比背景略亮。暗色干道再压暗一级，仅高速保持辨识。",
     },
     highlights: [],
   },
